@@ -49,6 +49,7 @@ export const studentProjectsReducer = (state = initialState, action: any): Stude
         projectsList: [action.payload.project, ...state.projectsList],
       }
 
+    case types.UPDATE_STUDENT_PROJECT_SUCCESS:
     case types.LIKE_STUDENT_PROJECT_SUCCESS:
       return {
         ...state,

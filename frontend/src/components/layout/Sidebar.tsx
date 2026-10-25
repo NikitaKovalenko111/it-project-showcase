@@ -16,6 +16,7 @@ import {
   LogOut,
   Search,
   ShieldCheck,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '../../types/models'
@@ -45,7 +46,7 @@ const statusConfig: Record<OnlineStatus, { label: string; color: string }> = {
 const rolePillConfig: Record<UserRole, { text: string; color: string }> = {
   student: { text: 'Студент • ИИМР • ТОП-204Б', color: '#3a75b4' },
   company: { text: 'Компания-партнёр', color: '#e68a19' },
-  curator: { text: 'Куратор кафедры УУНиТ', color: '#28a745' },
+  curator: { text: 'Куратор кафедры', color: '#28a745' },
   admin: { text: 'Администратор ИСУ', color: '#e04646' },
   university: { text: 'Администратор ИСУ', color: '#e04646' },
 }
@@ -173,16 +174,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   const pillInfo = rolePillConfig[role] ?? rolePillConfig.student
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsedDesktop ? 'collapsed' : ''}`}>
+    <aside id="main-sidebar" aria-label="Главное меню" className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsedDesktop ? 'collapsed' : ''}`}>
       {/* Official UUST ISU Header matching photos */}
       <div className="sidebar__uust-brand">
         <div className="uust-crest">
-          <span>У</span>
+          <img src="/images/uunit-logo.png" alt="УУНиТ" />
         </div>
         <div className="uust-brand-text">
-          <span className="brand-title">ИСУ УУНиТ</span>
-          <span className="brand-sub">Витрина ИТ-проектов</span>
+          <span className="brand-title">Витрина IT-проектов</span>
         </div>
+        <button className="sidebar__close" onClick={onClose} aria-label="Закрыть меню"><X size={20} /></button>
       </div>
 
       {/* UUST Student / User Card from Photo */}
@@ -203,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           {currentUser?.fullName || 'Магасумов Алмаз Ильшатович'}
         </div>
 
-        <div className="profile-id">ID:{studentId}</div>
+        {role !== 'company' && <div className="profile-id">ID:{studentId}</div>}
         <div className="profile-email">
           Email:{currentUser?.email || '257576@stud.uust.ru'}
         </div>
@@ -316,7 +317,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           <span>Выйти</span>
         </button>
         <div className="sidebar-version-tag">
-          УУНиТ • Евразийский НОЦ 2026
+          2026
         </div>
       </div>
     </aside>

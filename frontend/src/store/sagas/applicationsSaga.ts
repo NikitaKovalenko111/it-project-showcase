@@ -1,4 +1,4 @@
-import { all, call, put, takeLatest } from 'redux-saga/effects'
+import { all, call, put, takeLatest, takeEvery } from 'redux-saga/effects'
 import { apiClient } from '../../api/client'
 import { CaseApplication } from '../../types/models'
 import * as actions from '../actions'
@@ -35,9 +35,10 @@ function* handleUpdateApplicationStatus(action: {
       action.payload.notes
     )
     yield put(actions.updateApplicationStatusSuccess(app))
+    yield put(actions.fetchCasesRequest())
     yield put(actions.fetchCaseByIdRequest(app.caseId))
-  } catch (e) {
-    console.error(e)
+  } catch (error: any) {
+    yield put(actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'))
   }
 }
 
@@ -45,6 +46,6 @@ export function* applicationsSaga() {
   yield all([
     takeLatest(types.FETCH_APPLICATIONS_REQUEST, handleFetchApplications),
     takeLatest(types.CREATE_APPLICATION_REQUEST, handleCreateApplication),
-    takeLatest(types.UPDATE_APPLICATION_STATUS_REQUEST, handleUpdateApplicationStatus),
+    takeEvery(types.UPDATE_APPLICATION_STATUS_REQUEST, handleUpdateApplicationStatus),
   ])
 }

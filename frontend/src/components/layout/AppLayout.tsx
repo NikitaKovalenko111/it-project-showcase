@@ -13,6 +13,42 @@ export const AppLayout: React.FC = () => {
   const previousUser = useRef(currentUser?.id)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.innerWidth <= 1024)
+
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsMobileViewport(window.innerWidth <= 1024)
+      if (window.innerWidth > 1024) setMobileOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const previousOverflow = document.body.style.overflow
+    const previousFocus = document.activeElement as HTMLElement | null
+    document.body.style.overflow = 'hidden'
+    const sidebar = document.getElementById('main-sidebar')
+    sidebar?.querySelector<HTMLButtonElement>('.sidebar__close')?.focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMobileOpen(false); return }
+      if (event.key !== 'Tab') return
+      const controls = Array.from(sidebar?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input, select, textarea, [tabindex="0"]') || [])
+        .filter((element) => element.getClientRects().length > 0)
+      const first = controls[0], last = controls[controls.length - 1]
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      previousFocus?.focus()
+    }
+  }, [mobileOpen])
 
   useEffect(() => {
     if (!currentUser) return
@@ -59,7 +95,7 @@ export const AppLayout: React.FC = () => {
       />
 
       <div className={`workspace-wrapper ${isCollapsedDesktop ? 'sidebar-collapsed' : ''}`}>
-        <Topbar onToggleSidebar={handleToggleSidebar} />
+        <Topbar onToggleSidebar={handleToggleSidebar} sidebarExpanded={isMobileViewport ? mobileOpen : !isCollapsedDesktop} />
         <main className="main-content">
           <React.Fragment key={currentUser.id}><Outlet /></React.Fragment>
         </main>

@@ -54,7 +54,7 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <UserCheck size={20} color="#1b5e91" />
             <div>
-              <h3>Приглашение студента (п. 5.17 ТЗ)</h3>
+              <h3>Приглашение студента</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Кандидат: <strong>{student.fullName}</strong> ({student.studentProfile?.group || 'УУНиТ'})
               </p>

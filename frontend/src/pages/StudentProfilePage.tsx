@@ -27,10 +27,20 @@ import {
   Users,
 } from 'lucide-react'
 
+// Seed URLs are examples, not published student contacts.
+const demoProfileLinks = new Set([
+  'https://github.com/almaz-magasumov',
+  'https://uust.ru/portfolio/257576',
+  'https://github.com/masha-vasilieva',
+  'https://behance.net/masha-design',
+  'https://github.com/artur-karimov',
+])
+const editableProfileLink = (url?: string) => url && !demoProfileLinks.has(url) ? url : ''
+
 export const StudentProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
-  const { currentUser, allUsers } = useAppSelector((state) => state.auth)
+  const { currentUser, allUsers, loading, error } = useAppSelector((state) => state.auth)
   const { casesList } = useAppSelector((state) => state.cases)
   const { projectsList } = useAppSelector((state) => state.studentProjects)
 
@@ -38,7 +48,7 @@ export const StudentProfilePage: React.FC = () => {
 
   // Resolve only the requested student; never substitute another person's profile.
   const targetId = id === 'me' ? currentUser?.id : id
-  const targetUser = [...studentsList, ...allUsers, ...(currentUser ? [currentUser] : [])].find((u) => u.id === targetId)
+  const targetUser = [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find((u) => u.id === targetId)
   const isOwnProfile = currentUser?.id === targetUser?.id
   const student = targetUser?.studentProfile
 
@@ -49,8 +59,8 @@ export const StudentProfilePage: React.FC = () => {
   const [bio, setBio] = useState(student?.bio || '')
   const [skills, setSkills] = useState(student?.skills.join(', ') || '')
   const [techStack, setTechStack] = useState(student?.techStack.join(', ') || '')
-  const [githubUrl, setGithubUrl] = useState(student?.githubUrl || '')
-  const [portfolioUrl, setPortfolioUrl] = useState(student?.portfolioUrl || '')
+  const [githubUrl, setGithubUrl] = useState(editableProfileLink(student?.githubUrl))
+  const [portfolioUrl, setPortfolioUrl] = useState(editableProfileLink(student?.portfolioUrl))
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,13 +73,12 @@ export const StudentProfilePage: React.FC = () => {
         bio,
         skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
         techStack: techStack.split(',').map((s) => s.trim()).filter(Boolean),
-        githubUrl,
-        portfolioUrl,
+        githubUrl: githubUrl.trim(),
+        portfolioUrl: portfolioUrl.trim(),
       },
     }
 
     dispatch(updateUserProfileRequest(updatedUser))
-    setIsEditing(false)
   }
 
   useEffect(() => {
@@ -77,8 +86,8 @@ export const StudentProfilePage: React.FC = () => {
     setBio(student?.bio || '')
     setSkills(student?.skills.join(', ') || '')
     setTechStack(student?.techStack.join(', ') || '')
-    setGithubUrl(student?.githubUrl || '')
-    setPortfolioUrl(student?.portfolioUrl || '')
+    setGithubUrl(editableProfileLink(student?.githubUrl))
+    setPortfolioUrl(editableProfileLink(student?.portfolioUrl))
   }, [targetId, student])
 
   if (!targetUser?.studentProfile) return <div className="card" style={{ padding: 24 }}>Профиль студента не найден или загружается.</div>
@@ -93,6 +102,7 @@ export const StudentProfilePage: React.FC = () => {
 
   return (
     <div>
+      {error && <p role="alert">{error}</p>}
       {/* Profile Header Banner */}
       <div
         className="card"
@@ -104,7 +114,7 @@ export const StudentProfilePage: React.FC = () => {
           marginBottom: '24px',
         }}
       >
-        <div style={{ padding: '32px 36px', display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+        <div className="profile-banner-body" style={{ padding: '32px 36px', display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
           <img
             src={
               targetUser.avatar ||
@@ -121,7 +131,7 @@ export const StudentProfilePage: React.FC = () => {
             }}
           />
 
-          <div style={{ flex: 1, minWidth: '280px' }}>
+          <div style={{ flex: 1, minWidth: 'min(280px, 100%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               <span
                 style={{
@@ -135,7 +145,7 @@ export const StudentProfilePage: React.FC = () => {
                   textTransform: 'uppercase',
                 }}
               >
-                Подтверждённое портфолио УУНиТ
+                Подтверждённое портфолио
               </span>
               <span style={{ fontSize: '12px', color: '#93c5fd' }}>Курс {student?.course || 3}</span>
             </div>
@@ -152,7 +162,7 @@ export const StudentProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Rating Widget (п. 5.22 ТЗ) */}
+          {/* Rating Widget */}
           <div
             style={{
               background: 'rgba(255, 255, 255, 0.08)',
@@ -194,7 +204,7 @@ export const StudentProfilePage: React.FC = () => {
       {isEditing && (
         <div className="card" style={{ marginBottom: '24px' }}>
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование сведений портфолио (п. 5.1 ТЗ)</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование сведений портфолио</h3>
           </div>
           <form onSubmit={handleSaveProfile}>
             <div className="card__body">
@@ -208,7 +218,7 @@ export const StudentProfilePage: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label>Компетенции (через запятую):</label>
                   <input
@@ -229,13 +239,13 @@ export const StudentProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label>Ссылка на GitHub:</label>
                   <input
                     type="url"
                     className="input"
-                    value={githubUrl}
+                    pattern="https?://.*" value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
                   />
                 </div>
@@ -244,15 +254,15 @@ export const StudentProfilePage: React.FC = () => {
                   <input
                     type="url"
                     className="input"
-                    value={portfolioUrl}
+                    pattern="https?://.*" value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                   />
                 </div>
               </div>
             </div>
             <div className="card__footer">
-              <button type="submit" className="btn btn-primary btn-sm">
-                <Save size={14} /> Сохранить изменения
+              <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                <Save size={14} /> {loading ? 'Сохранение…' : 'Сохранить изменения'}
               </button>
             </div>
           </form>
@@ -260,16 +270,16 @@ export const StudentProfilePage: React.FC = () => {
       )}
 
       {/* Grid: Left - Verified Projects & Own Projects, Right - Competencies & Contacts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div className="responsive-detail-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         {/* Left Column */}
         <div>
-          {/* SECTION 1: VERIFIED CASES BY COMPANIES (п. 5.16 ТЗ) */}
+          {/* SECTION 1: VERIFIED CASES BY COMPANIES */}
           <div className="card" style={{ marginBottom: '24px' }}>
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ShieldCheck size={20} color="#16805b" />
                 <h3 style={{ margin: 0, fontSize: '16px' }}>
-                  Выполненные кейсы компаний (п. 5.16 ТЗ)
+                  Выполненные кейсы компаний
                 </h3>
               </div>
               <span className="badge badge-verified">
@@ -341,7 +351,7 @@ export const StudentProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* SECTION 2: STUDENT'S OWN PROJECTS (п. 5.14, 5.16) */}
+          {/* SECTION 2: STUDENT'S OWN PROJECTS */}
           <div className="card">
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -398,7 +408,7 @@ export const StudentProfilePage: React.FC = () => {
             </div>
             <div className="card__body">
               <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
-                {student?.bio || 'Студент кафедры программной инженерии УУНиТ.'}
+                {student?.bio || 'Студент кафедры программной инженерии.'}
               </p>
 
               <div style={{ marginBottom: '14px' }}>
@@ -488,7 +498,7 @@ export const StudentProfilePage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '15px' }}>Контакты и профили</h3>
             </div>
             <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {student?.githubUrl && (
+              {editableProfileLink(student?.githubUrl) && /^https?:\/\//i.test(student.githubUrl) && (
                 <a
                   href={student.githubUrl}
                   target="_blank"
@@ -500,7 +510,7 @@ export const StudentProfilePage: React.FC = () => {
                 </a>
               )}
 
-              {student?.portfolioUrl && (
+              {editableProfileLink(student?.portfolioUrl) && /^https?:\/\//i.test(student.portfolioUrl) && (
                 <a
                   href={student.portfolioUrl}
                   target="_blank"

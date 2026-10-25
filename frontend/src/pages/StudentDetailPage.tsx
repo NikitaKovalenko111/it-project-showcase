@@ -1,8 +1,10 @@
+import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { fetchStudentProjectByIdRequest, likeStudentProjectRequest } from '../store/actions'
 import {
+  Lightbulb,
   ArrowLeft,
   Calendar,
   ExternalLink,
@@ -34,17 +36,17 @@ export const StudentDetailPage: React.FC = () => {
   const getBadgeTitle = (b: string) => {
     switch (b) {
       case 'seeking_company':
-        return '🏢 Ищу компанию / партнёра'
+        return 'Ищу компанию / партнёра'
       case 'seeking_team':
-        return '👥 Ищу команду'
+        return 'Ищу команду'
       case 'seeking_mentor':
-        return '🎓 Ищу наставника'
+        return 'Ищу наставника'
       case 'seeking_investor':
-        return '💰 Ищу инвестора'
+        return 'Ищу инвестора'
       case 'open_for_internship':
-        return '💼 Открыт к стажировке'
+        return 'Открыт к стажировке'
       case 'open_for_job':
-        return '🚀 Открыт к работе'
+        return 'Открыт к работе'
       default:
         return b
     }
@@ -58,7 +60,7 @@ export const StudentDetailPage: React.FC = () => {
         </Link>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div className="responsive-detail-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
             <img
@@ -86,6 +88,8 @@ export const StudentDetailPage: React.FC = () => {
                 {activeProject.title}
               </h1>
 
+              {!isPublished(activeProject) && <p className={`badge publication-${publicationStatus(activeProject)}`}>{publicationLabels[publicationStatus(activeProject)]}</p>}
+              {activeProject.moderationComment && <p>{activeProject.moderationComment}</p>}
               {/* Badges п. 5.15 */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
                 {activeProject.badges.map((b) => (
@@ -101,14 +105,14 @@ export const StudentDetailPage: React.FC = () => {
                       border: '1px solid #bae6fd',
                     }}
                   >
-                    {getBadgeTitle(b)}
+                    <Tag size={12} aria-hidden="true" /> {getBadgeTitle(b)}
                   </span>
                 ))}
               </div>
 
               <div style={{ marginBottom: '20px' }}>
                 <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '6px' }}>
-                  💡 Решаемая проблема (п. 5.15 ТЗ):
+                  <Lightbulb size={14} aria-hidden="true" /> Решаемая проблема:
                 </h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, background: '#f8fafc', padding: '12px 16px', borderRadius: '8px' }}>
                   {activeProject.problemSolved}
@@ -167,7 +171,7 @@ export const StudentDetailPage: React.FC = () => {
                     {authors.find((author) => author.id === activeProject.authorId)?.fullName || activeProject.authorName}
                   </strong>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>
-                    {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент УУНиТ'}
+                    {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент'}
                   </span>
                 </div>
               </div>

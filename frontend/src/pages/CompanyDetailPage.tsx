@@ -70,7 +70,7 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Top back button & breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
         <Link to="/companies" className="btn btn-secondary btn-sm">
-          <ArrowLeft size={15} /> Все компании-партнёры УУНиТ
+          <ArrowLeft size={15} /> Все компании-партнёры
         </Link>
 
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -98,7 +98,7 @@ export const CompanyDetailPage: React.FC = () => {
               </span>
               {activeCompany.isVerified && (
                 <span className="company-verified">
-                  <ShieldCheck size={14} /> Аккредитовано УУНиТ • Евразийский НОЦ
+                  <ShieldCheck size={14} /> Аккредитовано
                 </span>
               )}
             </div>
@@ -249,7 +249,7 @@ export const CompanyDetailPage: React.FC = () => {
             className={`uust-tab ${activeTab === 'internships' ? 'active' : ''}`}
             onClick={() => setActiveTab('internships')}
           >
-            <GraduationCap size={14} /> Программа стажировок УУНиТ
+            <GraduationCap size={14} /> Программа стажировок
           </button>
           <button
             className={`uust-tab ${activeTab === 'mentors' ? 'active' : ''}`}
@@ -334,10 +334,10 @@ export const CompanyDetailPage: React.FC = () => {
                 Порядок прохождения производственной практики в {activeCompany.shortName}
               </h3>
               <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, margin: '0 0 18px' }}>
-                Студенты Института информатики, математики и робототехники (ИИМР) УУНиТ, успешно решившие проектные кейсы компании, получают преимущественное право на зачисление на оплачиваемую стажировку с официальным оформлением и зачетом производственной практики.
+                Студенты Института информатики, математики и робототехники (ИИМР), успешно решившие проектные кейсы компании, получают преимущественное право на зачисление на оплачиваемую стажировку с официальным оформлением и зачетом производственной практики.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <div style={{ fontWeight: 700, color: '#1e4b85', fontSize: '13px', marginBottom: '6px' }}>1. Выбор и защита кейса</div>
                   <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
@@ -348,7 +348,7 @@ export const CompanyDetailPage: React.FC = () => {
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <div style={{ fontWeight: 700, color: '#1e4b85', fontSize: '13px', marginBottom: '6px' }}>2. Договор с кафедрой</div>
                   <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-                    Заключение индивидуального или группового договора о прохождении практики между УУНиТ и предприятием.
+                    Заключение индивидуального или группового договора о прохождении практики между и предприятием.
                   </div>
                 </div>
 
@@ -367,7 +367,7 @@ export const CompanyDetailPage: React.FC = () => {
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0c1938', margin: '0 0 14px' }}>
                 Наставники и эксперты от предприятия
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
                 <div style={{ display: 'flex', gap: '14px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
@@ -390,7 +390,7 @@ export const CompanyDetailPage: React.FC = () => {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '14px', color: '#0c1938' }}>Ахметова Лилия Фаритовна</div>
                     <div style={{ fontSize: '12px', color: '#3a75b4', fontWeight: 600 }}>Team Lead AI & Data Engineering</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Экспертиза: Компьютерное зрение, PyTorch, MLOps, выпускница УУНиТ</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Экспертиза: Компьютерное зрение, PyTorch, MLOps, выпускница</div>
                   </div>
                 </div>
               </div>

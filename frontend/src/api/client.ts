@@ -14,6 +14,7 @@ import {
   StudentProject,
   SystemNotification,
   User,
+  ModerationStatus,
 } from '../types/models'
 
 // Axios base client
@@ -54,6 +55,15 @@ axiosInstance.interceptors.response.use(
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const apiClient = {
+  async moderatePublication(kind: 'case' | 'student', id: string, status: ModerationStatus, comment: string): Promise<CaseProject | StudentProject> {
+    if (apiRuntime.mode === 'live') {
+      const resource = kind === 'case' ? 'cases' : 'student-projects'
+      const res = await axiosInstance.patch<CaseProject | StudentProject>(`/${resource}/${id}/moderation`, { status, comment })
+      return res.data
+    }
+    await delay(180)
+    return mockServer.moderatePublication(kind, id, status, comment)
+  },
   // Auth & Users
   async getCurrentUser(): Promise<User> {
     if (apiRuntime.mode === 'live') {

@@ -4,6 +4,10 @@ import { useAppDispatch, useAppSelector } from '../../store'
 import { markAllNotificationsReadRequest, markNotificationReadRequest, switchUserRequest } from '../../store/actions'
 import { mockServer } from '../../api/mockServer'
 import {
+  Building2,
+  GraduationCap,
+  Landmark,
+  Settings,
   Bell,
   CheckCheck,
   ClipboardList,
@@ -15,9 +19,10 @@ import {
 
 interface TopbarProps {
   onToggleSidebar: () => void
+  sidebarExpanded: boolean
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
+export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { currentUser } = useAppSelector((state) => state.auth)
@@ -73,6 +78,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           className="topbar-isu__hamburger"
           onClick={onToggleSidebar}
           aria-label="Переключить боковое меню"
+          aria-controls="main-sidebar"
+          aria-expanded={sidebarExpanded}
           title="Свернуть / развернуть меню"
         >
           <Menu size={18} />
@@ -83,6 +90,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           <span className="date-dot" />
           <span>Сегодня: {new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Yekaterinburg', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).format(new Date())}</span>
         </div>
+        <span className="topbar-isu__mobile-brand">Витрина IT-проектов</span>
       </div>
 
       <div className="topbar-isu__right">
@@ -193,25 +201,25 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
                 className={`dropdown-item ${currentUser?.role === 'student' ? 'active' : ''}`}
                 onClick={() => handleSwitchUser('usr_student_1')}
               >
-                🎓 Студент (Алмаз Магасумов)
+                <GraduationCap size={14} aria-hidden="true" /> Студент (Алмаз Магасумов)
               </button>
               <button
                 className={`dropdown-item ${currentUser?.role === 'company' ? 'active' : ''}`}
                 onClick={() => handleSwitchUser('usr_company_1')}
               >
-                🏢 Компания (БашНефтеАвтоматика)
+                <Building2 size={14} aria-hidden="true" /> Компания (БашНефтеАвтоматика)
               </button>
               <button
                 className={`dropdown-item ${currentUser?.role === 'curator' ? 'active' : ''}`}
                 onClick={() => handleSwitchUser('usr_curator_1')}
               >
-                🏛️ Куратор кафедры УУНиТ
+                <Landmark size={14} aria-hidden="true" /> Куратор кафедры
               </button>
               <button
                 className={`dropdown-item ${currentUser?.role === 'admin' ? 'active' : ''}`}
                 onClick={() => handleSwitchUser('usr_admin_1')}
               >
-                ⚙️ Администратор ИСУ
+                <Settings size={14} aria-hidden="true" /> Администратор ИСУ
               </button>
             </div>
           )}

@@ -67,7 +67,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div>
-            <h3>Представление результатов выполнения проекта (п. 5.11 ТЗ)</h3>
+            <h3>Представление результатов выполнения проекта</h3>
             <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
               Кейс: <strong>{caseTitle}</strong>
             </p>
@@ -90,7 +90,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Ссылка на исходный код (GitHub / GitLab):*</label>
                 <div className="search-input-wrap">
@@ -120,7 +120,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Ссылка на презентацию (PDF / Slides):</label>
                 <input

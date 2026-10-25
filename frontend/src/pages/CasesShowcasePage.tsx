@@ -1,3 +1,4 @@
+import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -12,6 +13,7 @@ import { visibleCasesFor } from '../utils/access'
 import { selectShowcaseCases, ShowcaseSort } from '../utils/showcase'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
+  GraduationCap,
   Award,
   Bookmark,
   Briefcase,
@@ -39,7 +41,6 @@ export const CasesShowcasePage: React.FC = () => {
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'sem1' | 'sem2' | 'year'>('all')
   const [activeTab, setActiveTab] = useState<'cases' | 'recruiting'>('cases')
   const [selectedQuickTech, setSelectedQuickTech] = useState<string>('all')
 
@@ -53,7 +54,7 @@ export const CasesShowcasePage: React.FC = () => {
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
   const visibleCases = selectShowcaseCases(visibleCasesFor(currentUser, casesList), {
-    period: selectedPeriod, technology: selectedQuickTech, recruiting: activeTab === 'recruiting', sort,
+    period: 'all', technology: selectedQuickTech, recruiting: activeTab === 'recruiting', sort,
   })
   const academicYear = new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1
 
@@ -71,7 +72,6 @@ export const CasesShowcasePage: React.FC = () => {
 
   const handleResetFilters = () => {
     setSelectedQuickTech('all')
-    setSelectedPeriod('all')
     setActiveTab('cases')
     setSort('newest')
     dispatch(resetCaseFilters())
@@ -101,9 +101,9 @@ export const CasesShowcasePage: React.FC = () => {
       )
     }
     if (c.rewardType === 'educational') {
-      return <span className="badge badge-reward-educational">🎓 Зачет практики + Сертификат</span>
+      return <span className="badge badge-reward-educational"><GraduationCap size={14} aria-hidden="true" /> Зачет практики + Сертификат</span>
     }
-    return <span className="badge badge-reward-other">💼 Стажировка / Оффер</span>
+    return <span className="badge badge-reward-other"><Briefcase size={14} aria-hidden="true" /> Стажировка / Оффер</span>
   }
 
   const getComplexityClass = (complexity: string) => {
@@ -114,12 +114,12 @@ export const CasesShowcasePage: React.FC = () => {
 
   const quickTechList = [
     { label: 'Все технологии', value: 'all' },
-    { label: '🔥 Компьютерное зрение', value: 'Computer Vision' },
-    { label: '⚡ React / Frontend', value: 'React' },
-    { label: '🐍 Python / AI', value: 'Python' },
-    { label: '⚙️ IoT / Микроконтроллеры', value: 'ESP32' },
-    { label: '🐳 Docker / DevOps', value: 'Docker' },
-    { label: '🔒 Безопасность', value: 'безопасност' },
+    { label: 'Компьютерное зрение', value: 'Computer Vision' },
+    { label: 'React / Frontend', value: 'React' },
+    { label: 'Python / AI', value: 'Python' },
+    { label: 'IoT / Микроконтроллеры', value: 'ESP32' },
+    { label: 'Docker / DevOps', value: 'Docker' },
+    { label: 'Безопасность', value: 'безопасност' },
   ]
 
   return (
@@ -131,7 +131,7 @@ export const CasesShowcasePage: React.FC = () => {
             {currentUser?.role === 'company' ? 'Мои ИТ-кейсы' : 'Витрина ИТ-проектов и кейсов предприятий'}
           </h1>
           <p style={{ fontSize: '12.5px', color: '#5e7188', margin: '4px 0 0' }}>
-            Автоматизированная система проектного обучения УУНиТ • Евразийский НОЦ мирового уровня
+            Автоматизированная система проектного обучения
           </p>
         </div>
         {canCreateCase && (
@@ -156,18 +156,15 @@ export const CasesShowcasePage: React.FC = () => {
           >
             <Building2 size={14} /> Открыт набор
           </button>
-          <button
-            className="uust-tab"
-            onClick={() => navigate('/student-projects')}
-          >
+          {currentUser?.role !== 'company' && <button className="uust-tab" onClick={() => navigate('/student-projects')}>
             <FolderGit2 size={14} /> По проектам студентов
-          </button>
+          </button>}
         </div>
 
         <div className="uust-box">
           {/* Row 1: Search input */}
           <div className="uust-filter-row">
-            <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
               <Search
                 size={16}
                 style={{
@@ -194,7 +191,7 @@ export const CasesShowcasePage: React.FC = () => {
           <div className="uust-filter-row">
             <select
               className="uust-select"
-              style={{ flex: 1, minWidth: '200px' }}
+              style={{ flex: 1, minWidth: 'min(200px, 100%)' }}
               aria-label="Направление разработки"
               value={filters.direction}
               onChange={(e) => handleFilterChange('direction', e.target.value)}
@@ -215,15 +212,15 @@ export const CasesShowcasePage: React.FC = () => {
               value={filters.complexity}
               onChange={(e) => handleFilterChange('complexity', e.target.value)}
             >
-              <option value="all">Курс: Все</option>
-              <option value="Начальный">1–2 курс</option>
-              <option value="Средний">3 курс</option>
-              <option value="Высокий">4 курс / Маг.</option>
+              <option value="all">Уровень: любой</option>
+              <option value="Начальный">Начальный</option>
+              <option value="Средний">Средний</option>
+              <option value="Высокий">Высокий</option>
             </select>
 
             <select
               className="uust-select"
-              style={{ flex: 1, minWidth: '180px' }}
+              style={{ flex: 1, minWidth: 'min(180px, 100%)' }}
               value={filters.rewardType}
               onChange={(e) => handleFilterChange('rewardType', e.target.value)}
             >
@@ -236,50 +233,25 @@ export const CasesShowcasePage: React.FC = () => {
 
             <select
               className="uust-select"
-              style={{ flex: 1, minWidth: '150px' }}
+              style={{ flex: 1, minWidth: 'min(150px, 100%)' }}
               value={filters.workFormat}
               onChange={(e) => handleFilterChange('workFormat', e.target.value)}
             >
               <option value="all">Формат: Все</option>
               <option value="дистанционный">Дистанционный</option>
               <option value="смешанный">Смешанный</option>
-              <option value="очный">Очный (в лаборатории УУНиТ)</option>
+              <option value="очный">Очный (в лаборатории)</option>
             </select>
           </div>
 
           {/* Row 3: Semester pills matching the screenshot */}
           <div className="uust-pills-row">
             <button
-              className={`uust-pill ${selectedPeriod === 'sem1' ? 'active' : ''}`}
-              onClick={() => setSelectedPeriod('sem1')}
-            >
-              Осенний семестр
-            </button>
-            <button
-              className={`uust-pill ${selectedPeriod === 'sem2' ? 'active' : ''}`}
-              onClick={() => setSelectedPeriod('sem2')}
-            >
-              Весенний семестр
-            </button>
-            <button
-              className={`uust-pill ${selectedPeriod === 'year' ? 'active' : ''}`}
-              onClick={() => setSelectedPeriod('year')}
-            >
-              За учебный год
-            </button>
-            <button
-              className={`uust-pill ${selectedPeriod === 'all' ? 'active' : ''}`}
-              onClick={() => setSelectedPeriod('all')}
-            >
-              Все периоды ({visibleCasesFor(currentUser, casesList).length})
-            </button>
-
-            <button
               className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
               onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
               style={{ marginLeft: 'auto' }}
             >
-              💰 Только с оплатой / призом
+              <DollarSign size={14} aria-hidden="true" /> Только с оплатой / призом
             </button>
 
             <button
@@ -311,7 +283,7 @@ export const CasesShowcasePage: React.FC = () => {
             className={`quick-chip ${selectedQuickTech === t.value ? 'active' : ''}`}
             onClick={() => handleQuickTechClick(t.value)}
           >
-            {t.label}
+            <Filter size={13} aria-hidden="true" /> {t.label}
           </button>
         ))}
       </div>
@@ -400,13 +372,15 @@ export const CasesShowcasePage: React.FC = () => {
                   </h3>
 
                   <p className="case-card__desc">{item.shortDescription}</p>
+                  {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
+                  {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
 
                   <div className="case-card__tags">
                     <span className="badge badge-direction">{item.direction}</span>
-                    <span className={`badge ${getComplexityClass(item.complexity)}`}>{item.complexity}</span>
+                    <span className={`badge ${getComplexityClass(item.complexity)}`}>Уровень: {item.complexity.toLowerCase()}</span>
                     {item.isConfidential && (
                       <span className="badge badge-confidential">
-                        <FileLock2 size={12} /> NDA
+                        <FileLock2 size={12} /> Конфиденциальность (NDA)
                       </span>
                     )}
                   </div>

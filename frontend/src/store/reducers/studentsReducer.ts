@@ -39,6 +39,9 @@ export const studentsReducer = (state = initialState, action: any): StudentsStat
     case types.INVITE_STUDENT_REQUEST:
       return { ...state, loading: true, error: null }
 
+    case types.UPDATE_USER_PROFILE_SUCCESS:
+      return { ...state, studentsList: state.studentsList.map((student) => student.id === action.payload.user.id ? action.payload.user : student) }
+
     case types.FETCH_STUDENTS_SUCCESS:
       return { ...state, loading: false, studentsList: action.payload.students }
 

@@ -1,4 +1,5 @@
 import type { CaseProject, ProjectTeam, User } from '../types/models'
+import { canModerate, isPublished } from './publication'
 
 export const isAdmin = (user: User | null | undefined) => user?.role === 'admin'
 export const canManageCase = (user: User | null | undefined, project: CaseProject) =>
@@ -11,4 +12,5 @@ export const participatesInCase = (userId: string, project: CaseProject, teams: 
     && (team.leaderId === userId || team.members.some((member) => member.id === userId)))
 
 export const visibleCasesFor = (user: User | null | undefined, projects: CaseProject[]) =>
-  user?.role === 'company' ? projects.filter((p) => p.companyId === user.companyProfile?.companyId) : projects
+  user?.role === 'company' ? projects.filter((p) => p.companyId === user.companyProfile?.companyId)
+    : canModerate(user) ? projects : projects.filter(isPublished)

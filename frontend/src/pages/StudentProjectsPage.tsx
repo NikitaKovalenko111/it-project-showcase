@@ -1,5 +1,7 @@
+import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
+import { canModerate, isPublished, publicationLabels, publicationStatus } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import {
   fetchStudentProjectsRequest,
@@ -8,6 +10,8 @@ import {
 } from '../store/actions'
 import { CreateStudentProjectModal } from '../components/modals/CreateStudentProjectModal'
 import {
+  Code2,
+  GraduationCap,
   ExternalLink,
   FolderGit2,
   Github,
@@ -28,12 +32,14 @@ export const StudentProjectsPage: React.FC = () => {
   const { projectsList, filters, loading } = useAppSelector((state) => state.studentProjects)
   const { currentUser } = useAppSelector((state) => state.auth)
 
+  const [query] = useSearchParams()
+  const [section, setSection] = useState<'catalog' | 'review' | 'mine'>(query.get('review') === 'student' && canModerate(currentUser) ? 'review' : 'catalog')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [selectedQuickCategory, setSelectedQuickCategory] = useState<string>('all')
 
   useEffect(() => {
-    dispatch(fetchStudentProjectsRequest(filters))
-  }, [dispatch, filters])
+    dispatch(fetchStudentProjectsRequest(section === 'review' ? undefined : filters))
+  }, [dispatch, filters, section])
 
   const handleFilterChange = (key: string, value: any) => {
     dispatch(setStudentProjectFilters({ [key]: value }))
@@ -52,22 +58,23 @@ export const StudentProjectsPage: React.FC = () => {
   const getBadgeTitle = (b: string) => {
     switch (b) {
       case 'seeking_company':
-        return '🏢 Ищу компанию'
+        return 'Ищу компанию'
       case 'seeking_team':
-        return '👥 Ищу команду'
+        return 'Ищу команду'
       case 'seeking_mentor':
-        return '🎓 Ищу ментора'
+        return 'Ищу ментора'
       case 'seeking_investor':
-        return '💰 Ищу инвестора'
+        return 'Ищу инвестора'
       case 'open_for_internship':
-        return '💼 На стажировку'
+        return 'На стажировку'
       case 'open_for_job':
-        return '🚀 Открыт к офферу'
+        return 'Открыт к офферу'
       default:
         return b
     }
   }
 
+  const catalogProjects = projectsList.filter((project) => section === 'mine' ? project.authorId === currentUser?.id : isPublished(project))
   return (
     <div>
       {/* Page Header */}
@@ -75,18 +82,24 @@ export const StudentProjectsPage: React.FC = () => {
         <div className="page-header__content">
           <h1>Витрина студенческих проектов</h1>
           <p>
-            Открытый каталог авторских разработок студентов УУНиТ: pet-проекты, курсовые работы, ВКР, стартапы и победители хакатонов.
+            Открытый каталог авторских разработок студентов: pet-проекты, курсовые работы, ВКР, стартапы и победители хакатонов.
           </p>
         </div>
         <div className="page-header__actions">
           {currentUser?.role === 'student' && (
             <button className="btn btn-primary" onClick={() => setCreateModalOpen(true)}>
-              <Plus size={16} /> Опубликовать проект (п. 5.14)
+              <Plus size={16} /> Опубликовать проект
             </button>
           )}
         </div>
       </div>
 
+      <div className="tabs-bar">
+        <button className={`tab-btn ${section === 'catalog' ? 'active' : ''}`} onClick={() => setSection('catalog')}>Опубликованные проекты</button>
+        {currentUser?.role === 'student' && <button className={`tab-btn ${section === 'mine' ? 'active' : ''}`} onClick={() => setSection('mine')}>Мои публикации</button>}
+        {canModerate(currentUser) && <button className={`tab-btn ${section === 'review' ? 'active' : ''}`} onClick={() => setSection('review')}>Одобрение публикаций</button>}
+      </div>
+      {section === 'review' ? <PublicationReviewQueue kind="student" /> : <>
       {/* UUST Schedule-Style Filter Container */}
       <div className="uust-container">
         <div className="uust-tabs-row">
@@ -100,25 +113,25 @@ export const StudentProjectsPage: React.FC = () => {
             className={`uust-tab ${filters.category === 'стартап' ? 'active' : ''}`}
             onClick={() => handleFilterChange('category', 'стартап')}
           >
-            🚀 Стартапы и MVP
+            <Rocket size={14} aria-hidden="true" /> Стартапы и MVP
           </button>
           <button
             className={`uust-tab ${filters.category === 'pet-проект' ? 'active' : ''}`}
             onClick={() => handleFilterChange('category', 'pet-проект')}
           >
-            💻 Pet-проекты
+            <Code2 size={14} aria-hidden="true" /> Pet-проекты
           </button>
           <button
             className={`uust-tab ${filters.category === 'ВКР' ? 'active' : ''}`}
             onClick={() => handleFilterChange('category', 'ВКР')}
           >
-            🎓 Дипломы и ВКР
+            <GraduationCap size={14} aria-hidden="true" /> Дипломы и ВКР
           </button>
         </div>
 
         <div className="uust-box">
           <div className="uust-filter-row">
-            <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
               <Search
                 size={16}
                 style={{
@@ -143,11 +156,11 @@ export const StudentProjectsPage: React.FC = () => {
           <div className="uust-filter-row">
             <select
               className="uust-select"
-              style={{ flex: 1, minWidth: '180px' }}
-              value={filters.direction}
+              style={{ flex: 1, minWidth: 'min(180px, 100%)' }}
+              aria-label="Направление разработки" value={filters.direction}
               onChange={(e) => handleFilterChange('direction', e.target.value)}
             >
-              <option value="all">Все направления кафедр УУНиТ</option>
+              <option value="all">Все направления разработки</option>
               <option value="Frontend">Frontend-разработка</option>
               <option value="Backend">Backend и микросервисы</option>
               <option value="Fullstack">Fullstack-решения</option>
@@ -157,17 +170,17 @@ export const StudentProjectsPage: React.FC = () => {
 
             <select
               className="uust-select"
-              style={{ flex: 1, minWidth: '180px' }}
+              style={{ flex: 1, minWidth: 'min(180px, 100%)' }}
               value={filters.badge}
               onChange={(e) => handleFilterChange('badge', e.target.value)}
             >
               <option value="all">Все отметки (бейджы)</option>
-              <option value="seeking_company">🏢 Ищу компанию / партнёра</option>
-              <option value="seeking_team">👥 Ищу команду разработчиков</option>
-              <option value="seeking_mentor">🎓 Ищу наставника</option>
-              <option value="seeking_investor">💰 Ищу инвестора</option>
-              <option value="open_for_internship">💼 Открыт к стажировке</option>
-              <option value="open_for_job">🚀 Открыт к офферу</option>
+              <option value="seeking_company">Ищу компанию / партнёра</option>
+              <option value="seeking_team">Ищу команду разработчиков</option>
+              <option value="seeking_mentor">Ищу наставника</option>
+              <option value="seeking_investor">Ищу инвестора</option>
+              <option value="open_for_internship">Открыт к стажировке</option>
+              <option value="open_for_job">Открыт к офферу</option>
             </select>
 
             <button
@@ -197,7 +210,7 @@ export const StudentProjectsPage: React.FC = () => {
       </div>
 
       <div className="uust-section-title">
-        <span>Проекты студентов УУНиТ • Найдено: <strong>{projectsList.length}</strong></span>
+        <span>Проекты студентов • Найдено: <strong>{catalogProjects.length}</strong></span>
         <span style={{ fontSize: '12px', fontWeight: 500, color: '#627282' }}>
           Институт информатики, математики и робототехники (ИИМР)
         </span>
@@ -206,7 +219,7 @@ export const StudentProjectsPage: React.FC = () => {
       {/* Projects Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>Загрузка проектов...</div>
-      ) : projectsList.length === 0 ? (
+      ) : catalogProjects.length === 0 ? (
         <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
           <FolderGit2 size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
           <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Проекты не найдены</h3>
@@ -214,7 +227,7 @@ export const StudentProjectsPage: React.FC = () => {
         </div>
       ) : (
         <div className="case-grid">
-          {projectsList.map((item) => (
+          {catalogProjects.map((item) => (
             <div key={item.id} className="student-project-card">
               <div className="student-project-card__image-wrap">
                 <img src={item.coverImage} alt={item.title} />
@@ -259,6 +272,8 @@ export const StudentProjectsPage: React.FC = () => {
 
                 <p className="student-project-card__desc">{item.shortDescription}</p>
 
+                {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
+                {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
                 {/* Badges п. 5.15 ТЗ */}
                 <div className="student-project-card__badges">
                   {item.badges.map((b) => (
@@ -274,7 +289,7 @@ export const StudentProjectsPage: React.FC = () => {
                         border: '1px solid #bae6fd',
                       }}
                     >
-                      {getBadgeTitle(b)}
+                      <Tag size={12} aria-hidden="true" /> {getBadgeTitle(b)}
                     </span>
                   ))}
                 </div>
@@ -322,8 +337,9 @@ export const StudentProjectsPage: React.FC = () => {
         </div>
       )}
 
+      </>}
       {/* Create Modal */}
-      <CreateStudentProjectModal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} />
+      <CreateStudentProjectModal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} onSubmitted={() => { setSection('mine'); dispatch(setStudentProjectFilters({ search: '', category: 'all', direction: 'all', badge: 'all' })) }} />
     </div>
   )
 }

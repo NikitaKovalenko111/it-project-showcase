@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '../store'
 import { loginRequest, loginSuccess } from '../store/actions'
 import { mockServer } from '../api/mockServer'
 import {
+  Landmark,
+  Settings,
   Building2,
   CheckCircle2,
   GraduationCap,
@@ -87,7 +89,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   }
 
   return (
-    <div
+    <div className="login-page"
       style={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #091b2e 0%, #0f2b48 50%, #17395c 100%)',
@@ -131,7 +133,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
             АИС «Витрина ИТ-проектов»
           </h2>
           <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-            Уфимский университет науки и технологий (УУНиТ)
+            Витрина IT-проектов
           </p>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '18px', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
@@ -202,14 +204,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 Быстрый вход под тестовой ролью:
               </span>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
                   onClick={() => handleQuickLogin('student')}
                   style={{ justifyContent: 'flex-start' }}
                 >
-                  🎓 Студент (Иван)
+                  <GraduationCap size={14} aria-hidden="true" /> Студент (Иван)
                 </button>
 
                 <button
@@ -218,7 +220,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   onClick={() => handleQuickLogin('company')}
                   style={{ justifyContent: 'flex-start' }}
                 >
-                  🏢 Компания (R&D)
+                  <Building2 size={14} aria-hidden="true" /> Компания (R&D)
                 </button>
 
                 <button
@@ -227,7 +229,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   onClick={() => handleQuickLogin('curator')}
                   style={{ justifyContent: 'flex-start' }}
                 >
-                  🏛️ Куратор УУНиТ
+                  <Landmark size={14} aria-hidden="true" /> Куратор
                 </button>
 
                 <button
@@ -236,7 +238,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   onClick={() => handleQuickLogin('admin')}
                   style={{ justifyContent: 'flex-start' }}
                 >
-                  ⚙️ Администратор
+                  <Settings size={14} aria-hidden="true" /> Администратор
                 </button>
               </div>
             </div>
@@ -256,7 +258,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 style={{ flex: 1, border: 'none' }}
                 onClick={() => setRoleToRegister('student')}
               >
-                🎓 Студент УУНиТ
+                <GraduationCap size={14} aria-hidden="true" /> Студент
               </button>
               <button
                 type="button"
@@ -264,13 +266,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 style={{ flex: 1, border: 'none' }}
                 onClick={() => setRoleToRegister('company')}
               >
-                🏢 Представитель компании
+                <Building2 size={14} aria-hidden="true" /> Представитель компании
               </button>
             </div>
 
             {roleToRegister === 'student' ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>ФИО студента:*</label>
                     <input
@@ -296,7 +298,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>Институт / факультет:*</label>
                     <select className="select" value={institute} onChange={(e) => setInstitute(e.target.value)}>
@@ -331,7 +333,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>Телефон:</label>
                     <input
@@ -358,7 +360,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               </>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>Название компании:*</label>
                     <input
@@ -384,7 +386,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>ФИО представителя:*</label>
                     <input
@@ -410,7 +412,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label>Корпоративный Email:*</label>
                     <input

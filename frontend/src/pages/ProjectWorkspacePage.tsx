@@ -14,7 +14,7 @@ import {
 import { canManageCase, participatesInCase } from '../utils/access'
 import { MilestoneMaterials } from '../components/MilestoneMaterials'
 import { MilestoneEditor } from '../components/MilestoneEditor'
-import { fetchTeamsRequest } from '../store/actions'
+import { fetchTeamsRequest, fetchStudentsRequest } from '../store/actions'
 import { EvaluationModal } from '../components/modals/EvaluationModal'
 import { ResultSubmissionModal } from '../components/modals/ResultSubmissionModal'
 import {
@@ -60,6 +60,7 @@ export const ProjectWorkspacePage: React.FC = () => {
   useEffect(() => {
     if (id) {
       dispatch(fetchTeamsRequest())
+      dispatch(fetchStudentsRequest())
       dispatch(fetchCaseByIdRequest(id))
       dispatch(fetchMilestonesRequest(id))
       dispatch(fetchSubmissionRequest(id))
@@ -113,19 +114,20 @@ export const ProjectWorkspacePage: React.FC = () => {
   return (
     <div className="workspace-page">
       {/* Back and Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-        <Link to={`/cases/${activeCase.id}`} className="btn btn-secondary btn-sm">
-          <ArrowLeft size={15} /> К описанию кейса
-        </Link>
+      <div className="page-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+        <div className="action-row">
+          <Link to="/workspace" className="btn btn-secondary btn-sm"><ArrowLeft size={15} /> Назад</Link>
+          <Link to={`/cases/${activeCase.id}`} className="btn btn-secondary btn-sm"><FileText size={15} /> Описание проекта</Link>
+        </div>
         <div style={{ fontSize: '12px', color: '#64748b' }}>
-          Рабочая страница проекта (п. 5.9 ТЗ) • ID: {activeCase.id}
+          Рабочая страница проекта • ID: {activeCase.id}
         </div>
       </div>
 
       {/* Header Workspace Card */}
       <div className="workspace-page__header">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '280px' }}>
+          <div style={{ flex: 1, minWidth: 'min(280px, 100%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <span className="badge badge-status status-in_progress">
                 Статус: {activeCase.status === 'completed' ? 'Выполнен' : 'Выполняется (в работе)'}
@@ -150,7 +152,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                 Исполнители: <strong>{activeCase.assignedTeamName || activeCase.assignedStudentName || 'Не назначены'}</strong>
               </span>
               <span>
-                Куратор УУНиТ: <strong>{activeCase.curatorName || 'Не назначен'}</strong>
+                Куратор: <strong>{activeCase.curatorName || 'Не назначен'}</strong>
               </span>
             </div>
           </div>
@@ -167,7 +169,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                 className="btn btn-accent btn-sm"
                 onClick={() => setEvaluationModalOpen(true)}
               >
-                <Award size={14} /> Оценить решение (п. 5.12)
+                <Award size={14} /> Оценить решение
               </button>
             )}
           </div>
@@ -187,7 +189,6 @@ export const ProjectWorkspacePage: React.FC = () => {
         </div>
       </div>
 
-      <p className="workflow-hint">Команда выполняет контрольные точки и прикладывает материалы. Заказчик проверяет этапы. После сдачи итогового решения заказчик выставляет оценку; место в конкурсе показывается у завершённого проекта.</p>
       {/* Tabs Bar */}
       <div className="tabs-bar">
         <button
@@ -308,7 +309,7 @@ export const ProjectWorkspacePage: React.FC = () => {
 
                 {/* Actions */}
                 {isCompanyUser && <MilestoneEditor caseId={activeCase.id} milestoneId={m.id} />}
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <div className="milestone-actions" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   {isParticipant && !isCompleted && <MilestoneMaterials milestoneId={m.id} />}
 
                   {isCompanyUser && m.status === 'submitted' && (
@@ -326,14 +327,14 @@ export const ProjectWorkspacePage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: SUBMISSION & EVALUATION (п. 5.11, 5.12, 5.13 ТЗ) */}
+      {/* TAB 2: SUBMISSION & EVALUATION */}
       {activeTab === 'submission' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '24px' }}>
+        <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '24px' }}>
           {/* Submission Info */}
           <div>
             <div className="card" style={{ marginBottom: '24px' }}>
               <div className="card__header">
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Представленный результат проекта (п. 5.11 ТЗ)</h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Представленный результат проекта</h3>
                 {isParticipant && (
                   <button className="btn btn-primary btn-sm" onClick={() => setSubmissionModalOpen(true)}>
                     {submission ? 'Обновить решение' : 'Сдать результат'}
@@ -400,23 +401,6 @@ export const ProjectWorkspacePage: React.FC = () => {
                       )}
                     </div>
 
-                    {submission.screenshots.length > 0 && (
-                      <div>
-                        <strong style={{ fontSize: '12px', color: '#1e293b', display: 'block', marginBottom: '8px' }}>
-                          Скриншоты разработанного интерфейса:
-                        </strong>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          {submission.screenshots.map((src, idx) => (
-                            <img
-                              key={idx}
-                              src={src}
-                              alt=""
-                              style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px' }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '36px 16px', color: '#94a3b8' }}>
@@ -434,7 +418,7 @@ export const ProjectWorkspacePage: React.FC = () => {
           <div>
             <div className="card">
               <div className="card__header">
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Оценка компании (п. 5.12, 5.13 ТЗ)</h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Оценка компании</h3>
                 {isCompanyUser && submission && (
                   <button className="btn btn-accent btn-sm" onClick={() => setEvaluationModalOpen(true)}>
                     <Award size={14} /> Оценить
@@ -552,18 +536,18 @@ export const ProjectWorkspacePage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: PROJECT TEAM (п. 5.8 ТЗ) */}
+      {/* TAB 3: PROJECT TEAM */}
       {activeTab === 'team' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '16px' }}>Состав проектной команды (п. 5.8 ТЗ)</h3>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>Состав проектной команды</h3>
             <span className="badge badge-direction">{projectTeam?.name || activeCase.assignedStudentName || 'Команда не назначена'}</span>
           </div>
           <div className="card__body">
             {projectMembers.length === 0 && <p>{activeCase.assignedStudentName ? `Индивидуальный исполнитель: ${activeCase.assignedStudentName}` : 'Участники ещё не назначены.'}</p>}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
               {projectMembers.map((mem, idx) => (
-                <div
+                <Link to={`/profile/${mem.id}`}
                   key={idx}
                   style={{
                     background: '#f8fafc',
@@ -587,14 +571,14 @@ export const ProjectWorkspacePage: React.FC = () => {
                       {mem.skills.join(', ')}
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 4: COMMENTS & DISCUSSION (п. 5.9 ТЗ) */}
+      {/* TAB 4: COMMENTS & DISCUSSION */}
       {activeTab === 'comments' && (
         <div className="card">
           <div className="card__header">
@@ -604,11 +588,11 @@ export const ProjectWorkspacePage: React.FC = () => {
             <h4>Материалы проекта</h4>
             <div className="action-row" style={{ marginBottom: 20 }}>
               {[...milestones.flatMap((milestone) => milestone.attachedMaterials), ...(submission?.attachedFiles || [])].map((file, index) =>
-                <a className="btn btn-secondary btn-sm" key={`${file.url}-${index}`} href={file.url} target="_blank" rel="noreferrer"><Paperclip size={13} /> {file.name}</a>)}
+                <a className="btn btn-secondary btn-sm" key={`${file.url}-${index}`} download={file.url.startsWith('data:') ? file.name : undefined} href={file.url} target="_blank" rel="noreferrer"><Paperclip size={13} /> {file.name}</a>)}
               {!milestones.some((milestone) => milestone.attachedMaterials.length > 0) && !submission?.attachedFiles.length && <p>Материалы ещё не добавлены.</p>}
             </div>
             <h4>Обсуждение</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', height: 'min(50vh, 440px)', overflowY: 'auto', overflowWrap: 'anywhere' }}>
               {comments.map((comm) => (
                 <div
                   key={comm.id}
@@ -630,13 +614,13 @@ export const ProjectWorkspacePage: React.FC = () => {
                     style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <div className="discussion-message__meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <strong style={{ fontSize: '13px', color: '#1e293b' }}>{comm.authorName}</strong>
                       <span className="badge badge-direction" style={{ fontSize: '10px' }}>
                         {comm.authorRole === 'company'
                           ? 'Компания'
                           : comm.authorRole === 'curator'
-                          ? 'Куратор УУНиТ'
+                          ? 'Куратор'
                           : 'Студент'}
                       </span>
                       <span style={{ fontSize: '10px', color: '#94a3b8' }}>
@@ -652,7 +636,7 @@ export const ProjectWorkspacePage: React.FC = () => {
             </div>
 
             {/* Post comment form */}
-            <form onSubmit={handlePostComment} style={{ display: 'flex', gap: '10px' }}>
+            <form className="discussion-compose" onSubmit={handlePostComment} style={{ display: 'flex', gap: '10px' }}>
               <input
                 type="text"
                 className="input"
@@ -680,6 +664,7 @@ export const ProjectWorkspacePage: React.FC = () => {
       <EvaluationModal
         caseId={activeCase.id}
         caseTitle={activeCase.title}
+        teamName={projectTeam?.name || activeCase.assignedTeamName || activeCase.assignedStudentName}
         companyId={activeCase.companyId}
         companyName={activeCase.companyName}
         isContest={activeCase.rewardType === 'contest'}

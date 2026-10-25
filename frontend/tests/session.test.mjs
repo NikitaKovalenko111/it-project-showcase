@@ -3,6 +3,16 @@ import test from 'node:test'
 import { loadTs } from './load-ts.mjs'
 
 const { rootReducer } = await import(await loadTs(new URL('../src/store/reducers/rootReducer.ts', import.meta.url)))
+
+test('saved profile updates both the signed-in user and student directory', () => {
+  const original = { id: 'student', role: 'student', studentProfile: { bio: 'before', techStack: ['JS'] } }
+  let state = rootReducer(undefined, { type: 'auth/LOGIN_SUCCESS', payload: { user: original } })
+  state = rootReducer(state, { type: 'students/FETCH_STUDENTS_SUCCESS', payload: { students: [original] } })
+  const updated = { ...original, studentProfile: { bio: 'after', techStack: ['TypeScript'] } }
+  state = rootReducer(state, { type: 'auth/UPDATE_USER_PROFILE_SUCCESS', payload: { user: updated } })
+  assert.deepEqual(state.auth.currentUser.studentProfile, updated.studentProfile)
+  assert.deepEqual(state.students.studentsList[0].studentProfile, updated.studentProfile)
+})
 test('changing profile clears old account data, filters and active workspace', () => {
   let state = rootReducer(undefined, { type: 'init' })
   state = rootReducer(state, { type: 'cases/FETCH_CASES_SUCCESS', payload: { cases: [{ id: 'old' }] } })

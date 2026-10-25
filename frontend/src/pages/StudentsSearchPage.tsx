@@ -68,7 +68,7 @@ export const StudentsSearchPage: React.FC = () => {
   const canInvite = currentUser?.role === 'company'
   const institutes = [...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean))]
 
-  // Recommended students algorithm (п. 5.18 ТЗ) based on matching company cases technologies
+  // Recommended students algorithm based on matching company cases technologies
   const companyTech = new Set(casesList.filter((project) => project.companyId === currentUser?.companyProfile?.companyId).flatMap((project) => project.requiredCompetencies.map((tech) => tech.toLowerCase())))
   const recommendedCandidates = filteredStudents.filter((student) => [...(student.studentProfile?.skills || []), ...(student.studentProfile?.techStack || [])].some((tech) => companyTech.has(tech.toLowerCase()))).slice(0, 3)
 
@@ -79,7 +79,7 @@ export const StudentsSearchPage: React.FC = () => {
         <div className="page-header__content">
           <h1>{currentUser?.role === 'curator' ? 'Студенты и группы' : 'Поиск студентов и проектных команд'}</h1>
           <p>
-            База перспективных студентов, разработчиков и готовых кросс-функциональных команд УУНиТ.
+            База перспективных студентов, разработчиков и готовых кросс-функциональных команд.
             {canInvite ? 'Подбирайте исполнителей по компетенциям и приглашайте в свои кейсы.' : 'Просматривайте группы, компетенции, рейтинг и портфолио студентов.'}
           </p>
         </div>
@@ -90,7 +90,7 @@ export const StudentsSearchPage: React.FC = () => {
         </div>}
       </div>
 
-      {/* Recommended Section (п. 5.18 ТЗ) */}
+      {/* Recommended Section */}
       {canInvite && recommendedCandidates.length > 0 && <div
         style={{
           background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
@@ -103,13 +103,13 @@ export const StudentsSearchPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
           <Sparkles size={18} color="#2563eb" />
           <h3 style={{ margin: 0, fontSize: '15px', color: '#1e3a8a' }}>
-            Рекомендованные кандидаты под требования ИТ-кейсов (п. 5.18 ТЗ)
+            Рекомендованные кандидаты под требования ИТ-кейсов
           </h3>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+        <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
           {recommendedCandidates.map((cand) => (
-            <div
+            <div className="recommended-student"
               key={cand.id}
               style={{
                 background: '#ffffff',
@@ -129,7 +129,7 @@ export const StudentsSearchPage: React.FC = () => {
                   style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
                 />
                 <div>
-                  <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block' }}>{cand.fullName}</strong>
+                  <Link className="profile-link" to={`/profile/${cand.id}`}><strong style={{ fontSize: '13px', display: 'block' }}>{cand.fullName}</strong></Link>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>
                     {cand.studentProfile?.fieldOfStudy.split(' ')[1] || 'ИТ-направление'} • {cand.studentProfile?.course} курс
                   </span>

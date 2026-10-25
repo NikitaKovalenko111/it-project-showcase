@@ -53,7 +53,7 @@ export const App: React.FC = () => {
         <Route path="students-search" element={<StudentsSearchPage />} />
         <Route path="profile/:id" element={<StudentProfilePage />} />
         <Route path="favorites" element={<RoleGuard roles={['student']}><FavoritesPage /></RoleGuard>} />
-        <Route path="analytics" element={<RoleGuard roles={['company', 'curator', 'admin']}><AnalyticsPage /></RoleGuard>} />
+        <Route path="analytics" element={<RoleGuard roles={['company', 'curator', 'university', 'admin']}><AnalyticsPage /></RoleGuard>} />
         <Route path="moderation" element={<RoleGuard roles={['admin']}><ModerationAdminPage /></RoleGuard>} />
       </Route>
 

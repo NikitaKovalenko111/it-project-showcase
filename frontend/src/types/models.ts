@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'university' | 'company' | 'student' | 'curator'
+export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' | 'hidden'
 
 export interface StudentProfile {
   university: string
@@ -119,6 +120,8 @@ export interface PrizePlace {
 }
 
 export interface CaseProject {
+  moderationStatus?: ModerationStatus
+  moderationComment?: string
   id: string
   title: string
   companyId: string
@@ -293,6 +296,8 @@ export type StudentProjectBadge =
   | 'open_for_job'         // Открыт к предложениям о работе
 
 export interface StudentProject {
+  moderationStatus?: ModerationStatus
+  moderationComment?: string
   id: string
   title: string
   coverImage: string
@@ -349,6 +354,7 @@ export interface SystemNotification {
   id: string
   userId: string
   type:
+    | 'publication_status'
     | 'new_case'
     | 'application_status'
     | 'team_invite'

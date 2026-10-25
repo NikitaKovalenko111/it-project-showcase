@@ -1,6 +1,7 @@
+import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createApplicationRequest } from '../../store/actions'
+import { createApplicationSuccess, fetchCaseByIdRequest, fetchCasesRequest } from '../../store/actions'
 import { CaseProject } from '../../types/models'
 import { CheckCircle2, FileText, Send, ShieldAlert, X } from 'lucide-react'
 
@@ -24,11 +25,11 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
   )
   const [resumeUrl, setResumeUrl] = useState(studentProfile?.portfolioUrl || 'https://uust.ru/resume/petrov.pdf')
-  const [portfolioUrl, setPortfolioUrl] = useState(studentProfile?.portfolioUrl || 'https://petrov-dev.uust.space')
   const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || 'https://github.com/ivan-petrov-uust')
   const [ipRightsAgreed, setIpRightsAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedSuccess, setSubmittedSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   if (!isOpen) return null
 
@@ -47,7 +48,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!ipRightsAgreed) {
       alert('Пожалуйста, подтвердите ознакомление с условиями прав на результаты интеллектуальной деятельности (РИД).')
@@ -58,8 +59,9 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
 
     const selectedTeam = userTeams.find((t) => t.id === selectedTeamId)
 
-    dispatch(
-      createApplicationRequest({
+    setSubmitError('')
+    try {
+      const application = await apiClient.createApplication({
         caseId: caseItem.id,
         caseTitle: caseItem.title,
         companyId: caseItem.companyId,
@@ -75,20 +77,16 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
         teamName: applicantType === 'team' ? selectedTeam?.name : undefined,
         coverLetter,
         resumeUrl,
-        portfolioUrl,
+        portfolioUrl: studentProfile?.portfolioUrl,
         githubUrl,
         previousProjects: ['Предиктивный вибромониторинг', 'Smart PyTest Gen'],
       })
-    )
-
-    setTimeout(() => {
-      setIsSubmitting(false)
+      dispatch(createApplicationSuccess(application))
+      dispatch(fetchCaseByIdRequest(caseItem.id))
+      dispatch(fetchCasesRequest())
       setSubmittedSuccess(true)
-      setTimeout(() => {
-        setSubmittedSuccess(false)
-        onClose()
-      }, 1500)
-    }, 400)
+    } catch (cause) { setSubmitError(cause instanceof Error ? cause.message : 'Не удалось отправить заявку') }
+    finally { setIsSubmitting(false) }
   }
 
   return (
@@ -113,14 +111,16 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
             <p style={{ color: '#64748b', fontSize: '13px' }}>
               Представитель компании получил вашу заявку и рассмотрит её в ближайшее время.
             </p>
+            <button className="btn btn-primary" onClick={() => { setSubmittedSuccess(false); onClose() }}>Готово</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            {submitError && <p className="form-error" role="alert">{submitError}</p>}
             <div className="modal-dialog__body">
               {/* Participation format */}
               <div className="form-group">
                 <label>Формат участия в проекте:</label>
-                <div style={{ display: 'flex', gap: '16px' }}>
+                <div className="participation-options" style={{ display: 'flex', gap: '16px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500 }}>
                     <input
                       type="radio"
@@ -177,7 +177,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
               </div>
 
               {/* Links */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label>Ссылка на резюме (CV):*</label>
                   <input
@@ -200,17 +200,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Ссылка на портфолио / личный сайт:</label>
-                <input
-                  type="url"
-                  className="input"
-                  value={portfolioUrl}
-                  onChange={(e) => setPortfolioUrl(e.target.value)}
-                />
-              </div>
-
-              {/* IP Rights Notice (п. 5.24 ТЗ) */}
+              {/* IP Rights Notice */}
               <div
                 style={{
                   background: '#f8fafc',
@@ -223,7 +213,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <ShieldAlert size={16} color="#1b5e91" />
                   <strong style={{ fontSize: '12px', color: '#0f2b48' }}>
-                    Права на результаты интеллектуальной деятельности (РИД, п. 5.24 ТЗ):
+                    Права на результаты интеллектуальной деятельности (РИД):
                   </strong>
                 </div>
                 <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#475569' }}>

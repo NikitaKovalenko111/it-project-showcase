@@ -94,7 +94,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ isOpen, onClos
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Users size={22} color="#1b5e91" />
             <div>
-              <h3>Формирование проектной команды (п. 5.8 ТЗ)</h3>
+              <h3>Формирование проектной команды</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Фиксация состава участников, ролей и компетенций
               </p>
@@ -186,7 +186,7 @@ export const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ isOpen, onClos
                 Добавить участника в команду:
               </span>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr auto', gap: '10px', alignItems: 'flex-end' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr auto', gap: '10px', alignItems: 'flex-end' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>ФИО студента:</label>
                   <input

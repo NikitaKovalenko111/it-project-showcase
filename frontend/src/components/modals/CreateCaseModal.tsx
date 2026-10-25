@@ -1,6 +1,7 @@
+import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createCaseRequest } from '../../store/actions'
+import { createCaseSuccess } from '../../store/actions'
 import { CaseComplexity, IPRightsType, ProjectDirection, RewardType, WorkFormat } from '../../types/models'
 import { Building2, Plus, Sparkles, X } from 'lucide-react'
 
@@ -43,6 +44,9 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
   const [isConfidential, setIsConfidential] = useState(false)
   const [ipRights, setIpRights] = useState<IPRightsType>('non_exclusive_license')
 
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
   if (!isOpen) return null
 
   const directionsList: ProjectDirection[] = [
@@ -71,13 +75,15 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
     'Облачные технологии',
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const selectedCompany = companiesList.find((c) => c.id === companyId) || defaultCompany
 
-    dispatch(
-      createCaseRequest({
+    setError('')
+    setSaving(true)
+    try {
+      const created = await apiClient.createCase({
         title,
         companyId: selectedCompany.id,
         companyName: selectedCompany.name,
@@ -100,14 +106,16 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
         rewardAmount: rewardType === 'monetary' ? Number(rewardAmount) : undefined,
         rewardDescription,
         paymentStatus: rewardType === 'monetary' || rewardType === 'contest' ? 'pending' : 'not_provided',
-        status: 'open',
+        status: 'moderation',
         isConfidential,
         ipRights,
-        isModerated: true,
+        isModerated: false,
+        moderationStatus: 'pending',
       })
-    )
-
-    onClose()
+      dispatch(createCaseSuccess(created))
+      onClose()
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось отправить кейс') }
+    finally { setSaving(false) }
   }
 
   return (
@@ -119,7 +127,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
             <div>
               <h3>Размещение нового ИТ-кейса</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
-                Формирование задачи для студентов УУНиТ (раздел 5.3 ТЗ)
+                Кейс появится в витрине после одобрения куратором. Задача для студентов
               </p>
             </div>
           </div>
@@ -129,6 +137,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
         </div>
 
         <form onSubmit={handleSubmit}>
+          {error && <p className="form-error" role="alert">{error}</p>}
           <div className="modal-dialog__body">
             {/* Company selector */}
             <div className="form-group">
@@ -156,9 +165,9 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Direction & Complexity */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
-                <label>ИТ-направление (п. 5.6 ТЗ):*</label>
+                <label>ИТ-направление:*</label>
                 <select
                   className="select"
                   value={direction}
@@ -179,15 +188,15 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
                   value={complexity}
                   onChange={(e) => setComplexity(e.target.value as CaseComplexity)}
                 >
-                  <option value="Начальный">Начальный (Junior / 1-2 курс)</option>
-                  <option value="Средний">Средний (Middle / 3-4 курс)</option>
-                  <option value="Высокий">Высокий (Senior / Магистратура)</option>
+                  <option value="Начальный">Начальный</option>
+                  <option value="Средний">Средний</option>
+                  <option value="Высокий">Высокий</option>
                 </select>
               </div>
             </div>
 
             {/* Format & Team Size */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Формат участия:*</label>
                 <select
@@ -252,7 +261,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Competencies & Tech */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Необходимые компетенции (через запятую):*</label>
                 <input
@@ -277,7 +286,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               </div>
             </div>
 
-            {/* Reward Classification (п. 5.4, 5.5 ТЗ) */}
+            {/* Reward Classification */}
             <div
               style={{
                 background: '#f8fafc',
@@ -288,10 +297,10 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               }}
             >
               <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#0f2b48' }}>
-                Форма поощрения и финансовые условия (п. 5.4, 5.5 ТЗ)
+                Форма поощрения и финансовые условия
               </h4>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label>Тип проекта:*</label>
                   <select
@@ -346,10 +355,10 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               </div>
             </div>
 
-            {/* IP Rights & Confidentiality (п. 5.24, 5.25 ТЗ) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            {/* IP Rights & Confidentiality */}
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
-                <label>Права на результаты интеллектульной деятельности (п. 5.24):</label>
+                <label>Права на результаты интеллектульной деятельности:</label>
                 <select
                   className="select"
                   value={ipRights}
@@ -369,7 +378,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
                     checked={isConfidential}
                     onChange={(e) => setIsConfidential(e.target.checked)}
                   />
-                  <span>Требует соглашения о конфиденциальности (NDA, п. 5.25)</span>
+                  <span>Требует соглашения о конфиденциальности (NDA)</span>
                 </label>
               </div>
             </div>
@@ -379,8 +388,8 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Отмена
             </button>
-            <button type="submit" className="btn btn-primary">
-              <Plus size={16} /> Опубликовать кейс
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              <Plus size={16} /> {saving ? 'Отправка…' : 'Отправить на рассмотрение'}
             </button>
           </div>
         </form>

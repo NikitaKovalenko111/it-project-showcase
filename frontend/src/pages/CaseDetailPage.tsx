@@ -1,3 +1,4 @@
+import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -11,6 +12,9 @@ import { canManageCase } from '../utils/access'
 import { ApplicationModal } from '../components/modals/ApplicationModal'
 import { NdaModal } from '../components/modals/NdaModal'
 import {
+  ClipboardList,
+  Scale,
+  Info,
   ArrowLeft,
   Award,
   Bookmark,
@@ -85,7 +89,7 @@ export const CaseDetailPage: React.FC = () => {
   return (
     <div>
       {/* Back button & Action header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div className="page-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <Link to="/cases" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Вернуться к витрине кейсов
         </Link>
@@ -103,7 +107,7 @@ export const CaseDetailPage: React.FC = () => {
             <Link to={`/cases/${activeCase.id}/workspace`} className="btn btn-primary btn-sm">
               <Layers size={15} /> Рабочая страница проекта →
             </Link>
-          ) : currentUser?.role === 'student' ? (
+          ) : currentUser?.role === 'student' && isPublished(activeCase) ? (
             userApplication ? (
               <span className="badge badge-status status-open" style={{ padding: '8px 12px', fontSize: '12px' }}>
                 <CheckCircle2 size={14} /> Вы подали заявку (Статус: {userApplication.status})
@@ -133,8 +137,6 @@ export const CaseDetailPage: React.FC = () => {
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#1b5e91' }}>{activeCase.companyName}</div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
-                    <span className="badge badge-direction">{activeCase.direction}</span>
-                    <span className="badge badge-complexity-medium">{activeCase.complexity} уровень</span>
                     {activeCase.isConfidential && (
                       <span className="badge badge-confidential">
                         <FileLock2 size={12} /> Конфиденциальный (NDA)
@@ -144,6 +146,8 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               </div>
 
+              {!isPublished(activeCase) && <p className={`badge publication-${publicationStatus(activeCase)}`}>{publicationLabels[publicationStatus(activeCase)]}</p>}
+              {activeCase.moderationComment && <p>{activeCase.moderationComment}</p>}
               <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f2b48', margin: '0 0 14px', lineHeight: 1.3 }}>
                 {activeCase.title}
               </h1>
@@ -211,10 +215,10 @@ export const CaseDetailPage: React.FC = () => {
               </div>
 
               {/* Requirements for the result & evaluation order */}
-              <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="responsive-grid" style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 8px', color: '#0f2b48' }}>
-                    📋 Требования к результату:
+                    <ClipboardList size={14} aria-hidden="true" /> Требования к результату:
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
                     {activeCase.resultRequirements}
@@ -223,7 +227,7 @@ export const CaseDetailPage: React.FC = () => {
 
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 8px', color: '#0f2b48' }}>
-                    ⚖️ Порядок оценки:
+                    <Scale size={14} aria-hidden="true" /> Порядок оценки:
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
                     {activeCase.evaluationOrder}
@@ -231,33 +235,14 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* IP Rights Display (п. 5.24 ТЗ) */}
-              <div
-                style={{
-                  marginTop: '20px',
-                  padding: '14px 18px',
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                }}
-              >
-                <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <strong style={{ fontSize: '13px', color: '#166534', display: 'block' }}>
-                    Права на результаты интеллектуальной деятельности (РИД, п. 5.24 ТЗ):
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#15803d', lineHeight: 1.5 }}>
-                    {activeCase.ipRights === 'non_exclusive_license'
-                      ? 'Предоставление компании простой неисключительной лицензии. Исключительные права сохраняются за авторами.'
-                      : activeCase.ipRights === 'open_source'
-                      ? 'Проект создается как открытое программное обеспечение (Open-Source) под свободной лицензией.'
-                      : 'Условия передачи исключительных прав определяются отдельным соглашением с компанией.'}
-                  </span>
-                </div>
-              </div>
+              <details className="rights-info">
+                <summary aria-label="Права на результаты" title="Права на результаты"><Info size={18} /></summary>
+                <p><strong>Права на результаты:</strong> {activeCase.ipRights === 'non_exclusive_license'
+                  ? 'Компания получает неисключительную лицензию, исключительные права сохраняются за авторами.'
+                  : activeCase.ipRights === 'open_source' ? 'Проект публикуется под свободной лицензией.'
+                  : activeCase.ipRights === 'author' ? 'Исключительные права сохраняются за автором.'
+                  : 'Условия передачи исключительных прав определяются отдельным соглашением с компанией.'}</p>
+              </details>
             </div>
           </div>
 
@@ -266,7 +251,7 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card" style={{ marginBottom: '24px' }}>
               <div className="card__header">
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Поступившие заявки от студентов ({applicationsList.length})</h3>
-                <span className="badge badge-direction">Модуль отбора (п. 5.7 ТЗ)</span>
+                <span className="badge badge-direction">Модуль отбора</span>
               </div>
               <div className="card__body" style={{ padding: 0 }}>
                 {applicationsList.length === 0 ? (
@@ -337,7 +322,7 @@ export const CaseDetailPage: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Action buttons for company/curator (п. 5.7 ТЗ) */}
+                      {/* Action buttons for company/curator */}
                       {app.status === 'pending' && (
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                           <button
@@ -434,7 +419,7 @@ export const CaseDetailPage: React.FC = () => {
                     Образовательный проект
                   </span>
                   <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
-                    {activeCase.rewardDescription || 'Сертификат от компании и УУНиТ, рекомендательное письмо и подтверждение в портфолио.'}
+                    {activeCase.rewardDescription || 'Сертификат от компании, рекомендательное письмо и подтверждение в портфолио.'}
                   </p>
                 </div>
               )}
@@ -451,6 +436,7 @@ export const CaseDetailPage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '15px' }}>Параметры выполнения</h3>
             </div>
             <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="action-row"><span className="badge badge-direction">{activeCase.direction}</span><span className="badge badge-complexity-medium">Уровень: {activeCase.complexity.toLowerCase()}</span></div>
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Формат работы:</span>
                 <strong style={{ fontSize: '13px', textTransform: 'capitalize' }}>{activeCase.workFormat}</strong>

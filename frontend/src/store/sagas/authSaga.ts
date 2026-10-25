@@ -58,7 +58,7 @@ function* handleUpdateUserProfile(action: { type: string; payload: { user: User 
     const updated: User = yield call(apiClient.updateUser, action.payload.user)
     yield put(actions.updateUserProfileSuccess(updated))
   } catch (error: any) {
-    yield put(actions.loginFailure(error.message || 'Не удалось обновить профиль'))
+    yield put({ type: types.UPDATE_USER_PROFILE_FAILURE, payload: { error: error.message || 'Не удалось обновить профиль' } })
   }
 }
 

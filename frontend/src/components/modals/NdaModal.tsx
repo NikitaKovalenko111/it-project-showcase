@@ -64,7 +64,7 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
             </h4>
             <p>
               Настоящее Соглашение заключается между <strong>{caseItem.companyName}</strong> (далее – «Раскрывающая
-              сторона») и обучающимся УУНиТ <strong>{currentUser?.fullName}</strong> (далее – «Принимающая сторона»).
+              сторона») и обучающимся <strong>{currentUser?.fullName}</strong> (далее – «Принимающая сторона»).
             </p>
             <p>
               1. <strong>Предмет соглашения:</strong> Раскрывающая сторона предоставляет Принимающей стороне доступ к

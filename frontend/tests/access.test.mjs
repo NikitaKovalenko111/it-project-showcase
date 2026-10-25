@@ -9,6 +9,22 @@ const { canManageCase, participatesInCase } = await import(await loadTs(new URL(
 const server = new MockServer()
 const login = (id) => { localStorage.setItem('uust_current_user', JSON.stringify(server.getUserById(id))) }
 
+test('accepted applicants cannot be invited to interview again', () => {
+  login('usr_company_1')
+  const app = server.getApplications().find((item) => item.status === 'accepted')
+  assert.ok(app, 'fixture must contain an accepted applicant')
+  assert.throws(() => server.updateApplicationStatus(app.id, 'interview'), /уже принят/)
+  assert.equal(app.status, 'accepted')
+})
+
+test('profile changes persist after recreating the mock server', () => {
+  login('usr_student_1')
+  const original = server.getUserById('usr_student_1')
+  const updated = { ...original, studentProfile: { ...original.studentProfile, bio: 'Updated profile', techStack: ['TypeScript'] } }
+  server.updateUser(updated)
+  assert.deepEqual(new MockServer().getUserById(original.id).studentProfile, updated.studentProfile)
+})
+
 test('curator observes projects but cannot accept stages, evaluate, invite or change applications', () => {
   login('usr_curator_1')
   const project = server.getCases()[0]

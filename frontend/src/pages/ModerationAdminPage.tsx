@@ -1,3 +1,4 @@
+import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -52,7 +53,7 @@ export const ModerationAdminPage: React.FC = () => {
   const auditLogs = logs.filter((log) => matches(log.id, log.userName, log.actionType, log.objectName, log.objectId, log.details) && (status === 'all' || log.actionType === status))
   const statusOptions = activeTab === 'cases' ? [...new Set(allCases.map((c) => c.status))].map((value) => [value, value])
     : activeTab === 'companies' ? [['true', 'Верифицирована'], ['false', 'Требует проверки']]
-    : activeTab === 'users' ? [['student', 'Студент'], ['company', 'Компания'], ['curator', 'Куратор'], ['admin', 'Администратор'], ['university', 'Сотрудник УУНиТ']]
+    : activeTab === 'users' ? [['student', 'Студент'], ['company', 'Компания'], ['curator', 'Куратор'], ['admin', 'Администратор'], ['university', 'Сотрудник']]
     : [...new Set(logs.map((log) => log.actionType))].map((value) => [value, value])
   const found = { cases: casesList.length, companies: companiesList.length, users: allUsers.length, audit: auditLogs.length }[activeTab]
 
@@ -91,7 +92,7 @@ export const ModerationAdminPage: React.FC = () => {
         <div className="page-header__content">
           <h1>Панель администрирования</h1>
           <p>
-            Управление контентом, верификация компаний, модерация кейсов и системный журнал аудита действий пользователей УУНиТ.
+            Управление контентом, верификация компаний, модерация кейсов и системный журнал аудита действий пользователей.
           </p>
         </div>
       </div>
@@ -144,92 +145,14 @@ export const ModerationAdminPage: React.FC = () => {
         <p aria-live="polite">Найдено записей: {found}</p>
       </div></div>
       {found === 0 && <p>Записи по выбранным фильтрам не найдены.</p>}
-      {/* TAB 1: CASES MODERATION (п. 5.23 ТЗ) */}
-      {activeTab === 'cases' && (
-        <div className="card">
-          <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Модерация ИТ-кейсов компаний и студентов</h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Проверка ТЗ, сроков, вознаграждений и контактов</span>
-          </div>
+      {/* TAB 1: CASES MODERATION */}
+      {activeTab === 'cases' && <PublicationReviewQueue kind="case" />}
 
-          <div className="card__body" style={{ padding: 0 }}>
-            <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Название кейса</th>
-                    <th>Компания</th>
-                    <th>Направление</th>
-                    <th>Форма поощрения</th>
-                    <th>Текущий статус</th>
-                    <th>Действия модератора (п. 5.23)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {casesList.map((c) => (
-                    <tr key={c.id}>
-                      <td>
-                        <Link to={`/cases/${c.id}`}><strong>{c.title}</strong></Link>
-                      </td>
-                      <td>{c.companyName}</td>
-                      <td>
-                        <span className="badge badge-direction">{c.direction}</span>
-                      </td>
-                      <td>
-                        {c.rewardType === 'contest' ? `${c.prizeFund?.toLocaleString()} ₽ (Конкурс)` : c.rewardType}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge badge-status ${
-                            c.status === 'open'
-                              ? 'status-open'
-                              : c.status === 'completed'
-                              ? 'status-completed'
-                              : 'status-in_progress'
-                          }`}
-                        >
-                          {c.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => handleModerateCase(c, 'open')}
-                            title="Принять и опубликовать"
-                          >
-                            <CheckCircle2 size={13} /> Одобрить
-                          </button>
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleModerateCase(c, 'moderation')}
-                            title="Вернуть на доработку"
-                          >
-                            <RotateCcw size={13} /> На доработку
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleModerateCase(c, 'archived')}
-                            title="Скрыть публикацию"
-                          >
-                            <XCircle size={13} /> Скрыть
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: COMPANIES MODERATION (п. 5.2, 5.23 ТЗ) */}
+      {/* TAB 2: COMPANIES MODERATION */}
       {activeTab === 'companies' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Верификация компаний-партнеров УУНиТ</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Верификация компаний-партнеров</h3>
           </div>
           <div className="card__body" style={{ padding: 0 }}>
             <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>
@@ -241,7 +164,7 @@ export const ModerationAdminPage: React.FC = () => {
                     <th>Контактное лицо</th>
                     <th>Сайт</th>
                     <th>Статус верификации</th>
-                    <th>Решение УУНиТ</th>
+                    <th>Решение</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -288,11 +211,11 @@ export const ModerationAdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: USERS & ROLES MATRIX (п. 5.27 ТЗ) */}
+      {/* TAB 3: USERS & ROLES MATRIX */}
       {activeTab === 'users' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Управление пользователями и ролевая модель (п. 5.27 ТЗ)</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Управление пользователями и ролевая модель</h3>
           </div>
           <div className="card__body" style={{ padding: 0 }}>
             <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>
@@ -339,7 +262,7 @@ export const ModerationAdminPage: React.FC = () => {
                           <option value="student">Студент</option>
                           <option value="company">Компания</option>
                           <option value="curator">Куратор</option>
-                          <option value="university">Сотрудник УУНиТ</option>
+                          <option value="university">Сотрудник</option>
                           <option value="admin">Администратор</option>
                         </select>
                       </td>
@@ -360,12 +283,12 @@ export const ModerationAdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: AUDIT LOG (п. 5.26 ТЗ) */}
+      {/* TAB 4: AUDIT LOG */}
       {activeTab === 'audit' && (
         <div className="card">
           <div className="card__header">
             <h3 style={{ margin: 0, fontSize: '15px' }}>
-              Журнал аудита критических операций (п. 5.26 ТЗ)
+              Журнал аудита критических операций
             </h3>
             <span style={{ fontSize: '11px', color: '#64748b' }}>
               Фиксация: пользователь, дата/время, операция, объект, старое и новое значение

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { updateApplicationStatusRequest } from '../store/actions'
 import {
+  MessageSquare,
   Briefcase,
   Calendar,
   CheckCircle2,
@@ -22,7 +23,7 @@ import type { ApplicationStatus } from '../types/models'
 
 export const CompanyApplicationsPage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { applicationsList: allApplications } = useAppSelector((state) => state.applications)
+  const { applicationsList: allApplications, loading, error } = useAppSelector((state) => state.applications)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const applicationsList = currentUser?.role === 'company'
@@ -50,7 +51,7 @@ export const CompanyApplicationsPage: React.FC = () => {
         <div className="page-header__content">
           <h1>Входящие заявки студентов на кейсы</h1>
           <p>
-            Рассмотрение резюме, мотивационных писем и отбор студентов УУНиТ в проектные команды вашего предприятия.
+            Рассмотрение резюме, мотивационных писем и отбор студентов в проектные команды вашего предприятия.
           </p>
         </div>
       </div>
@@ -68,31 +69,31 @@ export const CompanyApplicationsPage: React.FC = () => {
             className={`uust-tab ${statusFilter === 'pending' ? 'active' : ''}`}
             onClick={() => setStatusFilter('pending')}
           >
-            🕒 На рассмотрении ({applicationsList.filter((a) => a.status === 'pending').length})
+            <Clock size={14} aria-hidden="true" /> На рассмотрении ({applicationsList.filter((a) => a.status === 'pending').length})
           </button>
           <button
             className={`uust-tab ${statusFilter === 'interview' ? 'active' : ''}`}
             onClick={() => setStatusFilter('interview')}
           >
-            💬 Назначено интервью
+            <MessageSquare size={14} aria-hidden="true" /> Назначено интервью
           </button>
           <button
             className={`uust-tab ${statusFilter === 'accepted' ? 'active' : ''}`}
             onClick={() => setStatusFilter('accepted')}
           >
-            ✅ Приняты в команду ({applicationsList.filter((a) => a.status === 'accepted').length})
+            <CheckCircle2 size={14} aria-hidden="true" /> Приняты в команду ({applicationsList.filter((a) => a.status === 'accepted').length})
           </button>
           <button
             className={`uust-tab ${statusFilter === 'rejected' ? 'active' : ''}`}
             onClick={() => setStatusFilter('rejected')}
           >
-            ❌ Отклонены
+            <XCircle size={14} aria-hidden="true" /> Отклонены
           </button>
         </div>
 
         <div className="uust-box">
           <div className="uust-filter-row">
-            <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
               <Search
                 size={16}
                 style={{
@@ -116,6 +117,7 @@ export const CompanyApplicationsPage: React.FC = () => {
         </div>
       </div>
 
+      {error && <p role="alert">{error}</p>}
       {filteredApps.length === 0 ? (
         <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
           <Users size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
@@ -129,7 +131,7 @@ export const CompanyApplicationsPage: React.FC = () => {
           {filteredApps.map((app) => (
             <div key={app.id} className="card" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                <div className="candidate-identity" style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                   <img
                     src={app.studentAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'}
                     alt=""
@@ -137,7 +139,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                   />
                   <div>
                     <h3 style={{ margin: '0 0 2px', fontSize: '16px', color: '#0c1938', fontWeight: 800 }}>
-                      {app.studentName}
+                      <Link className="profile-link" title="Открыть профиль студента" to={`/profile/${app.studentId}`}>{app.studentName}</Link>
                     </h3>
                     <div style={{ fontSize: '12px', color: '#627282', display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span>{app.studentInstitute}</span>
@@ -162,13 +164,14 @@ export const CompanyApplicationsPage: React.FC = () => {
                     }`}
                     style={{ fontSize: '12px', padding: '6px 12px' }}
                   >
+                    {app.status === 'accepted' ? <CheckCircle2 size={13} /> : app.status === 'rejected' ? <XCircle size={13} /> : app.status === 'interview' ? <MessageSquare size={13} /> : <Clock size={13} />}
                     {app.status === 'accepted'
-                      ? '✅ Принят в команду'
+                      ? 'Принят в команду'
                       : app.status === 'rejected'
-                      ? '❌ Заявка отклонена'
+                      ? 'Заявка отклонена'
                       : app.status === 'interview'
-                      ? '💬 Назначено собеседование'
-                      : '🕒 На рассмотрении'}
+                      ? 'Назначено собеседование'
+                      : app.status === 'need_info' ? 'Запрошены уточнения' : 'На рассмотрении'}
                   </span>
                 </div>
               </div>
@@ -206,26 +209,28 @@ export const CompanyApplicationsPage: React.FC = () => {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {app.status !== 'accepted' && (
+                <div className="action-row">
+                  {['pending', 'interview'].includes(app.status) && <button disabled={loading} className="btn btn-secondary btn-sm" onClick={() => handleUpdateStatus(app.id, 'need_info')}>Запросить уточнения</button>}
+                  {app.status === 'accepted' && <Link className="btn btn-primary btn-sm" to={`/cases/${app.caseId}/workspace`}>К проекту команды</Link>}
+                  {['pending', 'interview', 'need_info'].includes(app.status) && (
                     <button
-                      className="btn btn-success btn-sm"
+                      disabled={loading} className="btn btn-success btn-sm"
                       onClick={() => handleUpdateStatus(app.id, 'accepted')}
                     >
                       <CheckCircle2 size={13} /> Принять в команду
                     </button>
                   )}
-                  {app.status !== 'interview' && (
+                  {['pending', 'need_info'].includes(app.status) && (
                     <button
-                      className="btn btn-secondary btn-sm"
+                      disabled={loading} className="btn btn-secondary btn-sm"
                       onClick={() => handleUpdateStatus(app.id, 'interview')}
                     >
                       Назначить интервью
                     </button>
                   )}
-                  {app.status !== 'rejected' && (
+                  {['pending', 'interview', 'need_info'].includes(app.status) && (
                     <button
-                      className="btn btn-danger btn-sm"
+                      disabled={loading} className="btn btn-danger btn-sm"
                       onClick={() => handleUpdateStatus(app.id, 'rejected')}
                     >
                       <XCircle size={13} /> Отклонить

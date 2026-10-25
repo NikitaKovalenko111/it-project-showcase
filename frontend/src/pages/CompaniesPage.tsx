@@ -1,5 +1,8 @@
-import React, { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { CatalogSearch } from '../components/CatalogSearch'
+import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
+import { canModerate, matchesSearch } from '../utils/publication'
+import React, { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { fetchCompaniesRequest } from '../store/actions'
 import {
@@ -17,6 +20,12 @@ export const CompaniesPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { companiesList, loading } = useAppSelector((state) => state.companies)
 
+  const { currentUser } = useAppSelector((state) => state.auth)
+  const [search, setSearch] = useState('')
+  const [query] = useSearchParams()
+  const [section, setSection] = useState<'companies' | 'cases'>(query.get('review') === 'cases' && canModerate(currentUser) ? 'cases' : 'companies')
+  const filteredCompanies = companiesList.filter((company) => matchesSearch(search, company.name, company.shortName, company.industry, company.techStack))
+
   useEffect(() => {
     dispatch(fetchCompaniesRequest())
   }, [dispatch])
@@ -25,18 +34,26 @@ export const CompaniesPage: React.FC = () => {
     <div>
       <div className="page-header">
         <div className="page-header__content">
-          <h1>Компании-партнёры УУНиТ</h1>
+          <h1>Компании-партнёры</h1>
           <p>
-            Реестр индустриальных партнёров, высокотехнологичных предприятий и ИТ-компаний Евразийского НОЦ, размещающих проектные кейсы для студентов.
+            Реестр индустриальных партнёров, высокотехнологичных предприятий и ИТ-компаний, размещающих проектные кейсы для студентов.
           </p>
         </div>
       </div>
 
+      {canModerate(currentUser) && <div className="tabs-bar">
+        <button className={`tab-btn ${section === 'companies' ? 'active' : ''}`} onClick={() => setSection('companies')}>Смотреть компании</button>
+        <button className={`tab-btn ${section === 'cases' ? 'active' : ''}`} onClick={() => setSection('cases')}>Заявки на публикацию кейсов</button>
+      </div>}
+      {section === 'cases' ? <PublicationReviewQueue kind="case" /> : <>
+      <CatalogSearch value={search} onChange={setSearch} label="Поиск по компании, отрасли или технологии" />
+      {!loading && <p aria-live="polite">Найдено компаний: {filteredCompanies.length}</p>}
+      {!loading && !filteredCompanies.length && <div className="card empty-state">Компании не найдены.</div>}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>Загрузка компаний...</div>
       ) : (
         <div className="case-grid">
-          {companiesList.map((comp) => (
+          {filteredCompanies.map((comp) => (
             <div key={comp.id} className="case-card">
               <div className="case-card__top-accent" />
               <div className="card__body">
@@ -61,7 +78,7 @@ export const CompaniesPage: React.FC = () => {
                         </h3>
                       </Link>
                       {comp.isVerified && (
-                        <span title="Верифицировано УУНиТ">
+                        <span title="Верифицировано">
                           <ShieldCheck size={16} color="#28a745" />
                         </span>
                       )}
@@ -74,7 +91,7 @@ export const CompaniesPage: React.FC = () => {
                   {comp.description}
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', fontSize: '11px', marginBottom: '14px', border: '1px solid #eef2f6' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', fontSize: '11px', marginBottom: '14px', border: '1px solid #eef2f6' }}>
                   <div>
                     Кейсов в семестре: <strong style={{ color: '#0c1938' }}>{comp.activeCasesCount}</strong>
                   </div>
@@ -121,6 +138,7 @@ export const CompaniesPage: React.FC = () => {
           ))}
         </div>
       )}
+      </>}
     </div>
   )
 }

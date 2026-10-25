@@ -1,15 +1,17 @@
+import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createStudentProjectRequest } from '../../store/actions'
+import { createStudentProjectSuccess } from '../../store/actions'
 import { ProjectDirection, StudentProjectBadge, StudentProjectCategory } from '../../types/models'
 import { FolderGit2, Plus, X } from 'lucide-react'
 
 interface CreateStudentProjectModalProps {
   isOpen: boolean
   onClose: () => void
+  onSubmitted?: () => void
 }
 
-export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps> = ({ isOpen, onClose }) => {
+export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps> = ({ isOpen, onClose, onSubmitted }) => {
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.auth)
 
@@ -26,6 +28,9 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [githubUrl, setGithubUrl] = useState('')
   const [productUrl, setProductUrl] = useState('')
   const [badges, setBadges] = useState<StudentProjectBadge[]>(['seeking_team', 'open_for_internship'])
+
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   if (!isOpen) return null
 
@@ -46,11 +51,13 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    dispatch(
-      createStudentProjectRequest({
+    setError('')
+    setSaving(true)
+    try {
+      const created = await apiClient.createStudentProject({
         title,
         coverImage,
         authorId: currentUser?.id || 'usr_student_1',
@@ -67,9 +74,11 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         screenshots: [coverImage],
         badges,
       })
-    )
-
-    onClose()
+      dispatch(createStudentProjectSuccess(created))
+      onSubmitted?.()
+      onClose()
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось отправить проект') }
+    finally { setSaving(false) }
   }
 
   return (
@@ -81,7 +90,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
             <div>
               <h3>Публикация студенческого проекта</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
-                Размещение в открытой витрине студенческих ИТ-проектов (п. 5.14, 5.15 ТЗ)
+                Проект появится в открытой витрине после одобрения куратором
               </p>
             </div>
           </div>
@@ -91,6 +100,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         </div>
 
         <form onSubmit={handleSubmit}>
+          {error && <p className="form-error" role="alert">{error}</p>}
           <div className="modal-dialog__body">
             <div className="form-group">
               <label>Название проекта:*</label>
@@ -104,9 +114,9 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
-                <label>Категория проекта (п. 5.14 ТЗ):*</label>
+                <label>Категория проекта:*</label>
                 <select
                   className="select"
                   value={category}
@@ -156,7 +166,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
             </div>
 
             <div className="form-group">
-              <label>Решаемая проблема (п. 5.15 ТЗ):*</label>
+              <label>Решаемая проблема:*</label>
               <input
                 type="text"
                 className="input"
@@ -179,7 +189,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Ссылка на репозиторий GitHub/GitLab:</label>
                 <input
@@ -203,9 +213,9 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               </div>
             </div>
 
-            {/* Badges selection (п. 5.15 ТЗ) */}
+            {/* Badges selection */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label>Дополнительные отметки для работодателей и команд (п. 5.15 ТЗ):</label>
+              <label>Дополнительные отметки для работодателей и команд:</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
                 {availableBadges.map(({ id, label }) => {
                   const active = badges.includes(id)
@@ -230,8 +240,8 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Отмена
             </button>
-            <button type="submit" className="btn btn-primary">
-              <Plus size={16} /> Опубликовать на витрине
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              <Plus size={16} /> {saving ? 'Отправка…' : 'Отправить на рассмотрение'}
             </button>
           </div>
         </form>

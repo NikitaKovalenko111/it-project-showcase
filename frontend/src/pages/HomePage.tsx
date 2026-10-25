@@ -1,3 +1,4 @@
+import { isPublished, publicationLabels, publicationStatus } from '../utils/publication'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -38,12 +39,12 @@ import {
 
 export const HomePage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { casesList } = useAppSelector((state) => state.cases)
+  const { casesList, loading: casesLoading, error: casesError } = useAppSelector((state) => state.cases)
   const { studentsList: authors } = useAppSelector((state) => state.students)
   const { projectsList } = useAppSelector((state) => state.studentProjects)
   const { companiesList } = useAppSelector((state) => state.companies)
   const { currentUser } = useAppSelector((state) => state.auth)
-  const { applicationsList: allApplications } = useAppSelector((state) => state.applications)
+  const { applicationsList: allApplications, loading: applicationsLoading, error: applicationsError } = useAppSelector((state) => state.applications)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
 
@@ -66,7 +67,7 @@ export const HomePage: React.FC = () => {
         <div className="home-hero">
           <div className="home-hero__badge">
             <Building2 size={13} />
-            <span>Кабинет индустриального партнера • Евразийский НОЦ мирового уровня</span>
+            <span>Кабинет индустриального партнера</span>
           </div>
 
           <h1 className="home-hero__title">
@@ -74,7 +75,7 @@ export const HomePage: React.FC = () => {
           </h1>
 
           <p className="home-hero__subtitle">
-            Управление технологическими кейсами предприятия, рассмотрение заявок от студентов УУНиТ, 
+            Управление технологическими кейсами предприятия, рассмотрение заявок от студентов,
             формирование проектных команд и отбор перспективных ИТ-специалистов.
           </p>
 
@@ -86,7 +87,7 @@ export const HomePage: React.FC = () => {
               <Users size={15} /> Входящие заявки студентов ({applicationsList.length})
             </Link>
             <Link to="/students-search" className="btn btn-secondary">
-              <Search size={15} /> Поиск талантов УУНиТ
+              <Search size={15} /> Поиск талантов
             </Link>
             <Link to={`/company/${companyId}`} className="btn btn-coral">
               <Building2 size={15} /> Карточка компании
@@ -146,7 +147,7 @@ export const HomePage: React.FC = () => {
           <div className="home-section__header">
             <div>
               <h2>Кейсы вашего предприятия</h2>
-              <p>Задачи, опубликованные вашей компанией для студентов кафедр УУНиТ</p>
+              <p>Задачи, опубликованные вашей компанией для студентов кафедр</p>
             </div>
             <button className="btn btn-primary btn-sm" onClick={() => setCreateModalOpen(true)}>
               <Plus size={14} /> Добавить задачу
@@ -160,7 +161,8 @@ export const HomePage: React.FC = () => {
                 <div className="card__body">
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                     <span className="badge badge-direction">{c.direction}</span>
-                    <span className="badge badge-complexity-medium">{c.complexity}</span>
+                    <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
+                    {!isPublished(c) && <span className={`badge publication-${publicationStatus(c)}`}>{publicationLabels[publicationStatus(c)]}</span>}
                   </div>
 
                   <h3 className="case-card__title">
@@ -203,7 +205,7 @@ export const HomePage: React.FC = () => {
         <div className="home-section" style={{ marginTop: '24px' }}>
           <div className="home-section__header">
             <div>
-              <h2>Свежие заявки от студентов УУНиТ</h2>
+              <h2>Свежие заявки от студентов</h2>
               <p>Студенты, подавшие резюме и мотивационные письма на решение ваших задач</p>
             </div>
             <Link to="/company-applications" className="home-section__link">
@@ -223,7 +225,9 @@ export const HomePage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {applicationsList.slice(0, 4).map((app) => (
+                {applicationsError && <tr><td colSpan={5} role="alert">{applicationsError}</td></tr>}
+                {!applicationsList.some((app) => app.status === 'pending' || app.status === 'need_info') && <tr><td colSpan={5}>Новых заявок нет. Обработанные заявки доступны в разделе «Заявки студентов».</td></tr>}
+                {applicationsList.filter((app) => app.status === 'pending' || app.status === 'need_info').slice(0, 4).map((app) => (
                   <tr key={app.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -233,7 +237,7 @@ export const HomePage: React.FC = () => {
                           style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }}
                         />
                         <div>
-                          <div style={{ fontWeight: 700, color: '#0c1938' }}>{app.studentName}</div>
+                          <div style={{ fontWeight: 700, color: '#0c1938' }}><Link className="profile-link" to={`/profile/${app.studentId}`}>{app.studentName}</Link></div>
                           <div style={{ fontSize: '11px', color: '#627282' }}>{app.studentEmail}</div>
                         </div>
                       </div>
@@ -256,13 +260,13 @@ export const HomePage: React.FC = () => {
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button
                           className="btn btn-success btn-sm"
-                          onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'accepted'))}
+                          disabled={applicationsLoading} onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'accepted'))}
                         >
                           Принять
                         </button>
                         <button
                           className="btn btn-secondary btn-sm"
-                          onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'rejected'))}
+                          disabled={applicationsLoading} onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'rejected'))}
                         >
                           Отклонить
                         </button>
@@ -289,7 +293,7 @@ export const HomePage: React.FC = () => {
         <div className="home-hero">
           <div className="home-hero__badge">
             <GraduationCap size={13} />
-            <span>Кабинет куратора кафедры • УУНиТ</span>
+            <span>Кабинет куратора кафедры •</span>
           </div>
 
           <h1 className="home-hero__title">
@@ -297,8 +301,8 @@ export const HomePage: React.FC = () => {
           </h1>
 
           <p className="home-hero__subtitle">
-            Мониторинг студенческих команд группы ТОП-204Б(73), контроль прохождения этапов производственной практики 
-            и взаимодействие с аккредитованными предприятиями Евразийского НОЦ.
+            Мониторинг студенческих команд группы ТОП-204Б(73), контроль прохождения этапов производственной практики
+            и взаимодействие с аккредитованными предприятиями.
           </p>
 
           <div className="home-hero__actions">
@@ -434,8 +438,8 @@ export const HomePage: React.FC = () => {
   /* ========================================================================= */
   /*  VIEW FOR STUDENT (Matching Screenshots from Real ISU UUST)               */
   /* ========================================================================= */
-  const activeCases = casesList.slice(0, 3)
-  const featuredProjects = projectsList.slice(0, 3)
+  const activeCases = casesList.filter((item) => item.status === 'open').slice(0, 3)
+  const featuredProjects = projectsList.filter(isPublished).slice(0, 3)
 
   return (
     <div className="home-page">
@@ -445,89 +449,9 @@ export const HomePage: React.FC = () => {
           Добро пожаловать в информационную систему университета!
         </h1>
         <p style={{ fontSize: '13px', color: '#5e7188', margin: 0, lineHeight: 1.55 }}>
-          Данная система является комплексным решением для обеспечения деятельности структурных подразделений УУНиТ 
+          Данная система является комплексным решением для обеспечения деятельности структурных подразделений
           и платформой взаимодействия студентов с индустриальными предприятиями.
         </p>
-      </div>
-
-      {/* Split Screen matching Image 2: Schedule on Left, Student News on Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
-        {/* Left: Schedule Table from user screenshot */}
-        <div style={{ background: '#ffffff', border: '1px solid #dce4ed', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(11,23,54,0.04)' }}>
-          <div style={{ background: '#e68a19', color: '#ffffff', padding: '10px 16px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Расписание группы ТОП-204Б(73)</span>
-            <span style={{ fontSize: '11px', fontWeight: 500 }}>Неделя 7 (нечетная)</span>
-          </div>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ fontSize: '12px' }}>
-              <thead>
-                <tr>
-                  <th style={{ width: '70px' }}>Время</th>
-                  <th>Понедельник</th>
-                  <th>Вторник</th>
-                  <th>Среда</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ fontWeight: 600, color: '#627282' }}>08:00–09:20</td>
-                  <td style={{ background: '#edf6ff' }}>
-                    <strong>Проектная деятельность (Лекция)</strong>
-                    <div style={{ fontSize: '10.5px', color: '#5e7188' }}>Сазонова Е.Ю. • Корпус 9-401</div>
-                  </td>
-                  <td style={{ background: '#f0fdf4' }}>
-                    <strong>Системное ПО</strong>
-                    <div style={{ fontSize: '10.5px', color: '#5e7188' }}>Мануилов М.Ю. • Корпус 6-211</div>
-                  </td>
-                  <td>—</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 600, color: '#627282' }}>09:35–10:55</td>
-                  <td style={{ background: '#edf6ff' }}>
-                    <strong>Работа над ИТ-кейсом</strong>
-                    <div style={{ fontSize: '10.5px', color: '#5e7188' }}>Лаборатория ИИМР УУНиТ</div>
-                  </td>
-                  <td>—</td>
-                  <td style={{ background: '#fdf4ff' }}>
-                    <strong>Архитектура систем</strong>
-                    <div style={{ fontSize: '10.5px', color: '#5e7188' }}>Макеев Г.А. • Корпус 6-202</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right: Student News from user screenshot */}
-        <div style={{ background: '#ffffff', border: '1px solid #dce4ed', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(11,23,54,0.04)' }}>
-          <div style={{ background: '#3a75b4', color: '#ffffff', padding: '10px 16px', fontSize: '13px', fontWeight: 700 }}>
-            Новостная лента студентов УУНиТ
-          </div>
-
-          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
-              <div style={{ fontSize: '11px', color: '#3a75b4', fontWeight: 700 }}>🚀 ХАКАТОНЫ И ГРАНТЫ • 15.10.2026</div>
-              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0c1938', marginTop: '2px' }}>
-                Открыт прием заявок на студенческий акселератор Евразийского НОЦ с призовым фондом 1.85 млн ₽
-              </div>
-            </div>
-
-            <div style={{ paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
-              <div style={{ fontSize: '11px', color: '#e68a19', fontWeight: 700 }}>🏢 ИНДУСТРИЯ • 12.10.2026</div>
-              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0c1938', marginTop: '2px' }}>
-                ПАО «ОДК-УМПО» и БашНефтеАвтоматика разместили новые производственные кейсы для кафедры ИИМР
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11px', color: '#28a745', fontWeight: 700 }}>🎓 ПРАКТИКА • 09.10.2026</div>
-              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0c1938', marginTop: '2px' }}>
-                Успешное решение кейса дает автоматический зачет производственной практики в 7 семестре
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* KPI Stats Cards */}
@@ -589,6 +513,9 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
+        {casesLoading && <p role="status">Загрузка актуальных кейсов…</p>}
+        {casesError && <p role="alert">{casesError}</p>}
+        {!casesLoading && !casesError && activeCases.length === 0 && <p>Открытых кейсов пока нет.</p>}
         <div className="case-grid">
           {activeCases.map((c) => (
             <div key={c.id} className="case-card">
@@ -613,7 +540,7 @@ export const HomePage: React.FC = () => {
 
                 <div className="case-card__tags">
                   <span className="badge badge-direction">{c.direction}</span>
-                  <span className="badge badge-complexity-medium">{c.complexity}</span>
+                  <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
                 </div>
 
                 <div className="case-card__meta-grid">
@@ -646,7 +573,7 @@ export const HomePage: React.FC = () => {
         <div className="home-section__header">
           <div>
             <h2>Витрина авторских проектов студентов</h2>
-            <p>Pet-проекты, победители хакатонов и стартапы студентов УУНиТ</p>
+            <p>Pet-проекты, победители хакатонов и стартапы студентов</p>
           </div>
           <Link to="/student-projects" className="home-section__link">
             Все проекты ({projectsList.length}) <ArrowRight size={14} />
@@ -670,8 +597,8 @@ export const HomePage: React.FC = () => {
 
                 <div className="student-project-card__author-row">
                   <div>
-                    <div className="author-name">👤 {authors.find((author) => author.id === p.authorId)?.fullName || p.authorName}</div>
-                    <div className="author-group">{p.teamName || 'Студент УУНиТ • ТОП-204Б(73)'}</div>
+                    <div className="author-name"><User size={14} aria-hidden="true" /> {authors.find((author) => author.id === p.authorId)?.fullName || p.authorName}</div>
+                    <div className="author-group">{p.teamName || 'Студент • ТОП-204Б(73)'}</div>
                   </div>
                   <Link to={`/student-projects/${p.id}`} className="btn btn-secondary btn-sm" style={{ marginLeft: 'auto' }}>
                     Смотреть

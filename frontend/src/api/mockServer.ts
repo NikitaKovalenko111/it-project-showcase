@@ -11,6 +11,7 @@ import {
   StudentProject,
   SystemNotification,
   User,
+  ModerationStatus,
 } from '../types/models'
 import {
   INITIAL_APPLICATIONS,
@@ -27,6 +28,7 @@ import {
   INITIAL_USERS,
 } from './mockData'
 import { canManageCase, participatesInCase, visibleCasesFor } from '../utils/access'
+import { canModerate, isPublished, publicationLabels, visibleStudentProjectsFor } from '../utils/publication'
 
 // Keys for localStorage
 const STORAGE_PREFIX = 'uust_showcase_v2_'
@@ -52,6 +54,14 @@ const save = <T>(key: string, data: T): void => {
 }
 
 export class MockServer {
+  private notifyReviewers(kind: 'case' | 'student', title: string): void {
+    this.users.filter(canModerate).forEach((user) => this.notifications.unshift({
+      id: `review_${Date.now()}_${kind}_${user.id}`, userId: user.id, type: 'publication_status',
+      title: 'Новая публикация на рассмотрении', message: title, read: false,
+      link: kind === 'case' ? '/companies?review=cases' : '/student-projects?review=student', createdAt: new Date().toISOString(),
+    }))
+    save('notifications', this.notifications)
+  }
   private sessionUser(): User | undefined {
     const raw = localStorage.getItem('uust_current_user')
     if (!raw) return undefined
@@ -341,8 +351,14 @@ export class MockServer {
     if (!user || (user.role !== 'admin' && (user.role !== 'company' || user.companyProfile?.companyId !== caseData.companyId))) {
       throw new Error('Нет прав на публикацию кейса от этой компании')
     }
+    if (user.role === 'company' && !this.companies.find((company) => company.id === caseData.companyId)?.isVerified) {
+      throw new Error('Дождитесь верификации компании перед размещением кейса')
+    }
     const newCase: CaseProject = {
       ...caseData,
+      status: 'moderation',
+      isModerated: false,
+      moderationStatus: 'pending',
       id: `case_${Date.now()}`,
       viewsCount: 0,
       applicationsCount: 0,
@@ -350,6 +366,7 @@ export class MockServer {
     }
     this.cases.unshift(newCase)
     save('cases', this.cases)
+    this.notifyReviewers('case', newCase.title)
 
     // Automatically generate 7 milestones for standard case
     const standardTitles: ProjectMilestone['title'][] = [
@@ -393,6 +410,10 @@ export class MockServer {
   updateCase(updated: CaseProject): CaseProject {
     this.requireCaseManager(updated.id)
     const prev = this.cases.find((c) => c.id === updated.id)
+    if (this.sessionUser()?.role === 'company') {
+      updated = { ...updated, companyId: prev!.companyId, isModerated: prev!.isModerated, moderationStatus: prev!.moderationStatus }
+      if (!isPublished(prev!)) updated.status = 'moderation'
+    }
     this.cases = this.cases.map((c) => (c.id === updated.id ? updated : c))
     save('cases', this.cases)
 
@@ -474,6 +495,12 @@ export class MockServer {
   }
 
   createApplication(data: Omit<CaseApplication, 'id' | 'createdAt' | 'status'>): CaseApplication {
+    const user = this.sessionUser()
+    const project = this.cases.find((item) => item.id === data.caseId)
+    if (!user || user.role !== 'student' || data.studentId !== user.id) throw new Error('Заявку может подать только студент от своего имени')
+    if (!project || !isPublished(project) || !['open', 'application', 'selection'].includes(project.status)) throw new Error('Кейс не открыт для заявок')
+    if (project.companyId !== data.companyId) throw new Error('Компания не соответствует кейсу')
+    if (this.applications.some((app) => app.caseId === data.caseId && app.studentId === user.id)) throw new Error('Вы уже подали заявку')
     const newApp: CaseApplication = {
       ...data,
       id: `app_${Date.now()}`,
@@ -510,6 +537,8 @@ export class MockServer {
     const app = this.applications.find((a) => a.id === appId)
     if (!app) throw new Error('Заявка не найдена')
     this.requireCaseManager(app.caseId)
+    if (app.status === 'accepted' && status === 'interview') throw new Error('Студент уже принят в команду')
+    if (['accepted', 'rejected'].includes(app.status)) throw new Error('Решение по заявке уже принято')
     if (app) {
       const prev = app.status
       app.status = status
@@ -560,7 +589,7 @@ export class MockServer {
         details: `Заявка ${app.studentName}: ${status}`,
       })
     }
-    return app!
+    return { ...app! }
   }
 
   // Milestones
@@ -683,7 +712,7 @@ export class MockServer {
 
   // Student projects
   getStudentProjects(filters?: { search?: string; category?: string; direction?: string; badge?: string }): StudentProject[] {
-    let list = [...this.studentProjects]
+    let list = visibleStudentProjectsFor(this.sessionUser(), this.studentProjects)
     if (!filters) return list
 
     if (filters.search) {
@@ -710,19 +739,23 @@ export class MockServer {
   }
 
   getStudentProjectById(id: string): StudentProject | undefined {
-    return this.studentProjects.find((p) => p.id === id)
+    return visibleStudentProjectsFor(this.sessionUser(), this.studentProjects).find((p) => p.id === id)
   }
 
   createStudentProject(data: Omit<StudentProject, 'id' | 'createdAt' | 'likesCount' | 'isModerated'>): StudentProject {
+    const user = this.sessionUser()
+    if (!user || user.role !== 'student' || data.authorId !== user.id) throw new Error('Публиковать проект может только его автор-студент')
     const newProj: StudentProject = {
       ...data,
       id: `sp_${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
       likesCount: 0,
-      isModerated: true,
+      isModerated: false,
+      moderationStatus: 'pending',
     }
     this.studentProjects.unshift(newProj)
     save('studentProjects', this.studentProjects)
+    this.notifyReviewers('student', newProj.title)
     return newProj
   }
 
@@ -733,6 +766,41 @@ export class MockServer {
       save('studentProjects', this.studentProjects)
     }
     return p!
+  }
+
+  moderatePublication(kind: 'case' | 'student', id: string, status: ModerationStatus, comment = ''): CaseProject | StudentProject {
+    const user = this.sessionUser()
+    if (!canModerate(user)) throw new Error('Нет прав на модерацию публикаций')
+    if (status !== 'approved' && !comment.trim()) throw new Error('Укажите причину решения')
+    const collection = kind === 'case' ? this.cases : this.studentProjects
+    const project = collection.find((item) => item.id === id)
+    if (!project) throw new Error('Публикация не найдена')
+    const previous = project.moderationStatus || (project.isModerated ? 'approved' : 'pending')
+    const updated = { ...project, moderationStatus: status, moderationComment: comment.trim(), isModerated: status === 'approved' }
+    if (kind === 'case') {
+      const caseItem = updated as CaseProject
+      if (status === 'approved' && caseItem.status === 'moderation') {
+        caseItem.status = 'open'
+        caseItem.publishedAt = new Date().toISOString().split('T')[0]
+      }
+      this.cases = this.cases.map((item) => item.id === id ? caseItem : item)
+      save('cases', this.cases)
+    } else {
+      this.studentProjects = this.studentProjects.map((item) => item.id === id ? updated as StudentProject : item)
+      save('studentProjects', this.studentProjects)
+    }
+    this.logAudit({ userId: user!.id, userName: user!.fullName, userRole: user!.role,
+      actionType: 'moderation_action', objectType: kind === 'case' ? 'CaseProject' : 'StudentProject',
+      objectId: id, objectName: project.title, previousValue: previous, newValue: status, details: comment.trim() })
+    const recipientIds = kind === 'student' ? [(project as StudentProject).authorId]
+      : this.users.filter((item) => item.companyProfile?.companyId === (project as CaseProject).companyId).map((item) => item.id)
+    recipientIds.forEach((userId) => this.notifications.unshift({
+      id: `notification_${Date.now()}_${userId}`, userId, type: 'publication_status',
+      title: `Публикация: ${publicationLabels[status]}`, message: `${project.title}${comment ? `. ${comment.trim()}` : ''}`,
+      read: false, link: kind === 'case' ? `/cases/${id}` : `/student-projects/${id}`, createdAt: new Date().toISOString(),
+    }))
+    save('notifications', this.notifications)
+    return updated as CaseProject | StudentProject
   }
 
   // Teams
@@ -859,4 +927,14 @@ export class MockServer {
   }
 }
 
-export const mockServer = new MockServer()
+// Match a JSON API boundary: neither requests nor responses share mutable objects
+// with Redux. Otherwise a later mock write mutates previously delivered state.
+export const createMockServer = (): MockServer => new Proxy(new MockServer(), {
+  get(target, property, receiver) {
+    const value = Reflect.get(target, property, receiver)
+    if (typeof value !== 'function') return value
+    return (...args: unknown[]) => structuredClone(Reflect.apply(value, target, structuredClone(args)))
+  },
+})
+
+export const mockServer = createMockServer()

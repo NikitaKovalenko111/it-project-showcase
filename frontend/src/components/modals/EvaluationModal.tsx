@@ -7,6 +7,7 @@ import { Award, Check, Star, Trophy, X } from 'lucide-react'
 interface EvaluationModalProps {
   caseId: string
   caseTitle: string
+  teamName?: string
   companyId: string
   companyName: string
   isContest: boolean
@@ -17,6 +18,7 @@ interface EvaluationModalProps {
 export const EvaluationModal: React.FC<EvaluationModalProps> = ({
   caseId,
   caseTitle,
+  teamName,
   companyId,
   companyName,
   isContest,
@@ -100,9 +102,10 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div>
-            <h3>Оценка результатов выполнения проекта (п. 5.12 ТЗ)</h3>
+            <h3>Оценка результатов выполнения проекта</h3>
             <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
-              Кейс: {caseTitle} • Оценивает: {companyName}
+              Проект: {caseTitle} • Оценивает: {companyName}
+              <br />Исполнители: {teamName || 'Не назначены'}
             </p>
           </div>
           <button className="close-btn" onClick={onClose}>
@@ -135,7 +138,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
             </div>
 
             {/* 10 Evaluation Criteria Sliders */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px', marginBottom: '20px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px', marginBottom: '20px' }}>
               {criteriaLabels.map(({ key, label }) => (
                 <div key={key}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}>
@@ -154,7 +157,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
               ))}
             </div>
 
-            {/* Contest Winner Picker (п. 5.13 ТЗ) */}
+            {/* Contest Winner Picker */}
             {isContest && (
               <div
                 style={{
@@ -168,7 +171,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                   <Trophy size={18} color="#d97706" />
                   <strong style={{ fontSize: '13px', color: '#0f2b48' }}>
-                    Определение победителя и призового места (п. 5.13 ТЗ):
+                    Определение победителя и призового места:
                   </strong>
                 </div>
 
