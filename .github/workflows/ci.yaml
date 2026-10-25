@@ -38,6 +38,9 @@ jobs:
             - name: Build
               run: go build ./...
 
+            - name: Build Docker image
+              run: docker build -t showcase-backend:ci .
+
     frontend:
         runs-on: ubuntu-latest
 
@@ -59,3 +62,6 @@ jobs:
 
             - name: Build
               run: npm run build
+
+            - name: Build Docker image
+              run: docker build -t showcase-frontend:ci .
