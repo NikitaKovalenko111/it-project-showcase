@@ -12,6 +12,7 @@ func TestLoadHTTPServerFromYAML(t *testing.T) {
 		"http_address",
 		"timeout",
 		"idle_timeout",
+		"cors_allowed_origins",
 		"session_cleanup_interval",
 		"db_host",
 		"db_user",
@@ -36,6 +37,9 @@ func TestLoadHTTPServerFromYAML(t *testing.T) {
 	}
 	if cfg.IDLE_TIMEOUT != 60*time.Second {
 		t.Errorf("IDLE_TIMEOUT = %s, want %s", cfg.IDLE_TIMEOUT, 60*time.Second)
+	}
+	if len(cfg.CORS_ALLOWED_ORIGINS) != 1 || cfg.CORS_ALLOWED_ORIGINS[0] != "http://localhost:5173" {
+		t.Errorf("CORS_ALLOWED_ORIGINS = %v, want [http://localhost:5173]", cfg.CORS_ALLOWED_ORIGINS)
 	}
 	if cfg.SessionCleanupInterval != 30*time.Minute {
 		t.Errorf("SessionCleanupInterval = %s, want %s", cfg.SessionCleanupInterval, 30*time.Minute)

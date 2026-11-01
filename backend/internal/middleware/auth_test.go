@@ -91,6 +91,50 @@ func TestAuthorizationRejectsInvalidTokens(t *testing.T) {
 	}
 }
 
+func TestRequireAnyRole(t *testing.T) {
+	accessToken, _, err := pkg.CreateAccessTokenWithRoles(testUserID, []string{"admin"}, testAccessSecret, time.Minute)
+	if err != nil {
+		t.Fatalf("CreateAccessTokenWithRoles() error = %v", err)
+	}
+
+	handler := Authorization(testAccessSecret, testLogger())(
+		RequireAnyRole("admin", "university_staff")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})),
+	)
+
+	request := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	request.Header.Set("Authorization", "Bearer "+accessToken)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNoContent {
+		t.Fatalf("response status = %d, want %d", recorder.Code, http.StatusNoContent)
+	}
+}
+
+func TestRequireAnyRoleRejectsMissingRole(t *testing.T) {
+	accessToken, _, err := pkg.CreateAccessTokenWithRoles(testUserID, []string{"student"}, testAccessSecret, time.Minute)
+	if err != nil {
+		t.Fatalf("CreateAccessTokenWithRoles() error = %v", err)
+	}
+
+	handler := Authorization(testAccessSecret, testLogger())(
+		RequireAnyRole("admin")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("handler was called without the required role")
+		})),
+	)
+
+	request := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	request.Header.Set("Authorization", "Bearer "+accessToken)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("response status = %d, want %d", recorder.Code, http.StatusForbidden)
+	}
+}
+
 func testLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }

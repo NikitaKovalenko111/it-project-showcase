@@ -8,6 +8,7 @@ import (
 
 	"it-project-showcase/backend/internal/middleware"
 	auth_service "it-project-showcase/backend/internal/services/auth"
+	"it-project-showcase/backend/internal/transport/http/handlers/shared"
 	"it-project-showcase/backend/pkg"
 )
 
@@ -19,11 +20,19 @@ func Init(authService *auth_service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-func (h *AuthHandler) Start(mux *http.ServeMux) {
+func (h *AuthHandler) StartPublic(mux *http.ServeMux) {
 	mux.HandleFunc("POST /register", h.Register)
 	mux.HandleFunc("POST /login", h.Login)
 	mux.HandleFunc("POST /refresh", h.Refresh)
-	mux.HandleFunc("POST /logout", h.Logout)
+	mux.HandleFunc("/register", shared.MethodNotAllowed)
+	mux.HandleFunc("/login", shared.MethodNotAllowed)
+	mux.HandleFunc("/refresh", shared.MethodNotAllowed)
+}
+
+func (h *AuthHandler) StartProtected(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
+	mux.Handle("POST /logout", authorize(http.HandlerFunc(h.Logout)))
+	mux.HandleFunc("/logout", shared.MethodNotAllowed)
+	mux.HandleFunc("/", shared.NotFound)
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {

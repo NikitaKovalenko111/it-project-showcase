@@ -2,8 +2,9 @@ package pkg
 
 import (
 	"encoding/json"
-	"it-project-showcase/backend/internal/models"
 	"net/http"
+
+	"it-project-showcase/backend/internal/models"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data any) error {
@@ -18,9 +19,17 @@ func WriteEmpty(w http.ResponseWriter, status int) {
 }
 
 func WriteError(w http.ResponseWriter, status int, code string, message string) {
+	WriteErrorDetails(w, status, code, message, nil)
+}
+
+func WriteErrorDetails(w http.ResponseWriter, status int, code string, message string, details []models.ErrorDetail) {
 	response := models.ErrorResponse{
-		Message: message,
-		Error:   code,
+		Error: models.APIError{
+			Code:      code,
+			Message:   message,
+			Details:   details,
+			RequestID: w.Header().Get("X-Request-ID"),
+		},
 	}
 
 	WriteJSON(w, status, response)

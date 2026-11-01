@@ -22,10 +22,14 @@ func Run(cfg *config.Config) {
 	logger.Warn("Warn is enabled")
 	logger.Error("Error is enabled")
 
-	storage, err := storage.Connect(cfg.Postgres)
+	connectContext, cancelConnect := context.WithTimeout(context.Background(), cfg.TIMEOUT)
+	defer cancelConnect()
+
+	storage, err := storage.Connect(connectContext, cfg.Postgres)
 	if err != nil {
 		panic(fmt.Errorf("failed connection to storage: %v", err))
 	}
+	defer storage.Db.Close()
 
 	services := services.Init(storage, cfg.JWT)
 
@@ -41,10 +45,17 @@ func Run(cfg *config.Config) {
 	handlers := handlers.Init(services)
 
 	mux := http.NewServeMux()
-	transport := transport.Init(handlers)
+	authorize := middleware.Authorization(cfg.JWT.AccessSecret, logger)
+	transport := transport.Init(handlers, authorize)
 	transport.Start(mux)
 
-	requestHandler := middleware.Logger(logger)(middleware.Timeout(cfg.TIMEOUT)(mux))
+	requestHandler := middleware.RequestID(
+		middleware.Logger(logger)(
+			middleware.CORS(cfg.CORS_ALLOWED_ORIGINS)(
+				middleware.Timeout(cfg.TIMEOUT)(mux),
+			),
+		),
+	)
 	server := &http.Server{
 		Addr:              cfg.HTTP_ADDRESS,
 		Handler:           requestHandler,

@@ -51,6 +51,33 @@ func TokenClaimsFromContext(ctx context.Context) (*pkg.TokenClaims, bool) {
 	return claims, ok
 }
 
+func RequireAnyRole(roles ...string) func(http.Handler) http.Handler {
+	required := make(map[string]struct{}, len(roles))
+	for _, role := range roles {
+		required[role] = struct{}{}
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims, ok := TokenClaimsFromContext(r.Context())
+			if !ok || !containsAnyRole(claims.Roles, required) {
+				pkg.WriteError(w, http.StatusForbidden, "permission_denied", "Permission denied")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func containsAnyRole(actual []string, required map[string]struct{}) bool {
+	for _, role := range actual {
+		if _, ok := required[role]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 func bearerToken(authorizationHeader string) (string, bool) {
 	parts := strings.Fields(authorizationHeader)
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || parts[1] == "" {

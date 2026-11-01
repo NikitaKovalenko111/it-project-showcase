@@ -18,16 +18,21 @@ const (
 )
 
 type TokenClaims struct {
-	TokenType string `json:"token_type"`
+	TokenType string   `json:"token_type"`
+	Roles     []string `json:"roles,omitempty"`
 	jwt.RegisteredClaims
 }
 
 func CreateAccessToken(userID, secret string, ttl time.Duration) (string, time.Time, error) {
-	return createToken(userID, AccessTokenType, secret, ttl)
+	return CreateAccessTokenWithRoles(userID, nil, secret, ttl)
+}
+
+func CreateAccessTokenWithRoles(userID string, roles []string, secret string, ttl time.Duration) (string, time.Time, error) {
+	return createToken(userID, AccessTokenType, roles, secret, ttl)
 }
 
 func CreateRefreshToken(userID, secret string, ttl time.Duration) (string, time.Time, error) {
-	return createToken(userID, RefreshTokenType, secret, ttl)
+	return createToken(userID, RefreshTokenType, nil, secret, ttl)
 }
 
 func ValidateAccessToken(tokenString, secret string) (*TokenClaims, error) {
@@ -44,7 +49,7 @@ func HashToken(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func createToken(userID, tokenType, secret string, ttl time.Duration) (string, time.Time, error) {
+func createToken(userID, tokenType string, roles []string, secret string, ttl time.Duration) (string, time.Time, error) {
 	if userID == "" {
 		return "", time.Time{}, errors.New("user id is required")
 	}
@@ -64,6 +69,7 @@ func createToken(userID, tokenType, secret string, ttl time.Duration) (string, t
 
 	claims := TokenClaims{
 		TokenType: tokenType,
+		Roles:     append([]string(nil), roles...),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    tokenIssuer,
 			Subject:   userID,
