@@ -41,4 +41,5 @@ type StudentProfile struct {
 	Competencies          []string      `json:"competencies"`
 	Technologies          []string      `json:"technologies"`
 	Links                 []StudentLink `json:"links"`
+	PhotoFileID           *string       `json:"photo_file_id"`
 }

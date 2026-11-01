@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	LogLevel string `yaml:"log_level" env-required:"true"`
-	HTTP     `yaml:"http_server" env-required:"true"`
-	Postgres `yaml:"postgres" env-required:"true"`
-	JWT      `yaml:"jwt" env-required:"true"`
+	LogLevel      string `yaml:"log_level" env-required:"true"`
+	HTTP          `yaml:"http_server" env-required:"true"`
+	Postgres      `yaml:"postgres" env-required:"true"`
+	JWT           `yaml:"jwt" env-required:"true"`
+	ObjectStorage `yaml:"object_storage" env-required:"true"`
 }
 
 func Load(path string) (*Config, error) {
@@ -70,6 +71,9 @@ func loadENV(cfg *Config) error {
 	if err != nil {
 		return err
 	}
+	if err = loadObjectStorage(cfg); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -91,6 +95,9 @@ func validate(cfg *Config) error {
 
 	err = validateJWT(cfg)
 	if err != nil {
+		return err
+	}
+	if err = validateObjectStorage(cfg); err != nil {
 		return err
 	}
 

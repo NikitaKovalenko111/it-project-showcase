@@ -7,6 +7,7 @@ import (
 
 	"it-project-showcase/backend/internal/config"
 	"it-project-showcase/backend/internal/middleware"
+	"it-project-showcase/backend/internal/objectstorage"
 	"it-project-showcase/backend/internal/services"
 	"it-project-showcase/backend/internal/storage"
 	transport "it-project-showcase/backend/internal/transport/http"
@@ -31,7 +32,12 @@ func Run(cfg *config.Config) {
 	}
 	defer storage.Db.Close()
 
-	services := services.Init(storage, cfg.JWT)
+	objects, err := objectstorage.Connect(connectContext, cfg.ObjectStorage)
+	if err != nil {
+		panic(fmt.Errorf("failed connection to object storage: %v", err))
+	}
+
+	services := services.Init(storage, objects, cfg.JWT, cfg.ObjectStorage)
 
 	cleanupContext, stopSessionCleanup := context.WithCancel(context.Background())
 	defer stopSessionCleanup()

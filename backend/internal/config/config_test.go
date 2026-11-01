@@ -20,6 +20,13 @@ func TestLoadHTTPServerFromYAML(t *testing.T) {
 		"db_pass",
 		"db_name",
 		"ssl_mode",
+		"minio_endpoint",
+		"minio_access_key",
+		"minio_secret_key",
+		"minio_bucket",
+		"minio_region",
+		"minio_use_ssl",
+		"max_file_size",
 	} {
 		t.Setenv(name, "")
 	}
@@ -43,5 +50,8 @@ func TestLoadHTTPServerFromYAML(t *testing.T) {
 	}
 	if cfg.SessionCleanupInterval != 30*time.Minute {
 		t.Errorf("SessionCleanupInterval = %s, want %s", cfg.SessionCleanupInterval, 30*time.Minute)
+	}
+	if cfg.ObjectStorage.Endpoint != "localhost:9000" || cfg.ObjectStorage.Bucket != "test-bucket" || cfg.ObjectStorage.MaxFileSize != 20*1024*1024 {
+		t.Errorf("ObjectStorage = %+v, want test MinIO configuration", cfg.ObjectStorage)
 	}
 }

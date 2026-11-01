@@ -159,7 +159,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 			COALESCE(s.professional_interests, '[]'::jsonb),
 			COALESCE(s.competencies, '[]'::jsonb),
 			COALESCE(s.technologies, '[]'::jsonb),
-			COALESCE(s.links, '[]'::jsonb)
+			COALESCE(s.links, '[]'::jsonb), s.photo_file_id
 		FROM users u
 		LEFT JOIN students s ON s.user_id = u.user_id
 		WHERE u.user_id = $1
@@ -168,7 +168,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 		&profile.LastName, &profile.FirstName, &profile.Patronymic,
 		&profile.Institute, &profile.Direction, &profile.Program,
 		&profile.Course, &profile.GroupName, &profile.Phone, &profile.Bio,
-		&interests, &competencies, &technologies, &links,
+		&interests, &competencies, &technologies, &links, &profile.PhotoFileID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("select user by id: %w", err)

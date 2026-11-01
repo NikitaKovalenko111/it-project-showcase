@@ -48,6 +48,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 		h.authorize(middleware.RequireAnyRole("admin")(http.StripPrefix("/users", usersRouter))),
 	)
 	h.handlers.Users.Start(usersRouter)
+	apiRouter.Handle("PUT /users/me/photo", h.authorize(http.HandlerFunc(h.handlers.Files.UploadStudentPhoto)))
 
 	admin := func(next http.Handler) http.Handler { return h.authorize(middleware.RequireAnyRole("admin")(next)) }
 	representative := func(next http.Handler) http.Handler {
@@ -59,8 +60,15 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	companyRouter := http.NewServeMux()
 	apiRouter.Handle("GET /companies", http.HandlerFunc(h.handlers.Companies.List))
 	apiRouter.Handle("POST /companies", representative(http.HandlerFunc(h.handlers.Companies.Create)))
+	apiRouter.Handle("PUT /companies/{company_id}/logo", representative(http.HandlerFunc(h.handlers.Files.UploadCompanyLogo)))
+	apiRouter.HandleFunc("GET /companies/{company_id}/logo", h.handlers.Files.DownloadCompanyLogo)
 	apiRouter.Handle("/companies/", http.StripPrefix("/companies", companyRouter))
 	h.handlers.Companies.Start(companyRouter, representative, admin)
+
+	fileRouter := http.NewServeMux()
+	apiRouter.Handle("POST /files", h.authorize(http.HandlerFunc(h.handlers.Files.Upload)))
+	apiRouter.Handle("/files/", h.authorize(http.StripPrefix("/files", fileRouter)))
+	h.handlers.Files.Start(fileRouter)
 
 	apiRouter.HandleFunc("/", shared.NotFound)
 }

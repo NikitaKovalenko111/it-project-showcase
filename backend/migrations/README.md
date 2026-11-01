@@ -6,7 +6,9 @@ Migration names use the format `NNNNNN_description.up.sql`, for example:
 
 ```text
 000001_accounts.up.sql
-000002_student_profiles.up.sql
+000002_identity_profiles.up.sql
+000003_catalogs_companies.up.sql
+000004_files.up.sql
 ```
 
 Rules:
