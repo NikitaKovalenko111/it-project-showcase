@@ -19,7 +19,7 @@ func Init(db *sql.DB) *SessionRepo {
 // used in auth_service.go
 func (r *SessionRepo) CreateSession(ctx context.Context, userID string, refreshTokenHash string, expiresAt time.Time) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO sessions (session_id, user_id, refresh_token_hash, expires_at)
+		INSERT INTO auth_sessions (session_id, user_id, refresh_token_hash, expires_at)
 		VALUES (gen_random_uuid(), $1, $2, $3)
 	`, userID, refreshTokenHash, expiresAt)
 	if err != nil {
@@ -34,7 +34,7 @@ func (r *SessionRepo) GetActiveSessionByTokenHash(ctx context.Context, refreshTo
 	var session models.Session
 	err := r.db.QueryRowContext(ctx, `
 		SELECT session_id, user_id, refresh_token_hash, expires_at, created_at, revoked_at
-		FROM sessions
+		FROM auth_sessions
 		WHERE refresh_token_hash = $1
 			AND revoked_at IS NULL
 			AND expires_at > CURRENT_TIMESTAMP
@@ -56,7 +56,7 @@ func (r *SessionRepo) GetActiveSessionByTokenHash(ctx context.Context, refreshTo
 func (r *SessionRepo) GetActiveSessionsByUserID(ctx context.Context, userID string) ([]models.Session, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT session_id, user_id, refresh_token_hash, expires_at, created_at, revoked_at
-		FROM sessions
+		FROM auth_sessions
 		WHERE user_id = $1
 			AND revoked_at IS NULL
 			AND expires_at > CURRENT_TIMESTAMP
@@ -92,7 +92,7 @@ func (r *SessionRepo) GetActiveSessionsByUserID(ctx context.Context, userID stri
 // used in auth_service.go
 func (r *SessionRepo) RotateRefreshToken(ctx context.Context, currentTokenHash string, newTokenHash string, expiresAt time.Time) error {
 	result, err := r.db.ExecContext(ctx, `
-		UPDATE sessions
+		UPDATE auth_sessions
 		SET refresh_token_hash = $1, expires_at = $2
 		WHERE refresh_token_hash = $3
 			AND revoked_at IS NULL
@@ -116,7 +116,7 @@ func (r *SessionRepo) RotateRefreshToken(ctx context.Context, currentTokenHash s
 // used in auth_service.go
 func (r *SessionRepo) RevokeSessionByTokenHash(ctx context.Context, refreshTokenHash string) error {
 	result, err := r.db.ExecContext(ctx, `
-		UPDATE sessions
+		UPDATE auth_sessions
 		SET revoked_at = CURRENT_TIMESTAMP
 		WHERE refresh_token_hash = $1
 			AND revoked_at IS NULL
@@ -139,7 +139,7 @@ func (r *SessionRepo) RevokeSessionByTokenHash(ctx context.Context, refreshToken
 
 func (r *SessionRepo) RevokeAllUserSessions(ctx context.Context, userID string) error {
 	_, err := r.db.ExecContext(ctx, `
-		UPDATE sessions
+		UPDATE auth_sessions
 		SET revoked_at = CURRENT_TIMESTAMP
 		WHERE user_id = $1 AND revoked_at IS NULL
 	`, userID)
@@ -153,7 +153,7 @@ func (r *SessionRepo) RevokeAllUserSessions(ctx context.Context, userID string) 
 // used in auth_service.go
 func (r *SessionRepo) DeleteInactiveSessions(ctx context.Context) (int64, error) {
 	result, err := r.db.ExecContext(ctx, `
-		DELETE FROM sessions
+		DELETE FROM auth_sessions
 		WHERE expires_at <= CURRENT_TIMESTAMP
 			OR revoked_at IS NOT NULL
 	`)

@@ -3,6 +3,7 @@ package transport
 import (
 	"net/http"
 
+	"it-project-showcase/backend/internal/middleware"
 	"it-project-showcase/backend/internal/transport/http/handlers"
 	"it-project-showcase/backend/internal/transport/http/handlers/shared"
 )
@@ -40,6 +41,13 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	)
 	h.handlers.Auth.StartPublic(authRouter)
 	h.handlers.Auth.StartProtected(authRouter, h.authorize)
+
+	usersRouter := http.NewServeMux()
+	apiRouter.Handle(
+		"/users/",
+		h.authorize(middleware.RequireAnyRole("admin")(http.StripPrefix("/users", usersRouter))),
+	)
+	h.handlers.Users.Start(usersRouter)
 
 	apiRouter.HandleFunc("/", shared.NotFound)
 }

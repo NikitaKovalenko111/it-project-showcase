@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -55,16 +54,14 @@ func TestRegisterReturnsConflictForExistingUsernameOrEmail(t *testing.T) {
 				}
 			}()
 
-			mock.ExpectQuery(regexp.QuoteMeta(`
-				INSERT INTO users (user_id, username, email, group_name, image_url, password_hash)
-				VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)
-				RETURNING user_id
-			`)).
-				WithArgs("student.one", "student@example.com", "ТОП-203Б", "", sqlmock.AnyArg()).
+			mock.ExpectBegin()
+			mock.ExpectQuery("INSERT INTO users").
+				WithArgs("student.one", "student@example.com", sqlmock.AnyArg()).
 				WillReturnError(&pgconn.PgError{
 					Code:           "23505",
 					ConstraintName: test.constraintName,
 				})
+			mock.ExpectRollback()
 
 			service := auth_service.Init(
 				session_repo.Init(db),
@@ -77,7 +74,13 @@ func TestRegisterReturnsConflictForExistingUsernameOrEmail(t *testing.T) {
 				"username":"student.one",
 				"email":"student@example.com",
 				"password":"Password123",
-				"group_name":"ТОП-203Б"
+				"last_name":"Иванов",
+				"first_name":"Иван",
+				"institute":"ИРИТ-РТФ",
+				"direction":"Программная инженерия",
+				"course":2,
+				"group_name":"РИ-220901",
+				"consent_version":"1.0"
 			}`)
 			request := httptest.NewRequest(http.MethodPost, "/auth/register", requestBody)
 			recorder := httptest.NewRecorder()

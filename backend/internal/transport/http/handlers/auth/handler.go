@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"it-project-showcase/backend/internal/middleware"
+	"it-project-showcase/backend/internal/models"
 	auth_service "it-project-showcase/backend/internal/services/auth"
 	"it-project-showcase/backend/internal/transport/http/handlers/shared"
 	"it-project-showcase/backend/pkg"
@@ -31,7 +32,9 @@ func (h *AuthHandler) StartPublic(mux *http.ServeMux) {
 
 func (h *AuthHandler) StartProtected(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
 	mux.Handle("POST /logout", authorize(http.HandlerFunc(h.Logout)))
+	mux.Handle("GET /me", authorize(http.HandlerFunc(h.Me)))
 	mux.HandleFunc("/logout", shared.MethodNotAllowed)
+	mux.HandleFunc("/me", shared.MethodNotAllowed)
 	mux.HandleFunc("/", shared.NotFound)
 }
 
@@ -44,7 +47,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.authService.RegisterUser(r.Context(), req.Username, req.Email, req.Password, req.GroupName)
+	userID, err := h.authService.RegisterUser(r.Context(), req.model())
 	if err != nil {
 		middleware.QueueErrorLog(r.Context(), "registration failed", err)
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -57,6 +60,13 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		}
 		if errors.Is(err, auth_service.ErrEmailTaken) {
 			pkg.WriteError(w, http.StatusConflict, "email_taken", "Email is already in use")
+			return
+		}
+		var validationErr *auth_service.ValidationError
+		if errors.As(err, &validationErr) {
+			pkg.WriteErrorDetails(w, http.StatusUnprocessableEntity, "validation_failed", "Request validation failed", []models.ErrorDetail{{
+				Field: validationErr.Field, Code: validationErr.Code, Message: validationErr.Message,
+			}})
 			return
 		}
 
@@ -91,6 +101,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			pkg.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "Invalid login or password")
 			return
 		}
+		if errors.Is(err, auth_service.ErrAccountBlocked) {
+			pkg.WriteError(w, http.StatusForbidden, "account_blocked", "User account is blocked")
+			return
+		}
+		if errors.Is(err, auth_service.ErrAccountLocked) {
+			pkg.WriteError(w, http.StatusLocked, "account_temporarily_locked", "Too many failed login attempts")
+			return
+		}
 
 		pkg.WriteError(w, http.StatusInternalServerError, "login_failed", "Failed to login")
 		return
@@ -116,6 +134,10 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		}
 		if errors.Is(err, auth_service.ErrInvalidRefreshToken) {
 			pkg.WriteError(w, http.StatusUnauthorized, "invalid_refresh_token", "Invalid refresh token")
+			return
+		}
+		if errors.Is(err, auth_service.ErrAccountBlocked) {
+			pkg.WriteError(w, http.StatusForbidden, "account_blocked", "User account is blocked")
 			return
 		}
 
@@ -150,6 +172,27 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pkg.WriteEmpty(w, http.StatusNoContent)
+}
+
+func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		pkg.WriteError(w, http.StatusUnauthorized, "invalid_access_token", "Valid access token is required")
+		return
+	}
+
+	user, err := h.authService.CurrentUser(r.Context(), userID)
+	if err != nil {
+		middleware.QueueErrorLog(r.Context(), "get current user failed", err)
+		if errors.Is(err, auth_service.ErrUserNotFound) {
+			pkg.WriteError(w, http.StatusNotFound, "user_not_found", "User not found")
+			return
+		}
+		pkg.WriteError(w, http.StatusInternalServerError, "current_user_failed", "Failed to get current user")
+		return
+	}
+
+	pkg.WriteJSON(w, http.StatusOK, newMeResponse(user))
 }
 
 func newTokenResponse(userID, accessToken, refreshToken string) TokenResponse {

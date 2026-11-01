@@ -1,122 +1,130 @@
 package auth_service
 
 import (
-	"errors"
 	"net/mail"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"it-project-showcase/backend/internal/models"
 )
 
-// TODO: to 2 groups: ТОП-203Б, ТОП-204Б (after the sprint)
 const (
-	minUsernameLength  = 3
-	maxUsernameLength  = 32
-	minPasswordLength  = 8
-	maxPasswordLength  = 72
-	maxEmailLength     = 254
-	minGroupNameLength = 2
-	maxGroupNameLength = 100
+	minUsernameLength = 3
+	maxUsernameLength = 32
+	minPasswordLength = 8
+	maxPasswordLength = 72
+	maxEmailLength    = 254
+	maxShortText      = 150
+	maxBioLength      = 2000
 )
 
 var usernamePattern = regexp.MustCompile(`^[a-z0-9._-]+$`)
 
-func ValidateRegisterRequest(username, email, password, groupName string) error {
-	if err := validateUsername(username); err != nil {
-		return err
-	}
-	if err := validateEmail(email); err != nil {
-		return err
-	}
-	if err := validatePassword(password); err != nil {
-		return err
-	}
-	if err := validateGroupName(groupName); err != nil {
-		return err
-	}
+type ValidationError struct {
+	Field   string
+	Code    string
+	Message string
+}
 
+func (e *ValidationError) Error() string { return e.Message }
+
+func ValidateRegisterRequest(input models.StudentRegistration) error {
+	checks := []struct {
+		field string
+		value string
+		max   int
+	}{
+		{"last_name", input.LastName, maxShortText},
+		{"first_name", input.FirstName, maxShortText},
+		{"institute", input.Institute, maxShortText},
+		{"direction", input.Direction, maxShortText},
+		{"group_name", input.GroupName, maxShortText},
+		{"consent_version", input.ConsentVersion, 50},
+	}
+	if err := validateUsername(input.Username); err != nil {
+		return err
+	}
+	if err := validateEmail(input.Email); err != nil {
+		return err
+	}
+	if err := validatePassword(input.Password); err != nil {
+		return err
+	}
+	for _, check := range checks {
+		if strings.TrimSpace(check.value) == "" {
+			return validationError(check.field, "required", check.field+" is required")
+		}
+		if utf8.RuneCountInString(check.value) > check.max {
+			return validationError(check.field, "too_long", check.field+" is too long")
+		}
+	}
+	if input.Course < 1 || input.Course > 8 {
+		return validationError("course", "out_of_range", "course must be between 1 and 8")
+	}
+	if utf8.RuneCountInString(input.Bio) > maxBioLength {
+		return validationError("bio", "too_long", "bio is too long")
+	}
+	for _, values := range [][]string{input.ProfessionalInterests, input.Competencies, input.Technologies} {
+		if len(values) > 50 {
+			return validationError("profile", "too_many_items", "profile lists may contain at most 50 items")
+		}
+	}
+	for index, link := range input.Links {
+		if strings.TrimSpace(link.Kind) == "" {
+			return validationError("links", "invalid_link", "link kind is required")
+		}
+		parsed, err := url.ParseRequestURI(link.URL)
+		if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+			return validationError("links", "invalid_link", "link at index "+strconv.Itoa(index)+" must be an http or https URL")
+		}
+	}
 	return nil
 }
 
-func validateUsername(username string) error {
-	if username == "" {
-		return errors.New("username is required")
-	}
-	if username != strings.TrimSpace(username) {
-		return errors.New("username must not contain leading or trailing spaces")
-	}
-
-	length := utf8.RuneCountInString(username)
+func validateUsername(value string) error {
+	length := utf8.RuneCountInString(value)
 	if length < minUsernameLength || length > maxUsernameLength {
-		return errors.New("username must be between 3 and 32 characters")
+		return validationError("username", "invalid_length", "username must be between 3 and 32 characters")
 	}
-	if !usernamePattern.MatchString(username) {
-		return errors.New("username may contain only lowercase Latin letters, digits, dots, underscores, and hyphens")
+	if !usernamePattern.MatchString(value) {
+		return validationError("username", "invalid_format", "username may contain only lowercase Latin letters, digits, dots, underscores, and hyphens")
 	}
-
 	return nil
 }
 
-func validateEmail(email string) error {
-	if email == "" {
-		return errors.New("email is required")
+func validateEmail(value string) error {
+	if len(value) > maxEmailLength {
+		return validationError("email", "too_long", "email is too long")
 	}
-	if email != strings.TrimSpace(email) {
-		return errors.New("email must not contain leading or trailing spaces")
+	address, err := mail.ParseAddress(value)
+	if err != nil || address.Address != value {
+		return validationError("email", "invalid_format", "email has an invalid format")
 	}
-	if len(email) > maxEmailLength {
-		return errors.New("email is too long")
-	}
-
-	address, err := mail.ParseAddress(email)
-	if err != nil || address.Address != email {
-		return errors.New("email has an invalid format")
-	}
-
 	return nil
 }
 
-func validatePassword(password string) error {
-	if password == "" {
-		return errors.New("password is required")
+func validatePassword(value string) error {
+	if len(value) < minPasswordLength || len(value) > maxPasswordLength {
+		return validationError("password", "invalid_length", "password must be between 8 and 72 characters")
 	}
-	if len(password) < minPasswordLength || len(password) > maxPasswordLength {
-		return errors.New("password must be between 8 and 72 characters")
-	}
-
-	var hasLetter, hasDigit bool
-	for _, character := range password {
+	var letter, digit bool
+	for _, character := range value {
 		if unicode.IsSpace(character) || unicode.IsControl(character) {
-			return errors.New("password must not contain spaces or control characters")
+			return validationError("password", "invalid_format", "password must not contain spaces or control characters")
 		}
-		hasLetter = hasLetter || unicode.IsLetter(character)
-		hasDigit = hasDigit || unicode.IsDigit(character)
+		letter = letter || unicode.IsLetter(character)
+		digit = digit || unicode.IsDigit(character)
 	}
-	if !hasLetter || !hasDigit {
-		return errors.New("password must contain at least one letter and one digit")
+	if !letter || !digit {
+		return validationError("password", "weak_password", "password must contain at least one letter and one digit")
 	}
-
 	return nil
 }
 
-func validateGroupName(groupName string) error {
-	if groupName == "" {
-		return errors.New("group name is required")
-	}
-	if groupName != strings.TrimSpace(groupName) {
-		return errors.New("group name must not contain leading or trailing spaces")
-	}
-
-	length := utf8.RuneCountInString(groupName)
-	if length < minGroupNameLength || length > maxGroupNameLength {
-		return errors.New("group name must be between 2 and 100 characters")
-	}
-	for _, character := range groupName {
-		if unicode.IsControl(character) {
-			return errors.New("group name must not contain control characters")
-		}
-	}
-
-	return nil
+func validationError(field, code, message string) error {
+	return &ValidationError{Field: field, Code: code, Message: message}
 }
