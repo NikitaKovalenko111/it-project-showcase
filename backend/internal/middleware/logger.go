@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"it-project-showcase/backend/internal/requestcontext"
+	"it-project-showcase/backend/pkg"
 )
 
 type responseWriter struct {
@@ -64,7 +64,7 @@ func Logger(log *slog.Logger) func(http.Handler) http.Handler {
 			}
 
 			attrs := []any{
-				slog.String("request_id", requestcontext.RequestID(r.Context())),
+				slog.String("request_id", pkg.RequestID(r.Context())),
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status", status),

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"it-project-showcase/backend/internal/requestcontext"
+	"it-project-showcase/backend/pkg"
 )
 
 const RequestIDHeader = "X-Request-ID"
@@ -21,7 +21,7 @@ func RequestID(next http.Handler) http.Handler {
 		}
 
 		w.Header().Set(RequestIDHeader, requestID)
-		ctx := requestcontext.WithRequestID(r.Context(), requestID)
+		ctx := pkg.WithRequestID(r.Context(), requestID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

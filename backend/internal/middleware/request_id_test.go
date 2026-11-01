@@ -5,14 +5,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"it-project-showcase/backend/internal/requestcontext"
+	"it-project-showcase/backend/pkg"
 )
 
 func TestRequestIDPreservesValidHeader(t *testing.T) {
 	const expected = "request-12345"
 
 	handler := RequestID(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if actual := requestcontext.RequestID(r.Context()); actual != expected {
+		if actual := pkg.RequestID(r.Context()); actual != expected {
 			t.Fatalf("request id in context = %q, want %q", actual, expected)
 		}
 		w.WriteHeader(http.StatusNoContent)
