@@ -64,6 +64,14 @@ func (r *Repository) GetApplicationResume(ctx context.Context, applicationID, us
 	return file, nil
 }
 
+func (r *Repository) GetSubmissionFile(ctx context.Context, submissionID, fileID, userID string, isAdmin bool) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM submissions s JOIN submission_files sf ON sf.submission_id=s.submission_id JOIN files f ON f.file_id=sf.file_id AND f.status='active' JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id WHERE s.submission_id=$1 AND f.file_id=$2 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$3 AND m.left_at IS NULL) OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company'))`, submissionID, fileID, userID, isAdmin))
+}
+
+func (r *Repository) GetPublicStudentProjectFile(ctx context.Context, projectID, fileID string) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM student_projects p JOIN files f ON f.file_id=$2 AND f.status='active' WHERE p.project_id=$1 AND p.status='published' AND (p.cover_file_id=f.file_id OR EXISTS(SELECT 1 FROM student_project_files pf WHERE pf.project_id=p.project_id AND pf.file_id=f.file_id))`, projectID, fileID))
+}
+
 func (r *Repository) CreateCompanyLogo(ctx context.Context, userID, companyID string, file models.File) (*models.File, string, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

@@ -122,6 +122,31 @@ func (h *Handler) DownloadApplicationResume(w http.ResponseWriter, r *http.Reque
 	defer object.Close()
 	writeDownload(w, r, file, object, false)
 }
+func (h *Handler) DownloadSubmissionFile(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	isAdmin := false
+	if claims, ok := middleware.TokenClaimsFromContext(r.Context()); ok {
+		for _, role := range claims.Roles {
+			isAdmin = isAdmin || role == "admin"
+		}
+	}
+	file, object, err := h.service.DownloadSubmissionFile(r.Context(), r.PathValue("submission_id"), r.PathValue("file_id"), userID, isAdmin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, false)
+}
+func (h *Handler) DownloadStudentProjectFile(w http.ResponseWriter, r *http.Request) {
+	file, object, err := h.service.DownloadPublicStudentProjectFile(r.Context(), r.PathValue("project_id"), r.PathValue("file_id"))
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, true)
+}
 func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	claims, claimsOK := middleware.TokenClaimsFromContext(r.Context())

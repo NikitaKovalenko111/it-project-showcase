@@ -24,3 +24,5 @@ Rules:
 - migrations are forward-only until a rollback policy is agreed.
 
 The server embeds these files, applies them in version order and records version, name, checksum and application time in `showcase.schema_migrations`.
+`000008_results_and_student_projects.up.sql` adds stages 10–11: versioned submissions and files, evaluations with criterion scores, reviews, awards, reward fulfillment, certificates, and moderated student projects with members, catalogs, assets and server-owned likes.
+

@@ -151,6 +151,26 @@ func (s *Service) DownloadApplicationResume(ctx context.Context, applicationID, 
 	file, err := s.repo.GetApplicationResume(ctx, applicationID, userID, isAdmin)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadSubmissionFile(ctx context.Context, submissionID, fileID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(submissionID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetSubmissionFile(ctx, submissionID, fileID, userID, isAdmin)
+	return s.open(ctx, file, err)
+}
+func (s *Service) DownloadPublicStudentProjectFile(ctx context.Context, projectID, fileID string) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(projectID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetPublicStudentProjectFile(ctx, projectID, fileID)
+	return s.open(ctx, file, err)
+}
 func (s *Service) open(ctx context.Context, file *models.File, err error) (*models.File, io.ReadCloser, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
