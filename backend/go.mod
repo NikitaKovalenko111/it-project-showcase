@@ -1,4 +1,4 @@
-module kanban-board
+module it-project-showcase/backend
 
 go 1.25.3
 

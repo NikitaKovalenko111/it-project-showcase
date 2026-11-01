@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	"kanban-board/internal/middleware"
-	auth_service "kanban-board/internal/services/auth"
-	"kanban-board/pkg"
+	"it-project-showcase/backend/internal/middleware"
+	auth_service "it-project-showcase/backend/internal/services/auth"
+	"it-project-showcase/backend/pkg"
 )
 
 type AuthHandler struct {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"kanban-board/pkg"
+	"it-project-showcase/backend/pkg"
 )
 
 type authContextKey uint8

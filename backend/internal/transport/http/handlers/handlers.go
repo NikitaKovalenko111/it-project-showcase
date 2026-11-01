@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"kanban-board/internal/services"
-	auth_handler "kanban-board/internal/transport/http/handlers/auth"
-	system_handler "kanban-board/internal/transport/http/handlers/system"
+	"it-project-showcase/backend/internal/services"
+	auth_handler "it-project-showcase/backend/internal/transport/http/handlers/auth"
+	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
 )
 
 type Handlers struct {

@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"kanban-board/internal/storage"
-	session_repo "kanban-board/internal/storage/repositories/session"
-	users_repository "kanban-board/internal/storage/repositories/user"
+	"it-project-showcase/backend/internal/storage"
+	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
+	users_repository "it-project-showcase/backend/internal/storage/repositories/user"
 )
 
 type Repositories struct {

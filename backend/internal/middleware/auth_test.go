@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"kanban-board/pkg"
+	"it-project-showcase/backend/pkg"
 )
 
 const (

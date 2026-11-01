@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
-	"kanban-board/internal/models"
+	"it-project-showcase/backend/internal/models"
 	"net/http"
 )
 

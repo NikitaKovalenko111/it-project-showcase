@@ -14,7 +14,7 @@ import (
 const (
 	AccessTokenType  = "access"
 	RefreshTokenType = "refresh"
-	tokenIssuer      = "kanban-board"
+	tokenIssuer      = "it-project-showcase"
 )
 
 type TokenClaims struct {

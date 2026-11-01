@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"kanban-board/internal/config"
-	"kanban-board/internal/middleware"
-	"kanban-board/internal/models"
-	auth_service "kanban-board/internal/services/auth"
-	session_repo "kanban-board/internal/storage/repositories/session"
-	users_repo "kanban-board/internal/storage/repositories/user"
+	"it-project-showcase/backend/internal/config"
+	"it-project-showcase/backend/internal/middleware"
+	"it-project-showcase/backend/internal/models"
+	auth_service "it-project-showcase/backend/internal/services/auth"
+	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
+	users_repo "it-project-showcase/backend/internal/storage/repositories/user"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jackc/pgx/v5/pgconn"

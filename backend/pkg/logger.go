@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"kanban-board/internal/types"
+	"it-project-showcase/backend/internal/types"
 	"log/slog"
 	"os"
 

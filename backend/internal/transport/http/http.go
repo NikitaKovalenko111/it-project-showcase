@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"kanban-board/internal/transport/http/handlers"
+	"it-project-showcase/backend/internal/transport/http/handlers"
 	"net/http"
 )
 

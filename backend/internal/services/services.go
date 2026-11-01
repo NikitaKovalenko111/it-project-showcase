@@ -1,11 +1,11 @@
 package services
 
 import (
-	"kanban-board/internal/config"
-	auth_service "kanban-board/internal/services/auth"
-	"kanban-board/internal/storage"
-	session_repo "kanban-board/internal/storage/repositories/session"
-	users_repo "kanban-board/internal/storage/repositories/user"
+	"it-project-showcase/backend/internal/config"
+	auth_service "it-project-showcase/backend/internal/services/auth"
+	"it-project-showcase/backend/internal/storage"
+	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
+	users_repo "it-project-showcase/backend/internal/storage/repositories/user"
 )
 
 type Services struct {

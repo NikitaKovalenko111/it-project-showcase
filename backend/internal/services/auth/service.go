@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"kanban-board/internal/config"
-	session_repo "kanban-board/internal/storage/repositories/session"
-	users_repo "kanban-board/internal/storage/repositories/user"
-	"kanban-board/pkg"
+	"it-project-showcase/backend/internal/config"
+	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
+	users_repo "it-project-showcase/backend/internal/storage/repositories/user"
+	"it-project-showcase/backend/pkg"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )

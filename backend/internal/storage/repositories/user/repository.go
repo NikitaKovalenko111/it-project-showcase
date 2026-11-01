@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"kanban-board/internal/models"
+	"it-project-showcase/backend/internal/models"
 )
 
 type UsersRepo struct {

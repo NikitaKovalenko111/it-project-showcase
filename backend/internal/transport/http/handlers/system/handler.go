@@ -1,7 +1,7 @@
 package system_handler
 
 import (
-	"kanban-board/pkg"
+	"it-project-showcase/backend/pkg"
 	"net/http"
 )
 

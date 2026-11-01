@@ -1,5 +1,5 @@
 APP_NAME=backend
-MAIN_PATH=./cmd/kanban-board/main.go
+MAIN_PATH=./cmd/server/main.go
 CONFIG_PATH=./config/config.yaml
 
 run:

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"kanban-board/internal/config"
-	"kanban-board/internal/middleware"
-	"kanban-board/internal/services"
-	"kanban-board/internal/storage"
-	transport "kanban-board/internal/transport/http"
-	"kanban-board/internal/transport/http/handlers"
-	"kanban-board/pkg"
+	"it-project-showcase/backend/internal/config"
+	"it-project-showcase/backend/internal/middleware"
+	"it-project-showcase/backend/internal/services"
+	"it-project-showcase/backend/internal/storage"
+	transport "it-project-showcase/backend/internal/transport/http"
+	"it-project-showcase/backend/internal/transport/http/handlers"
+	"it-project-showcase/backend/pkg"
 )
 
 func Run(cfg *config.Config) {

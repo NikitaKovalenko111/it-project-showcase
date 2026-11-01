@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"kanban-board/internal/app"
-	"kanban-board/internal/config"
+	"it-project-showcase/backend/internal/app"
+	"it-project-showcase/backend/internal/config"
 )
 
 func main() {
