@@ -49,5 +49,18 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	)
 	h.handlers.Users.Start(usersRouter)
 
+	admin := func(next http.Handler) http.Handler { return h.authorize(middleware.RequireAnyRole("admin")(next)) }
+	representative := func(next http.Handler) http.Handler {
+		return h.authorize(middleware.RequireAnyRole("company_representative")(next))
+	}
+	catalogRouter := http.NewServeMux()
+	apiRouter.Handle("/catalogs/", http.StripPrefix("/catalogs", catalogRouter))
+	h.handlers.Catalogs.Start(catalogRouter, admin)
+	companyRouter := http.NewServeMux()
+	apiRouter.Handle("GET /companies", http.HandlerFunc(h.handlers.Companies.List))
+	apiRouter.Handle("POST /companies", representative(http.HandlerFunc(h.handlers.Companies.Create)))
+	apiRouter.Handle("/companies/", http.StripPrefix("/companies", companyRouter))
+	h.handlers.Companies.Start(companyRouter, representative, admin)
+
 	apiRouter.HandleFunc("/", shared.NotFound)
 }

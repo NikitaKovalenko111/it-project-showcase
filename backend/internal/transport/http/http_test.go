@@ -61,6 +61,18 @@ func TestLogoutRouteIsProtected(t *testing.T) {
 	}
 }
 
+func TestCompanyCreationWithoutTrailingSlashIsProtected(t *testing.T) {
+	handlerSet := &handlers.Handlers{System: system_handler.Init(), Auth: auth_handler.Init(nil)}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/companies", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusUnauthorized)
+	}
+}
+
 func TestUnknownAPIRouteReturnsJSONError(t *testing.T) {
 	handlerSet := &handlers.Handlers{
 		System: system_handler.Init(),
