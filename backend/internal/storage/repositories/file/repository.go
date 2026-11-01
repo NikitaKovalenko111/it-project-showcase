@@ -42,6 +42,13 @@ func (r *Repository) GetPublicCompanyLogo(ctx context.Context, companyID string)
 	}
 	return file, nil
 }
+func (r *Repository) GetPublicCaseFile(ctx context.Context, caseID, fileID string) (*models.File, error) {
+	file, err := scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM cases c JOIN case_files cf ON cf.case_id=c.case_id JOIN files f ON f.file_id=cf.file_id WHERE c.case_id=$1 AND f.file_id=$2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public' AND cf.visibility='public' AND f.status='active'`, caseID, fileID))
+	if err != nil {
+		return nil, fmt.Errorf("get public case file: %w", err)
+	}
+	return file, nil
+}
 
 func (r *Repository) CreateCompanyLogo(ctx context.Context, userID, companyID string, file models.File) (*models.File, string, error) {
 	tx, err := r.db.BeginTx(ctx, nil)

@@ -4,11 +4,13 @@ import (
 	"it-project-showcase/backend/internal/config"
 	"it-project-showcase/backend/internal/objectstorage"
 	auth_service "it-project-showcase/backend/internal/services/auth"
+	cases_service "it-project-showcase/backend/internal/services/cases"
 	catalogs_service "it-project-showcase/backend/internal/services/catalogs"
 	companies_service "it-project-showcase/backend/internal/services/companies"
 	files_service "it-project-showcase/backend/internal/services/files"
 	users_service "it-project-showcase/backend/internal/services/users"
 	"it-project-showcase/backend/internal/storage"
+	case_repo "it-project-showcase/backend/internal/storage/repositories/case"
 	catalog_repo "it-project-showcase/backend/internal/storage/repositories/catalog"
 	company_repo "it-project-showcase/backend/internal/storage/repositories/company"
 	file_repo "it-project-showcase/backend/internal/storage/repositories/file"
@@ -22,6 +24,7 @@ type Services struct {
 	Catalogs  *catalogs_service.Service
 	Companies *companies_service.Service
 	Files     *files_service.Service
+	Cases     *cases_service.Service
 }
 
 func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig config.JWT, objectConfig config.ObjectStorage) *Services {
@@ -30,6 +33,7 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 	catalogRepo := catalog_repo.Init(appStorage.Db)
 	companyRepo := company_repo.Init(appStorage.Db)
 	fileRepo := file_repo.Init(appStorage.Db)
+	caseRepo := case_repo.Init(appStorage.Db)
 
 	return &Services{
 		Auth:      auth_service.Init(sessionRepo, userRepo, jwtConfig),
@@ -37,5 +41,6 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 		Catalogs:  catalogs_service.Init(catalogRepo),
 		Companies: companies_service.Init(companyRepo),
 		Files:     files_service.Init(fileRepo, objects, objectConfig.MaxFileSize),
+		Cases:     cases_service.Init(caseRepo),
 	}
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"it-project-showcase/backend/internal/services"
 	auth_handler "it-project-showcase/backend/internal/transport/http/handlers/auth"
+	case_handler "it-project-showcase/backend/internal/transport/http/handlers/case"
 	catalog_handler "it-project-showcase/backend/internal/transport/http/handlers/catalog"
 	company_handler "it-project-showcase/backend/internal/transport/http/handlers/company"
 	file_handler "it-project-showcase/backend/internal/transport/http/handlers/file"
@@ -17,6 +18,7 @@ type Handlers struct {
 	Catalogs  *catalog_handler.Handler
 	Companies *company_handler.Handler
 	Files     *file_handler.Handler
+	Cases     *case_handler.Handler
 }
 
 func Init(services *services.Services) *Handlers {
@@ -27,5 +29,6 @@ func Init(services *services.Services) *Handlers {
 		Catalogs:  catalog_handler.Init(services.Catalogs),
 		Companies: company_handler.Init(services.Companies),
 		Files:     file_handler.Init(services.Files),
+		Cases:     case_handler.Init(services.Cases),
 	}
 }

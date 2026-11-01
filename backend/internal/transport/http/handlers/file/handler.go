@@ -77,6 +77,15 @@ func (h *Handler) DownloadCompanyLogo(w http.ResponseWriter, r *http.Request) {
 	defer object.Close()
 	writeDownload(w, r, file, object, true)
 }
+func (h *Handler) DownloadCaseFile(w http.ResponseWriter, r *http.Request) {
+	file, object, err := h.service.DownloadPublicCaseFile(r.Context(), r.PathValue("case_id"), r.PathValue("file_id"))
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, true)
+}
 func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	claims, claimsOK := middleware.TokenClaimsFromContext(r.Context())

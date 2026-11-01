@@ -9,6 +9,7 @@ Migration names use the format `NNNNNN_description.up.sql`, for example:
 000002_identity_profiles.up.sql
 000003_catalogs_companies.up.sql
 000004_files.up.sql
+000005_cases.up.sql
 ```
 
 Rules:

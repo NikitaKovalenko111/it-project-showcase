@@ -54,6 +54,9 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	representative := func(next http.Handler) http.Handler {
 		return h.authorize(middleware.RequireAnyRole("company_representative")(next))
 	}
+	manager := func(next http.Handler) http.Handler {
+		return h.authorize(middleware.RequireAnyRole("company_representative", "admin")(next))
+	}
 	catalogRouter := http.NewServeMux()
 	apiRouter.Handle("/catalogs/", http.StripPrefix("/catalogs", catalogRouter))
 	h.handlers.Catalogs.Start(catalogRouter, admin)
@@ -64,6 +67,13 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	apiRouter.HandleFunc("GET /companies/{company_id}/logo", h.handlers.Files.DownloadCompanyLogo)
 	apiRouter.Handle("/companies/", http.StripPrefix("/companies", companyRouter))
 	h.handlers.Companies.Start(companyRouter, representative, admin)
+
+	caseRouter := http.NewServeMux()
+	apiRouter.Handle("GET /cases", http.HandlerFunc(h.handlers.Cases.List))
+	apiRouter.Handle("POST /cases", representative(http.HandlerFunc(h.handlers.Cases.Create)))
+	apiRouter.HandleFunc("GET /cases/{case_id}/files/{file_id}", h.handlers.Files.DownloadCaseFile)
+	apiRouter.Handle("/cases/", http.StripPrefix("/cases", caseRouter))
+	h.handlers.Cases.Start(caseRouter, representative, manager, admin)
 
 	fileRouter := http.NewServeMux()
 	apiRouter.Handle("POST /files", h.authorize(http.HandlerFunc(h.handlers.Files.Upload)))
