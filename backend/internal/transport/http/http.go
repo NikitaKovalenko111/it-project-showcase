@@ -75,6 +75,31 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	apiRouter.Handle("/cases/", http.StripPrefix("/cases", caseRouter))
 	h.handlers.Cases.Start(caseRouter, representative, manager, admin)
 
+	studentArea := func(next http.Handler) http.Handler {
+		return h.authorize(middleware.RequireAnyRole("student", "admin")(next))
+	}
+	teamRouter := http.NewServeMux()
+	apiRouter.Handle("/teams/", studentArea(http.StripPrefix("/teams", teamRouter)))
+	apiRouter.Handle("POST /teams", studentArea(http.HandlerFunc(h.handlers.Teams.Create)))
+	h.handlers.Teams.StartTeams(teamRouter)
+	invitationRouter := http.NewServeMux()
+	apiRouter.Handle("/team-invitations/", studentArea(http.StripPrefix("/team-invitations", invitationRouter)))
+	apiRouter.Handle("GET /team-invitations", studentArea(http.HandlerFunc(h.handlers.Teams.ListInvitations)))
+	h.handlers.Teams.StartInvitations(invitationRouter)
+
+	workflowArea := func(next http.Handler) http.Handler {
+		return h.authorize(middleware.RequireAnyRole("student", "company_representative", "admin")(next))
+	}
+	applicationRouter := http.NewServeMux()
+	apiRouter.Handle("/applications/", workflowArea(http.StripPrefix("/applications", applicationRouter)))
+	apiRouter.Handle("GET /applications", workflowArea(http.HandlerFunc(h.handlers.Applications.List)))
+	apiRouter.Handle("POST /applications", workflowArea(http.HandlerFunc(h.handlers.Applications.Create)))
+	apiRouter.Handle("GET /applications/{application_id}/resume", workflowArea(http.HandlerFunc(h.handlers.Files.DownloadApplicationResume)))
+	h.handlers.Applications.StartApplications(applicationRouter)
+	executionRouter := http.NewServeMux()
+	apiRouter.Handle("/executions/", workflowArea(http.StripPrefix("/executions", executionRouter)))
+	h.handlers.Applications.StartExecutions(executionRouter)
+
 	fileRouter := http.NewServeMux()
 	apiRouter.Handle("POST /files", h.authorize(http.HandlerFunc(h.handlers.Files.Upload)))
 	apiRouter.Handle("/files/", h.authorize(http.StripPrefix("/files", fileRouter)))
