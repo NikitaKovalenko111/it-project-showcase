@@ -764,6 +764,150 @@ Mock-фронтенд может вернуть JavaScript `undefined`, но HTT
 
 Публично выдаёт cover или asset только опубликованного проекта. Постоянные публичные MinIO URL не хранятся.
 
+## Избранное
+
+Избранное принадлежит текущему пользователю. Поддерживаются типы `case` и `student_project`.
+
+- `GET /favorites` — cursor pagination, пустой список `200` и `items: []`;
+- `PUT /favorites/{resource_type}/{resource_id}` — идемпотентно добавить;
+- `DELETE /favorites/{resource_type}/{resource_id}` — идемпотентно убрать.
+
+В избранное нельзя добавить неопубликованный или несуществующий ресурс. Клиент не передаёт владельца избранного.
+
+## Уведомления и email
+
+- `GET /notifications?unread_only=true&limit=20&cursor=...`;
+- `GET /notifications/stream` — поток новых уведомлений через SSE;
+- `PATCH /notifications/{notification_id}/read`;
+- `POST /notifications/read-all`.
+
+Приглашения в команду, приглашения студента от компании и приглашения представителя компании автоматически создают внутреннее уведомление. Каждое уведомление атомарно добавляет письмо в `email_outbox`.
+
+SMTP worker забирает письма через `FOR UPDATE SKIP LOCKED`, делает до пяти попыток с экспоненциальной задержкой и не блокирует HTTP-запросы. По умолчанию отправка отключена, но outbox продолжает сохранять события.
+
+```yaml
+email:
+  enabled: false
+  host: localhost
+  port: 1025
+  username: ""
+  password: ""
+  from: showcase@localhost
+  poll_interval: 30s
+```
+
+Переменные окружения: `smtp_enabled`, `smtp_host`, `smtp_port`, `smtp_username`, `smtp_password`, `smtp_from`, `smtp_poll_interval`.
+
+### SSE `/notifications/stream`
+
+Требует access token в `Authorization: Bearer ...`. Ответ имеет `Content-Type: text/event-stream`; прокси-буферизация отключается заголовком `X-Accel-Buffering: no`. Соединение не ограничивается стандартным HTTP timeout, сервер отправляет heartbeat каждые 15 секунд.
+
+Backend проверяет новые записи `notifications` каждые 2 секунды, поэтому обычная задержка появления события в интерфейсе составляет до нескольких секунд. Источником истины остаётся PostgreSQL, поэтому поток работает и для уведомлений, созданных SQL-триггерами приглашений.
+
+После соединения приходит:
+
+```text
+event: connected
+data: {}
+```
+
+Новое уведомление:
+
+```text
+id: <notification UUID>
+event: notification
+data: {"notification_id":"...","type":"team_invitation",...}
+```
+
+При истечении access token сервер отправляет `event: token_expired` и закрывает поток. Клиент должен обновить токены через `/auth/refresh` и открыть SSE заново.
+
+При переподключении клиент передаёт UUID последнего обработанного события в `Last-Event-ID`. Сервер продолжает поток после него, поэтому кратковременный разрыв соединения не теряет уведомления. Без `Last-Event-ID` поток начинается с момента подключения; существующие уведомления загружаются обычным `GET /notifications`.
+
+Нативный браузерный `EventSource` не позволяет установить Bearer-заголовок. Фронтенду нужен SSE-клиент на основе `fetch`, например `@microsoft/fetch-event-source`, либо собственный streaming `fetch`. Передавать access token в query string не следует.
+
+```ts
+await fetchEventSource(`${apiUrl}/notifications/stream`, {
+  headers: { Authorization: `Bearer ${accessToken}` },
+  onmessage(event) {
+    if (event.event === "notification") {
+      const notification = JSON.parse(event.data)
+      // Обновить список и счётчик непрочитанных.
+    }
+  }
+})
+```
+
+### Как включить отправку email
+
+1. Получить SMTP-доступ у почтового провайдера или поднять собственный SMTP relay.
+2. В production-конфигурации установить `email.enabled: true`.
+3. Указать SMTP host, порт, логин, пароль и подтверждённый адрес отправителя.
+4. Перезапустить backend.
+5. Создать тестовое приглашение и проверить `showcase.email_outbox`: успешное письмо переходит в `sent`, ошибка — в `failed`, после пяти попыток — в `cancelled`. Причина хранится в `last_error`.
+
+Пример SMTP с STARTTLS на порту 587:
+
+```yaml
+email:
+  enabled: true
+  host: smtp.example.com
+  port: 587
+  username: showcase@example.com
+  password: "secret-or-app-password"
+  from: showcase@example.com
+  poll_interval: 30s
+```
+
+То же через окружение:
+
+```env
+smtp_enabled=true
+smtp_host=smtp.example.com
+smtp_port=587
+smtp_username=showcase@example.com
+smtp_password=secret-or-app-password
+smtp_from=showcase@example.com
+smtp_poll_interval=30s
+```
+
+Текущий sender использует SMTP/STARTTLS, если сервер его объявляет. SMTP с неявным TLS на порту 465 напрямую не поддерживается: для такого провайдера нужен порт 587 или локальный SMTP relay. При включённой двухфакторной аутентификации обычно требуется отдельный app password. SMTP-пароль нельзя коммитить в `config.yaml`; в production его нужно передавать через secret manager или переменные окружения.
+
+## Поиск студентов и приглашения
+
+### GET `/students/search`
+
+Доступен ролям `company_representative`, `university_staff`, `admin`. Использует cursor pagination и фильтры `search`, `direction`, `technology`. Возвращает только активных студентов и не раскрывает email, телефон или другие закрытые данные.
+
+После поиска компания использует уже реализованный `POST /companies/{company_id}/student-invitations`. Приглашение создаёт уведомление и email-outbox автоматически.
+
+## Портфолио
+
+- `GET /students/{student_id}/portfolio` — публичное портфолио;
+- `GET /portfolio/me` — собственное портфолио, включая private;
+- `PATCH /portfolio/me` — настройки `visibility`, `headline`, `about`.
+
+Портфолио собирается сервером из опубликованных студенческих проектов, завершённых executions, сертификатов и наград. Закрытое портфолио доступно только владельцу и администратору. Клиент не может подменить достижения произвольными объектами.
+
+## Аудит
+
+### GET `/audit-logs`
+
+Только `admin`. Используется page pagination: `page`, `page_size`; фильтры `entity_type`, `action`. Ответ содержит `total`. Аудитируются изменения пользователей, компаний, кейсов, заявок, submissions и студенческих проектов. Парольные хеши удаляются из audit snapshot на уровне БД.
+
+## Аналитика
+
+### GET `/analytics`
+
+Администратор без `company_id` получает глобальные агрегаты. Представитель компании обязан передать доступный ему `company_id` и получает только показатели своей компании. Все счётчики вычисляет сервер.
+
+## Экспорт
+
+### GET `/exports?resource=cases&format=xlsx&company_id=...`
+
+Форматы: `csv`, `xlsx`, `pdf`. Ресурсы: `cases`, `executions`; администратору дополнительно доступны `student-projects`, `users`. CSV содержит UTF-8 BOM, XLSX является настоящей Office Open XML книгой, PDF использует встроенный Unicode-шрифт и поддерживает кириллицу. Ответ всегда `private, no-store`.
+
+Представитель компании обязан передать `company_id` и может экспортировать только принадлежащие компании кейсы и executions.
+
 ## Файлы и MinIO
 
 Фронтенд передаёт бинарный файл, а не произвольный внешний URL. Сервер:
@@ -941,7 +1085,7 @@ API MinIO доступен на `http://localhost:9000`, web-консоль — 
 
 После 5-го этапа добавлены MinIO, метаданные файлов, защищённая общая загрузка, фотографии студентов и логотипы компаний. Внешние URL не используются как замена загруженному файлу.
 
-Этапы 6–11 реализованы: компании и представители с явной модерацией, кейсы с ревизиями и критериями, команды и заявки с согласиями, executions, submissions и оценки, награды и сертификаты, а также модерируемые студенческие проекты с участниками, файлами и серверными лайками. Следующий блок по плану — этап 12: избранное, уведомления, аудит, поиск студентов, портфолио, аналитика и экспорт.
+Этапы 6–12 реализованы: компании и представители с явной модерацией, кейсы с ревизиями и критериями, команды и заявки с согласиями, executions, submissions и оценки, награды и сертификаты, модерируемые студенческие проекты, избранное, уведомления и email-outbox, аудит, поиск студентов, портфолио, аналитика и экспорт CSV/XLSX/PDF. Следующий блок по плану — этап 13: расширенные repository/handler/integration-тесты и итоговая ревизия документации.
 
 ## Инфраструктурные изменения API
 

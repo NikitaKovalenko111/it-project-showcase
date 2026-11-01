@@ -37,7 +37,7 @@ func Run(cfg *config.Config) {
 		panic(fmt.Errorf("failed connection to object storage: %v", err))
 	}
 
-	services := services.Init(storage, objects, cfg.JWT, cfg.ObjectStorage)
+	services := services.Init(storage, objects, cfg.JWT, cfg.ObjectStorage, cfg.Email)
 
 	cleanupContext, stopSessionCleanup := context.WithCancel(context.Background())
 	defer stopSessionCleanup()
@@ -47,6 +47,7 @@ func Run(cfg *config.Config) {
 		cfg.TIMEOUT,
 		logger,
 	)
+	go services.Platform.RunEmailWorker(cleanupContext)
 
 	handlers := handlers.Init(services)
 
@@ -58,7 +59,7 @@ func Run(cfg *config.Config) {
 	requestHandler := middleware.RequestID(
 		middleware.Logger(logger)(
 			middleware.CORS(cfg.CORS_ALLOWED_ORIGINS)(
-				middleware.Timeout(cfg.TIMEOUT)(mux),
+				middleware.TimeoutExcept(cfg.TIMEOUT, "/api/v1/notifications/stream")(mux),
 			),
 		),
 	)

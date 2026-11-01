@@ -8,7 +8,7 @@ import (
 
 const (
 	corsAllowedMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-	corsAllowedHeaders = "Authorization, Content-Type, Accept, X-Request-ID"
+	corsAllowedHeaders = "Authorization, Content-Type, Accept, X-Request-ID, Last-Event-ID"
 )
 
 func CORS(allowedOrigins []string) func(http.Handler) http.Handler {

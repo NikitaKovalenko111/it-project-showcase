@@ -10,6 +10,7 @@ import (
 	companies_service "it-project-showcase/backend/internal/services/companies"
 	executions_service "it-project-showcase/backend/internal/services/executions"
 	files_service "it-project-showcase/backend/internal/services/files"
+	platform_service "it-project-showcase/backend/internal/services/platform"
 	results_service "it-project-showcase/backend/internal/services/results"
 	studentprojects_service "it-project-showcase/backend/internal/services/studentprojects"
 	teams_service "it-project-showcase/backend/internal/services/teams"
@@ -21,6 +22,7 @@ import (
 	company_repo "it-project-showcase/backend/internal/storage/repositories/company"
 	execution_repo "it-project-showcase/backend/internal/storage/repositories/execution"
 	file_repo "it-project-showcase/backend/internal/storage/repositories/file"
+	platform_repo "it-project-showcase/backend/internal/storage/repositories/platform"
 	result_repo "it-project-showcase/backend/internal/storage/repositories/result"
 	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
 	studentproject_repo "it-project-showcase/backend/internal/storage/repositories/studentproject"
@@ -40,9 +42,10 @@ type Services struct {
 	Executions      *executions_service.Service
 	Results         *results_service.Service
 	StudentProjects *studentprojects_service.Service
+	Platform        *platform_service.Service
 }
 
-func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig config.JWT, objectConfig config.ObjectStorage) *Services {
+func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig config.JWT, objectConfig config.ObjectStorage, emailConfig config.Email) *Services {
 	userRepo := users_repo.Init(appStorage.Db)
 	sessionRepo := session_repo.Init(appStorage.Db)
 	catalogRepo := catalog_repo.Init(appStorage.Db)
@@ -54,6 +57,7 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 	executionRepo := execution_repo.Init(appStorage.Db)
 	resultRepo := result_repo.Init(appStorage.Db)
 	studentProjectRepo := studentproject_repo.Init(appStorage.Db)
+	platformRepo := platform_repo.Init(appStorage.Db)
 
 	return &Services{
 		Auth:            auth_service.Init(sessionRepo, userRepo, jwtConfig),
@@ -67,5 +71,6 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 		Executions:      executions_service.Init(executionRepo),
 		Results:         results_service.Init(resultRepo),
 		StudentProjects: studentprojects_service.Init(studentProjectRepo),
+		Platform:        platform_service.Init(platformRepo, emailConfig),
 	}
 }

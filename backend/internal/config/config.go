@@ -13,6 +13,7 @@ type Config struct {
 	Postgres      `yaml:"postgres" env-required:"true"`
 	JWT           `yaml:"jwt" env-required:"true"`
 	ObjectStorage `yaml:"object_storage" env-required:"true"`
+	Email         `yaml:"email"`
 }
 
 func Load(path string) (*Config, error) {
@@ -74,6 +75,9 @@ func loadENV(cfg *Config) error {
 	if err = loadObjectStorage(cfg); err != nil {
 		return err
 	}
+	if err = loadEmail(cfg); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -98,6 +102,9 @@ func validate(cfg *Config) error {
 		return err
 	}
 	if err = validateObjectStorage(cfg); err != nil {
+		return err
+	}
+	if err = validateEmail(cfg); err != nil {
 		return err
 	}
 

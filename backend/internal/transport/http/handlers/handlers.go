@@ -9,6 +9,7 @@ import (
 	company_handler "it-project-showcase/backend/internal/transport/http/handlers/company"
 	execution_handler "it-project-showcase/backend/internal/transport/http/handlers/execution"
 	file_handler "it-project-showcase/backend/internal/transport/http/handlers/file"
+	platform_handler "it-project-showcase/backend/internal/transport/http/handlers/platform"
 	result_handler "it-project-showcase/backend/internal/transport/http/handlers/result"
 	studentproject_handler "it-project-showcase/backend/internal/transport/http/handlers/studentproject"
 	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
@@ -29,6 +30,7 @@ type Handlers struct {
 	Executions      *execution_handler.Handler
 	Results         *result_handler.Handler
 	StudentProjects *studentproject_handler.Handler
+	Platform        *platform_handler.Handler
 }
 
 func Init(services *services.Services) *Handlers {
@@ -45,5 +47,6 @@ func Init(services *services.Services) *Handlers {
 		Executions:      execution_handler.Init(services.Executions),
 		Results:         result_handler.Init(services.Results),
 		StudentProjects: studentproject_handler.Init(services.StudentProjects),
+		Platform:        platform_handler.Init(services.Platform),
 	}
 }
