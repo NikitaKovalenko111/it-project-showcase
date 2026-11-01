@@ -26,7 +26,139 @@ func (h *Handler) Start(mux *http.ServeMux, representative, admin func(http.Hand
 	mux.Handle("POST /", representative(http.HandlerFunc(h.Create)))
 	mux.Handle("PUT /{company_id}", representative(http.HandlerFunc(h.Update)))
 	mux.Handle("PATCH /{company_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
+	mux.Handle("POST /{company_id}/submit-moderation", representative(http.HandlerFunc(h.Submit)))
+	mux.Handle("POST /{company_id}/member-invitations", representative(http.HandlerFunc(h.InviteMember)))
+	mux.Handle("POST /{company_id}/student-invitations", representative(http.HandlerFunc(h.InviteStudent)))
 	mux.HandleFunc("/", shared.NotFound)
+}
+func (h *Handler) Submit(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	x, err := h.service.Submit(r.Context(), userID, r.PathValue("company_id"))
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, x)
+}
+func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
+	var q struct {
+		UserID   string `json:"user_id"`
+		Position string `json:"position"`
+	}
+	if json.NewDecoder(r.Body).Decode(&q) != nil {
+		pkg.WriteError(w, 400, "invalid_request", "Invalid request payload")
+		return
+	}
+	u, _ := middleware.UserIDFromContext(r.Context())
+	x, err := h.service.InviteMember(r.Context(), u, r.PathValue("company_id"), q.UserID, q.Position)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusCreated, x)
+}
+func (h *Handler) InviteStudent(w http.ResponseWriter, r *http.Request) {
+	var q struct {
+		StudentID string `json:"student_id"`
+		CaseID    string `json:"case_id"`
+		Kind      string `json:"kind"`
+		Message   string `json:"message"`
+	}
+	if json.NewDecoder(r.Body).Decode(&q) != nil {
+		pkg.WriteError(w, 400, "invalid_request", "Invalid request payload")
+		return
+	}
+	u, _ := middleware.UserIDFromContext(r.Context())
+	x, err := h.service.SendStudentInvitation(r.Context(), u, r.PathValue("company_id"), q.StudentID, q.CaseID, q.Kind, q.Message)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusCreated, x)
+}
+func (h *Handler) RespondMemberInvitation(w http.ResponseWriter, r *http.Request) {
+	var q struct {
+		Status string `json:"status"`
+	}
+	if json.NewDecoder(r.Body).Decode(&q) != nil {
+		pkg.WriteError(w, 400, "invalid_request", "Invalid request payload")
+		return
+	}
+	u, _ := middleware.UserIDFromContext(r.Context())
+	x, err := h.service.RespondMemberInvitation(r.Context(), u, r.PathValue("invitation_id"), q.Status)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, x)
+}
+func (h *Handler) RespondStudentInvitation(w http.ResponseWriter, r *http.Request) {
+	var q struct {
+		Status string `json:"status"`
+	}
+	if json.NewDecoder(r.Body).Decode(&q) != nil {
+		pkg.WriteError(w, 400, "invalid_request", "Invalid request payload")
+		return
+	}
+	u, _ := middleware.UserIDFromContext(r.Context())
+	x, err := h.service.RespondStudentInvitation(r.Context(), u, r.PathValue("invitation_id"), q.Status)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, x)
+}
+func (h *Handler) ListMemberInvitations(w http.ResponseWriter, r *http.Request) {
+	h.listInvitations(w, r, true)
+}
+func (h *Handler) ListStudentInvitations(w http.ResponseWriter, r *http.Request) {
+	h.listInvitations(w, r, false)
+}
+func (h *Handler) listInvitations(w http.ResponseWriter, r *http.Request, members bool) {
+	status := r.URL.Query().Get("status")
+	scope := "company-invitations-" + status
+	if members {
+		scope = "company-member-invitations-" + status
+	}
+	q, err := pagination.ParseCursorQuery(r.URL.Query(), scope)
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	pos, id := "", ""
+	if q.Cursor != nil {
+		pos, id = q.Cursor.Position, q.Cursor.ID
+	}
+	u, _ := middleware.UserIDFromContext(r.Context())
+	if members {
+		items, e := h.service.ListMemberInvitations(r.Context(), u, status, q.Limit+1, pos, id)
+		if e != nil {
+			writeCompanyError(w, r, e)
+			return
+		}
+		page, e := pagination.NewCursorPage(items, q.Limit, func(x models.CompanyMemberInvitation) (pagination.Cursor, error) {
+			return pagination.Cursor{Scope: scope, Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.InvitationID}, nil
+		})
+		if e != nil {
+			writeCompanyError(w, r, e)
+			return
+		}
+		pkg.WriteJSON(w, 200, page)
+		return
+	}
+	items, e := h.service.ListStudentInvitations(r.Context(), u, status, q.Limit+1, pos, id)
+	if e != nil {
+		writeCompanyError(w, r, e)
+		return
+	}
+	page, e := pagination.NewCursorPage(items, q.Limit, func(x models.CompanyInvitation) (pagination.Cursor, error) {
+		return pagination.Cursor{Scope: scope, Position: x.SentAt.UTC().Format(time.RFC3339Nano), ID: x.InvitationID}, nil
+	})
+	if e != nil {
+		writeCompanyError(w, r, e)
+		return
+	}
+	pkg.WriteJSON(w, 200, page)
 }
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	h.list(w, r, false)

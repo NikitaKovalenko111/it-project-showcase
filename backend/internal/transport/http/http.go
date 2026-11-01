@@ -72,6 +72,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	apiRouter.Handle("GET /cases", http.HandlerFunc(h.handlers.Cases.List))
 	apiRouter.Handle("POST /cases", representative(http.HandlerFunc(h.handlers.Cases.Create)))
 	apiRouter.HandleFunc("GET /cases/{case_id}/files/{file_id}", h.handlers.Files.DownloadCaseFile)
+	apiRouter.Handle("GET /cases/{case_id}/protected-files/{file_id}", h.authorize(http.HandlerFunc(h.handlers.Files.DownloadProtectedCaseFile)))
 	apiRouter.Handle("/cases/", http.StripPrefix("/cases", caseRouter))
 	h.handlers.Cases.Start(caseRouter, representative, manager, admin)
 
@@ -99,6 +100,14 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	executionRouter := http.NewServeMux()
 	apiRouter.Handle("/executions/", workflowArea(http.StripPrefix("/executions", executionRouter)))
 	h.handlers.Applications.StartExecutions(executionRouter)
+	h.handlers.Executions.Start(executionRouter)
+	apiRouter.Handle("POST /cases/{case_id}/nda-grants", h.authorize(middleware.RequireAnyRole("student")(http.HandlerFunc(h.handlers.Executions.RequestNDA))))
+	apiRouter.Handle("GET /cases/{case_id}/nda-grants", workflowArea(http.HandlerFunc(h.handlers.Executions.ListNDA)))
+	apiRouter.Handle("PATCH /nda-grants/{grant_id}", representative(http.HandlerFunc(h.handlers.Executions.UpdateNDA)))
+	apiRouter.Handle("PATCH /company-member-invitations/{invitation_id}", h.authorize(http.HandlerFunc(h.handlers.Companies.RespondMemberInvitation)))
+	apiRouter.Handle("GET /company-member-invitations", h.authorize(http.HandlerFunc(h.handlers.Companies.ListMemberInvitations)))
+	apiRouter.Handle("PATCH /company-invitations/{invitation_id}", h.authorize(middleware.RequireAnyRole("student")(http.HandlerFunc(h.handlers.Companies.RespondStudentInvitation))))
+	apiRouter.Handle("GET /company-invitations", h.authorize(middleware.RequireAnyRole("student")(http.HandlerFunc(h.handlers.Companies.ListStudentInvitations))))
 
 	fileRouter := http.NewServeMux()
 	apiRouter.Handle("POST /files", h.authorize(http.HandlerFunc(h.handlers.Files.Upload)))

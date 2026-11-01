@@ -27,3 +27,16 @@ type CompanyInput struct {
 	Contacts    string
 	Position    string
 }
+
+type CompanyMemberInvitation struct {
+	InvitationID string     `json:"invitation_id"`
+	CompanyID    string     `json:"company_id"`
+	CompanyName  string     `json:"company_name"`
+	InvitedBy    string     `json:"invited_by"`
+	UserID       string     `json:"user_id"`
+	Position     string     `json:"position,omitempty"`
+	Permissions  []string   `json:"permissions"`
+	Status       string     `json:"status"`
+	CreatedAt    time.Time  `json:"created_at"`
+	RespondedAt  *time.Time `json:"responded_at"`
+}

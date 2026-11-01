@@ -34,7 +34,48 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin func(
 	mux.Handle("POST /{case_id}/submit-moderation", representative(http.HandlerFunc(h.SubmitForModeration)))
 	mux.Handle("PATCH /{case_id}/status", representative(http.HandlerFunc(h.SetStatus)))
 	mux.Handle("PATCH /{case_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
+	mux.HandleFunc("GET /{case_id}/stages", h.ListStages)
+	mux.Handle("POST /{case_id}/stages", representative(http.HandlerFunc(h.CreateStage)))
+	mux.Handle("DELETE /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.DeleteStage)))
 	mux.HandleFunc("/", shared.NotFound)
+}
+func (h *Handler) ListStages(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	admin := false
+	if claims, ok := middleware.TokenClaimsFromContext(r.Context()); ok {
+		for _, role := range claims.Roles {
+			if role == "admin" {
+				admin = true
+			}
+		}
+	}
+	items, err := h.service.ListStages(r.Context(), r.PathValue("case_id"), userID, true, admin)
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, map[string]any{"items": items})
+}
+func (h *Handler) CreateStage(w http.ResponseWriter, r *http.Request) {
+	var input models.CaseStageInput
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	item, err := h.service.CreateStage(r.Context(), userID, r.PathValue("case_id"), input)
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusCreated, item)
+}
+func (h *Handler) DeleteStage(w http.ResponseWriter, r *http.Request) {
+	u, _ := middleware.UserIDFromContext(r.Context())
+	if err := h.service.DeleteStage(r.Context(), u, r.PathValue("case_id"), r.PathValue("stage_id")); err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteEmpty(w, http.StatusNoContent)
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request)           { h.list(w, r, false) }

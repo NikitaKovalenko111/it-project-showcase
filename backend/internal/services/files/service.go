@@ -134,6 +134,16 @@ func (s *Service) DownloadPublicCaseFile(ctx context.Context, caseID, fileID str
 	file, err := s.repo.GetPublicCaseFile(ctx, caseID, fileID)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadProtectedCaseFile(ctx context.Context, caseID, fileID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(caseID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetProtectedCaseFile(ctx, caseID, fileID, userID, isAdmin)
+	return s.open(ctx, file, err)
+}
 func (s *Service) DownloadApplicationResume(ctx context.Context, applicationID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(applicationID); err != nil {
 		return nil, nil, ErrNotFound

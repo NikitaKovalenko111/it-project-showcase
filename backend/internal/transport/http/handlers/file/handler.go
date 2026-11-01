@@ -86,6 +86,24 @@ func (h *Handler) DownloadCaseFile(w http.ResponseWriter, r *http.Request) {
 	defer object.Close()
 	writeDownload(w, r, file, object, true)
 }
+func (h *Handler) DownloadProtectedCaseFile(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	admin := false
+	if claims, ok := middleware.TokenClaimsFromContext(r.Context()); ok {
+		for _, role := range claims.Roles {
+			if role == "admin" {
+				admin = true
+			}
+		}
+	}
+	file, object, err := h.service.DownloadProtectedCaseFile(r.Context(), r.PathValue("case_id"), r.PathValue("file_id"), userID, admin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, false)
+}
 func (h *Handler) DownloadApplicationResume(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	claims, _ := middleware.TokenClaimsFromContext(r.Context())

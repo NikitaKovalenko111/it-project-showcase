@@ -33,6 +33,92 @@ func Init(repo *company_repo.Repository) *Service { return &Service{repo: repo} 
 func (s *Service) List(ctx context.Context, limit int, position, id string) ([]models.Company, error) {
 	return s.list(ctx, "approved", limit, position, id)
 }
+func (s *Service) Submit(ctx context.Context, userID, companyID string) (*models.Company, error) {
+	if !uuidPattern.MatchString(companyID) {
+		return nil, ErrNotFound
+	}
+	x, err := s.repo.Submit(ctx, userID, companyID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrInvalidStatus
+	}
+	return x, mapRepositoryError(err)
+}
+func (s *Service) InviteMember(ctx context.Context, userID, companyID, targetID, position string) (*models.CompanyMemberInvitation, error) {
+	position = strings.TrimSpace(position)
+	if !uuidPattern.MatchString(companyID) || !uuidPattern.MatchString(targetID) || userID == targetID || utf8.RuneCountInString(position) > 150 {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.InviteMember(ctx, userID, companyID, targetID, position)
+	return x, mapRepositoryError(err)
+}
+func (s *Service) RespondMemberInvitation(ctx context.Context, userID, id, status string) (*models.Company, error) {
+	if !uuidPattern.MatchString(id) || (status != "accepted" && status != "declined") {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.RespondMemberInvitation(ctx, userID, id, status)
+	return x, mapRepositoryError(err)
+}
+func (s *Service) SendStudentInvitation(ctx context.Context, userID, companyID, studentID, caseID, kind, message string) (*models.CompanyInvitation, error) {
+	message = strings.TrimSpace(message)
+	if !uuidPattern.MatchString(companyID) || !uuidPattern.MatchString(studentID) || (caseID != "" && !uuidPattern.MatchString(caseID)) || !oneOf(kind, "case", "internship", "interview", "job") || utf8.RuneCountInString(message) > 3000 {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.SendStudentInvitation(ctx, userID, companyID, studentID, caseID, kind, message)
+	return x, mapRepositoryError(err)
+}
+func (s *Service) RespondStudentInvitation(ctx context.Context, userID, id, status string) (*models.CompanyInvitation, error) {
+	if !uuidPattern.MatchString(id) || (status != "accepted" && status != "declined") {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.RespondStudentInvitation(ctx, userID, id, status)
+	return x, mapRepositoryError(err)
+}
+func (s *Service) ListMemberInvitations(ctx context.Context, userID, status string, limit int, position, id string) ([]models.CompanyMemberInvitation, error) {
+	status = strings.TrimSpace(status)
+	if status == "" {
+		status = "pending"
+	}
+	if !oneOf(status, "pending", "accepted", "declined", "revoked") {
+		return nil, ErrInvalidStatus
+	}
+	before, err := companyCursor(position, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.ListMemberInvitations(ctx, userID, status, limit, before, id)
+}
+func (s *Service) ListStudentInvitations(ctx context.Context, userID, status string, limit int, position, id string) ([]models.CompanyInvitation, error) {
+	status = strings.TrimSpace(status)
+	if status == "" {
+		status = "sent"
+	}
+	if !oneOf(status, "sent", "accepted", "declined", "expired", "revoked") {
+		return nil, ErrInvalidStatus
+	}
+	before, err := companyCursor(position, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.ListStudentInvitations(ctx, userID, status, limit, before, id)
+}
+func companyCursor(position, id string) (*time.Time, error) {
+	if position == "" {
+		return nil, nil
+	}
+	v, err := time.Parse(time.RFC3339Nano, position)
+	if err != nil || !uuidPattern.MatchString(id) {
+		return nil, ErrInvalidCursor
+	}
+	return &v, nil
+}
+func oneOf(v string, a ...string) bool {
+	for _, x := range a {
+		if v == x {
+			return true
+		}
+	}
+	return false
+}
 func (s *Service) ListForModeration(ctx context.Context, status string, limit int, position, id string) ([]models.Company, error) {
 	status = strings.TrimSpace(status)
 	if status == "" {
@@ -127,6 +213,9 @@ func mapRepositoryError(err error) error {
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
+	}
+	if errors.Is(err, company_repo.ErrInvalidTransition) {
+		return ErrInvalidStatus
 	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {

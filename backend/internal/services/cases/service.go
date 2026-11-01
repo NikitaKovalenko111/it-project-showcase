@@ -250,6 +250,19 @@ func validate(input models.CaseInput) error {
 	if len(input.DirectionIDs) > 50 || len(input.Competencies) > 100 || len(input.TechnologyIDs) > 100 || len(input.Files) > 50 || len(input.Rewards) > 20 {
 		return ErrInvalidInput
 	}
+	if len(input.EvaluationCriteria) > 50 {
+		return ErrInvalidInput
+	}
+	ordinals := map[int]struct{}{}
+	for _, criterion := range input.EvaluationCriteria {
+		if strings.TrimSpace(criterion.Name) == "" || utf8.RuneCountInString(criterion.Name) > 300 || criterion.Weight <= 0 || criterion.MaxScore <= 0 || criterion.Ordinal < 1 {
+			return ErrInvalidInput
+		}
+		if _, exists := ordinals[criterion.Ordinal]; exists {
+			return ErrInvalidInput
+		}
+		ordinals[criterion.Ordinal] = struct{}{}
+	}
 	for _, reward := range input.Rewards {
 		if !oneOf(reward.Kind, "money", "prize", "internship", "interview", "job", "training", "gift", "certificate", "other") || reward.Description == "" || utf8.RuneCountInString(reward.Description) > 2000 || utf8.RuneCountInString(reward.Conditions) > 3000 || (reward.Amount != nil && *reward.Amount < 0) || (reward.PrizeFund != nil && *reward.PrizeFund < 0) || ((reward.Amount != nil || reward.PrizeFund != nil) && !regexp.MustCompile(`^[A-Z]{3}$`).MatchString(reward.Currency)) || len(reward.PrizePlaces) > 100 {
 			return ErrInvalidInput
@@ -313,4 +326,26 @@ func mapRepositoryError(err error) error {
 		return ErrInvalidInput
 	}
 	return err
+}
+func (s *Service) ListStages(ctx context.Context, caseID, userID string, public, admin bool) ([]models.CaseStage, error) {
+	if !uuidPattern.MatchString(caseID) {
+		return nil, ErrNotFound
+	}
+	x, err := s.repo.ListStages(ctx, caseID, public, userID, admin)
+	return x, mapRepositoryError(err)
+}
+func (s *Service) DeleteStage(ctx context.Context, userID, caseID, stageID string) error {
+	if !uuidPattern.MatchString(caseID) || !uuidPattern.MatchString(stageID) {
+		return ErrNotFound
+	}
+	return mapRepositoryError(s.repo.DeleteStage(ctx, userID, caseID, stageID))
+}
+func (s *Service) CreateStage(ctx context.Context, userID, caseID string, input models.CaseStageInput) (*models.CaseStage, error) {
+	input.Title = strings.TrimSpace(input.Title)
+	input.ExpectedResult = strings.TrimSpace(input.ExpectedResult)
+	if !uuidPattern.MatchString(caseID) || input.Ordinal < 1 || input.Title == "" || utf8.RuneCountInString(input.Title) > 300 || utf8.RuneCountInString(input.ExpectedResult) > 3000 {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.CreateStage(ctx, userID, caseID, input)
+	return x, mapRepositoryError(err)
 }

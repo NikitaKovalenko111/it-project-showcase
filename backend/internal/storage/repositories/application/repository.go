@@ -246,6 +246,9 @@ func (r *Repository) SetStatus(ctx context.Context, userID, applicationID, statu
 		if err != nil {
 			return nil, fmt.Errorf("create execution members: %w", err)
 		}
+		if _, err = tx.ExecContext(ctx, `INSERT INTO execution_stages(execution_id,stage_id) SELECT $1,stage_id FROM case_stages WHERE case_id=$2`, executionID, caseID); err != nil {
+			return nil, fmt.Errorf("initialize execution stages: %w", err)
+		}
 		if _, err = tx.ExecContext(ctx, `UPDATE cases SET status='in_progress' WHERE case_id=$1 AND status='published'`, caseID); err != nil {
 			return nil, fmt.Errorf("activate case: %w", err)
 		}

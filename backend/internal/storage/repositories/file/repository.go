@@ -49,6 +49,13 @@ func (r *Repository) GetPublicCaseFile(ctx context.Context, caseID, fileID strin
 	}
 	return file, nil
 }
+func (r *Repository) GetProtectedCaseFile(ctx context.Context, caseID, fileID, userID string, isAdmin bool) (*models.File, error) {
+	file, err := scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM cases c JOIN case_files cf ON cf.case_id=c.case_id JOIN files f ON f.file_id=cf.file_id AND f.status='active' WHERE c.case_id=$1 AND f.file_id=$2 AND ($4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company') OR (cf.visibility='participants' AND EXISTS(SELECT 1 FROM executions e JOIN execution_members em ON em.execution_id=e.execution_id AND em.student_id=$3 AND em.left_at IS NULL WHERE e.case_id=c.case_id AND e.status NOT IN ('closed','cancelled')) AND (NOT c.nda_required OR EXISTS(SELECT 1 FROM nda_grants n WHERE n.case_id=c.case_id AND n.student_id=$3 AND n.status='granted'))))`, caseID, fileID, userID, isAdmin))
+	if err != nil {
+		return nil, fmt.Errorf("get protected case file: %w", err)
+	}
+	return file, nil
+}
 func (r *Repository) GetApplicationResume(ctx context.Context, applicationID, userID string, isAdmin bool) (*models.File, error) {
 	file, err := scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM applications a JOIN cases c ON c.case_id=a.case_id JOIN files f ON f.file_id=a.resume_file_id AND f.status='active' WHERE a.application_id=$1 AND ($3 OR a.student_id=$2 OR EXISTS(SELECT 1 FROM team_members tm WHERE tm.team_id=a.team_id AND tm.student_id=$2 AND tm.left_at IS NULL) OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))`, applicationID, userID, isAdmin))
 	if err != nil {

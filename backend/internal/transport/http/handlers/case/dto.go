@@ -33,33 +33,34 @@ type CaseFileRequest struct {
 }
 
 type CaseRequest struct {
-	CompanyID            string                  `json:"company_id"`
-	Title                string                  `json:"title"`
-	Summary              string                  `json:"summary"`
-	FullBrief            string                  `json:"full_brief"`
-	Type                 string                  `json:"type"`
-	Difficulty           string                  `json:"difficulty"`
-	WorkFormat           string                  `json:"work_format"`
-	ParticipationMode    string                  `json:"participation_mode"`
-	AdmissionMode        string                  `json:"admission_mode"`
-	Capacity             *int                    `json:"capacity"`
-	TeamSizeMin          *int                    `json:"team_size_min"`
-	TeamSizeMax          *int                    `json:"team_size_max"`
-	CourseMin            *int                    `json:"course_min"`
-	CourseMax            *int                    `json:"course_max"`
-	ApplicationDeadline  *time.Time              `json:"application_deadline"`
-	DueAt                *time.Time              `json:"due_at"`
-	Duration             string                  `json:"duration"`
-	ResultRequirements   string                  `json:"result_requirements"`
-	EvaluationRules      string                  `json:"evaluation_rules"`
-	IPTerms              string                  `json:"ip_terms"`
-	NDARequired          bool                    `json:"nda_required"`
-	Visibility           string                  `json:"visibility"`
-	DirectionIDs         []string                `json:"direction_ids"`
-	RequiredCompetencies []CaseCompetencyRequest `json:"required_competencies"`
-	TechnologyIDs        []string                `json:"technology_ids"`
-	Rewards              []CaseRewardRequest     `json:"rewards"`
-	Files                []CaseFileRequest       `json:"files"`
+	CompanyID            string                            `json:"company_id"`
+	Title                string                            `json:"title"`
+	Summary              string                            `json:"summary"`
+	FullBrief            string                            `json:"full_brief"`
+	Type                 string                            `json:"type"`
+	Difficulty           string                            `json:"difficulty"`
+	WorkFormat           string                            `json:"work_format"`
+	ParticipationMode    string                            `json:"participation_mode"`
+	AdmissionMode        string                            `json:"admission_mode"`
+	Capacity             *int                              `json:"capacity"`
+	TeamSizeMin          *int                              `json:"team_size_min"`
+	TeamSizeMax          *int                              `json:"team_size_max"`
+	CourseMin            *int                              `json:"course_min"`
+	CourseMax            *int                              `json:"course_max"`
+	ApplicationDeadline  *time.Time                        `json:"application_deadline"`
+	DueAt                *time.Time                        `json:"due_at"`
+	Duration             string                            `json:"duration"`
+	ResultRequirements   string                            `json:"result_requirements"`
+	EvaluationRules      string                            `json:"evaluation_rules"`
+	IPTerms              string                            `json:"ip_terms"`
+	NDARequired          bool                              `json:"nda_required"`
+	Visibility           string                            `json:"visibility"`
+	DirectionIDs         []string                          `json:"direction_ids"`
+	RequiredCompetencies []CaseCompetencyRequest           `json:"required_competencies"`
+	TechnologyIDs        []string                          `json:"technology_ids"`
+	Rewards              []CaseRewardRequest               `json:"rewards"`
+	Files                []CaseFileRequest                 `json:"files"`
+	EvaluationCriteria   []models.EvaluationCriterionInput `json:"evaluation_criteria"`
 }
 
 func (request CaseRequest) model() models.CaseInput {
@@ -71,6 +72,7 @@ func (request CaseRequest) model() models.CaseInput {
 		ApplicationDeadline: request.ApplicationDeadline, DueAt: request.DueAt, Duration: request.Duration,
 		ResultRequirements: request.ResultRequirements, EvaluationRules: request.EvaluationRules, IPTerms: request.IPTerms,
 		NDARequired: request.NDARequired, Visibility: request.Visibility, DirectionIDs: request.DirectionIDs, TechnologyIDs: request.TechnologyIDs,
+		EvaluationCriteria: request.EvaluationCriteria,
 	}
 	input.Competencies = make([]models.CaseCompetencyInput, len(request.RequiredCompetencies))
 	for i, value := range request.RequiredCompetencies {

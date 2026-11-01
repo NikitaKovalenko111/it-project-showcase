@@ -8,6 +8,7 @@ import (
 	cases_service "it-project-showcase/backend/internal/services/cases"
 	catalogs_service "it-project-showcase/backend/internal/services/catalogs"
 	companies_service "it-project-showcase/backend/internal/services/companies"
+	executions_service "it-project-showcase/backend/internal/services/executions"
 	files_service "it-project-showcase/backend/internal/services/files"
 	teams_service "it-project-showcase/backend/internal/services/teams"
 	users_service "it-project-showcase/backend/internal/services/users"
@@ -16,6 +17,7 @@ import (
 	case_repo "it-project-showcase/backend/internal/storage/repositories/case"
 	catalog_repo "it-project-showcase/backend/internal/storage/repositories/catalog"
 	company_repo "it-project-showcase/backend/internal/storage/repositories/company"
+	execution_repo "it-project-showcase/backend/internal/storage/repositories/execution"
 	file_repo "it-project-showcase/backend/internal/storage/repositories/file"
 	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
 	team_repo "it-project-showcase/backend/internal/storage/repositories/team"
@@ -31,6 +33,7 @@ type Services struct {
 	Cases        *cases_service.Service
 	Teams        *teams_service.Service
 	Applications *applications_service.Service
+	Executions   *executions_service.Service
 }
 
 func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig config.JWT, objectConfig config.ObjectStorage) *Services {
@@ -42,6 +45,7 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 	caseRepo := case_repo.Init(appStorage.Db)
 	teamRepo := team_repo.Init(appStorage.Db)
 	applicationRepo := application_repo.Init(appStorage.Db)
+	executionRepo := execution_repo.Init(appStorage.Db)
 
 	return &Services{
 		Auth:         auth_service.Init(sessionRepo, userRepo, jwtConfig),
@@ -52,5 +56,6 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 		Cases:        cases_service.Init(caseRepo),
 		Teams:        teams_service.Init(teamRepo),
 		Applications: applications_service.Init(applicationRepo),
+		Executions:   executions_service.Init(executionRepo),
 	}
 }

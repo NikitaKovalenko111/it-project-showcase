@@ -11,6 +11,7 @@ Migration names use the format `NNNNNN_description.up.sql`, for example:
 000004_files.up.sql
 000005_cases.up.sql
 000006_teams_applications_executions.up.sql
+000007_complete_stages_6_to_9.up.sql
 ```
 
 Rules:

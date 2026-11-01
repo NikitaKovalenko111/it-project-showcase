@@ -7,6 +7,7 @@ import (
 	case_handler "it-project-showcase/backend/internal/transport/http/handlers/case"
 	catalog_handler "it-project-showcase/backend/internal/transport/http/handlers/catalog"
 	company_handler "it-project-showcase/backend/internal/transport/http/handlers/company"
+	execution_handler "it-project-showcase/backend/internal/transport/http/handlers/execution"
 	file_handler "it-project-showcase/backend/internal/transport/http/handlers/file"
 	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
 	team_handler "it-project-showcase/backend/internal/transport/http/handlers/team"
@@ -23,6 +24,7 @@ type Handlers struct {
 	Cases        *case_handler.Handler
 	Teams        *team_handler.Handler
 	Applications *application_handler.Handler
+	Executions   *execution_handler.Handler
 }
 
 func Init(services *services.Services) *Handlers {
@@ -36,5 +38,6 @@ func Init(services *services.Services) *Handlers {
 		Cases:        case_handler.Init(services.Cases),
 		Teams:        team_handler.Init(services.Teams),
 		Applications: application_handler.Init(services.Applications),
+		Executions:   execution_handler.Init(services.Executions),
 	}
 }

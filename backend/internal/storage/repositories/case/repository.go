@@ -48,7 +48,9 @@ SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c
        COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'original_name',f.original_name,
                     'mime_type',f.mime_type,'size_bytes',f.size_bytes,'visibility',cf.visibility) ORDER BY f.created_at,f.file_id)
                  FROM case_files cf JOIN files f ON f.file_id=cf.file_id AND f.status='active'
-                 WHERE cf.case_id=c.case_id /*FILE_VISIBILITY*/),'[]'::jsonb)
+                 WHERE cf.case_id=c.case_id /*FILE_VISIBILITY*/),'[]'::jsonb),
+       COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',ec.criterion_id,'name',ec.name,'weight',ec.weight,'max_score',ec.max_score,'ordinal',ec.ordinal) ORDER BY ec.ordinal)
+                 FROM evaluation_criteria ec WHERE ec.case_id=c.case_id),'[]'::jsonb)
 FROM cases c JOIN companies company ON company.company_id=c.company_id`
 
 func caseSelect(includePrivateFiles bool) string {
@@ -61,7 +63,7 @@ func caseSelect(includePrivateFiles bool) string {
 
 func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 	var item models.Case
-	var directions, competencies, technologies, rewards, files []byte
+	var directions, competencies, technologies, rewards, files, criteria []byte
 	err := row.Scan(
 		&item.CaseID, &item.CompanyID, &item.CompanyName, &item.CreatedBy, &item.Title, &item.Summary,
 		&item.FullBrief, &item.Type, &item.Difficulty, &item.WorkFormat, &item.ParticipationMode,
@@ -69,7 +71,7 @@ func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 		&item.CourseMax, &item.ApplicationDeadline, &item.DueAt, &item.Duration, &item.ResultRequirements,
 		&item.EvaluationRules, &item.IPTerms, &item.TermsVersion, &item.NDARequired, &item.Status,
 		&item.Visibility, &item.CreatedAt, &item.UpdatedAt, &directions, &competencies, &technologies,
-		&rewards, &files,
+		&rewards, &files, &criteria,
 	)
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 	for _, target := range []struct {
 		data []byte
 		out  any
-	}{{directions, &item.Directions}, {competencies, &item.RequiredCompetencies}, {technologies, &item.Technologies}, {rewards, &item.Rewards}, {files, &item.Files}} {
+	}{{directions, &item.Directions}, {competencies, &item.RequiredCompetencies}, {technologies, &item.Technologies}, {rewards, &item.Rewards}, {files, &item.Files}, {criteria, &item.EvaluationCriteria}} {
 		if err := json.Unmarshal(target.data, target.out); err != nil {
 			return nil, fmt.Errorf("decode case relation: %w", err)
 		}
@@ -315,6 +317,7 @@ func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string) error {
 		`DELETE FROM case_files WHERE case_id=$1`,
 		`DELETE FROM prize_places WHERE case_reward_id IN (SELECT case_reward_id FROM case_rewards WHERE case_id=$1)`,
 		`DELETE FROM case_rewards WHERE case_id=$1`,
+		`DELETE FROM evaluation_criteria WHERE case_id=$1`,
 	}
 	for _, statement := range statements {
 		if _, err := tx.ExecContext(ctx, statement, caseID); err != nil {
@@ -373,7 +376,71 @@ func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, 
 			}
 		}
 	}
+	for _, criterion := range input.EvaluationCriteria {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,weight,max_score,ordinal) VALUES($1,$2,$3,$4,$5)`, caseID, criterion.Name, criterion.Weight, criterion.MaxScore, criterion.Ordinal); err != nil {
+			return fmt.Errorf("create evaluation criterion: %w", err)
+		}
+	}
 	return nil
+}
+
+func (r *Repository) ListStages(ctx context.Context, caseID string, public bool, userID string, admin bool) ([]models.CaseStage, error) {
+	var allowed bool
+	if err := r.db.QueryRowContext(ctx, `SELECT (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) FROM cases c WHERE c.case_id=$1`, caseID, public, userID, admin).Scan(&allowed); err != nil {
+		return nil, err
+	}
+	if !allowed {
+		return nil, ErrAccessDenied
+	}
+	query := `SELECT s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at FROM case_stages s JOIN cases c ON c.case_id=s.case_id WHERE s.case_id=$1 AND (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) ORDER BY s.ordinal`
+	rows, err := r.db.QueryContext(ctx, query, caseID, public, userID, admin)
+	if err != nil {
+		return nil, fmt.Errorf("list case stages: %w", err)
+	}
+	defer rows.Close()
+	items := make([]models.CaseStage, 0)
+	for rows.Next() {
+		var x models.CaseStage
+		if err = rows.Scan(&x.StageID, &x.CaseID, &x.Ordinal, &x.Title, &x.ExpectedResult, &x.DueAt); err != nil {
+			return nil, err
+		}
+		items = append(items, x)
+	}
+	return items, rows.Err()
+}
+func (r *Repository) DeleteStage(ctx context.Context, userID, caseID, stageID string) error {
+	res, err := r.db.ExecContext(ctx, `DELETE FROM case_stages s USING cases c WHERE s.stage_id=$2 AND s.case_id=$1 AND c.case_id=s.case_id AND c.status IN ('draft','revision') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')`, caseID, stageID, userID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return ErrAccessDenied
+	}
+	return nil
+}
+
+func (r *Repository) CreateStage(ctx context.Context, userID, caseID string, input models.CaseStageInput) (*models.CaseStage, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin case stage creation: %w", err)
+	}
+	defer tx.Rollback()
+	var x models.CaseStage
+	err = tx.QueryRowContext(ctx, `INSERT INTO case_stages(case_id,ordinal,title,expected_result,due_at) SELECT c.case_id,$3,$4,NULLIF($5,''),$6 FROM cases c WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING stage_id,case_id,ordinal,title,COALESCE(expected_result,''),due_at`, caseID, userID, input.Ordinal, input.Title, input.ExpectedResult, input.DueAt).Scan(&x.StageID, &x.CaseID, &x.Ordinal, &x.Title, &x.ExpectedResult, &x.DueAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrAccessDenied
+	}
+	if err != nil {
+		return nil, fmt.Errorf("create case stage: %w", err)
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO execution_stages(execution_id,stage_id) SELECT execution_id,$1 FROM executions WHERE case_id=$2 ON CONFLICT DO NOTHING`, x.StageID, caseID); err != nil {
+		return nil, fmt.Errorf("initialize execution stage: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit case stage creation: %w", err)
+	}
+	return &x, nil
 }
 
 func insertRevision(ctx context.Context, tx *sql.Tx, caseID, userID string, version int, input models.CaseInput) error {
