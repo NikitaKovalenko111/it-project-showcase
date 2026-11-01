@@ -1032,6 +1032,22 @@
   }
 }
 
+.discussion-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: min(50vh, 440px);
+  min-height: 0;
+  margin-bottom: 24px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+
+  > div { flex-shrink: 0; }
+
+  &:focus-visible { outline: 2px solid #3a75b4; outline-offset: 3px; }
+}
+
 .tech-cloud {
   display: flex;
   flex-wrap: wrap;

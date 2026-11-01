@@ -1,3 +1,4 @@
+import { ReportButton } from '../components/ReportButton'
 import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -54,6 +55,7 @@ export const StudentDetailPage: React.FC = () => {
 
   return (
     <div>
+      {id && <ReportButton targetType="project" targetId={id} />}
       <div style={{ marginBottom: '20px' }}>
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам

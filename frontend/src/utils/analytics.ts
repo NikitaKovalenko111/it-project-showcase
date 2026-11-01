@@ -109,7 +109,7 @@ export const buildAnalyticsReport = (data: AnalyticsData, filters: AnalyticsFilt
   const projectTable: ReportTable = { title: 'Студенческие проекты', headers: ['Проект', 'Автор', 'Направление', 'Категория', 'Публикация', 'Дата'], rows: projects.map((project) => [project.title, project.authorName, project.direction, project.category, publicationLabels[publicationStatus(project)], project.createdAt]) }
   const applicationTable: ReportTable = { title: 'Заявки', headers: ['Кейс', 'Кандидат / команда', 'Статус', 'Дата'], rows: applications.map((app) => [app.caseTitle, app.teamName || app.studentName,
     ({ pending: 'На рассмотрении', interview: 'Назначено интервью', accepted: 'Принят', rejected: 'Отклонен', need_info: 'Нужны уточнения' })[app.status], app.createdAt.slice(0, 10)]) }
-  return { tables: [summary, caseTable, applicationTable, companyTable, directionTable, technologyTable, milestoneTable, ...(!companyView ? [projectTable] : [])],
+  return { tables: [summary, caseTable, applicationTable, ...(!companyView ? [companyTable] : []), directionTable, technologyTable, milestoneTable, ...(!companyView ? [projectTable] : [])],
     metrics: { published: published.length, completed: completed.length, overdue: overdue.length, pending, participants: uniqueParticipants(published), applications: applications.length, interviews: applications.filter((app) => app.status === 'interview').length }, cases }
 }
 

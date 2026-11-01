@@ -12,6 +12,7 @@ import {
   SystemNotification,
   User,
   ModerationStatus,
+  TeamRequest, TeamSeeker, ContentReport,
 } from '../types/models'
 import {
   INITIAL_APPLICATIONS,
@@ -28,6 +29,7 @@ import {
   INITIAL_USERS,
 } from './mockData'
 import { canManageCase, participatesInCase, visibleCasesFor } from '../utils/access'
+import { canReceiveApplications } from '../utils/recruiting'
 import { canModerate, isPublished, publicationLabels, visibleStudentProjectsFor } from '../utils/publication'
 
 // Keys for localStorage
@@ -92,6 +94,129 @@ export class MockServer {
   private auditLogs: AuditLog[] = load('auditLogs', INITIAL_AUDIT_LOGS)
   private favorites: string[] = load('favorites', ['case_1', 'case_2'])
   private ndaAccepted: string[] = load('ndaAccepted', [])
+  private teamRequests: TeamRequest[] = load('teamRequests', [])
+  private seekers: TeamSeeker[] = load('seekers', [])
+  private reports: ContentReport[] = load('reports', [])
+
+  private actor(): User {
+    const user = this.sessionUser()
+    if (!user || user.isBlocked) throw new Error('Войдите в систему')
+    return user
+  }
+
+  reportContent(targetType: ContentReport['targetType'], targetId: string, reason: string, message: string): ContentReport {
+    const user = this.actor()
+    if (!reason.trim()) throw new Error('Выберите причину')
+    if (this.reports.some((r) => r.authorId === user.id && r.targetId === targetId && r.targetType === targetType && r.status === 'pending')) throw new Error('Ваша жалоба уже на рассмотрении')
+    const report: ContentReport = { id: crypto.randomUUID(), authorId: user.id, targetType, targetId, reason, message, status: 'pending', createdAt: new Date().toISOString() }
+    this.reports.push(report); save('reports', this.reports)
+    return report
+  }
+  getReports(): ContentReport[] { this.requireAdmin(); return this.reports }
+  resolveReport(id: string): void { this.requireAdmin(); const report = this.reports.find((r) => r.id === id); if (report) report.status = 'resolved'; save('reports', this.reports) }
+
+  setStudentProjectVisibility(id: string, visibility: 'private' | 'public'): StudentProject {
+    const project = this.studentProjects.find((p) => p.id === id)
+    if (!project || project.authorId !== this.actor().id) throw new Error('Нет прав на публикацию')
+    if (visibility === 'public') {
+      if (project.visibility !== 'private' && project.moderationStatus === 'pending') throw new Error('Проект уже на рассмотрении')
+      project.isModerated = false; project.moderationStatus = 'pending'; project.moderationComment = undefined
+      this.notifyReviewers('student', project.title)
+    }
+    project.visibility = visibility; save('studentProjects', this.studentProjects); return project
+  }
+  updateCompanyContent(id: string, patch: { description: string; internshipProgram: string }): Company {
+    const user = this.actor()
+    if (user.role !== 'admin' && !(user.role === 'company' && user.companyProfile?.companyId === id)) throw new Error('Нет прав на изменение компании')
+    const company = this.companies.find((c) => c.id === id)
+    if (!company) throw new Error('Компания не найдена')
+    Object.assign(company, { description: patch.description, internshipProgram: patch.internshipProgram }); save('companies', this.companies); return company
+  }
+  assignStudentCurator(studentId: string, curatorId: string): User {
+    const user = this.actor()
+    if (!canModerate(user) || (user.role === 'curator' && curatorId !== user.id)) throw new Error('Нет прав назначить куратора')
+    if (!this.users.some((u) => u.id === curatorId && u.role === 'curator')) throw new Error('Куратор не найден')
+    const student = this.users.find((u) => u.id === studentId && u.role === 'student')
+    if (!student?.studentProfile) throw new Error('Студент не найден')
+    student.studentProfile.curatorId = curatorId; save('users', this.users); return student
+  }
+
+  likeComment(id: string): ProjectComment {
+    const user = this.actor(); const comment = this.comments.find((c) => c.id === id)
+    if (!comment || !this.getCaseById(comment.caseId)) throw new Error('Комментарий недоступен')
+    const likes = comment.likedBy || []
+    comment.likedBy = likes.includes(user.id) ? likes.filter((uid) => uid !== user.id) : [...likes, user.id]
+    save('comments', this.comments); return comment
+  }
+
+  getTeamRequests(): TeamRequest[] {
+    const user = this.actor()
+    return this.teamRequests.filter((r) => r.studentId === user.id || r.senderId === user.id || this.teams.some((t) => t.id === r.teamId && t.leaderId === user.id))
+  }
+  requestTeam(teamId: string, studentId: string, kind: TeamRequest['kind'], message: string): TeamRequest {
+    const user = this.actor(); const team = this.teams.find((t) => t.id === teamId)
+    if (user.role !== 'student' || !team || !this.users.some((u) => u.id === studentId && u.role === 'student')) throw new Error('Команда или студент не найдены')
+    if (kind === 'invitation' ? team.leaderId !== user.id : studentId !== user.id) throw new Error('Нет прав отправить заявку')
+    if (team.members.some((m) => m.id === studentId) || team.leaderId === studentId) throw new Error('Студент уже в команде')
+    if (this.teamRequests.some((r) => r.teamId === teamId && r.studentId === studentId && r.status === 'pending')) throw new Error('Заявка уже отправлена')
+    const request: TeamRequest = { id: crypto.randomUUID(), teamId, studentId, senderId: user.id, kind, message, status: 'pending', createdAt: new Date().toISOString() }
+    this.teamRequests.push(request); save('teamRequests', this.teamRequests)
+    const notificationId = crypto.randomUUID()
+    this.notifications.unshift({ id: notificationId, userId: kind === 'invitation' ? studentId : team.leaderId, type: 'team_invite', title: kind === 'invitation' ? `Приглашение в команду ${team.name}` : `Заявка в команду ${team.name}`, message, read: false, link: `/invitations/${notificationId}`, createdAt: request.createdAt,
+      invitation: { teamId, caseId: team.caseId, senderId: user.id, senderName: user.fullName, reason: kind === 'invitation' ? 'Приглашение в команду' : 'Заявка на вступление', status: 'pending', replies: [] } })
+    save('notifications', this.notifications); return request
+  }
+  decideTeamRequest(id: string, status: 'accepted' | 'rejected'): TeamRequest {
+    const user = this.actor(); const request = this.teamRequests.find((r) => r.id === id)
+    const team = this.teams.find((t) => t.id === request?.teamId)
+    if (!request || !team || (request.kind === 'invitation' ? request.studentId !== user.id : team.leaderId !== user.id)) throw new Error('Нет прав на решение')
+    if (request.status !== 'pending') throw new Error('Решение уже принято')
+    if (status === 'accepted' && !team.members.some((m) => m.id === request.studentId)) {
+      const student = this.users.find((u) => u.id === request.studentId)!
+      team.members.push({ id: student.id, name: student.fullName, role: 'Участник', competencies: student.studentProfile?.skills || [], avatar: student.avatar, email: student.email }); save('teams', this.teams)
+      this.seekers = this.seekers.filter((s) => !(s.studentId === student.id && s.caseId === team.caseId)); save('seekers', this.seekers)
+    }
+    request.status = status; save('teamRequests', this.teamRequests)
+    this.notifications.filter((n) => n.invitation?.teamId === team.id && n.invitation?.senderId === request.senderId && n.userId === user.id && n.invitation.status === 'pending').forEach((n) => { n.invitation!.status = status })
+    save('notifications', this.notifications); return request
+  }
+  getSeekers(caseId: string): TeamSeeker[] { if (!this.getCaseById(caseId)) throw new Error('Кейс недоступен'); return this.seekers.filter((s) => s.caseId === caseId) }
+  saveSeeker(caseId: string, message: string, techStack: string[]): TeamSeeker {
+    const user = this.actor()
+    if (user.role !== 'student' || !this.getCaseById(caseId) || !message.trim()) throw new Error('Заполните анкету студента')
+    if (this.teams.some((t) => (t.caseId === caseId || t.recruitingCaseId === caseId) && (t.leaderId === user.id || t.members.some((m) => m.id === user.id)))) throw new Error('Вы уже состоите в команде этого кейса')
+    const seeker = { id: crypto.randomUUID(), caseId, studentId: user.id, message, techStack }
+    this.seekers = this.seekers.filter((s) => !(s.caseId === caseId && s.studentId === user.id)); this.seekers.push(seeker); save('seekers', this.seekers); return seeker
+  }
+  linkTeamToCase(teamId: string, caseId: string): ProjectTeam {
+    const user = this.actor(); const team = this.teams.find((t) => t.id === teamId)
+    if (!team || team.leaderId !== user.id || !this.getCaseById(caseId)) throw new Error('Нет прав на команду')
+    if ((team.caseId && team.caseId !== caseId) || (team.recruitingCaseId && team.recruitingCaseId !== caseId)) throw new Error('Команда уже участвует в другом кейсе')
+    team.recruitingCaseId = caseId; save('teams', this.teams); return team
+  }
+  getInvitation(id: string): SystemNotification {
+    const user = this.actor(); const notification = this.notifications.find((n) => n.id === id && n.invitation)
+    if (!notification || (notification.userId !== user.id && notification.invitation!.senderId !== user.id)) throw new Error('Приглашение недоступно')
+    return notification
+  }
+  respondInvitation(id: string, status?: 'accepted' | 'rejected', message?: string): SystemNotification {
+    const user = this.actor(); const notification = this.getInvitation(id); const invitation = notification.invitation!
+    if (status && (notification.userId !== user.id || invitation.status !== 'pending')) throw new Error('Решение недоступно')
+    if (message?.trim()) invitation.replies.push({ authorId: user.id, authorName: user.fullName, message: message.trim(), createdAt: new Date().toISOString() })
+    if (status) {
+      if (notification.userId !== user.id || invitation.status !== 'pending') throw new Error('Решение недоступно')
+      if (invitation.teamId) {
+        const request = this.teamRequests.find((r) => r.teamId === invitation.teamId && r.senderId === invitation.senderId && r.status === 'pending' && (r.studentId === user.id || this.teams.find((t) => t.id === r.teamId)?.leaderId === user.id))
+        if (!request) throw new Error('Заявка не найдена')
+        this.decideTeamRequest(request.id, status)
+      }
+      invitation.status = status
+    }
+    notification.read = true; save('notifications', this.notifications)
+    const recipient = user.id === notification.userId ? invitation.senderId : notification.userId
+    this.notifications.unshift({ id: crypto.randomUUID(), userId: recipient, type: notification.type, title: 'Ответ на приглашение', message: message?.trim() || (status === 'accepted' ? 'Приглашение принято' : 'Приглашение отклонено'), link: `/invitations/${id}`, read: false, createdAt: new Date().toISOString() }); save('notifications', this.notifications)
+    return notification
+  }
 
   // Users & Auth
   getUsers(): User[] {
@@ -347,6 +472,7 @@ export class MockServer {
   }
 
   createCase(caseData: Omit<CaseProject, 'id' | 'viewsCount' | 'applicationsCount' | 'publishedAt'>): CaseProject {
+    if (caseData.maxTeams != null && (!Number.isInteger(caseData.maxTeams) || caseData.maxTeams < 1)) throw new Error('Укажите целое число команд от 1')
     const user = this.sessionUser()
     if (!user || (user.role !== 'admin' && (user.role !== 'company' || user.companyProfile?.companyId !== caseData.companyId))) {
       throw new Error('Нет прав на публикацию кейса от этой компании')
@@ -409,6 +535,8 @@ export class MockServer {
 
   updateCase(updated: CaseProject): CaseProject {
     this.requireCaseManager(updated.id)
+    if (updated.maxTeams != null && (!Number.isInteger(updated.maxTeams) || updated.maxTeams < 1)) throw new Error('Укажите целое число команд от 1')
+    if (updated.maxTeams && updated.maxTeams < this.applications.filter((a) => a.caseId === updated.id && a.status === 'accepted').length) throw new Error('Лимит меньше числа уже принятых команд')
     const prev = this.cases.find((c) => c.id === updated.id)
     if (this.sessionUser()?.role === 'company') {
       updated = { ...updated, companyId: prev!.companyId, isModerated: prev!.isModerated, moderationStatus: prev!.moderationStatus }
@@ -498,8 +626,13 @@ export class MockServer {
     const user = this.sessionUser()
     const project = this.cases.find((item) => item.id === data.caseId)
     if (!user || user.role !== 'student' || data.studentId !== user.id) throw new Error('Заявку может подать только студент от своего имени')
-    if (!project || !isPublished(project) || !['open', 'application', 'selection'].includes(project.status)) throw new Error('Кейс не открыт для заявок')
+    if (!project || !isPublished(project) || !canReceiveApplications(project)) throw new Error('Кейс не открыт для заявок')
     if (project.companyId !== data.companyId) throw new Error('Компания не соответствует кейсу')
+    if (data.applicantType === 'team') {
+      const team = this.teams.find((t) => t.id === data.teamId)
+      if (!team || team.leaderId !== user.id || (team.caseId && team.caseId !== project.id)) throw new Error('Командную заявку подает капитан своей команды')
+      if (team.members.length < project.teamSize.min || team.members.length > project.teamSize.max) throw new Error('Состав команды не соответствует условиям кейса')
+    }
     if (this.applications.some((app) => app.caseId === data.caseId && app.studentId === user.id)) throw new Error('Вы уже подали заявку')
     const newApp: CaseApplication = {
       ...data,
@@ -539,6 +672,8 @@ export class MockServer {
     this.requireCaseManager(app.caseId)
     if (app.status === 'accepted' && status === 'interview') throw new Error('Студент уже принят в команду')
     if (['accepted', 'rejected'].includes(app.status)) throw new Error('Решение по заявке уже принято')
+    const project = this.cases.find((c) => c.id === app.caseId)!
+    if (status === 'accepted' && project.maxTeams && this.applications.filter((a) => a.caseId === project.id && a.status === 'accepted').length >= project.maxTeams) throw new Error('Лимит команд на кейс достигнут')
     if (app) {
       const prev = app.status
       app.status = status
@@ -547,9 +682,14 @@ export class MockServer {
 
       // If accepted, update case status to in_progress
       if (status === 'accepted') {
+        if (app.teamId) {
+          const team = this.teams.find((t) => t.id === app.teamId)
+          if (team) { team.caseId = app.caseId; save('teams', this.teams) }
+        }
         const c = this.cases.find((x) => x.id === app.caseId)
         if (c) {
           c.status = 'in_progress'
+          c.acceptedTeamsCount = this.applications.filter((a) => a.caseId === c.id && a.status === 'accepted').length
           c.assignedStudentId = app.studentId
           c.assignedStudentName = app.studentName
           if (app.teamId) {
@@ -751,11 +891,11 @@ export class MockServer {
       createdAt: new Date().toISOString().split('T')[0],
       likesCount: 0,
       isModerated: false,
-      moderationStatus: 'pending',
+      moderationStatus: data.visibility === 'private' ? 'hidden' : 'pending',
     }
     this.studentProjects.unshift(newProj)
     save('studentProjects', this.studentProjects)
-    this.notifyReviewers('student', newProj.title)
+    if (newProj.visibility !== 'private') this.notifyReviewers('student', newProj.title)
     return newProj
   }
 
@@ -775,6 +915,7 @@ export class MockServer {
     const collection = kind === 'case' ? this.cases : this.studentProjects
     const project = collection.find((item) => item.id === id)
     if (!project) throw new Error('Публикация не найдена')
+    if ('visibility' in project && project.visibility === 'private') throw new Error('Проект приватный')
     const previous = project.moderationStatus || (project.isModerated ? 'approved' : 'pending')
     const updated = { ...project, moderationStatus: status, moderationComment: comment.trim(), isModerated: status === 'approved' }
     if (kind === 'case') {
@@ -809,8 +950,13 @@ export class MockServer {
   }
 
   createTeam(data: Omit<ProjectTeam, 'id' | 'createdAt'>): ProjectTeam {
+    const user = this.actor()
+    if (user.role !== 'student') throw new Error('Создать команду может студент')
+    if (!data.name.trim()) throw new Error('Укажите название команды')
     const newTeam: ProjectTeam = {
       ...data,
+      leaderId: user.id, leaderName: user.fullName,
+      members: [{ id: user.id, name: user.fullName, role: 'Капитан', competencies: user.studentProfile?.skills || [], avatar: user.avatar, email: user.email }],
       id: `team_${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     }
@@ -825,8 +971,12 @@ export class MockServer {
   }
 
   addComment(data: Omit<ProjectComment, 'id' | 'createdAt'>): ProjectComment {
+    const user = this.actor()
+    if (!data.content.trim() || !this.getCaseById(data.caseId)) throw new Error('Комментарий пуст или кейс недоступен')
+    if (data.parentId && !this.comments.some((c) => c.id === data.parentId && c.caseId === data.caseId)) throw new Error('Исходный комментарий не найден')
     const comment: ProjectComment = {
       ...data,
+      authorId: user.id, authorName: user.fullName, authorRole: user.role, authorAvatar: user.avatar, likedBy: [],
       id: `comm_${Date.now()}`,
       createdAt: new Date().toISOString(),
     }
@@ -837,6 +987,12 @@ export class MockServer {
 
   // Notifications
   getNotifications(userId: string): SystemNotification[] {
+    this.notifications.filter((n) => n.type === 'company_invite' && !n.invitation).forEach((n) => {
+      const project = this.cases.find((c) => n.link === `/cases/${c.id}`)
+      const sender = this.users.find((u) => u.companyProfile?.companyId === project?.companyId)
+      if (project && sender) { n.invitation = { caseId: project.id, companyId: project.companyId, senderId: sender.id, senderName: sender.fullName, reason: 'Приглашение к участию', status: 'pending', replies: [] }; n.link = `/invitations/${n.id}` }
+    })
+    save('notifications', this.notifications)
     return this.notifications.filter((n) => n.userId === userId || n.userId === 'all')
   }
 
@@ -913,14 +1069,17 @@ export class MockServer {
     if (this.sessionUser()?.role !== 'company') throw new Error('Приглашать студентов может только компания')
     this.requireCaseManager(caseId)
     const c = this.cases.find((x) => x.id === caseId)
+    const notificationId = crypto.randomUUID()
+    const sender = this.actor()
     this.notifications.unshift({
-      id: `notif_${Date.now()}`,
+      id: notificationId,
       userId: studentId,
       type: 'company_invite',
       title: `Приглашение от компании: ${c?.companyName || 'Партнер УУНиТ'}`,
       message: `Вас приглашают в проект «${c?.title || 'Кейс'}» (${type}). Сообщение: ${message}`,
       read: false,
-      link: `/cases/${caseId}`,
+      link: `/invitations/${notificationId}`,
+      invitation: { caseId, senderId: sender.id, senderName: sender.fullName, companyId: c?.companyId, reason: type, status: 'pending', replies: [] },
       createdAt: new Date().toISOString(),
     })
     save('notifications', this.notifications)

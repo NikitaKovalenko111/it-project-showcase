@@ -1,3 +1,4 @@
+import { ProjectVisibility } from '../components/ProjectVisibility'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import { canModerate, isPublished, publicationLabels, publicationStatus } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
@@ -272,6 +273,7 @@ export const StudentProjectsPage: React.FC = () => {
 
                 <p className="student-project-card__desc">{item.shortDescription}</p>
 
+                {section === 'mine' && <ProjectVisibility project={item} />}
                 {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
                 {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
                 {/* Badges п. 5.15 ТЗ */}

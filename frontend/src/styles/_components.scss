@@ -804,3 +804,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .analytics-table .card__header span { font-size: 12px; color: #64748b; }
 .analytics-table .table-container { border: 0; box-shadow: none; margin: 0; }
 .analytics-table .data-table td { max-width: 380px; overflow-wrap: anywhere; }
+
+.analytics-table th:first-child, .analytics-table td:first-child { min-width: 300px; max-width: 460px; white-space: normal; overflow-wrap: anywhere; }
+.feature-panel { padding: 20px; margin-block: 18px; display: grid; gap: 14px; }
+.feature-panel label { display: grid; gap: 6px; }
+.feature-row { border: 1px solid #dce4ed; border-radius: 8px; padding: 14px; display: grid; gap: 10px; overflow-wrap: anywhere; }
+.feature-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.feature-toolbar > input, .feature-toolbar > select { flex: 1; min-width: min(190px, 100%); }

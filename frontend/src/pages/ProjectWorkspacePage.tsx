@@ -1,3 +1,5 @@
+import { TeamsPanel } from '../components/TeamsPanel'
+import { CaseApplications } from '../components/CaseApplications'
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -52,7 +54,7 @@ export const ProjectWorkspacePage: React.FC = () => {
 
   const { teamsList, studentsList } = useAppSelector((state) => state.students)
 
-  const [activeTab, setActiveTab] = useState<'milestones' | 'submission' | 'team' | 'comments'>('milestones')
+  const [activeTab, setActiveTab] = useState<'milestones' | 'submission' | 'team' | 'comments' | 'applications'>('milestones')
   const [submissionModalOpen, setSubmissionModalOpen] = useState(false)
   const [evaluationModalOpen, setEvaluationModalOpen] = useState(false)
   const [commentText, setCommentText] = useState('')
@@ -222,6 +224,8 @@ export const ProjectWorkspacePage: React.FC = () => {
           <span className="tab-counter">{comments.length}</span>
         </button>
       </div>
+
+      {isCompanyUser && <button className={`btn btn-secondary ${activeTab === 'applications' ? 'active' : ''}`} onClick={() => setActiveTab('applications')}>Заявки студентов</button>}
 
       {/* TAB 1: MILESTONES (7 Этапов п. 5.10 ТЗ) */}
       {activeTab === 'milestones' && (
@@ -536,47 +540,8 @@ export const ProjectWorkspacePage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: PROJECT TEAM */}
-      {activeTab === 'team' && (
-        <div className="card">
-          <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '16px' }}>Состав проектной команды</h3>
-            <span className="badge badge-direction">{projectTeam?.name || activeCase.assignedStudentName || 'Команда не назначена'}</span>
-          </div>
-          <div className="card__body">
-            {projectMembers.length === 0 && <p>{activeCase.assignedStudentName ? `Индивидуальный исполнитель: ${activeCase.assignedStudentName}` : 'Участники ещё не назначены.'}</p>}
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-              {projectMembers.map((mem, idx) => (
-                <Link to={`/profile/${mem.id}`}
-                  key={idx}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                  }}
-                >
-                  <img
-                    src={mem.avatar}
-                    alt=""
-                    style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block' }}>{mem.name}</strong>
-                    <div style={{ fontSize: '12px', color: '#1b5e91', fontWeight: 600 }}>{mem.role}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      {mem.skills.join(', ')}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {activeTab === 'team' && <TeamsPanel caseId={activeCase.id} />}
+      {activeTab === 'applications' && isCompanyUser && <CaseApplications caseId={activeCase.id} />}
 
       {/* TAB 4: COMMENTS & DISCUSSION */}
       {activeTab === 'comments' && (
@@ -592,7 +557,7 @@ export const ProjectWorkspacePage: React.FC = () => {
               {!milestones.some((milestone) => milestone.attachedMaterials.length > 0) && !submission?.attachedFiles.length && <p>Материалы ещё не добавлены.</p>}
             </div>
             <h4>Обсуждение</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', height: 'min(50vh, 440px)', overflowY: 'auto', overflowWrap: 'anywhere' }}>
+            <div className="discussion-messages" role="region" aria-label="Сообщения проекта" tabIndex={0}>
               {comments.map((comm) => (
                 <div
                   key={comm.id}

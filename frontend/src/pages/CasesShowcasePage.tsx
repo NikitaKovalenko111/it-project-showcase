@@ -42,7 +42,6 @@ export const CasesShowcasePage: React.FC = () => {
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'cases' | 'recruiting'>('cases')
-  const [selectedQuickTech, setSelectedQuickTech] = useState<string>('all')
 
   useEffect(() => {
     dispatch(fetchCasesRequest(filters))
@@ -54,9 +53,8 @@ export const CasesShowcasePage: React.FC = () => {
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
   const visibleCases = selectShowcaseCases(visibleCasesFor(currentUser, casesList), {
-    period: 'all', technology: selectedQuickTech, recruiting: activeTab === 'recruiting', sort,
+    period: 'all', technology: 'all', recruiting: activeTab === 'recruiting', sort,
   })
-  const academicYear = new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setCaseFilters({ search: e.target.value }))
@@ -66,12 +64,8 @@ export const CasesShowcasePage: React.FC = () => {
     dispatch(setCaseFilters({ [key]: value }))
   }
 
-  const handleQuickTechClick = (tech: string) => {
-    setSelectedQuickTech(tech)
-  }
 
   const handleResetFilters = () => {
-    setSelectedQuickTech('all')
     setActiveTab('cases')
     setSort('newest')
     dispatch(resetCaseFilters())
@@ -112,15 +106,6 @@ export const CasesShowcasePage: React.FC = () => {
     return 'badge-complexity-high'
   }
 
-  const quickTechList = [
-    { label: 'Все технологии', value: 'all' },
-    { label: 'Компьютерное зрение', value: 'Computer Vision' },
-    { label: 'React / Frontend', value: 'React' },
-    { label: 'Python / AI', value: 'Python' },
-    { label: 'IoT / Микроконтроллеры', value: 'ESP32' },
-    { label: 'Docker / DevOps', value: 'Docker' },
-    { label: 'Безопасность', value: 'безопасност' },
-  ]
 
   return (
     <div>
@@ -208,7 +193,8 @@ export const CasesShowcasePage: React.FC = () => {
 
             <select
               className="uust-select"
-              style={{ width: '140px' }}
+              style={{ width: '210px', flexShrink: 0 }}
+              aria-label="Уровень сложности"
               value={filters.complexity}
               onChange={(e) => handleFilterChange('complexity', e.target.value)}
             >
@@ -275,27 +261,12 @@ export const CasesShowcasePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Technology Chips */}
-      <div className="quick-tag-bar">
-        {quickTechList.map((t) => (
-          <button
-            key={t.value}
-            className={`quick-chip ${selectedQuickTech === t.value ? 'active' : ''}`}
-            onClick={() => handleQuickTechClick(t.value)}
-          >
-            <Filter size={13} aria-hidden="true" /> {t.label}
-          </button>
-        ))}
-      </div>
-
       {/* Section Subheader matching photo "Группа ТОП-204Б(73) Неделя 7" */}
       <div className="uust-section-title">
         <div>
           <span>Найдено кейсов: <strong>{visibleCases.length}</strong> из {visibleCasesFor(currentUser, casesList).length}</span>
         </div>
-        <span style={{ fontSize: '12px', fontWeight: 500, color: '#627282' }}>
-          Учебный год: {academicYear}/{academicYear + 1} • По дате публикации
-        </span>
+
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>

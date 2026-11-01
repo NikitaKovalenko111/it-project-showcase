@@ -1,3 +1,8 @@
+import { canReceiveApplications } from '../utils/recruiting'
+import { CaseComments } from '../components/CaseComments'
+import { TeamsPanel } from '../components/TeamsPanel'
+import { ReportButton } from '../components/ReportButton'
+import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -47,6 +52,8 @@ export const CaseDetailPage: React.FC = () => {
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [applicationModalOpen, setApplicationModalOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [detailTab, setDetailTab] = useState('comments')
   const [ndaModalOpen, setNdaModalOpen] = useState(false)
   const [ndaAcceptedLocal, setNdaAcceptedLocal] = useState(false)
 
@@ -490,6 +497,12 @@ export const CaseDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {currentUser?.role === 'student' && isPublished(activeCase) && canReceiveApplications(activeCase) && activeCase.status === 'in_progress' && !userApplication && <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>Подать заявку своей команды</button>}
+      <div className="action-row"><ReportButton targetType="case" targetId={activeCase.id} />{canManageCase(currentUser, activeCase) && <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>Редактировать кейс</button>}</div>
+      <section className="card feature-panel"><p>Тип: {({ case: 'Кейс', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p>Максимум команд: {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}</section>
+      <div className="tabs-bar"><button className={`tab-btn ${detailTab === 'comments' ? 'active' : ''}`} onClick={() => setDetailTab('comments')}>Комментарии</button><button className={`tab-btn ${detailTab === 'teams' ? 'active' : ''}`} onClick={() => setDetailTab('teams')}>{currentUser?.role === 'student' ? 'Поиск команды' : 'Команды кейса'}</button></div>
+      {detailTab === 'comments' ? <CaseComments caseId={activeCase.id} /> : <TeamsPanel caseId={activeCase.id} />}
+      <CreateCaseModal caseItem={activeCase} isOpen={editOpen} onClose={() => { setEditOpen(false); dispatch(fetchCaseByIdRequest(activeCase.id)) }} />
       {/* Modals */}
       <ApplicationModal
         caseItem={activeCase}

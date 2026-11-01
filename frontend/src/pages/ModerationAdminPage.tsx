@@ -1,3 +1,4 @@
+import { AdminInsights } from '../components/AdminInsights'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
@@ -88,6 +89,7 @@ export const ModerationAdminPage: React.FC = () => {
 
   return (
     <div>
+      <AdminInsights />
       <div className="page-header">
         <div className="page-header__content">
           <h1>Панель администрирования</h1>

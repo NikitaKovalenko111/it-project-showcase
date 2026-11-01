@@ -412,54 +412,64 @@ export const apiClient = {
 
   // Students & Teams
   async getStudents(filters?: any): Promise<User[]> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.get<User[]>('/students', { params: filters })).data
     await delay(150)
     return mockServer.getStudents(filters)
   },
 
   async inviteStudent(studentId: string, caseId: string, type: string, message: string): Promise<void> {
+    if (apiRuntime.mode === 'live') { await axiosInstance.post('/invitations', { studentId, caseId, type, message }); return }
     await delay(180)
     mockServer.inviteStudent(studentId, caseId, type, message)
   },
 
   async getTeams(): Promise<ProjectTeam[]> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.get<ProjectTeam[]>('/teams')).data
     await delay(120)
     return mockServer.getTeams()
   },
 
   async createTeam(data: any): Promise<ProjectTeam> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.post<ProjectTeam>('/teams', data)).data
     await delay(200)
     return mockServer.createTeam(data)
   },
 
   // Comments
   async getComments(caseId: string): Promise<ProjectComment[]> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.get<ProjectComment[]>(`/cases/${caseId}/comments`)).data
     await delay(100)
     return mockServer.getComments(caseId)
   },
 
   async addComment(data: any): Promise<ProjectComment> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.post<ProjectComment>(`/cases/${data.caseId}/comments`, data)).data
     await delay(150)
     return mockServer.addComment(data)
   },
 
   // Notifications
   async getNotifications(userId: string): Promise<SystemNotification[]> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.get<SystemNotification[]>('/notifications', { params: { userId } })).data
     await delay(100)
     return mockServer.getNotifications(userId)
   },
 
   async markNotificationRead(id: string): Promise<void> {
+    if (apiRuntime.mode === 'live') { await axiosInstance.patch(`/notifications/${id}/read`); return }
     await delay(50)
     mockServer.markNotificationRead(id)
   },
 
   async markAllNotificationsRead(userId: string): Promise<void> {
+    if (apiRuntime.mode === 'live') { await axiosInstance.post('/notifications/read-all', { userId }); return }
     await delay(80)
     mockServer.markAllNotificationsRead(userId)
   },
 
   // Audit Logs
   async getAuditLogs(): Promise<AuditLog[]> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.get<AuditLog[]>('/audit-logs')).data
     await delay(120)
     return mockServer.getAuditLogs()
   },

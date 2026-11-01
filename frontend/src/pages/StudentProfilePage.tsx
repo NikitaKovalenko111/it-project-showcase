@@ -1,3 +1,6 @@
+import { EducationLevel } from '../types/models'
+import { TeamsPanel } from '../components/TeamsPanel'
+import { ReportButton } from '../components/ReportButton'
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -56,6 +59,7 @@ export const StudentProfilePage: React.FC = () => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
 
   // Edit fields
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | ''>(student?.educationLevel || '')
   const [bio, setBio] = useState(student?.bio || '')
   const [skills, setSkills] = useState(student?.skills.join(', ') || '')
   const [techStack, setTechStack] = useState(student?.techStack.join(', ') || '')
@@ -71,6 +75,7 @@ export const StudentProfilePage: React.FC = () => {
       studentProfile: {
         ...targetUser.studentProfile!,
         bio,
+        educationLevel: educationLevel || undefined,
         skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
         techStack: techStack.split(',').map((s) => s.trim()).filter(Boolean),
         githubUrl: githubUrl.trim(),
@@ -83,6 +88,7 @@ export const StudentProfilePage: React.FC = () => {
 
   useEffect(() => {
     setIsEditing(false)
+    setEducationLevel(student?.educationLevel || '')
     setBio(student?.bio || '')
     setSkills(student?.skills.join(', ') || '')
     setTechStack(student?.techStack.join(', ') || '')
@@ -208,6 +214,7 @@ export const StudentProfilePage: React.FC = () => {
           </div>
           <form onSubmit={handleSaveProfile}>
             <div className="card__body">
+              <label>Уровень обучения<select className="select" value={educationLevel} onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}><option value="">Не указан</option>{['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => <option key={level}>{level}</option>)}</select></label>
               <div className="form-group">
                 <label>О себе (краткое описание):</label>
                 <textarea
@@ -536,6 +543,8 @@ export const StudentProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {isOwnProfile && <TeamsPanel />}
+      {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
       {/* Modal for inviting student */}
       <InviteStudentModal
         student={targetUser}

@@ -1,7 +1,11 @@
 export type UserRole = 'admin' | 'university' | 'company' | 'student' | 'curator'
 export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' | 'hidden'
 
+export type EducationLevel = 'Бакалавриат' | 'Специалитет' | 'Магистратура' | 'Аспирантура'
+
 export interface StudentProfile {
+  educationLevel?: EducationLevel
+  curatorId?: string
   university: string
   institute: string
   fieldOfStudy: string
@@ -42,6 +46,7 @@ export interface User {
 }
 
 export interface Company {
+  internshipProgram?: string
   id: string
   name: string
   shortName: string
@@ -119,7 +124,13 @@ export interface PrizePlace {
   winnerTeamId?: string
 }
 
+export type CaseKind = 'case' | 'olympiad' | 'internship'
 export interface CaseProject {
+  kind?: CaseKind
+  maxTeams?: number | null
+  acceptedTeamsCount?: number
+  internshipConditions?: string
+  olympiadRules?: string
   moderationStatus?: ModerationStatus
   moderationComment?: string
   id: string
@@ -199,6 +210,7 @@ export interface TeamMember {
 }
 
 export interface ProjectTeam {
+  recruitingCaseId?: string
   id: string
   name: string
   leaderId: string
@@ -296,6 +308,7 @@ export type StudentProjectBadge =
   | 'open_for_job'         // Открыт к предложениям о работе
 
 export interface StudentProject {
+  visibility?: 'private' | 'public'
   moderationStatus?: ModerationStatus
   moderationComment?: string
   id: string
@@ -351,6 +364,7 @@ export interface AuditLog {
 }
 
 export interface SystemNotification {
+  invitation?: { caseId?: string; teamId?: string; senderId: string; senderName: string; companyId?: string; reason: string; status: 'pending' | 'accepted' | 'rejected'; replies: { authorId: string; authorName: string; message: string; createdAt: string }[] }
   id: string
   userId: string
   type:
@@ -373,6 +387,8 @@ export interface SystemNotification {
 }
 
 export interface ProjectComment {
+  parentId?: string
+  likedBy?: string[]
   id: string
   caseId: string
   authorId: string
@@ -383,3 +399,16 @@ export interface ProjectComment {
   createdAt: string
   attachment?: { name: string; url: string }
 }
+
+export interface TeamRequest {
+  id: string
+  teamId: string
+  studentId: string
+  senderId: string
+  kind: 'invitation' | 'application'
+  message: string
+  status: 'pending' | 'accepted' | 'rejected'
+  createdAt: string
+}
+export interface TeamSeeker { id: string; caseId: string; studentId: string; message: string; techStack: string[] }
+export interface ContentReport { id: string; authorId: string; targetType: 'case' | 'project' | 'comment' | 'user'; targetId: string; reason: string; message: string; status: 'pending' | 'resolved'; createdAt: string }

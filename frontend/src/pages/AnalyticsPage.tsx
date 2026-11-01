@@ -1,3 +1,4 @@
+import { AdminInsights } from '../components/AdminInsights'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Download, FileSpreadsheet } from 'lucide-react'
 import { useAppSelector } from '../store'
@@ -80,6 +81,7 @@ export const AnalyticsPage: React.FC = () => {
     </div>
     {error && <p role="alert">{error}</p>}
     {exportError && <p role="alert">{exportError}</p>}
+    {currentUser?.role === 'admin' && <AdminInsights />}
     {loading || casesLoading ? <p role="status">Подготовка аналитики…</p> : <>
       <div className="kpi-grid">{metrics.map(([label, value]) => <div className="kpi-card" key={label}><div className="kpi-card__value">{value}</div><div className="kpi-card__label">{label}</div></div>)}</div>
       <p className="analytics-note">Период относится к дате публикации проекта. Курс и институт отбирают проекты по заявителям и участникам. Интервью учитываются по текущему статусу; фонды показывают заявленные суммы, а выплаты — только подтвержденные. История приглашений на стажировки пока недоступна.</p>

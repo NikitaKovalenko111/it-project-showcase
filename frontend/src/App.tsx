@@ -1,3 +1,4 @@
+import { InvitationPage } from './pages/InvitationPage'
 import React, { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
         <Route path="cases" element={<CasesShowcasePage />} />
         <Route path="cases/:id" element={<CaseDetailPage />} />
         <Route path="cases/:id/workspace" element={<ProjectWorkspacePage />} />
+        <Route path="invitations/:id" element={<InvitationPage />} />
         <Route path="workspace" element={<WorkspaceListPage />} />
 
         <Route path="student-projects" element={<StudentProjectsPage />} />

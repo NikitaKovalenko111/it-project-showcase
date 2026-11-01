@@ -1,3 +1,4 @@
+import { TeamsPanel } from '../TeamsPanel'
 import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
@@ -17,9 +18,10 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const { teamsList } = useAppSelector((state) => state.students)
 
   const studentProfile = currentUser?.studentProfile
-  const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id || t.members.some((m) => m.id === currentUser?.id))
+  const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id))
+  const [manageTeams, setManageTeams] = useState(false)
 
-  const [applicantType, setApplicantType] = useState<'individual' | 'team'>('individual')
+  const [applicantType, setApplicantType] = useState<'individual' | 'team'>(caseItem.participationFormat === 'team' ? 'team' : 'individual')
   const [selectedTeamId, setSelectedTeamId] = useState(userTeams[0]?.id || '')
   const [coverLetter, setCoverLetter] = useState(
     'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
@@ -61,6 +63,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
 
     setSubmitError('')
     try {
+      if (applicantType === 'team' && !selectedTeam) throw new Error('Выберите свою команду')
       const application = await apiClient.createApplication({
         caseId: caseItem.id,
         caseTitle: caseItem.title,
@@ -151,6 +154,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                     onChange={(e) => setSelectedTeamId(e.target.value)}
                     required
                   >
+                    <option value="">Выберите команду</option>
                     {userTeams.length > 0 ? (
                       userTeams.map((team) => (
                         <option key={team.id} value={team.id}>
@@ -158,9 +162,10 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                         </option>
                       ))
                     ) : (
-                      <option value="team_new">Команда NeuralKoders (3 участника)</option>
+                      <option value="" disabled>Сначала создайте команду</option>
                     )}
                   </select>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setManageTeams(!manageTeams)}>Создать команду / пригласить участников</button>
                 </div>
               )}
 
@@ -243,6 +248,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
           </form>
         )}
       </div>
+      {manageTeams && <div className="modal-backdrop" onClick={(e) => e.stopPropagation()}><div className="modal-dialog modal-dialog--lg"><div className="modal-dialog__header"><h3>Команда для отклика</h3><button className="btn btn-secondary" onClick={() => setManageTeams(false)}>Вернуться к заявке</button></div><div className="modal-dialog__body"><TeamsPanel /></div></div></div>}
     </div>
   )
 }

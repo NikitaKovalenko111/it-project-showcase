@@ -1,16 +1,17 @@
 import { apiClient } from '../../api/client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createCaseSuccess } from '../../store/actions'
-import { CaseComplexity, IPRightsType, ProjectDirection, RewardType, WorkFormat } from '../../types/models'
+import { createCaseSuccess, updateCaseSuccess } from '../../store/actions'
+import { CaseProject, CaseKind, CaseComplexity, IPRightsType, ProjectDirection, RewardType, WorkFormat } from '../../types/models'
 import { Building2, Plus, Sparkles, X } from 'lucide-react'
 
 interface CreateCaseModalProps {
+  caseItem?: CaseProject
   isOpen: boolean
   onClose: () => void
 }
 
-export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose }) => {
+export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, caseItem }) => {
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.auth)
   const { companiesList } = useAppSelector((state) => state.companies)
@@ -43,6 +44,23 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
   )
   const [isConfidential, setIsConfidential] = useState(false)
   const [ipRights, setIpRights] = useState<IPRightsType>('non_exclusive_license')
+
+  const [kind, setKind] = useState<CaseKind>('case')
+  const [maxTeams, setMaxTeams] = useState('')
+  const [specialConditions, setSpecialConditions] = useState('')
+
+  useEffect(() => {
+    if (!isOpen || !caseItem) return
+    const c = caseItem
+    setCompanyId(c.companyId); setTitle(c.title); setDirection(c.direction); setComplexity(c.complexity)
+    setParticipationFormat(c.participationFormat); setTeamMin(c.teamSize.min); setTeamMax(c.teamSize.max)
+    setShortDescription(c.shortDescription); setFullDescription(c.fullDescription)
+    setRequiredCompetencies(c.requiredCompetencies.join(', ')); setRecommendedTech(c.recommendedTech.join(', '))
+    setWorkFormat(c.workFormat); setDeadlineDate(c.deadlineDate); setDuration(c.duration); setRewardType(c.rewardType)
+    setPrizeFund(c.prizeFund || 0); setRewardAmount(c.rewardAmount || 0); setRewardDescription(c.rewardDescription || '')
+    setIsConfidential(c.isConfidential); setIpRights(c.ipRights); setKind(c.kind || 'case'); setMaxTeams(c.maxTeams ? String(c.maxTeams) : '')
+    setSpecialConditions(c.internshipConditions || c.olympiadRules || ''); setError('')
+  }, [isOpen, caseItem])
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -83,7 +101,11 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
     setError('')
     setSaving(true)
     try {
-      const created = await apiClient.createCase({
+      if (teamMin > teamMax) throw new Error("Минимальный размер команды превышает максимальный")
+      const payload: Omit<CaseProject, 'id' | 'viewsCount' | 'applicationsCount' | 'publishedAt'> = {
+        kind, maxTeams: maxTeams ? Number(maxTeams) : null,
+        internshipConditions: kind === 'internship' ? specialConditions : undefined,
+        olympiadRules: kind === 'olympiad' ? specialConditions : undefined,
         title,
         companyId: selectedCompany.id,
         companyName: selectedCompany.name,
@@ -106,13 +128,14 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
         rewardAmount: rewardType === 'monetary' ? Number(rewardAmount) : undefined,
         rewardDescription,
         paymentStatus: rewardType === 'monetary' || rewardType === 'contest' ? 'pending' : 'not_provided',
-        status: 'moderation',
+        status: 'moderation' as const,
         isConfidential,
         ipRights,
         isModerated: false,
-        moderationStatus: 'pending',
-      })
-      dispatch(createCaseSuccess(created))
+        moderationStatus: 'pending' as const,
+      }
+      const created = caseItem ? await apiClient.updateCase({ ...caseItem, ...payload, status: caseItem.status, isModerated: caseItem.isModerated, moderationStatus: caseItem.moderationStatus }) : await apiClient.createCase(payload)
+      dispatch(caseItem ? updateCaseSuccess(created) : createCaseSuccess(created))
       onClose()
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось отправить кейс') }
     finally { setSaving(false) }
@@ -125,7 +148,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Building2 size={22} color="#1b5e91" />
             <div>
-              <h3>Размещение нового ИТ-кейса</h3>
+              <h3>{caseItem ? 'Редактирование публикации' : 'Размещение проекта'}</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Кейс появится в витрине после одобрения куратором. Задача для студентов
               </p>
@@ -139,6 +162,13 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
         <form onSubmit={handleSubmit}>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="modal-dialog__body">
+            <div className="feature-toolbar">
+              <label>Тип публикации<select className="select" value={kind} onChange={(e) => { const value = e.target.value as CaseKind; setKind(value); setRewardType(value === 'olympiad' ? 'contest' : value === 'internship' ? 'other' : 'educational') }}><option value="case">Кейс</option><option value="olympiad">Олимпиада</option><option value="internship">Стажировка</option></select></label>
+              <label>Максимум команд<input className="input" type="number" min="1" step="1" value={maxTeams} onChange={(e) => setMaxTeams(e.target.value)} placeholder="Без ограничений" /></label>
+            </div>
+            <div className="feature-toolbar"><label>Продолжительность<input className="input" value={duration} onChange={(e) => setDuration(e.target.value)} required /></label>{participationFormat !== 'individual' && <><label>Минимум участников<input className="input" type="number" min="1" step="1" value={teamMin} onChange={(e) => setTeamMin(Number(e.target.value))} required /></label><label>Максимум участников<input className="input" type="number" min={teamMin} step="1" value={teamMax} onChange={(e) => setTeamMax(Number(e.target.value))} required /></label></>}</div>
+            {kind !== 'case'  && <label className="catalog-filter">{kind === 'olympiad' ? 'Регламент олимпиады, этапы и критерии победы' : 'Условия стажировки, занятость и требования'}<textarea className="textarea" value={specialConditions} onChange={(e) => setSpecialConditions(e.target.value)} required /></label>}
+
             {/* Company selector */}
             <div className="form-group">
               <label>Компания-заказчик:*</label>
@@ -302,7 +332,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
 
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
-                  <label>Тип проекта:*</label>
+                  <label>Форма поощрения:*</label>
                   <select
                     className="select"
                     value={rewardType}
@@ -389,7 +419,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               Отмена
             </button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              <Plus size={16} /> {saving ? 'Отправка…' : 'Отправить на рассмотрение'}
+              <Plus size={16} /> {saving ? 'Сохранение…' : caseItem ? 'Сохранить изменения' : 'Отправить на рассмотрение'}
             </button>
           </div>
         </form>

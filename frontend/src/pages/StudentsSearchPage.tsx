@@ -1,3 +1,6 @@
+import { apiClient } from '../api/client'
+import { communityApi } from '../api/community'
+import { canModerate } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -27,9 +30,15 @@ export const StudentsSearchPage: React.FC = () => {
   const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
+  const [curatorUsers, setCuratorUsers] = useState<User[]>([])
+  useEffect(() => { if (canModerate(currentUser)) apiClient.getUsers().then((users) => setCuratorUsers(users.filter((u) => u.role === 'curator'))).catch((e) => setAssignmentError(e.message)) }, [currentUser?.id])
   const [search, setSearch] = useState('')
   const [institute, setInstitute] = useState('all')
   const [course, setCourse] = useState('all')
+  const [groupSearch, setGroupSearch] = useState('')
+  const [education, setEducation] = useState('all')
+  const [onlyMine, setOnlyMine] = useState(false)
+  const [assignmentError, setAssignmentError] = useState('')
   const [skill, setSkill] = useState('')
   const [minRating, setMinRating] = useState(0)
 
@@ -57,13 +66,16 @@ export const StudentsSearchPage: React.FC = () => {
       if (!match) return false
     }
 
+    if (groupSearch && !prof.group.toLowerCase().includes(groupSearch.trim().toLowerCase())) return false
+    if (education !== 'all' && prof.educationLevel !== education) return false
+    if (onlyMine && prof.curatorId !== currentUser?.id) return false
     if (institute !== 'all' && prof.institute !== institute) return false
     if (course !== 'all' && prof.course !== Number(course)) return false
     if (skill && ![...prof.skills, ...prof.techStack].some((sk) => sk.toLowerCase().includes(skill.trim().toLowerCase()))) return false
     if (minRating > 0 && prof.rating < minRating) return false
 
     return true
-  })
+  }).sort((a, b) => (b.studentProfile?.rating || 0) - (a.studentProfile?.rating || 0))
 
   const canInvite = currentUser?.role === 'company'
   const institutes = [...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean))]
@@ -164,6 +176,8 @@ export const StudentsSearchPage: React.FC = () => {
               <option value="all">Все институты</option>
               {institutes.map((name) => <option key={name}>{name}</option>)}
             </select></label>
+            {canModerate(currentUser) && <label className="catalog-filter">Поиск по группе<input className="uust-input" value={groupSearch} onChange={(e) => setGroupSearch(e.target.value)} placeholder="Группа" /></label>}
+            <label className="catalog-filter">Уровень обучения<select className="uust-select" value={education} onChange={(e) => setEducation(e.target.value)}><option value="all">Все уровни</option>{['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => <option key={level}>{level}</option>)}</select></label>
             <label className="catalog-filter">Курс<select className="uust-select" value={course} onChange={(e) => setCourse(e.target.value)}>
               <option value="all">Любой курс</option>{[1, 2, 3, 4, 5, 6].map((year) => <option key={year} value={year}>{year} курс</option>)}
             </select></label>
@@ -173,11 +187,14 @@ export const StudentsSearchPage: React.FC = () => {
             </select></label>
           </div>
           <div className="uust-pills-row"><span aria-live="polite">Найдено студентов: {filteredStudents.length}</span>
-            <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setInstitute('all'); setCourse('all'); setSkill(''); setMinRating(0) }}>Сбросить фильтры</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setInstitute('all'); setCourse('all'); setSkill(''); setMinRating(0); setGroupSearch(''); setEducation('all'); setOnlyMine(false) }}>Сбросить фильтры</button>
           </div>
         </div>
       </div>
+      {canModerate(currentUser) && <div className="feature-toolbar"><label><input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} /> Мои студенты</label><span>Сортировка: сначала лучший рейтинг</span></div>}
+      {assignmentError && <p role="alert">{assignmentError}</p>}
       {loading && <p role="status">Загрузка студентов…</p>}
+      {canModerate(currentUser) && <section className="card feature-panel"><h2>Закрепление за куратором</h2>{filteredStudents.map((student) => <div className="feature-toolbar" key={student.id}><Link to={`/profile/${student.id}`}>{student.fullName}</Link><select className="select" aria-label={`Куратор: ${student.fullName}`} value={student.studentProfile?.curatorId || ''} onChange={async (e) => { try { await communityApi.assignStudentCurator(student.id, e.target.value); dispatch(fetchStudentsRequest()); setAssignmentError('') } catch (e) { setAssignmentError((e as Error).message) } }}><option value="">Не назначен</option>{(currentUser?.role === 'curator' ? [currentUser] : curatorUsers).map((curator) => <option key={curator.id} value={curator.id}>{curator.fullName}</option>)}</select></div>)}</section>}
       {!loading && filteredStudents.length === 0 && <p>Студенты по заданным фильтрам не найдены.</p>}
 
       {/* Students List Grid */}

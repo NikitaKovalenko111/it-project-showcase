@@ -29,6 +29,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [productUrl, setProductUrl] = useState('')
   const [badges, setBadges] = useState<StudentProjectBadge[]>(['seeking_team', 'open_for_internship'])
 
+  const [visibility, setVisibility] = useState<'private' | 'public'>('private')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -58,6 +59,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
     setSaving(true)
     try {
       const created = await apiClient.createStudentProject({
+        visibility,
         title,
         coverImage,
         authorId: currentUser?.id || 'usr_student_1',
@@ -102,6 +104,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         <form onSubmit={handleSubmit}>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="modal-dialog__body">
+            <label>Видимость проекта<select className="select" value={visibility} onChange={(e) => setVisibility(e.target.value as 'private' | 'public')}><option value="private">Только я</option><option value="public">Отправить на общее обозрение после проверки</option></select></label>
             <div className="form-group">
               <label>Название проекта:*</label>
               <input
@@ -241,7 +244,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               Отмена
             </button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              <Plus size={16} /> {saving ? 'Отправка…' : 'Отправить на рассмотрение'}
+              <Plus size={16} /> {saving ? 'Отправка…' : visibility === 'private' ? 'Сохранить приватным' : 'Отправить на рассмотрение'}
             </button>
           </div>
         </form>

@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
           [
             { to: `/company/${companyId}`, label: 'КАРТОЧКА КОМПАНИИ', icon: Building2 },
-            { to: '/analytics', label: 'АНАЛИТИКА ВОРОНКИ', icon: BarChart3 },
+            { to: '/analytics', label: 'АНАЛИТИКА КЕЙСОВ', icon: BarChart3 },
           ],
         ]
 
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           {currentUser?.fullName || 'Магасумов Алмаз Ильшатович'}
         </div>
 
-        {role !== 'company' && <div className="profile-id">ID:{studentId}</div>}
+
         <div className="profile-email">
           Email:{currentUser?.email || '257576@stud.uust.ru'}
         </div>

@@ -1,7 +1,9 @@
+import { communityApi } from '../api/community'
+import { CompanyProgram } from '../components/CompanyProgram'
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
-import { fetchCompanyByIdRequest } from '../store/actions'
+import { fetchCompanyByIdRequest, fetchCompanyByIdSuccess } from '../store/actions'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
   ArrowLeft,
@@ -38,6 +40,12 @@ export const CompanyDetailPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [description, setDescription] = useState('')
   const [activeTab, setActiveTab] = useState<'cases' | 'internships' | 'mentors'>('cases')
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [caseSearch, setCaseSearch] = useState('')
+  const [caseDirection, setCaseDirection] = useState('all')
+  const [caseStatus, setCaseStatus] = useState('all')
+  const [caseSort, setCaseSort] = useState('newest')
   const [createCaseModalOpen, setCreateCaseModalOpen] = useState(false)
 
   useEffect(() => {
@@ -65,8 +73,11 @@ export const CompanyDetailPage: React.FC = () => {
 
   const companyCases = casesList.filter((c) => c.companyId === activeCompany.id || c.companyName === activeCompany.name)
 
+  const filteredCases = companyCases.filter((c) => `${c.title} ${c.shortDescription}`.toLowerCase().includes(caseSearch.trim().toLowerCase()) && (caseDirection === 'all' || c.direction === caseDirection) && (caseStatus === 'all' || c.status === caseStatus)).sort((a, b) => caseSort === 'deadline' ? a.deadlineDate.localeCompare(b.deadlineDate) : caseSort === 'popular' ? b.applicationsCount - a.applicationsCount : b.publishedAt.localeCompare(a.publishedAt))
+
   return (
     <div>
+      {saveError && <p role="alert">{saveError}</p>}
       {/* Top back button & breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
         <Link to="/companies" className="btn btn-secondary btn-sm">
@@ -134,7 +145,7 @@ export const CompanyDetailPage: React.FC = () => {
               />
               <button
                 className="btn btn-primary btn-sm mt-2"
-                onClick={() => setIsEditing(false)}
+                disabled={saving} onClick={async () => { setSaving(true); try { dispatch(fetchCompanyByIdSuccess(await communityApi.updateCompanyContent(activeCompany.id, { description, internshipProgram: activeCompany.internshipProgram || '' }))); setIsEditing(false); setSaveError('') } catch (e) { setSaveError((e as Error).message) } finally { setSaving(false) } }}
                 style={{ marginTop: '10px' }}
               >
                 <Save size={14} /> Сохранить изменения
@@ -262,13 +273,15 @@ export const CompanyDetailPage: React.FC = () => {
         <div className="uust-box">
           {activeTab === 'cases' && (
             <div>
-              {companyCases.length === 0 ? (
+              <div className="feature-toolbar"><input className="input" type="search" aria-label="Поиск кейсов компании" placeholder="Найти кейс" value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} /><select className="select" aria-label="Направление кейса компании" value={caseDirection} onChange={(e) => setCaseDirection(e.target.value)}><option value="all">Все направления</option>{[...new Set(companyCases.map((c) => c.direction))].map((d) => <option key={d}>{d}</option>)}</select><select className="select" aria-label="Статус кейса компании" value={caseStatus} onChange={(e) => setCaseStatus(e.target.value)}><option value="all">Все статусы</option><option value="open">Открыт набор</option><option value="in_progress">В работе</option><option value="completed">Завершен</option></select><select className="select" aria-label="Сортировка кейсов компании" value={caseSort} onChange={(e) => setCaseSort(e.target.value)}><option value="newest">Сначала новые</option><option value="deadline">По дедлайну</option><option value="popular">По заявкам</option></select></div>
+
+              {filteredCases.length === 0 ? (
                 <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
                   На данный момент у компании нет открытых кейсов.
                 </div>
               ) : (
                 <div className="case-grid">
-                  {companyCases.map((c) => (
+                  {filteredCases.map((c) => (
                     <div key={c.id} className="case-card">
                       <div className="case-card__top-accent" />
                       <div className="card__body">
@@ -328,39 +341,7 @@ export const CompanyDetailPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'internships' && (
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0c1938', margin: '0 0 10px' }}>
-                Порядок прохождения производственной практики в {activeCompany.shortName}
-              </h3>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, margin: '0 0 18px' }}>
-                Студенты Института информатики, математики и робототехники (ИИМР), успешно решившие проектные кейсы компании, получают преимущественное право на зачисление на оплачиваемую стажировку с официальным оформлением и зачетом производственной практики.
-              </p>
-
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontWeight: 700, color: '#1e4b85', fontSize: '13px', marginBottom: '6px' }}>1. Выбор и защита кейса</div>
-                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-                    Решение технического задания компании в рамках семестрового курса проектного обучения.
-                  </div>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontWeight: 700, color: '#1e4b85', fontSize: '13px', marginBottom: '6px' }}>2. Договор с кафедрой</div>
-                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-                    Заключение индивидуального или группового договора о прохождении практики между и предприятием.
-                  </div>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontWeight: 700, color: '#1e4b85', fontSize: '13px', marginBottom: '6px' }}>3. Оффер и трудоустройство</div>
-                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-                    По итогам демо-дня лучшие студенты получают предложение о работе (Junior Developer / QA / Analyst).
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'internships' && <CompanyProgram company={activeCompany} editable={isCompanyRepresentative} />}
 
           {activeTab === 'mentors' && (
             <div>

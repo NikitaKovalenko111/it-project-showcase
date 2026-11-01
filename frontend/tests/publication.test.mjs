@@ -75,7 +75,7 @@ test('terminal application decision is final and participant assignment survives
   const { server, login } = setup()
   login('usr_student_1')
   const base = seeds.INITIAL_APPLICATIONS[0]
-  const application = server.createApplication({ ...base, caseId: 'case_3', companyId: seeds.INITIAL_CASES.find((item) => item.id === 'case_3').companyId, studentId: 'usr_student_1' })
+  const application = server.createApplication({ ...base, caseId: 'case_3', applicantType: 'individual', teamId: undefined, teamName: undefined, companyId: seeds.INITIAL_CASES.find((item) => item.id === 'case_3').companyId, studentId: 'usr_student_1' })
   login('usr_admin_1')
   server.updateApplicationStatus(application.id, 'interview')
   server.updateApplicationStatus(application.id, 'need_info')
@@ -93,7 +93,7 @@ test('mock API isolates requests and previous responses from later mutations', (
   const project = server.getCaseById('case_3')
   const count = project.applicationsCount
   Object.freeze(project)
-  const application = server.createApplication({ ...seeds.INITIAL_APPLICATIONS[0], caseId: 'case_3', companyId: project.companyId, studentId: 'usr_student_1' })
+  const application = server.createApplication({ ...seeds.INITIAL_APPLICATIONS[0], caseId: 'case_3', applicantType: 'individual', teamId: undefined, teamName: undefined, companyId: project.companyId, studentId: 'usr_student_1' })
   assert.equal(project.applicationsCount, count)
   assert.equal(server.getCaseById('case_3').applicationsCount, count + 1)
   login('usr_admin_1')

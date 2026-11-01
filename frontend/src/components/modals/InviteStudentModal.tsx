@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { apiClient } from '../../api/client'
+import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { inviteStudentRequest } from '../../store/actions'
 import { User } from '../../types/models'
@@ -20,31 +21,26 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
   )
 
   const [selectedCaseId, setSelectedCaseId] = useState(companyCases[0]?.id || '')
-  const [inviteType, setInviteType] = useState('Участие в кейсе')
+  const [inviteType, setInviteType] = useState('Участие в проекте')
   const [message, setMessage] = useState(
     `Здравствуйте, ${student.fullName}! Ознакомились с вашим профилем и проектами. Ваши компетенции отлично подходят под наш кейс. Будем рады видеть вас среди исполнителей!`
   )
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+
+  useEffect(() => { if (isOpen) { setSent(false); setError(''); setSelectedCaseId(''); setMessage(`Здравствуйте, ${student.fullName}! Приглашаем обсудить участие в нашем проекте.`) } }, [isOpen, student.id])
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    dispatch(
-      inviteStudentRequest(
-        student.id,
-        selectedCaseId || companyCases[0]?.id || 'case_1',
-        inviteType,
-        message
-      )
-    )
-
-    setSent(true)
-    setTimeout(() => {
-      setSent(false)
-      onClose()
-    }, 1400)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); setBusy(true); setError('')
+    try {
+      const caseId = selectedCaseId || companyCases[0]?.id
+      if (!caseId) throw new Error('Выберите кейс')
+      await apiClient.inviteStudent(student.id, caseId, inviteType, message)
+      setSent(true)
+    } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
 
   return (
@@ -60,7 +56,7 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
               </p>
             </div>
           </div>
-          <button className="close-btn" onClick={onClose}>
+          <button aria-label="Закрыть приглашение" className="close-btn" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
@@ -70,11 +66,12 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
             <CheckCircle2 size={44} color="#16805b" style={{ margin: '0 auto 12px' }} />
             <h4 style={{ color: '#16805b', margin: '0 0 6px' }}>Приглашение успешно отправлено!</h4>
             <p style={{ color: '#64748b', fontSize: '12px' }}>
-              Студент получит уведомление в личном кабинете и на email.
-            </p>
+              Студент получит приглашение в личном кабинете.
+            </p><button className="btn btn-primary" onClick={onClose}>Готово</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            {error && <p role="alert">{error}</p>}
             <div className="modal-dialog__body">
               <div className="form-group">
                 <label>Тип приглашения:*</label>
@@ -117,7 +114,7 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Отмена
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" disabled={busy}>
                 <Send size={15} /> Отправить приглашение
               </button>
             </div>
