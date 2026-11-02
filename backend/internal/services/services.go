@@ -7,9 +7,11 @@ import (
 	auth_service "it-project-showcase/backend/internal/services/auth"
 	cases_service "it-project-showcase/backend/internal/services/cases"
 	catalogs_service "it-project-showcase/backend/internal/services/catalogs"
+	community_service "it-project-showcase/backend/internal/services/community"
 	companies_service "it-project-showcase/backend/internal/services/companies"
 	executions_service "it-project-showcase/backend/internal/services/executions"
 	files_service "it-project-showcase/backend/internal/services/files"
+	opportunities_service "it-project-showcase/backend/internal/services/opportunities"
 	platform_service "it-project-showcase/backend/internal/services/platform"
 	results_service "it-project-showcase/backend/internal/services/results"
 	studentprojects_service "it-project-showcase/backend/internal/services/studentprojects"
@@ -19,9 +21,11 @@ import (
 	application_repo "it-project-showcase/backend/internal/storage/repositories/application"
 	case_repo "it-project-showcase/backend/internal/storage/repositories/case"
 	catalog_repo "it-project-showcase/backend/internal/storage/repositories/catalog"
+	community_repo "it-project-showcase/backend/internal/storage/repositories/community"
 	company_repo "it-project-showcase/backend/internal/storage/repositories/company"
 	execution_repo "it-project-showcase/backend/internal/storage/repositories/execution"
 	file_repo "it-project-showcase/backend/internal/storage/repositories/file"
+	opportunity_repo "it-project-showcase/backend/internal/storage/repositories/opportunity"
 	platform_repo "it-project-showcase/backend/internal/storage/repositories/platform"
 	result_repo "it-project-showcase/backend/internal/storage/repositories/result"
 	session_repo "it-project-showcase/backend/internal/storage/repositories/session"
@@ -43,6 +47,8 @@ type Services struct {
 	Results         *results_service.Service
 	StudentProjects *studentprojects_service.Service
 	Platform        *platform_service.Service
+	Community       *community_service.Service
+	Opportunities   *opportunities_service.Service
 }
 
 func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig config.JWT, objectConfig config.ObjectStorage, emailConfig config.Email) *Services {
@@ -58,6 +64,8 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 	resultRepo := result_repo.Init(appStorage.Db)
 	studentProjectRepo := studentproject_repo.Init(appStorage.Db)
 	platformRepo := platform_repo.Init(appStorage.Db)
+	communityRepo := community_repo.Init(appStorage.Db)
+	opportunityRepo := opportunity_repo.Init(appStorage.Db)
 
 	return &Services{
 		Auth:            auth_service.Init(sessionRepo, userRepo, jwtConfig),
@@ -72,5 +80,7 @@ func Init(appStorage *storage.Storage, objects objectstorage.Storage, jwtConfig 
 		Results:         results_service.Init(resultRepo),
 		StudentProjects: studentprojects_service.Init(studentProjectRepo),
 		Platform:        platform_service.Init(platformRepo, emailConfig),
+		Community:       community_service.Init(communityRepo),
+		Opportunities:   opportunities_service.Init(opportunityRepo),
 	}
 }

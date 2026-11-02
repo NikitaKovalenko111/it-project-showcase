@@ -30,3 +30,5 @@ The server embeds these files, applies them in version order and records version
 
 `000010_unweighted_evaluation_criteria.up.sql` removes criterion weights and stores the evaluation maximum as the sum of the dynamic `max_score` values.
 
+`000011_sprint4_expansion.up.sql` adds tree comments and reports, team discovery and join applications, leaderboards, internships, curators, portfolio files, case covers, project visibility and tags, versioned NDA text, and locks evaluation criteria after draft.
+

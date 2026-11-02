@@ -32,7 +32,7 @@ func (h *Handler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		middleware.QueueErrorLog(r.Context(), "set user status failed", err)
 		switch {
 		case errors.Is(err, users_service.ErrInvalidStatus):
-			pkg.WriteError(w, http.StatusUnprocessableEntity, "invalid_status", "Status must be active or blocked")
+			pkg.WriteError(w, http.StatusUnprocessableEntity, "invalid_status", "Status must be active, blocked or deleted")
 		case errors.Is(err, users_service.ErrNotFound):
 			pkg.WriteError(w, http.StatusNotFound, "user_not_found", "User not found")
 		default:
