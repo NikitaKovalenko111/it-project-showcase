@@ -6,12 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"it-project-showcase/backend/internal/middleware"
 	"it-project-showcase/backend/internal/models"
 	"it-project-showcase/backend/internal/transport/http/handlers"
 	auth_handler "it-project-showcase/backend/internal/transport/http/handlers/auth"
+	documentation_handler "it-project-showcase/backend/internal/transport/http/handlers/documentation"
 	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
 )
 
@@ -41,6 +43,34 @@ func TestRoutesUseAPIVersionPrefix(t *testing.T) {
 				t.Fatalf("status = %d, want %d", recorder.Code, test.wantStatus)
 			}
 		})
+	}
+}
+
+func TestSwaggerDocumentationRoutes(t *testing.T) {
+	handlerSet := &handlers.Handlers{
+		System:        system_handler.Init(),
+		Auth:          auth_handler.Init(nil),
+		Documentation: documentation_handler.Init(),
+	}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	for _, test := range []struct {
+		path        string
+		contentType string
+	}{
+		{path: "/api/v1/docs", contentType: "text/html"},
+		{path: "/api/v1/docs/openapi.yaml", contentType: "application/yaml"},
+	} {
+		request := httptest.NewRequest(http.MethodGet, test.path, nil)
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusOK {
+			t.Errorf("GET %s status = %d", test.path, recorder.Code)
+		}
+		if got := recorder.Header().Get("Content-Type"); !strings.Contains(got, test.contentType) {
+			t.Errorf("GET %s content type = %q", test.path, got)
+		}
 	}
 }
 

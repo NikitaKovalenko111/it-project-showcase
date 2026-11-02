@@ -33,6 +33,9 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 		http.StripPrefix("/system", systemRouter),
 	)
 	h.handlers.System.Start(systemRouter)
+	apiRouter.HandleFunc("GET /docs", h.handlers.Documentation.UI)
+	apiRouter.HandleFunc("GET /docs/", h.handlers.Documentation.UI)
+	apiRouter.HandleFunc("GET /docs/openapi.yaml", h.handlers.Documentation.Spec)
 
 	authRouter := http.NewServeMux()
 	apiRouter.Handle(

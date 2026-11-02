@@ -8,6 +8,7 @@ import (
 	catalog_handler "it-project-showcase/backend/internal/transport/http/handlers/catalog"
 	community_handler "it-project-showcase/backend/internal/transport/http/handlers/community"
 	company_handler "it-project-showcase/backend/internal/transport/http/handlers/company"
+	documentation_handler "it-project-showcase/backend/internal/transport/http/handlers/documentation"
 	execution_handler "it-project-showcase/backend/internal/transport/http/handlers/execution"
 	file_handler "it-project-showcase/backend/internal/transport/http/handlers/file"
 	opportunity_handler "it-project-showcase/backend/internal/transport/http/handlers/opportunity"
@@ -35,6 +36,7 @@ type Handlers struct {
 	Platform        *platform_handler.Handler
 	Community       *community_handler.Handler
 	Opportunities   *opportunity_handler.Handler
+	Documentation   *documentation_handler.Handler
 }
 
 func Init(services *services.Services) *Handlers {
@@ -54,5 +56,6 @@ func Init(services *services.Services) *Handlers {
 		Platform:        platform_handler.Init(services.Platform),
 		Community:       community_handler.Init(services.Community),
 		Opportunities:   opportunity_handler.Init(services.Opportunities),
+		Documentation:   documentation_handler.Init(),
 	}
 }
