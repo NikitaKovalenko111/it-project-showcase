@@ -28,3 +28,5 @@ The server embeds these files, applies them in version order and records version
 
 `000009_platform_features.up.sql` adds stage 12 favorites, notifications and email outbox, audit log, portfolio visibility, invitation notifications and indexes for operational lists.
 
+`000010_unweighted_evaluation_criteria.up.sql` removes criterion weights and stores the evaluation maximum as the sum of the dynamic `max_score` values.
+

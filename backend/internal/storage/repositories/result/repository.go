@@ -10,7 +10,10 @@ import (
 	"time"
 )
 
-var ErrForbidden = errors.New("result access denied")
+var (
+	ErrForbidden        = errors.New("result access denied")
+	ErrIncompleteScores = errors.New("every evaluation criterion must be scored")
+)
 
 type Repository struct{ db *sql.DB }
 
@@ -116,13 +119,13 @@ func (r *Repository) CreateSubmission(ctx context.Context, u, e string, in model
 	return r.GetSubmission(ctx, u, id, false, false)
 }
 
-const evalSelect = `SELECT v.evaluation_id,v.submission_id,v.evaluator_id,v.status,v.total_score,v.feedback,v.created_at,v.published_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',cs.criterion_id,'name',ec.name,'score',cs.score,'max_score',ec.max_score,'comment',COALESCE(cs.comment,'')) ORDER BY ec.ordinal) FROM criterion_scores cs JOIN evaluation_criteria ec ON ec.criterion_id=cs.criterion_id WHERE cs.evaluation_id=v.evaluation_id),'[]'::jsonb) FROM evaluations v`
+const evalSelect = `SELECT v.evaluation_id,v.submission_id,v.evaluator_id,v.status,v.total_score,v.max_score,v.feedback,v.created_at,v.published_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',cs.criterion_id,'name',ec.name,'score',cs.score,'max_score',ec.max_score,'comment',COALESCE(cs.comment,'')) ORDER BY ec.ordinal) FROM criterion_scores cs JOIN evaluation_criteria ec ON ec.criterion_id=cs.criterion_id WHERE cs.evaluation_id=v.evaluation_id),'[]'::jsonb) FROM evaluations v`
 
 func scanEval(row interface{ Scan(...any) error }) (*models.Evaluation, error) {
 	var x models.Evaluation
 	var fb sql.NullString
 	var raw []byte
-	err := row.Scan(&x.EvaluationID, &x.SubmissionID, &x.EvaluatorID, &x.Status, &x.TotalScore, &fb, &x.CreatedAt, &x.PublishedAt, &raw)
+	err := row.Scan(&x.EvaluationID, &x.SubmissionID, &x.EvaluatorID, &x.Status, &x.TotalScore, &x.MaxScore, &fb, &x.CreatedAt, &x.PublishedAt, &raw)
 	x.Feedback = fb.String
 	if err == nil {
 		err = json.Unmarshal(raw, &x.Scores)
@@ -177,7 +180,14 @@ func (r *Repository) CreateEvaluation(ctx context.Context, u, sid string, in mod
 			return nil, err
 		}
 	}
-	_, err = tx.ExecContext(ctx, `UPDATE evaluations SET total_score=COALESCE((SELECT sum(cs.score*ec.weight) FROM criterion_scores cs JOIN evaluation_criteria ec ON ec.criterion_id=cs.criterion_id WHERE cs.evaluation_id=$1),0) WHERE evaluation_id=$1`, id)
+	var expectedCriteria int
+	if err = tx.QueryRowContext(ctx, `SELECT count(*) FROM evaluation_criteria criteria JOIN executions execution ON execution.case_id=criteria.case_id JOIN submissions submission ON submission.execution_id=execution.execution_id WHERE submission.submission_id=$1`, sid).Scan(&expectedCriteria); err != nil {
+		return nil, err
+	}
+	if expectedCriteria != len(in.Scores) {
+		return nil, ErrIncompleteScores
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE evaluations SET total_score=COALESCE((SELECT sum(cs.score) FROM criterion_scores cs WHERE cs.evaluation_id=$1),0),max_score=COALESCE((SELECT sum(ec.max_score) FROM criterion_scores cs JOIN evaluation_criteria ec ON ec.criterion_id=cs.criterion_id WHERE cs.evaluation_id=$1),0) WHERE evaluation_id=$1`, id)
 	if err == nil {
 		_, err = tx.ExecContext(ctx, `UPDATE submissions SET status='accepted',reviewed_at=CURRENT_TIMESTAMP WHERE submission_id=$1`, sid)
 	}

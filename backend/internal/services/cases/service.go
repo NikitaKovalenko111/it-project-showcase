@@ -255,7 +255,7 @@ func validate(input models.CaseInput) error {
 	}
 	ordinals := map[int]struct{}{}
 	for _, criterion := range input.EvaluationCriteria {
-		if strings.TrimSpace(criterion.Name) == "" || utf8.RuneCountInString(criterion.Name) > 300 || criterion.Weight <= 0 || criterion.MaxScore <= 0 || criterion.Ordinal < 1 {
+		if strings.TrimSpace(criterion.Name) == "" || utf8.RuneCountInString(criterion.Name) > 300 || criterion.MaxScore <= 0 || criterion.Ordinal < 1 {
 			return ErrInvalidInput
 		}
 		if _, exists := ordinals[criterion.Ordinal]; exists {

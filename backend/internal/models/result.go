@@ -45,6 +45,7 @@ type Evaluation struct {
 	EvaluatorID  string           `json:"evaluator_id"`
 	Status       string           `json:"status"`
 	TotalScore   float64          `json:"total_score"`
+	MaxScore     float64          `json:"max_score"`
 	Feedback     string           `json:"feedback,omitempty"`
 	Scores       []CriterionScore `json:"scores"`
 	CreatedAt    time.Time        `json:"created_at"`

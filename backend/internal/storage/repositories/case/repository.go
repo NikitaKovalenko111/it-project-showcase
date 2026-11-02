@@ -49,7 +49,7 @@ SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c
                     'mime_type',f.mime_type,'size_bytes',f.size_bytes,'visibility',cf.visibility) ORDER BY f.created_at,f.file_id)
                  FROM case_files cf JOIN files f ON f.file_id=cf.file_id AND f.status='active'
                  WHERE cf.case_id=c.case_id /*FILE_VISIBILITY*/),'[]'::jsonb),
-       COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',ec.criterion_id,'name',ec.name,'weight',ec.weight,'max_score',ec.max_score,'ordinal',ec.ordinal) ORDER BY ec.ordinal)
+       COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',ec.criterion_id,'name',ec.name,'max_score',ec.max_score,'ordinal',ec.ordinal) ORDER BY ec.ordinal)
                  FROM evaluation_criteria ec WHERE ec.case_id=c.case_id),'[]'::jsonb)
 FROM cases c JOIN companies company ON company.company_id=c.company_id`
 
@@ -377,7 +377,7 @@ func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, 
 		}
 	}
 	for _, criterion := range input.EvaluationCriteria {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,weight,max_score,ordinal) VALUES($1,$2,$3,$4,$5)`, caseID, criterion.Name, criterion.Weight, criterion.MaxScore, criterion.Ordinal); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,max_score,ordinal) VALUES($1,$2,$3,$4)`, caseID, criterion.Name, criterion.MaxScore, criterion.Ordinal); err != nil {
 			return fmt.Errorf("create evaluation criterion: %w", err)
 		}
 	}
