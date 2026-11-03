@@ -35,7 +35,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	}
 	return true
 }
-func (h *Handler) StartExecution(m *http.ServeMux) {
+func (h *Handler) StartExecutions(m *http.ServeMux) {
 	m.HandleFunc("GET /{execution_id}/submissions", h.listSubmissions)
 	m.HandleFunc("POST /{execution_id}/submissions", h.createSubmission)
 	m.HandleFunc("GET /{execution_id}/awards", h.listAwards)
@@ -43,14 +43,18 @@ func (h *Handler) StartExecution(m *http.ServeMux) {
 	m.HandleFunc("GET /{execution_id}/certificates", h.listCertificates)
 	m.HandleFunc("POST /{execution_id}/certificates", h.createCertificate)
 }
-func (h *Handler) StartTop(m *http.ServeMux, protect func(http.Handler) http.Handler) {
-	m.Handle("GET /submissions/{submission_id}", protect(http.HandlerFunc(h.getSubmission)))
-	m.Handle("GET /submissions/{submission_id}/evaluations", protect(http.HandlerFunc(h.listEvaluations)))
-	m.Handle("POST /submissions/{submission_id}/evaluations", protect(http.HandlerFunc(h.createEvaluation)))
-	m.Handle("GET /submissions/{submission_id}/reviews", protect(http.HandlerFunc(h.listReviews)))
-	m.Handle("POST /submissions/{submission_id}/reviews", protect(http.HandlerFunc(h.addReview)))
-	m.Handle("GET /evaluations/{evaluation_id}", protect(http.HandlerFunc(h.getEvaluation)))
-	m.Handle("PATCH /awards/{award_id}/fulfillment", protect(http.HandlerFunc(h.updateFulfillment)))
+func (h *Handler) StartSubmissions(m *http.ServeMux) {
+	m.HandleFunc("GET /{submission_id}", h.getSubmission)
+	m.HandleFunc("GET /{submission_id}/evaluations", h.listEvaluations)
+	m.HandleFunc("POST /{submission_id}/evaluations", h.createEvaluation)
+	m.HandleFunc("GET /{submission_id}/reviews", h.listReviews)
+	m.HandleFunc("POST /{submission_id}/reviews", h.addReview)
+}
+func (h *Handler) StartEvaluations(m *http.ServeMux) {
+	m.HandleFunc("GET /{evaluation_id}", h.getEvaluation)
+}
+func (h *Handler) StartAwards(m *http.ServeMux) {
+	m.HandleFunc("PATCH /{award_id}/fulfillment", h.updateFulfillment)
 }
 func (h *Handler) listSubmissions(w http.ResponseWriter, r *http.Request) {
 	q, e := pagination.ParseCursorQuery(r.URL.Query(), "submissions-"+r.PathValue("execution_id"))

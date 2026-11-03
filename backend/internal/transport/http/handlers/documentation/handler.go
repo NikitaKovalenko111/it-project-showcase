@@ -13,6 +13,11 @@ type Handler struct{}
 
 func Init() *Handler { return &Handler{} }
 
+func (h *Handler) Start(mux *http.ServeMux) {
+	mux.HandleFunc("GET /", h.UI)
+	mux.HandleFunc("GET /openapi.yaml", h.Spec)
+}
+
 func (h *Handler) Spec(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/yaml; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=300")

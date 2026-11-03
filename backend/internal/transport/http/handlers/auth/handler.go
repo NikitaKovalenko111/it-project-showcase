@@ -21,6 +21,11 @@ func Init(authService *auth_service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
+func (h *AuthHandler) Start(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
+	h.StartPublic(mux)
+	h.StartProtected(mux, authorize)
+}
+
 func (h *AuthHandler) StartPublic(mux *http.ServeMux) {
 	mux.HandleFunc("POST /register", h.Register)
 	mux.HandleFunc("POST /login", h.Login)
