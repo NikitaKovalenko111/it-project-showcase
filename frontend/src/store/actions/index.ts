@@ -14,9 +14,9 @@ import {
 } from '../../types/models'
 
 // Auth Actions
-export const loginRequest = (username: string) => ({
+export const loginRequest = (username: string, password = '') => ({
   type: types.LOGIN_REQUEST,
-  payload: { username },
+  payload: { username, password },
 })
 
 export const loginSuccess = (user: User) => ({

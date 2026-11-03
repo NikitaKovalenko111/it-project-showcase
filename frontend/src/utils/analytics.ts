@@ -70,7 +70,7 @@ export const buildAnalyticsReport = (data: AnalyticsData, filters: AnalyticsFilt
     ['Уникальных участников кейсов', uniqueParticipants(published)], ['Завершили хотя бы один кейс', uniqueParticipants(completed)],
     ['Победителей (участников команд)', uniqueParticipants(completed.filter((project) => evaluations.some((item) => item.caseId === project.id && item.winnerPlace === 1)))],
     ['Участников с подтвержденной выплатой', uniqueParticipants(completed.filter((project) => project.paymentStatus === 'paid'))],
-    ['Средняя итоговая оценка', evaluations.length ? `${(evaluations.reduce((sum, item) => sum + item.totalScore, 0) / evaluations.length).toFixed(1)} / 100` : 'Нет оценок'],
+    ['Средняя итоговая оценка', evaluations.length ? `${(evaluations.reduce((sum, item) => sum + (item.maxScore ? item.totalScore / item.maxScore * 100 : 0), 0) / evaluations.length).toFixed(1)} / 100` : 'Нет оценок'],
     ['Просрочено контрольных точек', milestones.filter((item) => item.status !== 'accepted' && item.deadline < today).length],
     ['Заявленный призовой фонд, ₽', prizeFund], ['Заявленные вознаграждения, ₽', monetaryFund],
     ['Образовательных кейсов', published.filter((project) => project.rewardType === 'educational').length],
@@ -87,7 +87,7 @@ export const buildAnalyticsReport = (data: AnalyticsData, filters: AnalyticsFilt
     project.title, project.companyName, project.direction, isPublished(project) ? caseStatusLabels[project.status] : publicationLabels[publicationStatus(project)],
     project.assignedTeamName || project.assignedStudentName || 'Не назначены', project.deadlineDate,
     applications.filter((app) => app.caseId === project.id).length, participantIds(project).length,
-    evaluations.find((item) => item.caseId === project.id)?.totalScore ?? 'Нет оценки',
+    evaluations.some(item=>item.caseId===project.id) ? (evaluations.filter(item=>item.caseId===project.id).reduce((sum,item)=>sum+(item.maxScore?item.totalScore/item.maxScore*100:0),0)/evaluations.filter(item=>item.caseId===project.id).length).toFixed(1) : 'Нет оценки',
     project.rewardType === 'contest' ? project.prizeFund || 0 : 0, project.rewardType === 'monetary' ? project.rewardAmount || 0 : 0,
   ]) }
   const companyTable: ReportTable = { title: 'Компании', headers: ['Компания', 'Кейсов', 'В работе', 'Завершено', 'Уникальных участников'], rows: companies.map((company) => {

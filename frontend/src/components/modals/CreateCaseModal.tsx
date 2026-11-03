@@ -1,429 +1,57 @@
+import React, { useEffect, useState } from 'react'
+import { Trash2, X } from 'lucide-react'
 import { apiClient } from '../../api/client'
-import React, { useState, useEffect } from 'react'
+import { uploadFile } from '../../utils/files'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { createCaseSuccess, updateCaseSuccess } from '../../store/actions'
-import { CaseProject, CaseKind, CaseComplexity, IPRightsType, ProjectDirection, RewardType, WorkFormat } from '../../types/models'
-import { Building2, Plus, Sparkles, X } from 'lucide-react'
+import { CaseProject, CaseKind, ProjectDirection, WorkFormat } from '../../types/models'
+import { legacyCriteria } from '../../utils/evaluation'
+import { CaseFields, HackathonFields, OlympiadFields, InternshipFields, PublicationDetails } from '../PublicationFields'
 
-interface CreateCaseModalProps {
-  caseItem?: CaseProject
-  isOpen: boolean
-  onClose: () => void
-}
+export const CreateCaseModal: React.FC<{caseItem?: CaseProject; isOpen: boolean; onClose: () => void}> = ({caseItem,isOpen,onClose}) => {
+ const dispatch=useAppDispatch()
+ const user=useAppSelector(s=>s.auth.currentUser), companies=useAppSelector(s=>s.companies.companiesList)
+ const [kind,setKind]=useState<CaseKind>('hackathon'), [title,setTitle]=useState(''), [description,setDescription]=useState(''), [short,setShort]=useState('')
+ const [companyId,setCompanyId]=useState(''), [direction,setDirection]=useState<ProjectDirection>('Frontend'), [deadline,setDeadline]=useState('')
+ const [format,setFormat]=useState<WorkFormat>('дистанционный'), [skills,setSkills]=useState(''), [rules,setRules]=useState(''), [prize,setPrize]=useState(0)
+ const [teamMin,setTeamMin]=useState(2), [teamMax,setTeamMax]=useState(5), [limit,setLimit]=useState(''), [nda,setNda]=useState(false)
+ const [criteria,setCriteria]=useState<{id:string;label:string;weight:number}[]>([{id:crypto.randomUUID(),label:'Качество решения',weight:1}])
+ const [tasks,setTasks]=useState<{id:string;title:string;maxScore:number}[]>(caseItem?.olympiadTasks || [{id:crypto.randomUUID(),title:'Задача A',maxScore:100}])
+ const [cover,setCover]=useState<File|null>(null), [error,setError]=useState(''), [busy,setBusy]=useState(false)
+ const [details,setDetails]=useState<PublicationDetails>({startDate:'',venue:'',schedule:'',position:'',workload:'',selection:''})
+ useEffect(()=>{ if(!isOpen)return; setError('');setCover(null);setCompanyId(caseItem?.companyId || user?.companyProfile?.companyId || companies[0]?.id || ''); if(caseItem){setTasks(caseItem.olympiadTasks || []);setKind(caseItem.kind || 'case');setTitle(caseItem.title);setDescription(caseItem.fullDescription);setShort(caseItem.shortDescription);setDirection(caseItem.direction);setDeadline(caseItem.deadlineDate);setFormat(caseItem.workFormat);setSkills(caseItem.requiredCompetencies.join(', '));setRules(caseItem.olympiadRules || caseItem.internshipConditions || '');setPrize(caseItem.prizeFund || caseItem.rewardAmount || 0);setTeamMin(caseItem.teamSize.min);setTeamMax(caseItem.teamSize.max);setLimit(caseItem.maxTeams ? String(caseItem.maxTeams) : '');setNda(caseItem.isConfidential);setCriteria(caseItem.evaluationCriteria || legacyCriteria);if(caseItem.publicationDetails)setDetails(caseItem.publicationDetails)} },[isOpen,caseItem,user?.id])
+ if(!isOpen)return null
+ const internship=kind==='internship', olympiad=kind==='olympiad', team=!internship&&!olympiad
+ const name=internship?'стажировки':olympiad?'олимпиады':kind==='case'?'кейса':'хакатона'
+ return <div className="modal-backdrop"><section className="modal-dialog modal-dialog--lg publication-dialog" role="dialog" aria-modal="true" aria-label={`Размещение ${name}`}><header className="modal-dialog__header"><div><h3>{caseItem?'Редактирование':'Размещение'} {name}</h3><p>Публикация появится в витрине после модерации.</p></div><button className="close-btn" aria-label="Закрыть" disabled={busy} onClick={onClose}><X size={20}/></button></header>
+ <form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try {
+  const company=companies.find(c=>c.id===companyId);if(!company)throw new Error('Выберите компанию')
+  if(team && teamMin>teamMax)throw new Error('Минимальный состав больше максимального')
+  if(details.startDate && deadline && details.startDate>deadline)throw new Error('Начало должно быть не позднее даты завершения')
+  if(!olympiad && (!criteria.length || criteria.some(c=>!c.label.trim() || !Number.isFinite(c.weight) || c.weight<=0)))throw new Error('Заполните критерии с положительными весами')
+  if(olympiad && (!tasks.length || tasks.some(t=>!t.title.trim() || !Number.isFinite(t.maxScore) || t.maxScore<=0)))throw new Error('Добавьте задачи с положительным максимумом баллов')
+  const file=cover?await uploadFile(cover):undefined
+  const payload: Omit<CaseProject,'id'|'viewsCount'|'applicationsCount'|'publishedAt'>={kind,title,companyId:company.id,companyName:company.name,companyLogo:company.logo,shortDescription:short,fullDescription:description,direction,complexity:caseItem?.complexity || 'Средний',participationFormat:team?'team':'individual',teamSize:team?{min:teamMin,max:teamMax}:{min:1,max:1},maxTeams:limit?Number(limit):null,requiredCompetencies:skills.split(',').map(s=>s.trim()).filter(Boolean),recommendedTech:team?skills.split(',').map(s=>s.trim()).filter(Boolean):[],deadlineDate:deadline,duration:internship?details.workload:`С ${details.startDate} по ${deadline}`,workFormat:format,resultRequirements:internship?'Отчёт о стажировке и материалы выполненных задач':olympiad?'Решения заданий по турам и пояснения':'Прототип, презентация и демонстрация решения',evaluationOrder:`Оценка по ${criteria.length} критериям`,olympiadTasks:olympiad?tasks:undefined,evaluationCriteria:olympiad?(caseItem?.evaluationCriteria || []):caseItem?.evaluationCriteria || criteria,publicationDetails:details,internshipConditions:internship?rules:undefined,olympiadRules:olympiad?rules:undefined,rewardType:internship?'monetary':'contest',rewardAmount:internship?prize:undefined,prizeFund:internship?undefined:prize,rewardDescription:internship?`Вознаграждение за месяц: ${prize} ₽`:`Призовой фонд: ${prize} ₽`,paymentStatus:prize?'pending':'not_provided',status:'moderation',isConfidential:team&&nda,ipRights:caseItem?.ipRights || 'author',isModerated:false,moderationStatus:'pending',coverUrl:file?.url || caseItem?.coverUrl,coverFileId:file?.file_id || caseItem?.coverFileId}
+  const saved=caseItem?await apiClient.updateCase({...caseItem,...payload,status:caseItem.status,isModerated:caseItem.isModerated,moderationStatus:caseItem.moderationStatus}):await apiClient.createCase(payload)
+  dispatch(caseItem?updateCaseSuccess(saved):createCaseSuccess(saved));onClose()
+ }catch(e){setError((e as Error).message)}finally{setBusy(false)}}}>
+ <div className="modal-dialog__body">
+ <label>Формат публикации<select className="select" disabled={!!caseItem} value={kind} onChange={e=>setKind(e.target.value as CaseKind)}><option value="hackathon">Хакатон</option><option value="olympiad">Олимпиада</option><option value="internship">Стажировка</option><option value="case">Кейс · отбор исполнителей</option></select></label>
+ <label>Компания<select className="select" required disabled={user?.role==='company'} value={companyId} onChange={e=>setCompanyId(e.target.value)}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+ <label>Название {name}<input className="input" required value={title} onChange={e=>setTitle(e.target.value)}/></label>
+ {internship?<InternshipFields value={details} onChange={setDetails}/>:olympiad?<OlympiadFields value={details} onChange={setDetails}/>:kind==='case'?<CaseFields value={details} onChange={setDetails}/>:<HackathonFields value={details} onChange={setDetails}/>}
+ <div className="responsive-grid"><label>Направление<select className="select" value={direction} onChange={e=>setDirection(e.target.value as ProjectDirection)}>{['Frontend','Backend','Fullstack','Data Science','Искусственный интеллект','IoT','UX/UI','Информационная безопасность'].map(d=><option key={d}>{d}</option>)}</select></label><label>{internship?'Окончание стажировки':olympiad?'Завершение последнего тура':'Дедлайн защиты'}<input className="input" type="date" required value={deadline} onChange={e=>setDeadline(e.target.value)}/></label><label>Формат проведения<select className="select" value={format} onChange={e=>setFormat(e.target.value as WorkFormat)}><option>дистанционный</option><option>очный</option><option>смешанный</option></select></label><label>{team?'Максимум команд':'Количество мест'}<input className="input" type="number" min="1" value={limit} onChange={e=>setLimit(e.target.value)} placeholder="Без ограничения"/></label></div>
+ {team&&<div className="responsive-grid"><label>Минимум участников команды<input className="input" type="number" min="1" value={teamMin} onChange={e=>setTeamMin(+e.target.value)}/></label><label>Максимум участников команды<input className="input" type="number" min={teamMin} value={teamMax} onChange={e=>setTeamMax(+e.target.value)}/></label></div>}
+ <label>{internship?'Требования к кандидату':'Предметная область и навыки'}<input className="input" value={skills} onChange={e=>setSkills(e.target.value)} placeholder="Через запятую"/></label>
+ <label>Краткое описание<input className="input" required maxLength={500} value={short} onChange={e=>setShort(e.target.value)}/></label>
+ <label>{internship?'Задачи стажёра':olympiad?'Описание заданий':'Задача и требования к прототипу'}<textarea className="textarea" required value={description} onChange={e=>setDescription(e.target.value)}/></label>
+ {(olympiad||internship)&&<label>{olympiad?'Регламент и правила оценивания':'Условия, наставничество и оформление'}<textarea className="textarea" required value={rules} onChange={e=>setRules(e.target.value)}/></label>}
+ <label>{internship?'Вознаграждение в месяц, ₽ (0 — без оплаты)':'Призовой фонд, ₽'}<input className="input" type="number" min="0" required value={prize} onChange={e=>setPrize(+e.target.value)}/></label>
+ <label>Обложка<input className="input" type="file" accept="image/*" onChange={e=>setCover(e.target.files?.[0]||null)}/></label>
+ {!olympiad && <fieldset disabled={!!caseItem}><legend>{internship?'Критерии итогового отчёта':'Критерии оценки'}</legend><p>Каждый из 10 баллов. После публикации критерии не меняются.</p><div className="criteria-list">{criteria.map((c,i)=><div className="criteria-row" key={c.id}><label>Название<input className="input" required value={c.label} onChange={e=>setCriteria(cs=>cs.map((v,j)=>j===i?{...v,label:e.target.value}:v))}/></label><label>Вес<input className="input" type="number" min="0.1" step="0.1" required value={c.weight} onChange={e=>setCriteria(cs=>cs.map((v,j)=>j===i?{...v,weight:+e.target.value}:v))}/></label><button className="icon-delete" type="button" aria-label={`Удалить критерий ${i+1}`} onClick={()=>setCriteria(cs=>cs.filter((_,j)=>j!==i))}><Trash2 size={18}/></button></div>)}</div><button type="button" className="btn btn-secondary btn-sm" onClick={()=>setCriteria(cs=>[...cs,{id:crypto.randomUUID(),label:'',weight:1}])}>Добавить критерий</button><p>Максимум: {criteria.length*10} баллов</p></fieldset>}
+ {olympiad && <fieldset disabled={!!caseItem?.olympiadTasks?.length}><legend>Задачи и баллы</legend><p>Участник получает баллы за каждую задачу. Итог — их сумма.</p><div className="criteria-list">{tasks.map((task,i)=><div className="criteria-row" key={task.id}><label>Задача<input className="input" required value={task.title} onChange={e=>setTasks(ts=>ts.map((t,j)=>j===i?{...t,title:e.target.value}:t))}/></label><label>Максимум<input className="input" type="number" min="1" required value={task.maxScore} onChange={e=>setTasks(ts=>ts.map((t,j)=>j===i?{...t,maxScore:Number(e.target.value)}:t))}/></label><button type="button" className="icon-delete" aria-label="Удалить задачу" onClick={()=>setTasks(ts=>ts.filter((_,j)=>j!==i))}><Trash2 size={18}/></button></div>)}</div><button className="btn btn-secondary btn-sm" type="button" onClick={()=>setTasks(ts=>[...ts,{id:crypto.randomUUID(),title:'',maxScore:100}])}>Добавить задачу</button><p>Максимум: {tasks.reduce((sum,t)=>sum+t.maxScore,0)} баллов</p></fieldset>}
 
-export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, caseItem }) => {
-  const dispatch = useAppDispatch()
-  const { currentUser } = useAppSelector((state) => state.auth)
-  const { companiesList } = useAppSelector((state) => state.companies)
-
-  const defaultCompany = companiesList[0] || {
-    id: 'comp_1',
-    name: 'ООО «БашНефтеАвтоматика»',
-    logo: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100',
-  }
-
-  const [companyId, setCompanyId] = useState(currentUser?.companyProfile?.companyId || defaultCompany.id)
-  const [title, setTitle] = useState('')
-  const [direction, setDirection] = useState<ProjectDirection>('Backend')
-  const [complexity, setComplexity] = useState<CaseComplexity>('Средний')
-  const [participationFormat, setParticipationFormat] = useState<'individual' | 'team' | 'both'>('both')
-  const [teamMin, setTeamMin] = useState(1)
-  const [teamMax, setTeamMax] = useState(3)
-  const [shortDescription, setShortDescription] = useState('')
-  const [fullDescription, setFullDescription] = useState('')
-  const [requiredCompetencies, setRequiredCompetencies] = useState('Python, PostgreSQL, Docker')
-  const [recommendedTech, setRecommendedTech] = useState('FastAPI, React, Redis')
-  const [workFormat, setWorkFormat] = useState<WorkFormat>('дистанционный')
-  const [deadlineDate, setDeadlineDate] = useState('2026-12-31')
-  const [duration, setDuration] = useState('2 месяца')
-  const [rewardType, setRewardType] = useState<RewardType>('contest')
-  const [prizeFund, setPrizeFund] = useState<number>(100000)
-  const [rewardAmount, setRewardAmount] = useState<number>(50000)
-  const [rewardDescription, setRewardDescription] = useState(
-    'Призовой фонд 100 000 руб. + приглашение лучших участников на стажировку.'
-  )
-  const [isConfidential, setIsConfidential] = useState(false)
-  const [ipRights, setIpRights] = useState<IPRightsType>('non_exclusive_license')
-
-  const [kind, setKind] = useState<CaseKind>('case')
-  const [maxTeams, setMaxTeams] = useState('')
-  const [specialConditions, setSpecialConditions] = useState('')
-
-  useEffect(() => {
-    if (!isOpen || !caseItem) return
-    const c = caseItem
-    setCompanyId(c.companyId); setTitle(c.title); setDirection(c.direction); setComplexity(c.complexity)
-    setParticipationFormat(c.participationFormat); setTeamMin(c.teamSize.min); setTeamMax(c.teamSize.max)
-    setShortDescription(c.shortDescription); setFullDescription(c.fullDescription)
-    setRequiredCompetencies(c.requiredCompetencies.join(', ')); setRecommendedTech(c.recommendedTech.join(', '))
-    setWorkFormat(c.workFormat); setDeadlineDate(c.deadlineDate); setDuration(c.duration); setRewardType(c.rewardType)
-    setPrizeFund(c.prizeFund || 0); setRewardAmount(c.rewardAmount || 0); setRewardDescription(c.rewardDescription || '')
-    setIsConfidential(c.isConfidential); setIpRights(c.ipRights); setKind(c.kind || 'case'); setMaxTeams(c.maxTeams ? String(c.maxTeams) : '')
-    setSpecialConditions(c.internshipConditions || c.olympiadRules || ''); setError('')
-  }, [isOpen, caseItem])
-
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  if (!isOpen) return null
-
-  const directionsList: ProjectDirection[] = [
-    'Backend',
-    'Frontend',
-    'Fullstack',
-    'Мобильная разработка',
-    'Искусственный интеллект',
-    'Машинное обучение',
-    'Data Science',
-    'Big Data',
-    'DevOps',
-    'Информационная безопасность',
-    'Робототехника',
-    'Компьютерное зрение',
-    'Системное программирование',
-    'Базы данных',
-    'Тестирование',
-    'UX/UI',
-    'Бизнес-анализ',
-    'Системный анализ',
-    'Разработка игр',
-    'AR/VR',
-    'IoT',
-    'Автоматизация',
-    'Облачные технологии',
-  ]
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const selectedCompany = companiesList.find((c) => c.id === companyId) || defaultCompany
-
-    setError('')
-    setSaving(true)
-    try {
-      if (teamMin > teamMax) throw new Error("Минимальный размер команды превышает максимальный")
-      const payload: Omit<CaseProject, 'id' | 'viewsCount' | 'applicationsCount' | 'publishedAt'> = {
-        kind, maxTeams: maxTeams ? Number(maxTeams) : null,
-        internshipConditions: kind === 'internship' ? specialConditions : undefined,
-        olympiadRules: kind === 'olympiad' ? specialConditions : undefined,
-        title,
-        companyId: selectedCompany.id,
-        companyName: selectedCompany.name,
-        companyLogo: selectedCompany.logo,
-        direction,
-        complexity,
-        participationFormat,
-        teamSize: { min: Number(teamMin), max: Number(teamMax) },
-        shortDescription,
-        fullDescription: fullDescription || shortDescription,
-        requiredCompetencies: requiredCompetencies.split(',').map((s) => s.trim()).filter(Boolean),
-        recommendedTech: recommendedTech.split(',').map((s) => s.trim()).filter(Boolean),
-        workFormat,
-        deadlineDate,
-        duration,
-        resultRequirements: 'Рабочий репозиторий, документация, демонстрационный стенд.',
-        evaluationOrder: 'Оценка экспертной комиссией компании по 10 критериям ТЗ.',
-        rewardType,
-        prizeFund: rewardType === 'contest' ? Number(prizeFund) : undefined,
-        rewardAmount: rewardType === 'monetary' ? Number(rewardAmount) : undefined,
-        rewardDescription,
-        paymentStatus: rewardType === 'monetary' || rewardType === 'contest' ? 'pending' : 'not_provided',
-        status: 'moderation' as const,
-        isConfidential,
-        ipRights,
-        isModerated: false,
-        moderationStatus: 'pending' as const,
-      }
-      const created = caseItem ? await apiClient.updateCase({ ...caseItem, ...payload, status: caseItem.status, isModerated: caseItem.isModerated, moderationStatus: caseItem.moderationStatus }) : await apiClient.createCase(payload)
-      dispatch(caseItem ? updateCaseSuccess(created) : createCaseSuccess(created))
-      onClose()
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось отправить кейс') }
-    finally { setSaving(false) }
-  }
-
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-dialog__header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Building2 size={22} color="#1b5e91" />
-            <div>
-              <h3>{caseItem ? 'Редактирование публикации' : 'Размещение проекта'}</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
-                Кейс появится в витрине после одобрения куратором. Задача для студентов
-              </p>
-            </div>
-          </div>
-          <button className="close-btn" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <div className="modal-dialog__body">
-            <div className="feature-toolbar">
-              <label>Тип публикации<select className="select" value={kind} onChange={(e) => { const value = e.target.value as CaseKind; setKind(value); setRewardType(value === 'olympiad' ? 'contest' : value === 'internship' ? 'other' : 'educational') }}><option value="case">Кейс</option><option value="olympiad">Олимпиада</option><option value="internship">Стажировка</option></select></label>
-              <label>Максимум команд<input className="input" type="number" min="1" step="1" value={maxTeams} onChange={(e) => setMaxTeams(e.target.value)} placeholder="Без ограничений" /></label>
-            </div>
-            <div className="feature-toolbar"><label>Продолжительность<input className="input" value={duration} onChange={(e) => setDuration(e.target.value)} required /></label>{participationFormat !== 'individual' && <><label>Минимум участников<input className="input" type="number" min="1" step="1" value={teamMin} onChange={(e) => setTeamMin(Number(e.target.value))} required /></label><label>Максимум участников<input className="input" type="number" min={teamMin} step="1" value={teamMax} onChange={(e) => setTeamMax(Number(e.target.value))} required /></label></>}</div>
-            {kind !== 'case'  && <label className="catalog-filter">{kind === 'olympiad' ? 'Регламент олимпиады, этапы и критерии победы' : 'Условия стажировки, занятость и требования'}<textarea className="textarea" value={specialConditions} onChange={(e) => setSpecialConditions(e.target.value)} required /></label>}
-
-            {/* Company selector */}
-            <div className="form-group">
-              <label>Компания-заказчик:*</label>
-              <select disabled={currentUser?.role === 'company'} className="select" value={companyId} onChange={(e) => setCompanyId(e.target.value)} required>
-                {companiesList.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Case Title */}
-            <div className="form-group">
-              <label>Название проекта/кейса:*</label>
-              <input
-                type="text"
-                className="input"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Например: Разработка сервиса анализа спутниковых снимков..."
-                required
-              />
-            </div>
-
-            {/* Direction & Complexity */}
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div className="form-group">
-                <label>ИТ-направление:*</label>
-                <select
-                  className="select"
-                  value={direction}
-                  onChange={(e) => setDirection(e.target.value as ProjectDirection)}
-                >
-                  {directionsList.map((dir) => (
-                    <option key={dir} value={dir}>
-                      {dir}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Уровень сложности:*</label>
-                <select
-                  className="select"
-                  value={complexity}
-                  onChange={(e) => setComplexity(e.target.value as CaseComplexity)}
-                >
-                  <option value="Начальный">Начальный</option>
-                  <option value="Средний">Средний</option>
-                  <option value="Высокий">Высокий</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Format & Team Size */}
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-              <div className="form-group">
-                <label>Формат участия:*</label>
-                <select
-                  className="select"
-                  value={participationFormat}
-                  onChange={(e) => setParticipationFormat(e.target.value as any)}
-                >
-                  <option value="both">Индивидуальный или командный</option>
-                  <option value="team">Только командный</option>
-                  <option value="individual">Только индивидуальный</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Формат работы:*</label>
-                <select
-                  className="select"
-                  value={workFormat}
-                  onChange={(e) => setWorkFormat(e.target.value as WorkFormat)}
-                >
-                  <option value="дистанционный">Дистанционный</option>
-                  <option value="смешанный">Смешанный</option>
-                  <option value="очный">Очный (в офисе / кампусе)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Срок выполнения / Дедлайн:*</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={deadlineDate}
-                  onChange={(e) => setDeadlineDate(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Short & Full Description */}
-            <div className="form-group">
-              <label>Краткое описание кейса:*</label>
-              <textarea
-                className="textarea"
-                style={{ minHeight: '65px' }}
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                placeholder="Краткое резюме задачи для карточки в каталоге..."
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Полное техническое задание (ТЗ):*</label>
-              <textarea
-                className="textarea"
-                style={{ minHeight: '120px' }}
-                value={fullDescription}
-                onChange={(e) => setFullDescription(e.target.value)}
-                placeholder="Подробные требования к архитектуре, функционалу, стеку и результатам..."
-                required
-              />
-            </div>
-
-            {/* Competencies & Tech */}
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div className="form-group">
-                <label>Необходимые компетенции (через запятую):*</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={requiredCompetencies}
-                  onChange={(e) => setRequiredCompetencies(e.target.value)}
-                  placeholder="Python, React, Docker..."
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Рекомендуемые технологии:*</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={recommendedTech}
-                  onChange={(e) => setRecommendedTech(e.target.value)}
-                  placeholder="FastAPI, PostgreSQL..."
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Reward Classification */}
-            <div
-              style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '16px',
-              }}
-            >
-              <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#0f2b48' }}>
-                Форма поощрения и финансовые условия
-              </h4>
-
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div className="form-group">
-                  <label>Форма поощрения:*</label>
-                  <select
-                    className="select"
-                    value={rewardType}
-                    onChange={(e) => setRewardType(e.target.value as RewardType)}
-                  >
-                    <option value="contest">Конкурсный проект (с призовым фондом)</option>
-                    <option value="monetary">Проект с вознаграждением (оплата за результат)</option>
-                    <option value="educational">Образовательный проект (без оплаты, портфолио)</option>
-                    <option value="other">Иное поощрение (стажировка, оффер, техника)</option>
-                  </select>
-                </div>
-
-                {rewardType === 'contest' && (
-                  <div className="form-group">
-                    <label>Призовой фонд (руб.):*</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={prizeFund}
-                      onChange={(e) => setPrizeFund(Number(e.target.value))}
-                      required
-                    />
-                  </div>
-                )}
-
-                {rewardType === 'monetary' && (
-                  <div className="form-group">
-                    <label>Сумма вознаграждения (руб.):*</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={rewardAmount}
-                      onChange={(e) => setRewardAmount(Number(e.target.value))}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>Описание формы поощрения:*</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={rewardDescription}
-                  onChange={(e) => setRewardDescription(e.target.value)}
-                  placeholder="Опишите награды за призовые места или условия стажировки..."
-                  required
-                />
-              </div>
-            </div>
-
-            {/* IP Rights & Confidentiality */}
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div className="form-group">
-                <label>Права на результаты интеллектульной деятельности:</label>
-                <select
-                  className="select"
-                  value={ipRights}
-                  onChange={(e) => setIpRights(e.target.value as IPRightsType)}
-                >
-                  <option value="non_exclusive_license">Неисключительная лицензия компании</option>
-                  <option value="author">Права остаются у авторов (студентов)</option>
-                  <option value="exclusive_company">Передача исключительного права компании</option>
-                  <option value="open_source">Open Source (Открытая лицензия)</option>
-                </select>
-              </div>
-
-              <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: '24px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                  <input
-                    type="checkbox"
-                    checked={isConfidential}
-                    onChange={(e) => setIsConfidential(e.target.checked)}
-                  />
-                  <span>Требует соглашения о конфиденциальности (NDA)</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-dialog__footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Отмена
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              <Plus size={16} /> {saving ? 'Сохранение…' : caseItem ? 'Сохранить изменения' : 'Отправить на рассмотрение'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
+ {team&&<label><input type="checkbox" checked={nda} onChange={e=>setNda(e.target.checked)}/> Требуется NDA</label>}
+ {error&&<p role="alert" className="form-error">{error}</p>}
+ </div><footer className="modal-dialog__footer"><button type="button" className="btn btn-secondary" disabled={busy} onClick={onClose}>Отмена</button><button className="btn btn-primary" disabled={busy}>{busy?'Сохранение…':caseItem?'Сохранить изменения':'Отправить на модерацию'}</button></footer></form></section></div>
 }

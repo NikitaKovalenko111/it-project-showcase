@@ -1,3 +1,4 @@
+import { PaginatedGrid } from './PaginatedGrid'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiClient } from '../api/client'
@@ -39,7 +40,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
     </select></label>
     {error && <p role="alert">{error}</p>}
     <p aria-live="polite">Найдено публикаций: {filtered.length}</p>
-    <div className="review-list">{filtered.map((project) => <article className="card" key={project.id}>
+    <div className="review-list">{<PaginatedGrid className="paginated-stack">{filtered.map((project) => <article className="card" key={project.id}>
       <div className="card__body">
         <div className="action-row"><span className={`badge publication-${publicationStatus(project)}`}>{publicationLabels[publicationStatus(project)]}</span><span className="badge badge-direction">{project.direction}</span></div>
         <h2 className="case-card__title"><Link to={`/${kind === 'case' ? 'cases' : 'student-projects'}/${project.id}`}>{project.title}</Link></h2>
@@ -56,7 +57,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
           {publicationStatus(project) === 'approved' && <button className="btn btn-secondary btn-sm" disabled={!!busy} onClick={() => decide(project, 'hidden')}>Скрыть публикацию</button>}
         </div>
       </div>
-    </article>)}</div>
+    </article>)}</PaginatedGrid>}</div>
     {!filtered.length && <div className="card empty-state">Публикаций с такими условиями нет.</div>}
   </section>
 }

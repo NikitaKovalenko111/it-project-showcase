@@ -1,3 +1,4 @@
+import { ProjectVisibility } from '../components/ProjectVisibility'
 import { ReportButton } from '../components/ReportButton'
 import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useEffect } from 'react'
@@ -21,8 +22,9 @@ import {
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
+  const currentUser = useAppSelector(state => state.auth.currentUser)
   const { studentsList: authors } = useAppSelector((state) => state.students)
-  const { activeProject, loading } = useAppSelector((state) => state.studentProjects)
+  const { activeProject, loading, error } = useAppSelector((state) => state.studentProjects)
 
   useEffect(() => {
     if (id) {
@@ -30,6 +32,7 @@ export const StudentDetailPage: React.FC = () => {
     }
   }, [dispatch, id])
 
+  if (error) return <div className="card feature-panel" role="alert"><p>{error}</p><Link to="/student-projects">Вернуться к проектам</Link></div>
   if (loading || !activeProject || activeProject.id !== id) {
     return <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>Загрузка проекта...</div>
   }
@@ -55,11 +58,11 @@ export const StudentDetailPage: React.FC = () => {
 
   return (
     <div>
-      {id && <ReportButton targetType="project" targetId={id} />}
-      <div style={{ marginBottom: '20px' }}>
+
+      <div className="detail-actions">
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам
-        </Link>
+        </Link><ReportButton targetType="project" targetId={activeProject.id} />
       </div>
 
       <div className="responsive-detail-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
@@ -90,7 +93,7 @@ export const StudentDetailPage: React.FC = () => {
                 {activeProject.title}
               </h1>
 
-              {!isPublished(activeProject) && <p className={`badge publication-${publicationStatus(activeProject)}`}>{publicationLabels[publicationStatus(activeProject)]}</p>}
+              {activeProject.visibility !== 'private' && !isPublished(activeProject) && <p className={`badge publication-${publicationStatus(activeProject)}`}>{publicationLabels[publicationStatus(activeProject)]}</p>}
               {activeProject.moderationComment && <p>{activeProject.moderationComment}</p>}
               {/* Badges п. 5.15 */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
@@ -210,6 +213,8 @@ export const StudentDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {activeProject.authorId === currentUser?.id && <details className="card compact-settings"><summary>Настройки проекта</summary><ProjectVisibility project={activeProject} /></details>}
     </div>
   )
 }

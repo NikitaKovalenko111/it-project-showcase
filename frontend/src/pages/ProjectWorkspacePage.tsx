@@ -1,3 +1,8 @@
+import { ExecutionBoard } from '../components/ExecutionBoard'
+import { PublicationContext } from '../components/PublicationContext'
+import { apiClient } from '../api/client'
+import { submitMilestoneSuccess } from '../store/actions'
+import { legacyCriteria } from '../utils/evaluation'
 import { TeamsPanel } from '../components/TeamsPanel'
 import { CaseApplications } from '../components/CaseApplications'
 import React, { useState, useEffect } from 'react'
@@ -57,6 +62,8 @@ export const ProjectWorkspacePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'milestones' | 'submission' | 'team' | 'comments' | 'applications'>('milestones')
   const [submissionModalOpen, setSubmissionModalOpen] = useState(false)
   const [evaluationModalOpen, setEvaluationModalOpen] = useState(false)
+  const [boardSection,setBoardSection]=useState('teams')
+  const [workspaceView,setWorkspaceView] = useState('participants')
   const [commentText, setCommentText] = useState('')
 
   useEffect(() => {
@@ -76,6 +83,8 @@ export const ProjectWorkspacePage: React.FC = () => {
   if (loading || !activeCase || activeCase.id !== id) {
     return <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>Загрузка рабочего пространства...</div>
   }
+
+  if(workspaceView === 'participants') return <ExecutionBoard key={activeCase.id} project={activeCase} initialView={boardSection} onPlan={()=>{setBoardSection('teams');setActiveTab('comments');setWorkspaceView('plan')}} />
 
   const completedMilestonesCount = milestones.filter((m) => m.status === 'accepted').length
   const progressPercent = Math.round((completedMilestonesCount / (milestones.length || 7)) * 100)
@@ -121,9 +130,6 @@ export const ProjectWorkspacePage: React.FC = () => {
           <Link to="/workspace" className="btn btn-secondary btn-sm"><ArrowLeft size={15} /> Назад</Link>
           <Link to={`/cases/${activeCase.id}`} className="btn btn-secondary btn-sm"><FileText size={15} /> Описание проекта</Link>
         </div>
-        <div style={{ fontSize: '12px', color: '#64748b' }}>
-          Рабочая страница проекта • ID: {activeCase.id}
-        </div>
       </div>
 
       {/* Header Workspace Card */}
@@ -161,7 +167,7 @@ export const ProjectWorkspacePage: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {isParticipant && (
-              <button className="btn btn-primary btn-sm" onClick={() => setSubmissionModalOpen(true)}>
+              <button className="btn btn-primary btn-sm" onClick={() => setWorkspaceView('participants')}>
                 <Upload size={14} /> Сдать результат работы
               </button>
             )}
@@ -169,7 +175,7 @@ export const ProjectWorkspacePage: React.FC = () => {
             {isCompanyUser && submission && (
               <button
                 className="btn btn-accent btn-sm"
-                onClick={() => setEvaluationModalOpen(true)}
+                onClick={() => setWorkspaceView('participants')}
               >
                 <Award size={14} /> Оценить решение
               </button>
@@ -195,15 +201,15 @@ export const ProjectWorkspacePage: React.FC = () => {
       <div className="tabs-bar">
         <button
           className={`tab-btn ${activeTab === 'milestones' ? 'active' : ''}`}
-          onClick={() => setActiveTab('milestones')}
+          onClick={() => {setBoardSection('plan');setWorkspaceView('participants')}}
         >
-          <Clock size={16} /> Контрольные точки
+          <Clock size={16} /> {activeCase.kind === 'olympiad' ? 'Туры олимпиады' : activeCase.kind === 'internship' ? 'План стажировки' : 'Контрольные точки'}
           <span className="tab-counter">{milestones.length}</span>
         </button>
 
         <button
           className={`tab-btn ${activeTab === 'submission' ? 'active' : ''}`}
-          onClick={() => setActiveTab('submission')}
+          onClick={() => setWorkspaceView('participants')}
         >
           <FileCheck2 size={16} /> Результат и оценка
           {displayedEvaluation && <span className="tab-counter" style={{ background: '#dcfce7', color: '#166534' }}>{displayedEvaluation.totalScore}/100</span>}
@@ -213,7 +219,7 @@ export const ProjectWorkspacePage: React.FC = () => {
           className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`}
           onClick={() => setActiveTab('team')}
         >
-          <Users size={16} /> Проектная команда
+          <Users size={16} /> {activeCase.participationFormat === 'individual' ? 'Участник' : 'Проектная команда'}
         </button>
 
         <button
@@ -222,11 +228,13 @@ export const ProjectWorkspacePage: React.FC = () => {
         >
           <MessageSquare size={16} /> Обсуждение и файлы
           <span className="tab-counter">{comments.length}</span>
-        </button>
+        </button>        {isCompanyUser && !['olympiad','hackathon'].includes(activeCase.kind || '') && <button className={`tab-btn ${activeTab === 'applications' ? 'active' : ''}`} onClick={() => setActiveTab('applications')}>Заявки студентов</button>}
+
       </div>
 
-      {isCompanyUser && <button className={`btn btn-secondary ${activeTab === 'applications' ? 'active' : ''}`} onClick={() => setActiveTab('applications')}>Заявки студентов</button>}
 
+
+      <PublicationContext project={activeCase} />
       {/* TAB 1: MILESTONES (7 Этапов п. 5.10 ТЗ) */}
       {activeTab === 'milestones' && (
         <div className="workspace-page__milestones">
@@ -271,8 +279,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                   {m.attachedMaterials.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
                       {m.attachedMaterials.map((file, idx) => (
-                        <a
-                          key={idx}
+                        <div className="portfolio-file" key={idx}><a
                           href={file.url}
                           target="_blank"
                           rel="noreferrer"
@@ -290,7 +297,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                           }}
                         >
                           <Paperclip size={12} /> {file.name} ({file.size || 'файл'})
-                        </a>
+                        </a>{false && participatesInCase(currentUser?.id || '', activeCase, teamsList) && m.status !== 'accepted' && <button className="file-remove" aria-label={`Удалить ${file.name}`} onClick={async () => { if (!confirm(`Удалить файл «${file.name}»?`)) return; try { dispatch(submitMilestoneSuccess(await apiClient.removeMaterial(m.id, idx))) } catch(e) { alert((e as Error).message) } }}>×</button>}</div>
                       ))}
                     </div>
                   )}
@@ -314,9 +321,9 @@ export const ProjectWorkspacePage: React.FC = () => {
                 {/* Actions */}
                 {isCompanyUser && <MilestoneEditor caseId={activeCase.id} milestoneId={m.id} />}
                 <div className="milestone-actions" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  {isParticipant && !isCompleted && <MilestoneMaterials milestoneId={m.id} />}
+                  {isParticipant && <button className="btn btn-secondary btn-sm" onClick={()=>setWorkspaceView('participants')}>Сдать этап в своём выполнении</button>}
 
-                  {isCompanyUser && m.status === 'submitted' && (
+                  {false && isCompanyUser && m.status === 'submitted' && (
                     <button
                       className="btn btn-success btn-sm"
                       onClick={() => handleMilestoneAccept(m.id)}
@@ -340,7 +347,7 @@ export const ProjectWorkspacePage: React.FC = () => {
               <div className="card__header">
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Представленный результат проекта</h3>
                 {isParticipant && (
-                  <button className="btn btn-primary btn-sm" onClick={() => setSubmissionModalOpen(true)}>
+                  <button className="btn btn-primary btn-sm" onClick={() => setWorkspaceView('participants')}>
                     {submission ? 'Обновить решение' : 'Сдать результат'}
                   </button>
                 )}
@@ -358,7 +365,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <a
+{submission.repoUrl && (                      <a
                         href={submission.repoUrl}
                         target="_blank"
                         rel="noreferrer"
@@ -366,7 +373,7 @@ export const ProjectWorkspacePage: React.FC = () => {
                         style={{ justifyContent: 'flex-start' }}
                       >
                         <Github size={15} /> Исходный код: {submission.repoUrl}
-                      </a>
+                      </a>)}
 
                       {submission.demoUrl && (
                         <a
@@ -424,7 +431,7 @@ export const ProjectWorkspacePage: React.FC = () => {
               <div className="card__header">
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Оценка компании</h3>
                 {isCompanyUser && submission && (
-                  <button className="btn btn-accent btn-sm" onClick={() => setEvaluationModalOpen(true)}>
+                  <button className="btn btn-accent btn-sm" onClick={() => setWorkspaceView('participants')}>
                     <Award size={14} /> Оценить
                   </button>
                 )}
@@ -461,35 +468,12 @@ export const ProjectWorkspacePage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                       <span style={{ fontSize: '12px', color: '#64748b' }}>Итоговый балл:</span>
                       <strong style={{ fontSize: '24px', color: '#0f2b48' }}>
-                        {evaluation.totalScore} / 100
+                        {evaluation.totalScore} / {evaluation.maxScore}
                       </strong>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Полнота решения:</span>
-                        <strong>{evaluation.scores.solutionCompleteness} / 10</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Качество кода:</span>
-                        <strong>{evaluation.scores.codeQuality} / 10</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Архитектура:</span>
-                        <strong>{evaluation.scores.architecture} / 10</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Соответствие ТЗ:</span>
-                        <strong>{evaluation.scores.specCompliance} / 10</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Соблюдение сроков:</span>
-                        <strong>{evaluation.scores.deadlineCompliance} / 10</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Командная работа:</span>
-                        <strong>{evaluation.scores.teamwork} / 10</strong>
-                      </div>
+                      {Object.entries(evaluation.scores).map(([key,value]) => <div key={key} className="feature-toolbar"><span>{(activeCase.evaluationCriteria || legacyCriteria).find(c => c.id === key)?.label || key}</span><strong>{value} / 10</strong></div>)}
                     </div>
 
                     <div
@@ -540,7 +524,8 @@ export const ProjectWorkspacePage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'team' && <TeamsPanel caseId={activeCase.id} />}
+      {activeTab === 'team' && <section className="card feature-panel project-team-summary"><h2>{projectTeam?.name || activeCase.assignedStudentName || 'Участники проекта'}</h2><div className="member-list">{projectMembers.map(member => <Link className="member-card" key={member.id} to={`/profile/${member.id}`}>{member.avatar && <img src={member.avatar} alt=""/>}<span><strong>{member.name}</strong><small>{member.role}</small></span></Link>)}{!projectMembers.length && activeCase.assignedStudentId && <Link to={`/profile/${activeCase.assignedStudentId}`}>{activeCase.assignedStudentName}</Link>}{!projectMembers.length && !activeCase.assignedStudentId && <p>Участники ещё не назначены.</p>}</div></section>}
+
       {activeTab === 'applications' && isCompanyUser && <CaseApplications caseId={activeCase.id} />}
 
       {/* TAB 4: COMMENTS & DISCUSSION */}
@@ -549,7 +534,7 @@ export const ProjectWorkspacePage: React.FC = () => {
           <div className="card__header">
             <h3 style={{ margin: 0, fontSize: '16px' }}>Обсуждение и комментарии проекта</h3>
           </div>
-          <div className="card__body">
+          <div className="card__body discussion-body">
             <h4>Материалы проекта</h4>
             <div className="action-row" style={{ marginBottom: 20 }}>
               {[...milestones.flatMap((milestone) => milestone.attachedMaterials), ...(submission?.attachedFiles || [])].map((file, index) =>

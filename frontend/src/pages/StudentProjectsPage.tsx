@@ -1,3 +1,5 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import { ScrollToolbar } from '../components/ScrollToolbar'
 import { ProjectVisibility } from '../components/ProjectVisibility'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import { canModerate, isPublished, publicationLabels, publicationStatus } from '../utils/publication'
@@ -102,6 +104,7 @@ export const StudentProjectsPage: React.FC = () => {
       </div>
       {section === 'review' ? <PublicationReviewQueue kind="student" /> : <>
       {/* UUST Schedule-Style Filter Container */}
+      <ScrollToolbar>
       <div className="uust-container">
         <div className="uust-tabs-row">
           <button
@@ -209,13 +212,8 @@ export const StudentProjectsPage: React.FC = () => {
           </div>
         </div>
       </div>
+      </ScrollToolbar>
 
-      <div className="uust-section-title">
-        <span>Проекты студентов • Найдено: <strong>{catalogProjects.length}</strong></span>
-        <span style={{ fontSize: '12px', fontWeight: 500, color: '#627282' }}>
-          Институт информатики, математики и робототехники (ИИМР)
-        </span>
-      </div>
 
       {/* Projects Grid */}
       {loading ? (
@@ -227,7 +225,7 @@ export const StudentProjectsPage: React.FC = () => {
           <p style={{ color: '#64748b', fontSize: '13px' }}>Попробуйте изменить параметры поиска или категорию.</p>
         </div>
       ) : (
-        <div className="case-grid">
+        <PaginatedGrid>
           {catalogProjects.map((item) => (
             <div key={item.id} className="student-project-card">
               <div className="student-project-card__image-wrap">
@@ -273,8 +271,8 @@ export const StudentProjectsPage: React.FC = () => {
 
                 <p className="student-project-card__desc">{item.shortDescription}</p>
 
-                {section === 'mine' && <ProjectVisibility project={item} />}
-                {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
+
+                {item.visibility !== 'private' && !isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
                 {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
                 {/* Badges п. 5.15 ТЗ */}
                 <div className="student-project-card__badges">
@@ -336,7 +334,7 @@ export const StudentProjectsPage: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </PaginatedGrid>
       )}
 
       </>}

@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import { apiClient } from '../api/client'
+import { apiRuntime } from '../api/runtime'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { loginRequest, loginSuccess } from '../store/actions'
@@ -25,11 +27,13 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { loading, error } = useAppSelector((state) => state.auth)
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth)
 
+  useEffect(() => { if (isAuthenticated) navigate('/') }, [isAuthenticated, navigate])
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [roleToRegister, setRoleToRegister] = useState<'student' | 'company'>('student')
   const [username, setUsername] = useState('student')
+  const [password, setPassword] = useState('')
 
   // Registration fields - Student
   const [fullName, setFullName] = useState('')
@@ -49,8 +53,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    dispatch(loginRequest(username))
-    navigate('/')
+    dispatch(loginRequest(username, password))
   }
 
   const handleQuickLogin = (uname: string) => {
@@ -58,7 +61,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     navigate('/')
   }
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!consentPD) {
       alert('Необходимо дать согласие на обработку персональных данных (№ 152-ФЗ)')
@@ -67,6 +70,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
 
     const regData = {
       fullName,
+      password,
       email,
       username: email.split('@')[0] || `user_${Date.now()}`,
       role: roleToRegister,
@@ -77,7 +81,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     }
 
     try {
-      const newUser = mockServer.registerUser(regData)
+      const newUser = await apiClient.register(regData)
       localStorage.removeItem('uust_logged_out')
       localStorage.setItem('uust_current_user', JSON.stringify(newUser))
       dispatch(loginSuccess(newUser))
@@ -187,7 +191,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   <input
                     type="password"
                     className="input"
-                    defaultValue="UustDemo2026!"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     required
                   />
                 </div>
@@ -264,7 +270,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 type="button"
                 className={`btn btn-sm ${roleToRegister === 'company' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ flex: 1, border: 'none' }}
-                onClick={() => setRoleToRegister('company')}
+                disabled={apiRuntime.mode === 'live'} onClick={() => setRoleToRegister('company')}
               >
                 <Building2 size={14} aria-hidden="true" /> Представитель компании
               </button>
@@ -455,6 +461,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               </label>
             </div>
 
+            <div className="form-group"><label>Пароль<input type="password" className="input" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" minLength={8} required /></label></div>
             <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={!consentPD}>
               Зарегистрироваться и войти
             </button>

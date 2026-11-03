@@ -150,7 +150,7 @@ export const HomePage: React.FC = () => {
               <p>Задачи, опубликованные вашей компанией для студентов кафедр</p>
             </div>
             <button className="btn btn-primary btn-sm" onClick={() => setCreateModalOpen(true)}>
-              <Plus size={14} /> Добавить задачу
+              <Plus size={14} /> Разместить новый кейс
             </button>
           </div>
 
@@ -189,7 +189,7 @@ export const HomePage: React.FC = () => {
                   </span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <Link to={`/cases/${c.id}/workspace`} className="btn btn-secondary btn-sm">
-                      <Layers size={13} /> Рабочая станция
+                      <Layers size={13} /> Активные проекты
                     </Link>
                     <Link to={`/cases/${c.id}`} className="btn btn-primary btn-sm">
                       ТЗ кейса →

@@ -86,11 +86,13 @@ export const apiClient = {
     return defaultUser
   },
 
-  async login(username: string): Promise<User> {
+  async login(username: string, password = ''): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      const res = await axiosInstance.post<{ user: User; token: string }>('/auth/login', { username })
-      tokenStore.set(res.data.token)
-      return res.data.user
+      const res = await axiosInstance.post<{ user_id: string; access_token: string; refresh_token: string; token_type: string }>('/auth/login', { login: username, password })
+      tokenStore.set(res.data.access_token)
+      localStorage.setItem('uust_refresh_token', res.data.refresh_token)
+      localStorage.removeItem('uust_logged_out')
+      return (await axiosInstance.get<User>('/auth/me')).data
     }
     await delay(200)
     const user = mockServer.getUsers().find((u) => u.username === username || u.email === username)
@@ -114,9 +116,12 @@ export const apiClient = {
 
   async register(data: any): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      const res = await axiosInstance.post<{ user: User; token: string }>('/auth/register', data)
-      tokenStore.set(res.data.token)
-      return res.data.user
+      const { role, ...registration } = data
+      const res = await axiosInstance.post<{ access_token?: string; refresh_token?: string }>('/auth/register', registration)
+      if (!res.data.access_token) return apiClient.login(data.username || data.email, data.password)
+      tokenStore.set(res.data.access_token)
+      if (res.data.refresh_token) localStorage.setItem('uust_refresh_token', res.data.refresh_token)
+      return (await axiosInstance.get<User>('/auth/me')).data
     }
     await delay(250)
     const user = mockServer.registerUser(data)
@@ -223,20 +228,24 @@ export const apiClient = {
   },
 
   async getFavorites(): Promise<string[]> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция getFavorites ещё не подключена к серверу')
     await delay(80)
     return mockServer.getFavorites()
   },
 
   async toggleFavorite(caseId: string): Promise<string[]> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция toggleFavorite ещё не подключена к серверу')
     await delay(100)
     return mockServer.toggleFavorite(caseId)
   },
 
   async isNDAAccepted(caseId: string, userId: string): Promise<boolean> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция isNDAAccepted ещё не подключена к серверу')
     return mockServer.isNDAAccepted(caseId, userId)
   },
 
   async acceptNDA(caseId: string, userId: string): Promise<boolean> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция acceptNDA ещё не подключена к серверу')
     await delay(150)
     return mockServer.acceptNDA(caseId, userId)
   },
@@ -286,6 +295,10 @@ export const apiClient = {
     }
     await delay(200)
     return mockServer.submitMilestone(milestoneId, materials)
+  },
+  async removeMaterial(milestoneId: string, index: number): Promise<ProjectMilestone> {
+    if (apiRuntime.mode === 'live') return (await axiosInstance.delete(`/milestones/${milestoneId}/materials/${index}`)).data
+    return mockServer.removeMaterial(milestoneId, index)
   },
 
   async updateMilestoneStatus(milestoneId: string, status: any, feedback?: string): Promise<ProjectMilestone> {
@@ -380,6 +393,7 @@ export const apiClient = {
   },
 
   async toggleStudentProjectLike(id: string): Promise<StudentProject> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция toggleStudentProjectLike ещё не подключена к серверу')
     await delay(100)
     return mockServer.toggleStudentProjectLike(id)
   },
@@ -406,6 +420,7 @@ export const apiClient = {
   },
 
   async verifyCompany(id: string, status: boolean): Promise<Company> {
+    if(apiRuntime.mode === 'live') throw new Error('Операция verifyCompany ещё не подключена к серверу')
     await delay(150)
     return mockServer.verifyCompany(id, status)
   },
@@ -436,6 +451,10 @@ export const apiClient = {
   },
 
   // Comments
+  async deleteComment(caseId: string, commentId: string): Promise<void> {
+    if (apiRuntime.mode === 'live') { await axiosInstance.delete(`/cases/${caseId}/comments/${commentId}`); return }
+    mockServer.deleteComment(commentId)
+  },
   async getComments(caseId: string): Promise<ProjectComment[]> {
     if (apiRuntime.mode === 'live') return (await axiosInstance.get<ProjectComment[]>(`/cases/${caseId}/comments`)).data
     await delay(100)

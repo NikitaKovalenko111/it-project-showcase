@@ -1,6 +1,9 @@
+import { apiClient } from '../../api/client'
+import { FilePicker } from '../FilePicker'
+import { uploadFile } from '../../utils/files'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createSubmissionRequest } from '../../store/actions'
+import { createSubmissionSuccess } from '../../store/actions'
 import { FileCode2, Globe, Send, Upload, Video, X } from 'lucide-react'
 
 interface ResultSubmissionModalProps {
@@ -19,47 +22,50 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.auth)
 
+  const project = useAppSelector(s => s.cases.casesList.find(c => c.id === caseId) || s.cases.activeCase)
+  const development = !['olympiad', 'internship'].includes(project?.kind || '')
   const [description, setDescription] = useState(
     'Разработан программный модуль вибромониторинга, обучена нейросеть детекции скрытых дефектов подшипников (F1 = 0.92). Подготовлен интерактивный дашборд и REST API.'
   )
-  const [repoUrl, setRepoUrl] = useState('https://github.com/ivan-petrov-uust/vibration-predictor-uust')
-  const [demoUrl, setDemoUrl] = useState('https://vibration-demo.uust.space')
-  const [presentationUrl, setPresentationUrl] = useState('https://docs.google.com/presentation/d/uust-vibration')
-  const [videoUrl, setVideoUrl] = useState('https://rutube.ru/video/uust-compressor-demo')
-  const [docUrl, setDocUrl] = useState('https://github.com/ivan-petrov-uust/vibration-predictor-uust/wiki')
-  const [screenshots, setScreenshots] = useState(
-    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800, https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800'
-  )
+  const [repoUrl, setRepoUrl] = useState(currentUser?.studentProfile?.githubUrl || '')
+  const [demoUrl, setDemoUrl] = useState('')
+  const [presentationFiles, setPresentationFiles] = useState<File[]>([])
+  const [videoFiles, setVideoFiles] = useState<File[]>([])
+  const [docFiles, setDocFiles] = useState<File[]>([])
+  const [screenshots, setScreenshots] = useState<File[]>([])
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const screenshotList = screenshots
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
+    setBusy(true); setError('')
+    try {
+    const uploaded = await Promise.all(screenshots.map(uploadFile))
+    const presentations = await Promise.all(presentationFiles.map(uploadFile))
+    const videos = await Promise.all(videoFiles.map(uploadFile))
+    const docs = await Promise.all(docFiles.map(uploadFile))
+    const screenshotList = uploaded.map(f => f.url)
 
     dispatch(
-      createSubmissionRequest({
+      createSubmissionSuccess(await apiClient.createSubmission({
         caseId,
         authorName: currentUser?.fullName || 'Иван Петров (Студент)',
         description,
-        repoUrl,
-        demoUrl: demoUrl || undefined,
-        presentationUrl: presentationUrl || undefined,
-        videoUrl: videoUrl || undefined,
-        documentationUrl: docUrl || undefined,
+        repoUrl: development ? repoUrl : '',
+        demoUrl: development ? demoUrl || undefined : undefined,
+        presentationUrl: presentations[0]?.url,
+        videoUrl: videos[0]?.url,
+        documentationUrl: docs[0]?.url,
         screenshots: screenshotList,
-        attachedFiles: [
-          { name: 'Model_Weights_V1.onnx', url: 'https://example.com/model.onnx' },
-          { name: 'Architecture_Documentation.pdf', url: 'https://example.com/arch.pdf' },
-        ],
-      })
+        attachedFiles: [...uploaded, ...presentations, ...videos, ...docs],
+      }))
     )
 
     onClose()
+    } catch(e) { setError((e as Error).message) } finally { setBusy(false) }
   }
 
   return (
@@ -67,7 +73,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div>
-            <h3>Представление результатов выполнения проекта</h3>
+            <h3>{project?.kind === 'olympiad' ? 'Решения заданий олимпиады' : project?.kind === 'internship' ? 'Итоговый отчёт о стажировке' : 'Представление результатов проекта'}</h3>
             <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
               Кейс: <strong>{caseTitle}</strong>
             </p>
@@ -90,11 +96,12 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               />
             </div>
 
+            {development && <>
             <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group">
                 <label>Ссылка на исходный код (GitHub / GitLab):*</label>
                 <div className="search-input-wrap">
-                  <FileCode2 size={16} className="search-icon" />
+
                   <input
                     type="url"
                     className="input"
@@ -108,7 +115,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               <div className="form-group">
                 <label>Ссылка на работающий сервис / демо-стенд:</label>
                 <div className="search-input-wrap">
-                  <Globe size={16} className="search-icon" />
+
                   <input
                     type="url"
                     className="input"
@@ -120,53 +127,13 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               </div>
             </div>
 
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div className="form-group">
-                <label>Ссылка на презентацию (PDF / Slides):</label>
-                <input
-                  type="url"
-                  className="input"
-                  value={presentationUrl}
-                  onChange={(e) => setPresentationUrl(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
+            </>}
+            <FilePicker label="Презентация (PDF / PPTX)" files={presentationFiles} onChange={setPresentationFiles} accept=".pdf,.ppt,.pptx" />
+            <FilePicker label="Видеодемонстрация" files={videoFiles} onChange={setVideoFiles} accept="video/*" />
+            <FilePicker label="Техническая документация" files={docFiles} onChange={setDocFiles} accept=".pdf,.doc,.docx,.md,.txt,.zip" />
+            <div className="form-group"><FilePicker label="Скриншоты интерфейса" files={screenshots} onChange={setScreenshots} accept="image/*" />
+              {error && <p role="alert">{error}</p>}
 
-              <div className="form-group">
-                <label>Ссылка на видеодемонстрацию / скринкаст:</label>
-                <div className="search-input-wrap">
-                  <Video size={16} className="search-icon" />
-                  <input
-                    type="url"
-                    className="input"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://rutube.ru/..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Ссылка на техническую документацию / Wiki:</label>
-              <input
-                type="url"
-                className="input"
-                value={docUrl}
-                onChange={(e) => setDocUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Ссылки на скриншоты интерфейса (через запятую):</label>
-              <input
-                type="text"
-                className="input"
-                value={screenshots}
-                onChange={(e) => setScreenshots(e.target.value)}
-                placeholder="https://image1.png, https://image2.png"
-              />
             </div>
           </div>
 
@@ -174,7 +141,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Отмена
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={busy}>
               <Send size={15} /> Отправить результат на проверку компании
             </button>
           </div>

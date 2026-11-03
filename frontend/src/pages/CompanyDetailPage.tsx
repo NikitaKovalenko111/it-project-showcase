@@ -1,3 +1,4 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
 import { communityApi } from '../api/community'
 import { CompanyProgram } from '../components/CompanyProgram'
 import React, { useEffect, useState } from 'react'
@@ -280,7 +281,7 @@ export const CompanyDetailPage: React.FC = () => {
                   На данный момент у компании нет открытых кейсов.
                 </div>
               ) : (
-                <div className="case-grid">
+                <PaginatedGrid>
                   {filteredCases.map((c) => (
                     <div key={c.id} className="case-card">
                       <div className="case-card__top-accent" />
@@ -336,7 +337,7 @@ export const CompanyDetailPage: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </PaginatedGrid>
               )}
             </div>
           )}

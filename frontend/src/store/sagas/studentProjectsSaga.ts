@@ -18,7 +18,7 @@ function* handleFetchStudentProjectById(action: { type: string; payload: { id: s
     const project: StudentProject = yield call(apiClient.getStudentProjectById, action.payload.id)
     yield put(actions.fetchStudentProjectByIdSuccess(project))
   } catch (error: any) {
-    console.error(error)
+    yield put(actions.fetchStudentProjectsFailure(error.message || 'Операция с проектом не выполнена'))
   }
 }
 
@@ -27,7 +27,7 @@ function* handleCreateStudentProject(action: { type: string; payload: { data: an
     const project: StudentProject = yield call(apiClient.createStudentProject, action.payload.data)
     yield put(actions.createStudentProjectSuccess(project))
   } catch (error: any) {
-    console.error(error)
+    yield put(actions.fetchStudentProjectsFailure(error.message || 'Операция с проектом не выполнена'))
   }
 }
 
@@ -36,7 +36,7 @@ function* handleLikeStudentProject(action: { type: string; payload: { id: string
     const project: StudentProject = yield call(apiClient.toggleStudentProjectLike, action.payload.id)
     yield put(actions.likeStudentProjectSuccess(project))
   } catch (error: any) {
-    console.error(error)
+    yield put(actions.fetchStudentProjectsFailure(error.message || 'Операция с проектом не выполнена'))
   }
 }
 

@@ -1,3 +1,5 @@
+import { apiClient } from '../../api/client'
+import { acceptNDASuccess } from '../../store/actions'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { acceptNDARequest } from '../../store/actions'
@@ -16,14 +18,13 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
   const { currentUser } = useAppSelector((state) => state.auth)
   const [agreed, setAgreed] = useState(false)
 
+  const [busy,setBusy]=useState(false), [error,setError]=useState('')
   if (!isOpen) return null
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!agreed) return
     if (currentUser) {
-      dispatch(acceptNDARequest(caseItem.id, currentUser.id))
-      onAccepted()
-      onClose()
+      setBusy(true);setError('');try { await apiClient.acceptNDA(caseItem.id,currentUser.id);dispatch(acceptNDASuccess(caseItem.id));onAccepted();onClose() } catch(e){setError((e as Error).message)} finally{setBusy(false)}
     }
   }
 
@@ -32,9 +33,9 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FileLock2 size={22} color="#b91c1c" />
+            <FileLock2 size={22} color="#b45309" />
             <div>
-              <h3 style={{ color: '#991b1b' }}>Соглашение о неразглашении конфиденциальной информации (NDA)</h3>
+              <h3 style={{ color: '#92400e' }}>Соглашение о неразглашении конфиденциальной информации (NDA)</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Проект: {caseItem.title} • {caseItem.companyName}
               </p>
@@ -100,16 +101,16 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
           </div>
         </div>
 
-        <div className="modal-dialog__footer">
+        {error && <p role="alert">{error}</p>}<div className="modal-dialog__footer">
           <button type="button" className="btn btn-secondary" onClick={onClose}>
             Отклонить и закрыть
           </button>
           <button
             type="button"
             className="btn btn-primary"
-            disabled={!agreed}
+            disabled={!agreed || busy}
             onClick={handleConfirm}
-            style={{ background: '#b91c1c' }}
+            style={{ background: '#b45309' }}
           >
             <ShieldCheck size={16} /> Подписать NDA и открыть ТЗ
           </button>

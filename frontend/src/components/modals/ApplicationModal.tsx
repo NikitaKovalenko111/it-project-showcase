@@ -1,4 +1,4 @@
-import { TeamsPanel } from '../TeamsPanel'
+import { uploadFile } from '../../utils/files'
 import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
@@ -17,17 +17,17 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const { currentUser } = useAppSelector((state) => state.auth)
   const { teamsList } = useAppSelector((state) => state.students)
 
+  const registration=['olympiad','hackathon'].includes(caseItem.kind || '')
   const studentProfile = currentUser?.studentProfile
   const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id))
-  const [manageTeams, setManageTeams] = useState(false)
 
   const [applicantType, setApplicantType] = useState<'individual' | 'team'>(caseItem.participationFormat === 'team' ? 'team' : 'individual')
   const [selectedTeamId, setSelectedTeamId] = useState(userTeams[0]?.id || '')
   const [coverLetter, setCoverLetter] = useState(
     'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
   )
-  const [resumeUrl, setResumeUrl] = useState(studentProfile?.portfolioUrl || 'https://uust.ru/resume/petrov.pdf')
-  const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || 'https://github.com/ivan-petrov-uust')
+  const [resume, setResume] = useState<File | null>(null)
+  const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || '')
   const [ipRightsAgreed, setIpRightsAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedSuccess, setSubmittedSuccess] = useState(false)
@@ -52,7 +52,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!ipRightsAgreed) {
+    if (!registration && !ipRightsAgreed) {
       alert('Пожалуйста, подтвердите ознакомление с условиями прав на результаты интеллектуальной деятельности (РИД).')
       return
     }
@@ -64,6 +64,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     setSubmitError('')
     try {
       if (applicantType === 'team' && !selectedTeam) throw new Error('Выберите свою команду')
+      const resumeFile = resume ? await uploadFile(resume) : undefined
       const application = await apiClient.createApplication({
         caseId: caseItem.id,
         caseTitle: caseItem.title,
@@ -78,11 +79,12 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
         studentAvatar: currentUser?.avatar,
         teamId: applicantType === 'team' ? selectedTeam?.id : undefined,
         teamName: applicantType === 'team' ? selectedTeam?.name : undefined,
-        coverLetter,
-        resumeUrl,
+        coverLetter: registration ? '' : coverLetter,
+        resumeUrl: resumeFile?.url,
+        resumeFileId: resumeFile?.file_id,
         portfolioUrl: studentProfile?.portfolioUrl,
         githubUrl,
-        previousProjects: ['Предиктивный вибромониторинг', 'Smart PyTest Gen'],
+        previousProjects: [],
       })
       dispatch(createApplicationSuccess(application))
       dispatch(fetchCaseByIdRequest(caseItem.id))
@@ -97,7 +99,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div>
-            <h3>Подача заявки на выполнение кейса</h3>
+            <h3>{['olympiad','hackathon'].includes(caseItem.kind || '') ? 'Регистрация на мероприятие' : 'Подача заявки на выполнение кейса'}</h3>
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
               Кейс: <strong>{caseItem.title}</strong> ({caseItem.companyName})
             </p>
@@ -112,7 +114,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
             <CheckCircle2 size={48} color="#16805b" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ margin: '0 0 8px', color: '#16805b' }}>Заявка успешно отправлена!</h3>
             <p style={{ color: '#64748b', fontSize: '13px' }}>
-              Представитель компании получил вашу заявку и рассмотрит её в ближайшее время.
+              {['olympiad','hackathon'].includes(caseItem.kind || '') ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
             </p>
             <button className="btn btn-primary" onClick={() => { setSubmittedSuccess(false); onClose() }}>Готово</button>
           </div>
@@ -128,7 +130,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                     <input
                       type="radio"
                       name="applicantType"
-                      checked={applicantType === 'individual'}
+                      disabled={caseItem.participationFormat === 'team'} checked={applicantType === 'individual'}
                       onChange={() => setApplicantType('individual')}
                     />
                     Индивидуально (Студент: {currentUser?.fullName})
@@ -137,7 +139,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                     <input
                       type="radio"
                       name="applicantType"
-                      checked={applicantType === 'team'}
+                      disabled={caseItem.participationFormat === 'individual'} checked={applicantType === 'team'}
                       onChange={() => setApplicantType('team')}
                     />
                     В составе команды
@@ -165,10 +167,10 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                       <option value="" disabled>Сначала создайте команду</option>
                     )}
                   </select>
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setManageTeams(!manageTeams)}>Создать команду / пригласить участников</button>
                 </div>
               )}
 
+              {!registration && <>
               {/* Cover Letter */}
               <div className="form-group">
                 <label>Сопроводительный текст / Мотивационное письмо:*</label>
@@ -184,14 +186,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
               {/* Links */}
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label>Ссылка на резюме (CV):*</label>
-                  <input
-                    type="url"
-                    className="input"
-                    value={resumeUrl}
-                    onChange={(e) => setResumeUrl(e.target.value)}
-                    required
-                  />
+                  <label>Резюме (CV), до 2 МБ<input type="file" className="input" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /></label>
                 </div>
                 <div className="form-group">
                   <label>Ссылка на GitHub / GitLab:*</label>
@@ -234,21 +229,23 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                   Я ознакомлен и согласен с условиями прав на результаты интеллектуальной деятельности
                 </label>
               </div>
+              </>}
+              {registration && <p>Запись открытая. После регистрации участие сразу появится в активных проектах. Для олимпиады используется индивидуальный зачёт, для хакатона — выбранная команда.</p>}
             </div>
 
             <div className="modal-dialog__footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Отмена
               </button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting || !ipRightsAgreed}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || (!registration && !ipRightsAgreed)}>
                 <Send size={15} />
-                {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
+                {isSubmitting ? 'Отправка...' : registration ? 'Зарегистрироваться' : 'Отправить заявку'}
               </button>
             </div>
           </form>
         )}
       </div>
-      {manageTeams && <div className="modal-backdrop" onClick={(e) => e.stopPropagation()}><div className="modal-dialog modal-dialog--lg"><div className="modal-dialog__header"><h3>Команда для отклика</h3><button className="btn btn-secondary" onClick={() => setManageTeams(false)}>Вернуться к заявке</button></div><div className="modal-dialog__body"><TeamsPanel /></div></div></div>}
+
     </div>
   )
 }

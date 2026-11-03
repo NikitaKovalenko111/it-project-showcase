@@ -1,3 +1,4 @@
+import { apiRuntime } from '../../api/runtime'
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
@@ -34,7 +35,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
   const popoverRef = useRef<HTMLDivElement>(null)
   const roleMenuRef = useRef<HTMLDivElement>(null)
 
-  const allUsers = mockServer.getUsers()
+  const allUsers = apiRuntime.mode === 'mock' ? mockServer.getUsers() : []
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -118,7 +119,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
           <Link
             to="/company-applications"
             className="topbar-isu__icon-btn"
-            title={`Входящие заявки студентов (${applicationsList.length})`}
+            title={`Входящие заявки студентов (${applicationsList.filter(a=>['pending','need_info','interview'].includes(a.status)).length})`}
           >
             <ClipboardList size={17} />
           </Link>
@@ -189,12 +190,12 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
           <button
             className="topbar-isu__icon-btn"
             onClick={() => setShowRoleMenu(!showRoleMenu)}
-            title="Сменить роль / меню"
+            hidden={apiRuntime.mode !== 'mock'} title="Сменить роль / меню"
           >
             <MoreVertical size={17} />
           </button>
 
-          {showRoleMenu && (
+          {showRoleMenu && apiRuntime.mode === 'mock' && (
             <div className="topbar-isu__menu-dropdown">
               <div className="dropdown-title">Переключить профиль:</div>
               <button

@@ -4,6 +4,7 @@ export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' 
 export type EducationLevel = 'Бакалавриат' | 'Специалитет' | 'Магистратура' | 'Аспирантура'
 
 export interface StudentProfile {
+  files?: { name: string; url: string; file_id?: string; size?: string }[]
   educationLevel?: EducationLevel
   curatorId?: string
   university: string
@@ -124,8 +125,13 @@ export interface PrizePlace {
   winnerTeamId?: string
 }
 
-export type CaseKind = 'case' | 'olympiad' | 'internship'
+export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  olympiadTasks?: { id: string; title: string; maxScore: number }[]
+  publicationDetails?: { startDate: string; venue: string; schedule: string; position: string; workload: string; selection: string }
+  evaluationCriteria?: { id: string; label: string; weight: number }[]
+  coverUrl?: string
+  coverFileId?: string
   kind?: CaseKind
   maxTeams?: number | null
   acceptedTeamsCount?: number
@@ -210,6 +216,7 @@ export interface TeamMember {
 }
 
 export interface ProjectTeam {
+  description?: string
   recruitingCaseId?: string
   id: string
   name: string
@@ -268,18 +275,7 @@ export interface ProjectEvaluation {
   companyId: string
   companyName: string
   evaluatorName: string
-  scores: {
-    solutionCompleteness: number      // 1. полнота решения
-    implementationQuality: number     // 2. качество реализации
-    codeQuality: number               // 3. качество программного кода
-    architecture: number              // 4. архитектура
-    specCompliance: number            // 5. соответствие техническому заданию
-    usability: number                 // 6. удобство использования
-    originality: number               // 7. оригинальность
-    documentationQuality: number      // 8. качество документации
-    deadlineCompliance: number        // 9. соблюдение сроков
-    teamwork: number                  // 10. командная работа
-  }
+  scores: Record<string, number>
   totalScore: number
   maxScore: number
   feedback: string
@@ -410,5 +406,5 @@ export interface TeamRequest {
   status: 'pending' | 'accepted' | 'rejected'
   createdAt: string
 }
-export interface TeamSeeker { id: string; caseId: string; studentId: string; message: string; techStack: string[] }
+export interface TeamSeeker { id: string; caseId?: string; studentId: string; message: string; techStack: string[] }
 export interface ContentReport { id: string; authorId: string; targetType: 'case' | 'project' | 'comment' | 'user'; targetId: string; reason: string; message: string; status: 'pending' | 'resolved'; createdAt: string }

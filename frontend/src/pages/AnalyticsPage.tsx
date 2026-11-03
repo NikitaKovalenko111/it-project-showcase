@@ -1,3 +1,4 @@
+import { communityApi } from '../api/community'
 import { AdminInsights } from '../components/AdminInsights'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Download, FileSpreadsheet } from 'lucide-react'
@@ -27,13 +28,11 @@ export const AnalyticsPage: React.FC = () => {
     setLoading(true)
     setError('')
     Promise.all(casesList.map(async (project) => {
-      const [milestones, evaluation] = await Promise.all([apiClient.getMilestones(project.id), apiClient.getEvaluation(project.id).catch((cause) => {
-        if (cause?.response?.status === 404) return undefined
-        throw cause
-      })])
-      return { milestones, evaluation }
+      const entries=await communityApi.getExecutions(project.id)
+      return { milestones: entries.flatMap(e=>e.milestones || []), evaluations: entries.flatMap(e=>e.evaluation?[e.evaluation]:[]) }
+
     })).then((records) => {
-      if (!cancelled) setDetails({ milestones: records.flatMap((item) => item.milestones), evaluations: records.flatMap((item) => item.evaluation ? [item.evaluation] : []) })
+      if (!cancelled) setDetails({ milestones: records.flatMap((item) => item.milestones), evaluations: records.flatMap((item) => item.evaluations) })
     }).catch((cause) => { if (!cancelled) setError(cause.message || 'Не удалось загрузить данные для отчета') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }

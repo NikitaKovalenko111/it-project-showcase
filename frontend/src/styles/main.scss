@@ -3,6 +3,7 @@
 @import 'components';
 @import 'pages';
 @import 'responsive';
+@import 'sprint4';
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -42,3 +43,8 @@ input, button, select, textarea {
 .d-flex { display: flex; }
 .align-center { align-items: center; }
 .justify-between { justify-content: space-between; }
+
+@import 'revision';
+@import 'competition';
+@import 'company';
+@import 'role-workspace';

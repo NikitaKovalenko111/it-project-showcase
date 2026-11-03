@@ -1,3 +1,4 @@
+import { PublicationContext } from '../components/PublicationContext'
 import { canReceiveApplications } from '../utils/recruiting'
 import { CaseComments } from '../components/CaseComments'
 import { TeamsPanel } from '../components/TeamsPanel'
@@ -58,6 +59,7 @@ export const CaseDetailPage: React.FC = () => {
   const [ndaAcceptedLocal, setNdaAcceptedLocal] = useState(false)
 
   useEffect(() => {
+    setNdaAcceptedLocal(false);setNdaModalOpen(false)
     if (id) {
       dispatch(fetchCaseByIdRequest(id))
       dispatch(fetchApplicationsRequest(id))
@@ -87,7 +89,7 @@ export const CaseDetailPage: React.FC = () => {
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
 
-  const canReviewApplications = isCompanyRepresentative || isCuratorOrAdmin
+  const canReviewApplications = (isCompanyRepresentative || isCuratorOrAdmin) && !['olympiad','hackathon'].includes(activeCase.kind || '')
 
   const handleStatusChange = (appId: string, status: any) => {
     dispatch(updateApplicationStatusRequest(appId, status))
@@ -95,33 +97,34 @@ export const CaseDetailPage: React.FC = () => {
 
   return (
     <div>
+      {activeCase.coverUrl && <img src={activeCase.coverUrl} alt="Обложка кейса" style={{width:'100%',maxHeight:280,objectFit:'cover',borderRadius:12,marginBottom:20}} />}
       {/* Back button & Action header */}
       <div className="page-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <Link to="/cases" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Вернуться к витрине кейсов
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><ReportButton targetType="case" targetId={activeCase.id} />
           {currentUser?.role === 'student' && <button
             className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
-            onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
+            aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'} aria-pressed={isFavorite} onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
           >
-            <Bookmark size={15} fill={isFavorite ? '#d94326' : 'none'} color={isFavorite ? '#d94326' : 'inherit'} />
-            {isFavorite ? 'В избранном' : 'В избранное'}
+            <Bookmark size={22} fill={isFavorite ? '#d94326' : 'none'} color={isFavorite ? '#d94326' : '#64748b'} />
+
           </button>}
 
-          {activeCase.status === 'in_progress' || activeCase.status === 'submitted' || activeCase.status === 'completed' ? (
+          {canManageCase(currentUser, activeCase) || userApplication?.status === 'accepted' || activeCase.status === 'in_progress' || activeCase.status === 'submitted' || activeCase.status === 'completed' ? (
             <Link to={`/cases/${activeCase.id}/workspace`} className="btn btn-primary btn-sm">
-              <Layers size={15} /> Рабочая страница проекта →
+              <Layers size={15} /> Участники и решения →
             </Link>
           ) : currentUser?.role === 'student' && isPublished(activeCase) ? (
             userApplication ? (
               <span className="badge badge-status status-open" style={{ padding: '8px 12px', fontSize: '12px' }}>
-                <CheckCircle2 size={14} /> Вы подали заявку (Статус: {userApplication.status})
+                <CheckCircle2 size={14} /> {['olympiad','hackathon'].includes(activeCase.kind || '') ? 'Вы зарегистрированы' : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
               </span>
             ) : (
               <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
-                <Send size={15} /> Подать заявку на кейс
+                <Send size={15} /> {['olympiad','hackathon'].includes(activeCase.kind || '') ? 'Зарегистрироваться' : 'Подать заявку на кейс'}
               </button>
             )
           ) : null}
@@ -185,8 +188,8 @@ export const CaseDetailPage: React.FC = () => {
                 {!isNDASigned ? (
                   <div
                     style={{
-                      background: '#fff1f2',
-                      border: '1px solid #fecdd3',
+                      background: '#fffbeb',
+                      border: '1px solid #fcd34d',
                       borderRadius: '8px',
                       padding: '24px',
                       textAlign: 'center',
@@ -260,7 +263,7 @@ export const CaseDetailPage: React.FC = () => {
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Поступившие заявки от студентов ({applicationsList.length})</h3>
                 <span className="badge badge-direction">Модуль отбора</span>
               </div>
-              <div className="card__body" style={{ padding: 0 }}>
+              <div className="card__body case-incoming-list" tabIndex={0} aria-label="Поступившие заявки студентов" style={{ padding: 0 }}>
                 {applicationsList.length === 0 ? (
                   <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
                     Заявок на данный кейс пока не поступало
@@ -442,7 +445,7 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card__header">
               <h3 style={{ margin: 0, fontSize: '15px' }}>Параметры выполнения</h3>
             </div>
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}><p>Тип: {({ case: 'Кейс', hackathon: 'Хакатон', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p>{activeCase.participationFormat === 'individual' ? 'Максимум участников' : 'Максимум команд'}: {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}
               <div className="action-row"><span className="badge badge-direction">{activeCase.direction}</span><span className="badge badge-complexity-medium">Уровень: {activeCase.complexity.toLowerCase()}</span></div>
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Формат работы:</span>
@@ -456,7 +459,7 @@ export const CaseDetailPage: React.FC = () => {
 
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Крайний срок (Дедлайн):</span>
-                <strong style={{ fontSize: '13px', color: '#b91c1c' }}>
+                <strong style={{ fontSize: '13px', color: '#b45309' }}>
                   {new Date(activeCase.deadlineDate).toLocaleDateString('ru-RU')}
                 </strong>
               </div>
@@ -498,10 +501,12 @@ export const CaseDetailPage: React.FC = () => {
       </div>
 
       {currentUser?.role === 'student' && isPublished(activeCase) && canReceiveApplications(activeCase) && activeCase.status === 'in_progress' && !userApplication && <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>Подать заявку своей команды</button>}
-      <div className="action-row"><ReportButton targetType="case" targetId={activeCase.id} />{canManageCase(currentUser, activeCase) && <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>Редактировать кейс</button>}</div>
-      <section className="card feature-panel"><p>Тип: {({ case: 'Кейс', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p>Максимум команд: {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}</section>
-      <div className="tabs-bar"><button className={`tab-btn ${detailTab === 'comments' ? 'active' : ''}`} onClick={() => setDetailTab('comments')}>Комментарии</button><button className={`tab-btn ${detailTab === 'teams' ? 'active' : ''}`} onClick={() => setDetailTab('teams')}>{currentUser?.role === 'student' ? 'Поиск команды' : 'Команды кейса'}</button></div>
-      {detailTab === 'comments' ? <CaseComments caseId={activeCase.id} /> : <TeamsPanel caseId={activeCase.id} />}
+      <div className="action-row">{canManageCase(currentUser, activeCase) && <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>Редактировать кейс</button>}</div>
+
+      <PublicationContext project={activeCase} />
+      <CaseComments caseId={activeCase.id} />
+      {currentUser?.role !== 'student' && !['olympiad','hackathon'].includes(activeCase.kind || '') && <TeamsPanel caseId={activeCase.id} />}
+
       <CreateCaseModal caseItem={activeCase} isOpen={editOpen} onClose={() => { setEditOpen(false); dispatch(fetchCaseByIdRequest(activeCase.id)) }} />
       {/* Modals */}
       <ApplicationModal

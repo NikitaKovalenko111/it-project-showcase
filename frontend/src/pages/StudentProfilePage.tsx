@@ -1,3 +1,6 @@
+import { communityApi } from '../api/community'
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import { PortfolioFiles } from '../components/PortfolioFiles'
 import { EducationLevel } from '../types/models'
 import { TeamsPanel } from '../components/TeamsPanel'
 import { ReportButton } from '../components/ReportButton'
@@ -96,11 +99,15 @@ export const StudentProfilePage: React.FC = () => {
     setPortfolioUrl(editableProfileLink(student?.portfolioUrl))
   }, [targetId, student])
 
+  const [achievements,setAchievements]=useState<{caseId:string;score:number;maxScore:number}[]>([])
+  const [achievementError,setAchievementError]=useState('')
+  const completedKey=casesList.filter(c=>c.status==='completed').map(c=>c.id).join(',')
+  useEffect(()=>{let active=true;setAchievements([]);setAchievementError('');if(targetId)communityApi.getStudentAchievements(targetId).then(items=>{if(active)setAchievements(items)}).catch(e=>{if(active)setAchievementError(e.message)});return()=>{active=false}},[targetId,completedKey])
   if (!targetUser?.studentProfile) return <div className="card" style={{ padding: 24 }}>Профиль студента не найден или загружается.</div>
 
   // Verified cases where student participated and received review
   const verifiedCases = casesList.filter(
-    (c) => c.status === 'completed' && participatesInCase(targetUser.id, c, teamsList)
+    (c) => achievements.some(a=>a.caseId===c.id)
   )
 
   // Student's own projects
@@ -108,7 +115,7 @@ export const StudentProfilePage: React.FC = () => {
 
   return (
     <div>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{error}</p>}{achievementError && <p role="alert">{achievementError}</p>}
       {/* Profile Header Banner */}
       <div
         className="card"
@@ -300,7 +307,7 @@ export const StudentProfilePage: React.FC = () => {
                   Пока нет подтвержденных кейсов
                 </div>
               ) : (
-                verifiedCases.map((c) => (
+                <PaginatedGrid className="paginated-stack">{verifiedCases.map((c) => (
                   <div
                     key={c.id}
                     style={{
@@ -353,7 +360,7 @@ export const StudentProfilePage: React.FC = () => {
                       </Link>
                     </div>
                   </div>
-                ))
+                ))}</PaginatedGrid>
               )}
             </div>
           </div>
@@ -373,7 +380,7 @@ export const StudentProfilePage: React.FC = () => {
                   Нет опубликованных студенческих проектов
                 </div>
               ) : (
-                ownProjects.map((p) => (
+                <PaginatedGrid className="paginated-stack">{ownProjects.map((p) => (
                   <div
                     key={p.id}
                     style={{
@@ -400,7 +407,7 @@ export const StudentProfilePage: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{p.shortDescription}</p>
                     </div>
                   </div>
-                ))
+                ))}</PaginatedGrid>
               )}
             </div>
           </div>
@@ -543,7 +550,7 @@ export const StudentProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {isOwnProfile && <TeamsPanel />}
+
       {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
       {/* Modal for inviting student */}
       <InviteStudentModal
@@ -551,6 +558,7 @@ export const StudentProfilePage: React.FC = () => {
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
       />
+      <PortfolioFiles user={targetUser} editable={isOwnProfile} />
     </div>
   )
 }

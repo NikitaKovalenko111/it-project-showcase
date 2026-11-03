@@ -1,3 +1,4 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import { canModerate, matchesSearch } from '../utils/publication'
@@ -52,7 +53,7 @@ export const CompaniesPage: React.FC = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>Загрузка компаний...</div>
       ) : (
-        <div className="case-grid">
+        <PaginatedGrid>
           {filteredCompanies.map((comp) => (
             <div key={comp.id} className="case-card">
               <div className="case-card__top-accent" />
@@ -136,7 +137,7 @@ export const CompaniesPage: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </PaginatedGrid>
       )}
       </>}
     </div>

@@ -19,7 +19,7 @@ export const ProjectSummaryCard: React.FC<{
       </div>
       <Link to={`/cases/${project.id}`}><h2 className="case-card__title">{project.title}</h2></Link>
       <p className="case-card__desc">{project.shortDescription}</p>
-      <div className="case-card__tags">
+      <div className="case-card__tags"><span className="badge badge-direction">{({case:'Кейс',hackathon:'Хакатон',olympiad:'Олимпиада',internship:'Стажировка'})[project.kind || 'case']}</span>
         {applicationStatus && <span className="badge badge-direction">Заявка: {applicationStatus}</span>}
         <span className="badge badge-direction">{project.direction}</span>
         <span className="badge badge-complexity-medium">Уровень: {project.complexity.toLowerCase()}</span>
@@ -32,7 +32,7 @@ export const ProjectSummaryCard: React.FC<{
     </div>
     <div className="card__footer">
       <span className="project-summary-card__count">Заявок: <strong>{project.applicationsCount}</strong></span>
-      <Link to={workspace ? `/cases/${project.id}/workspace` : `/cases/${project.id}`} className="btn btn-primary btn-sm">{workspace ? 'Открыть рабочую станцию' : 'Перейти к кейсу'}</Link>
+      <Link to={workspace ? `/cases/${project.id}/workspace` : `/cases/${project.id}`} className="btn btn-primary btn-sm">{workspace ? 'Открыть управление проектом' : 'Перейти к кейсу'}</Link>
     </div>
   </article>
 )

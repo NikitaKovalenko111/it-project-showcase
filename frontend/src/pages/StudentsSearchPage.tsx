@@ -1,3 +1,4 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
 import { apiClient } from '../api/client'
 import { communityApi } from '../api/community'
 import { canModerate } from '../utils/publication'
@@ -41,6 +42,7 @@ export const StudentsSearchPage: React.FC = () => {
   const [assignmentError, setAssignmentError] = useState('')
   const [skill, setSkill] = useState('')
   const [minRating, setMinRating] = useState(0)
+  const [ratingOrder, setRatingOrder] = useState('desc')
 
   const [selectedStudentForInvite, setSelectedStudentForInvite] = useState<User | null>(null)
   const [teamModalOpen, setTeamModalOpen] = useState(false)
@@ -75,7 +77,7 @@ export const StudentsSearchPage: React.FC = () => {
     if (minRating > 0 && prof.rating < minRating) return false
 
     return true
-  }).sort((a, b) => (b.studentProfile?.rating || 0) - (a.studentProfile?.rating || 0))
+  }).sort((a, b) => (ratingOrder === 'desc' ? 1 : -1) * ((b.studentProfile?.rating || 0) - (a.studentProfile?.rating || 0)))
 
   const canInvite = currentUser?.role === 'company'
   const institutes = [...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean))]
@@ -182,23 +184,21 @@ export const StudentsSearchPage: React.FC = () => {
               <option value="all">Любой курс</option>{[1, 2, 3, 4, 5, 6].map((year) => <option key={year} value={year}>{year} курс</option>)}
             </select></label>
             <label className="catalog-filter">Навык или технология<input className="uust-input" value={skill} onChange={(e) => setSkill(e.target.value)} placeholder="Например, Docker" /></label>
-            <label className="catalog-filter">Рейтинг<select className="uust-select" value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
-              <option value={0}>Любой рейтинг</option><option value={85}>От 85 баллов</option><option value={90}>От 90 баллов</option>
+            <label className="catalog-filter">Рейтинг<select className="uust-select" value={ratingOrder} onChange={e => setRatingOrder(e.target.value)}>
+              <option value="desc">По убыванию</option><option value="asc">По возрастанию</option>
             </select></label>
           </div>
           <div className="uust-pills-row"><span aria-live="polite">Найдено студентов: {filteredStudents.length}</span>
-            <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setInstitute('all'); setCourse('all'); setSkill(''); setMinRating(0); setGroupSearch(''); setEducation('all'); setOnlyMine(false) }}>Сбросить фильтры</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setInstitute('all'); setCourse('all'); setSkill(''); setMinRating(0); setRatingOrder('desc'); setGroupSearch(''); setEducation('all'); setOnlyMine(false) }}>Сбросить фильтры</button>
           </div>
         </div>
       </div>
-      {canModerate(currentUser) && <div className="feature-toolbar"><label><input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} /> Мои студенты</label><span>Сортировка: сначала лучший рейтинг</span></div>}
       {assignmentError && <p role="alert">{assignmentError}</p>}
       {loading && <p role="status">Загрузка студентов…</p>}
-      {canModerate(currentUser) && <section className="card feature-panel"><h2>Закрепление за куратором</h2>{filteredStudents.map((student) => <div className="feature-toolbar" key={student.id}><Link to={`/profile/${student.id}`}>{student.fullName}</Link><select className="select" aria-label={`Куратор: ${student.fullName}`} value={student.studentProfile?.curatorId || ''} onChange={async (e) => { try { await communityApi.assignStudentCurator(student.id, e.target.value); dispatch(fetchStudentsRequest()); setAssignmentError('') } catch (e) { setAssignmentError((e as Error).message) } }}><option value="">Не назначен</option>{(currentUser?.role === 'curator' ? [currentUser] : curatorUsers).map((curator) => <option key={curator.id} value={curator.id}>{curator.fullName}</option>)}</select></div>)}</section>}
       {!loading && filteredStudents.length === 0 && <p>Студенты по заданным фильтрам не найдены.</p>}
 
       {/* Students List Grid */}
-      <div className="case-grid">
+      <PaginatedGrid>
         {filteredStudents.map((stud) => {
           const prof = stud.studentProfile!
 
@@ -270,7 +270,7 @@ export const StudentsSearchPage: React.FC = () => {
             </div>
           )
         })}
-      </div>
+      </PaginatedGrid>
 
       {/* Modals */}
       {canInvite && selectedStudentForInvite && (

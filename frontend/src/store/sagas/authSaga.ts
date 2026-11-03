@@ -4,9 +4,9 @@ import { User } from '../../types/models'
 import * as actions from '../actions'
 import * as types from '../types'
 
-function* handleLogin(action: { type: string; payload: { username: string } }) {
+function* handleLogin(action: { type: string; payload: { username: string; password?: string } }) {
   try {
-    const user: User = yield call(apiClient.login, action.payload.username)
+    const user: User = yield call(apiClient.login, action.payload.username, action.payload.password)
     yield put(actions.loginSuccess(user))
     yield put(actions.fetchNotificationsRequest(user.id))
   } catch (error: any) {

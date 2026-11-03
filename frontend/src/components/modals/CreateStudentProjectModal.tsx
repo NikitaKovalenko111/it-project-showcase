@@ -25,7 +25,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [coverImage, setCoverImage] = useState(
     'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80'
   )
-  const [githubUrl, setGithubUrl] = useState('')
+  const [githubUrl, setGithubUrl] = useState(currentUser?.studentProfile?.githubUrl || '')
   const [productUrl, setProductUrl] = useState('')
   const [badges, setBadges] = useState<StudentProjectBadge[]>(['seeking_team', 'open_for_internship'])
 

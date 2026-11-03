@@ -100,7 +100,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
-            { to: '/workspace', label: 'РАБОЧАЯ СТАНЦИЯ', icon: Layers },
+            { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
+            { to: '/teams', label: 'КОМАНДЫ', icon: GraduationCap },
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
@@ -118,10 +119,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'МОИ КЕЙСЫ', icon: Briefcase, end: true },
-            { to: '/workspace', label: 'РАБОЧАЯ СТАНЦИЯ', icon: Layers },
+            { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
+
           ],
           [
-            { to: '/company-applications', label: 'ЗАЯВКИ СТУДЕНТОВ', icon: ClipboardList, badge: applicationsList.length || undefined },
+            { to: '/company-applications', label: 'ЗАЯВКИ СТУДЕНТОВ', icon: ClipboardList, badge: applicationsList.filter(a=>['pending','need_info','interview'].includes(a.status)).length || undefined },
             { to: '/students-search', label: 'ПОИСК ТАЛАНТОВ', icon: Search },
           ],
           [
@@ -136,7 +138,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
-            { to: '/workspace', label: 'МОНИТОРИНГ КЕЙСОВ', icon: Layers },
+            { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
+
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
@@ -156,7 +159,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
-            { to: '/workspace', label: 'РАБОЧАЯ СТАНЦИЯ', icon: Layers },
+            { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
+
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
@@ -169,7 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
         ]
     }
-  }, [role, currentUser?.id, currentUser?.companyProfile?.companyId, favorites.length, applicationsList.length])
+  }, [role, currentUser?.id, currentUser?.companyProfile?.companyId, favorites.length, applicationsList.filter(a=>['pending','need_info','interview'].includes(a.status)).length])
 
   const pillInfo = rolePillConfig[role] ?? rolePillConfig.student
 
@@ -316,9 +320,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           <LogOut size={14} />
           <span>Выйти</span>
         </button>
-        <div className="sidebar-version-tag">
-          2026
-        </div>
       </div>
     </aside>
   )

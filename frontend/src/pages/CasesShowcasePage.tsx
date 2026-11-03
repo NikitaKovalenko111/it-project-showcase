@@ -1,3 +1,5 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import { ScrollToolbar } from '../components/ScrollToolbar'
 import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -21,7 +23,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  DollarSign,
+  RussianRuble,
   FileLock2,
   Filter,
   Flame,
@@ -90,7 +92,7 @@ export const CasesShowcasePage: React.FC = () => {
     if (c.rewardType === 'monetary') {
       return (
         <span className="badge badge-reward-monetary">
-          <DollarSign size={13} /> {c.rewardAmount?.toLocaleString('ru-RU')} ₽ за результат
+          <RussianRuble size={13} /> {c.rewardAmount?.toLocaleString('ru-RU')} ₽ за результат
         </span>
       )
     }
@@ -127,6 +129,7 @@ export const CasesShowcasePage: React.FC = () => {
       </div>
 
       {/* UUST Schedule-Style Filter Container (Authorial Upgrade of ISU widget) */}
+      <ScrollToolbar>
       <div className="uust-container">
         <div className="uust-tabs-row">
           <button
@@ -146,7 +149,7 @@ export const CasesShowcasePage: React.FC = () => {
           </button>}
         </div>
 
-        <div className="uust-box">
+        <div className="uust-box"><label className="catalog-sort">Сортировать<select className="uust-select" value={sort} onChange={e => setSort(e.target.value as ShowcaseSort)}><option value="newest">Сначала новые</option><option value="deadline">Ближайший дедлайн</option><option value="popular">По заявкам</option></select></label>
           {/* Row 1: Search input */}
           <div className="uust-filter-row">
             <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
@@ -237,7 +240,7 @@ export const CasesShowcasePage: React.FC = () => {
               onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
               style={{ marginLeft: 'auto' }}
             >
-              <DollarSign size={14} aria-hidden="true" /> Только с оплатой / призом
+              <RussianRuble size={14} aria-hidden="true" /> Только с оплатой / призом
             </button>
 
             <button
@@ -260,24 +263,10 @@ export const CasesShowcasePage: React.FC = () => {
           </div>
         </div>
       </div>
+      </ScrollToolbar>
 
       {/* Section Subheader matching photo "Группа ТОП-204Б(73) Неделя 7" */}
-      <div className="uust-section-title">
-        <div>
-          <span>Найдено кейсов: <strong>{visibleCases.length}</strong> из {visibleCasesFor(currentUser, casesList).length}</span>
-        </div>
 
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <label>Сортировать: {' '}
-          <select className="uust-select" value={sort} onChange={(e) => setSort(e.target.value as ShowcaseSort)}>
-            <option value="newest">Сначала новые</option>
-            <option value="deadline">Ближайший дедлайн</option>
-            <option value="popular">По количеству заявок</option>
-          </select>
-        </label>
-      </div>
       {/* Case Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
@@ -301,7 +290,7 @@ export const CasesShowcasePage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="case-grid">
+        <PaginatedGrid>
           {visibleCases.map((item) => {
             const isFav = favorites.includes(item.id)
 
@@ -346,7 +335,7 @@ export const CasesShowcasePage: React.FC = () => {
                   {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
                   {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
 
-                  <div className="case-card__tags">
+                  <div className="case-card__tags"><span className="badge badge-direction">{({case:'Проект',hackathon:'Хакатон',olympiad:'Олимпиада',internship:'Стажировка'})[item.kind || 'case']}</span>
                     <span className="badge badge-direction">{item.direction}</span>
                     <span className={`badge ${getComplexityClass(item.complexity)}`}>Уровень: {item.complexity.toLowerCase()}</span>
                     {item.isConfidential && (
@@ -415,7 +404,7 @@ export const CasesShowcasePage: React.FC = () => {
               </div>
             )
           })}
-        </div>
+        </PaginatedGrid>
       )}
 
       {/* Modal for creating a new case */}

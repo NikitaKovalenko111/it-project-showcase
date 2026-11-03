@@ -1,3 +1,4 @@
+import { PaginatedGrid } from '../components/PaginatedGrid'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -6,7 +7,7 @@ import { ProjectSummaryCard } from '../components/ProjectSummaryCard'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { matchesSearch } from '../utils/publication'
 
-const statusLabels = { pending: 'На рассмотрении', interview: 'Назначено интервью', accepted: 'Принят в команду', rejected: 'Отклонена', need_info: 'Нужны уточнения' }
+const statusLabels = { pending: 'На рассмотрении', interview: 'Назначено интервью', accepted: 'Заявка принята', rejected: 'Отклонена', need_info: 'Нужны уточнения' }
 
 export const FavoritesPage: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -28,10 +29,10 @@ export const FavoritesPage: React.FC = () => {
     <CatalogSearch value={search} onChange={setSearch} label="Поиск по названию, компании или направлению" />
     {loading ? <p role="status">Загрузка…</p> : error ? <p role="alert">{error}</p> : <>
       <p aria-live="polite">Найдено проектов: {projects.length}</p>
-      <div className="case-grid">{projects.map((project) => {
+      <PaginatedGrid>{projects.map((project) => {
         const app = applications.find((item) => item.caseId === project.id)
         return <ProjectSummaryCard key={project.id} project={project} applicationStatus={tab === 'applications' && app ? statusLabels[app.status] : undefined} onRemove={tab === 'favorites' ? () => dispatch(toggleFavoriteRequest(project.id)) : undefined} />
-      })}</div>
+      })}</PaginatedGrid>
       {!projects.length && <div className="card empty-state"><p>{search ? 'По вашему запросу ничего не найдено.' : tab === 'favorites' ? 'Сохраненных кейсов пока нет.' : 'Вы еще не подали заявки.'}</p><Link to="/cases" className="btn btn-primary btn-sm">Перейти к витрине</Link></div>}
     </>}
   </div>

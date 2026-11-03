@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import React, { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
-import { updateApplicationStatusRequest } from '../store/actions'
+import { fetchApplicationsRequest, updateApplicationStatusRequest } from '../store/actions'
 import {
   MessageSquare,
   Briefcase,
@@ -23,11 +24,16 @@ import type { ApplicationStatus } from '../types/models'
 
 export const CompanyApplicationsPage: React.FC = () => {
   const dispatch = useAppDispatch()
+  const [params]=useSearchParams()
+  const caseFilter=params.get('caseId')
+  useEffect(()=>{dispatch(fetchApplicationsRequest())},[dispatch])
   const { applicationsList: allApplications, loading, error } = useAppSelector((state) => state.applications)
   const { currentUser } = useAppSelector((state) => state.auth)
 
+  const projects=useAppSelector(s=>s.cases.casesList)
+  const selectionApplications=allApplications.filter(a=>!['olympiad','hackathon'].includes(projects.find(p=>p.id===a.caseId)?.kind || ''))
   const applicationsList = currentUser?.role === 'company'
-    ? allApplications.filter((app) => app.companyId === currentUser.companyProfile?.companyId) : allApplications
+    ? selectionApplications.filter((app) => app.companyId === currentUser.companyProfile?.companyId) : selectionApplications
 
   const [statusFilter, setStatusFilter] = useState<'all' | ApplicationStatus>('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -38,7 +44,7 @@ export const CompanyApplicationsPage: React.FC = () => {
       app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.caseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.studentInstitute.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesStatus && matchesSearch
+    return matchesStatus && matchesSearch && (!caseFilter || app.caseId === caseFilter)
   })
 
   const handleUpdateStatus = (appId: string, status: ApplicationStatus) => {
@@ -51,7 +57,7 @@ export const CompanyApplicationsPage: React.FC = () => {
         <div className="page-header__content">
           <h1>Входящие заявки студентов на кейсы</h1>
           <p>
-            Рассмотрение резюме, мотивационных писем и отбор студентов в проектные команды вашего предприятия.
+            Отбор исполнителей на кейсы и стажировки. Регистрации на олимпиады и хакатоны находятся в списках участников этих мероприятий.
           </p>
         </div>
       </div>
@@ -81,7 +87,7 @@ export const CompanyApplicationsPage: React.FC = () => {
             className={`uust-tab ${statusFilter === 'accepted' ? 'active' : ''}`}
             onClick={() => setStatusFilter('accepted')}
           >
-            <CheckCircle2 size={14} aria-hidden="true" /> Приняты в команду ({applicationsList.filter((a) => a.status === 'accepted').length})
+            <CheckCircle2 size={14} aria-hidden="true" /> Принятые заявки / регистрации ({applicationsList.filter((a) => a.status === 'accepted').length})
           </button>
           <button
             className={`uust-tab ${statusFilter === 'rejected' ? 'active' : ''}`}
@@ -128,7 +134,7 @@ export const CompanyApplicationsPage: React.FC = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredApps.map((app) => (
+          {<PaginatedGrid className="paginated-stack">{filteredApps.map((app) => (
             <div key={app.id} className="card" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
                 <div className="candidate-identity" style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -166,7 +172,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                   >
                     {app.status === 'accepted' ? <CheckCircle2 size={13} /> : app.status === 'rejected' ? <XCircle size={13} /> : app.status === 'interview' ? <MessageSquare size={13} /> : <Clock size={13} />}
                     {app.status === 'accepted'
-                      ? 'Принят в команду'
+                      ? (app.applicantType === 'team' ? 'Команда принята' : 'Заявка принята')
                       : app.status === 'rejected'
                       ? 'Заявка отклонена'
                       : app.status === 'interview'
@@ -239,7 +245,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
+          ))}</PaginatedGrid>}
         </div>
       )}
     </div>
