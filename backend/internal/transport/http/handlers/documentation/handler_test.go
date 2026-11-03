@@ -3,6 +3,7 @@ package documentation_handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -26,5 +27,14 @@ func TestUIReferencesVersionedSpec(t *testing.T) {
 	Init().UI(recorder, httptest.NewRequest(http.MethodGet, "/docs", nil))
 	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "/api/v1/docs/openapi.yaml") {
 		t.Fatalf("swagger UI response is invalid: status=%d", recorder.Code)
+	}
+
+	csp := recorder.Header().Get("Content-Security-Policy")
+	nonceMatch := regexp.MustCompile(`script-src[^;]*'nonce-([^']+)'`).FindStringSubmatch(csp)
+	if len(nonceMatch) != 2 {
+		t.Fatalf("CSP does not allow the inline Swagger initializer: %q", csp)
+	}
+	if !strings.Contains(recorder.Body.String(), `nonce="`+nonceMatch[1]+`"`) {
+		t.Fatal("Swagger initializer nonce does not match CSP")
 	}
 }
