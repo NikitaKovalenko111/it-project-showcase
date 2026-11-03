@@ -177,7 +177,10 @@ func (h *Handler) UpdateReport(w http.ResponseWriter, r *http.Request) {
 	pkg.WriteJSON(w, 200, x)
 }
 func hasRole(r *http.Request, want string) bool {
-	c, _ := middleware.TokenClaimsFromContext(r.Context())
+	c, ok := middleware.TokenClaimsFromContext(r.Context())
+	if !ok || c == nil {
+		return false
+	}
 	for _, x := range c.Roles {
 		if x == want {
 			return true

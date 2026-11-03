@@ -143,7 +143,10 @@ func decode(w http.ResponseWriter, r *http.Request, target any) bool {
 	return true
 }
 func hasRole(r *http.Request, want string) bool {
-	claims, _ := middleware.TokenClaimsFromContext(r.Context())
+	claims, ok := middleware.TokenClaimsFromContext(r.Context())
+	if !ok || claims == nil {
+		return false
+	}
 	for _, role := range claims.Roles {
 		if role == want {
 			return true

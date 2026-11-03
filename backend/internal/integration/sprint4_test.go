@@ -104,4 +104,47 @@ func TestSprint4DatabaseInvariants(t *testing.T) {
 	if criterionErr == nil {
 		t.Fatal("criterion change after draft must be rejected")
 	}
+	if _, err = tx.ExecContext(ctx, `ROLLBACK TO SAVEPOINT before_criterion_change`); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err = tx.ExecContext(ctx, `INSERT INTO student_project_likes(project_id,user_id) VALUES($1,$2)`, projectID, userID); err != nil {
+		t.Fatalf("insert project like: %v", err)
+	}
+	if _, err = tx.ExecContext(ctx, `SAVEPOINT before_duplicate_like`); err != nil {
+		t.Fatal(err)
+	}
+	if _, duplicateLikeErr := tx.ExecContext(ctx, `INSERT INTO student_project_likes(project_id,user_id) VALUES($1,$2)`, projectID, userID); duplicateLikeErr == nil {
+		t.Fatal("duplicate project like must be rejected")
+	}
+	if _, err = tx.ExecContext(ctx, `ROLLBACK TO SAVEPOINT before_duplicate_like`); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err = tx.ExecContext(ctx, `UPDATE comments SET status='deleted',deleted_at=CURRENT_TIMESTAMP WHERE comment_id=$1`, rootID); err != nil {
+		t.Fatalf("soft delete comment: %v", err)
+	}
+	var retainedBody, retainedStatus string
+	var hasDeletedAt bool
+	err = tx.QueryRowContext(ctx, `SELECT body,status,deleted_at IS NOT NULL FROM comments WHERE comment_id=$1`, rootID).Scan(&retainedBody, &retainedStatus, &hasDeletedAt)
+	if err != nil || retainedBody != "root" || retainedStatus != "deleted" || !hasDeletedAt {
+		t.Fatalf("soft-deleted comment was not retained: body=%q status=%q deleted_at=%v err=%v", retainedBody, retainedStatus, hasDeletedAt, err)
+	}
+
+	oldHash, newHash := "old-"+suffix, "new-"+suffix
+	var sessionID string
+	err = tx.QueryRowContext(ctx, `INSERT INTO auth_sessions(user_id,refresh_token_hash,expires_at) VALUES($1,$2,CURRENT_TIMESTAMP+INTERVAL '1 hour') RETURNING session_id`, userID, oldHash).Scan(&sessionID)
+	if err != nil {
+		t.Fatalf("insert auth session: %v", err)
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE auth_sessions SET refresh_token_hash=$2 WHERE session_id=$1`, sessionID, newHash); err != nil {
+		t.Fatalf("rotate auth session: %v", err)
+	}
+	var oldCount, newCount int
+	if err = tx.QueryRowContext(ctx, `SELECT count(*) FILTER (WHERE refresh_token_hash=$1),count(*) FILTER (WHERE refresh_token_hash=$2) FROM auth_sessions WHERE session_id=$3`, oldHash, newHash, sessionID).Scan(&oldCount, &newCount); err != nil {
+		t.Fatal(err)
+	}
+	if oldCount != 0 || newCount != 1 {
+		t.Fatalf("refresh rotation did not replace token: old=%d new=%d", oldCount, newCount)
+	}
 }

@@ -50,7 +50,10 @@ func or(x, d string) string {
 }
 func user(r *http.Request) string { u, _ := middleware.UserIDFromContext(r.Context()); return u }
 func admin(r *http.Request) bool {
-	c, _ := middleware.TokenClaimsFromContext(r.Context())
+	c, ok := middleware.TokenClaimsFromContext(r.Context())
+	if !ok || c == nil {
+		return false
+	}
 	for _, x := range c.Roles {
 		if x == "admin" {
 			return true
