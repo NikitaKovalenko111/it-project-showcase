@@ -24,6 +24,8 @@ type StudentProject struct {
 	ProductURL        string          `json:"product_url,omitempty"`
 	CoverFileID       *string         `json:"cover_file_id"`
 	Status            string          `json:"status"`
+	Visibility        string          `json:"visibility"`
+	Tags              []string        `json:"tags"`
 	ModerationComment string          `json:"moderation_comment,omitempty"`
 	LikesCount        int             `json:"likes_count"`
 	LikedByMe         bool            `json:"liked_by_me"`
@@ -44,6 +46,8 @@ type StudentProjectInput struct {
 	GithubURL        string          `json:"github_url"`
 	ProductURL       string          `json:"product_url"`
 	CoverFileID      string          `json:"cover_file_id"`
+	Visibility       string          `json:"visibility"`
+	Tags             []string        `json:"tags"`
 	DirectionIDs     []string        `json:"direction_ids"`
 	TechnologyIDs    []string        `json:"technology_ids"`
 	Members          []ProjectMember `json:"members"`

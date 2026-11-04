@@ -37,6 +37,24 @@ func TestCreateRejectsDuplicateReferences(t *testing.T) {
 	}
 }
 
+func TestCreateAcceptsDynamicCriterionMaximumWithoutWeight(t *testing.T) {
+	input := validInput()
+	input.EvaluationCriteria = []models.EvaluationCriterionInput{{Name: "Архитектура", MaxScore: 37.5, Ordinal: 1}}
+	if err := validate(input); err != nil {
+		t.Fatalf("dynamic max_score must be valid: %v", err)
+	}
+}
+
+func TestCreateRejectsNonPositiveCriterionMaximum(t *testing.T) {
+	service := Init(nil)
+	input := validInput()
+	input.EvaluationCriteria = []models.EvaluationCriterionInput{{Name: "Архитектура", MaxScore: 0, Ordinal: 1}}
+	_, err := service.Create(context.Background(), "user", input)
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid criterion maximum, got %v", err)
+	}
+}
+
 func TestModerationRequiresCommentForRejection(t *testing.T) {
 	service := Init(nil)
 	_, err := service.Moderate(context.Background(), "admin", "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1", "reject", "")

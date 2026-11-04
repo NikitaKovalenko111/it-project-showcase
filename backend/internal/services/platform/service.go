@@ -107,6 +107,12 @@ func (s *Service) SearchStudents(ctx context.Context, q, d, t string, limit int,
 	}
 	return s.repo.SearchStudents(ctx, strings.TrimSpace(q), strings.TrimSpace(d), strings.TrimSpace(t), limit, b, id)
 }
+func (s *Service) SearchStudentsByRating(ctx context.Context, q, d, t, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
+	if sort != "rating_asc" && sort != "rating_desc" {
+		return nil, 0, ErrInvalid
+	}
+	return s.repo.SearchStudentsByRating(ctx, strings.TrimSpace(q), strings.TrimSpace(d), strings.TrimSpace(t), sort, limit, offset)
+}
 func (s *Service) GetPortfolio(ctx context.Context, viewer, student string, admin bool) (*models.Portfolio, error) {
 	if !validID(student) {
 		return nil, ErrNotFound

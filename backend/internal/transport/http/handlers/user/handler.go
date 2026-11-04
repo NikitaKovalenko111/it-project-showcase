@@ -16,8 +16,8 @@ type Handler struct{ service *users_service.Service }
 
 func Init(service *users_service.Service) *Handler { return &Handler{service: service} }
 
-func (h *Handler) Start(mux *http.ServeMux) {
-	mux.HandleFunc("PATCH /{user_id}/status", h.SetStatus)
+func (h *Handler) Start(mux *http.ServeMux, admin func(http.Handler) http.Handler) {
+	mux.Handle("PATCH /{user_id}/status", admin(http.HandlerFunc(h.SetStatus)))
 	mux.HandleFunc("/", shared.NotFound)
 }
 
@@ -32,7 +32,7 @@ func (h *Handler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		middleware.QueueErrorLog(r.Context(), "set user status failed", err)
 		switch {
 		case errors.Is(err, users_service.ErrInvalidStatus):
-			pkg.WriteError(w, http.StatusUnprocessableEntity, "invalid_status", "Status must be active or blocked")
+			pkg.WriteError(w, http.StatusUnprocessableEntity, "invalid_status", "Status must be active, blocked or deleted")
 		case errors.Is(err, users_service.ErrNotFound):
 			pkg.WriteError(w, http.StatusNotFound, "user_not_found", "User not found")
 		default:

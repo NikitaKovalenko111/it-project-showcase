@@ -21,14 +21,14 @@ type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
-const teamSelect = `SELECT t.team_id,t.name,t.leader_id,t.status,t.created_at,t.updated_at,
+const teamSelect = `SELECT t.team_id,t.name,t.leader_id,t.status,t.description,t.visibility,t.looking_for_members,t.created_at,t.updated_at,
 COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'name',concat_ws(' ',s.last_name,s.first_name,s.patronymic),'role_id',m.role_id,'role_name',COALESCE(r.name,''),'joined_at',m.joined_at,'left_at',m.left_at) ORDER BY m.joined_at,m.student_id) FROM team_members m JOIN students s ON s.user_id=m.student_id LEFT JOIN team_roles r ON r.team_role_id=m.role_id WHERE m.team_id=t.team_id),'[]'::jsonb)
 FROM teams t`
 
 func scanTeam(row interface{ Scan(...any) error }) (*models.Team, error) {
 	var item models.Team
 	var members []byte
-	err := row.Scan(&item.TeamID, &item.Name, &item.LeaderID, &item.Status, &item.CreatedAt, &item.UpdatedAt, &members)
+	err := row.Scan(&item.TeamID, &item.Name, &item.LeaderID, &item.Status, &item.Description, &item.Visibility, &item.LookingForMembers, &item.CreatedAt, &item.UpdatedAt, &members)
 	if err != nil {
 		return nil, err
 	}

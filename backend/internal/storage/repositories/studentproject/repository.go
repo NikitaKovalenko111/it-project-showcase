@@ -17,17 +17,20 @@ type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
-const selectProject = `SELECT p.project_id,p.owner_id,p.title,p.category,p.short_description,p.full_description,p.problem_solved,p.github_url,p.product_url,p.cover_file_id,p.status,p.moderation_comment,(SELECT count(*) FROM student_project_likes l WHERE l.project_id=p.project_id),(CASE WHEN $1='' THEN false ELSE EXISTS(SELECT 1 FROM student_project_likes l WHERE l.project_id=p.project_id AND l.user_id=NULLIF($1,'')::uuid) END),COALESCE((SELECT jsonb_agg(direction_id ORDER BY direction_id) FROM student_project_directions d WHERE d.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(technology_id ORDER BY technology_id) FROM student_project_technologies t WHERE t.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'role_name',m.role_name,'joined_at',m.joined_at) ORDER BY m.joined_at) FROM project_members m WHERE m.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal) ORDER BY f.ordinal) FROM student_project_files f WHERE f.project_id=p.project_id),'[]'),p.created_at,p.updated_at,p.published_at FROM student_projects p`
+const selectProject = `SELECT p.project_id,p.owner_id,p.title,p.category,p.short_description,p.full_description,p.problem_solved,p.github_url,p.product_url,p.cover_file_id,p.status,p.visibility,p.tags,p.moderation_comment,(SELECT count(*) FROM student_project_likes l WHERE l.project_id=p.project_id),(CASE WHEN $1='' THEN false ELSE EXISTS(SELECT 1 FROM student_project_likes l WHERE l.project_id=p.project_id AND l.user_id=NULLIF($1,'')::uuid) END),COALESCE((SELECT jsonb_agg(direction_id ORDER BY direction_id) FROM student_project_directions d WHERE d.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(technology_id ORDER BY technology_id) FROM student_project_technologies t WHERE t.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'role_name',m.role_name,'joined_at',m.joined_at) ORDER BY m.joined_at) FROM project_members m WHERE m.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal) ORDER BY f.ordinal) FROM student_project_files f WHERE f.project_id=p.project_id),'[]'),p.created_at,p.updated_at,p.published_at FROM student_projects p`
 
 func scan(row interface{ Scan(...any) error }) (*models.StudentProject, error) {
 	var x models.StudentProject
 	var problem, gh, product, comment sql.NullString
-	var dirs, tech, members, assets []byte
-	err := row.Scan(&x.ProjectID, &x.OwnerID, &x.Title, &x.Category, &x.ShortDescription, &x.FullDescription, &problem, &gh, &product, &x.CoverFileID, &x.Status, &comment, &x.LikesCount, &x.LikedByMe, &dirs, &tech, &members, &assets, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt)
+	var dirs, tech, members, assets, tags []byte
+	err := row.Scan(&x.ProjectID, &x.OwnerID, &x.Title, &x.Category, &x.ShortDescription, &x.FullDescription, &problem, &gh, &product, &x.CoverFileID, &x.Status, &x.Visibility, &tags, &comment, &x.LikesCount, &x.LikedByMe, &dirs, &tech, &members, &assets, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt)
 	x.ProblemSolved = problem.String
 	x.GithubURL = gh.String
 	x.ProductURL = product.String
 	x.ModerationComment = comment.String
+	if err == nil {
+		err = json.Unmarshal(tags, &x.Tags)
+	}
 	if err == nil {
 		err = json.Unmarshal(dirs, &x.DirectionIDs)
 	}
@@ -43,7 +46,7 @@ func scan(row interface{ Scan(...any) error }) (*models.StudentProject, error) {
 	return &x, err
 }
 func (r *Repository) List(ctx context.Context, user, search, category, direction string, limit int, before *time.Time, bid string) ([]models.StudentProject, error) {
-	q := selectProject + ` WHERE p.status='published'`
+	q := selectProject + ` WHERE p.status='published' AND p.visibility='public'`
 	args := []any{user}
 	if search != "" {
 		args = append(args, "%"+search+"%")
@@ -79,7 +82,7 @@ func (r *Repository) List(ctx context.Context, user, search, category, direction
 	return out, rows.Err()
 }
 func (r *Repository) Get(ctx context.Context, user, id string, admin bool) (*models.StudentProject, error) {
-	return scan(r.db.QueryRowContext(ctx, selectProject+` WHERE p.project_id=$2 AND (p.status='published' OR p.owner_id=NULLIF($1,'')::uuid OR $3)`, user, id, admin))
+	return scan(r.db.QueryRowContext(ctx, selectProject+` WHERE p.project_id=$2 AND ((p.status='published' AND p.visibility='public') OR p.owner_id=NULLIF($1,'')::uuid OR $3)`, user, id, admin))
 }
 func (r *Repository) Create(ctx context.Context, user string, in models.StudentProjectInput) (*models.StudentProject, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -92,7 +95,8 @@ func (r *Repository) Create(ctx context.Context, user string, in models.StudentP
 	if in.CoverFileID != "" {
 		cover = in.CoverFileID
 	}
-	err = tx.QueryRowContext(ctx, `INSERT INTO student_projects(owner_id,title,category,short_description,full_description,problem_solved,github_url,product_url,cover_file_id) SELECT s.user_id,$2,$3,$4,$5,NULLIF($6,''),NULLIF($7,''),NULLIF($8,''),$9 FROM students s WHERE s.user_id=$1 AND ($9::uuid IS NULL OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=$9 AND f.uploaded_by=$1 AND f.status='active')) RETURNING project_id`, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, cover).Scan(&id)
+	tags, _ := json.Marshal(in.Tags)
+	err = tx.QueryRowContext(ctx, `INSERT INTO student_projects(owner_id,title,category,short_description,full_description,problem_solved,github_url,product_url,cover_file_id,visibility,tags) SELECT s.user_id,$2,$3,$4,$5,NULLIF($6,''),NULLIF($7,''),NULLIF($8,''),$9,COALESCE(NULLIF($10,''),'public'),$11 FROM students s WHERE s.user_id=$1 AND ($9::uuid IS NULL OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=$9 AND f.uploaded_by=$1 AND f.status='active')) RETURNING project_id`, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, cover, in.Visibility, tags).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
@@ -159,7 +163,8 @@ func (r *Repository) Update(ctx context.Context, user, id string, in models.Stud
 		return nil, err
 	}
 	defer tx.Rollback()
-	res, err := tx.ExecContext(ctx, `UPDATE student_projects SET title=$3,category=$4,short_description=$5,full_description=$6,problem_solved=NULLIF($7,''),github_url=NULLIF($8,''),product_url=NULLIF($9,''),cover_file_id=NULLIF($10,'')::uuid,status=CASE WHEN status='revision' THEN 'draft' ELSE status END WHERE project_id=$1 AND owner_id=$2 AND status IN ('draft','revision') AND ($10='' OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=NULLIF($10,'')::uuid AND f.uploaded_by=$2 AND f.status='active'))`, id, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, in.CoverFileID)
+	tags, _ := json.Marshal(in.Tags)
+	res, err := tx.ExecContext(ctx, `UPDATE student_projects SET title=$3,category=$4,short_description=$5,full_description=$6,problem_solved=NULLIF($7,''),github_url=NULLIF($8,''),product_url=NULLIF($9,''),cover_file_id=NULLIF($10,'')::uuid,visibility=COALESCE(NULLIF($11,''),'public'),tags=$12,status=CASE WHEN status='revision' THEN 'draft' ELSE status END WHERE project_id=$1 AND owner_id=$2 AND status IN ('draft','revision') AND ($10='' OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=NULLIF($10,'')::uuid AND f.uploaded_by=$2 AND f.status='active'))`, id, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, in.CoverFileID, in.Visibility, tags)
 	if err != nil {
 		return nil, err
 	}

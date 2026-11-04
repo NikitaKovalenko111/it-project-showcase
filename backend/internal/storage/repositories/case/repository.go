@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -28,7 +29,7 @@ SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c
        c.capacity,c.team_size_min,c.team_size_max,c.course_min,c.course_max,
        c.application_deadline,c.due_at,COALESCE(c.duration,''),c.result_requirements,
        COALESCE(c.evaluation_rules,''),c.ip_terms,c.terms_version,c.nda_required,c.status,
-       c.visibility,c.created_at,c.updated_at,
+       c.visibility,c.cover_file_id,c.created_at,c.updated_at,
        COALESCE((SELECT jsonb_agg(jsonb_build_object('id',d.direction_id,'name',d.name) ORDER BY d.name)
                  FROM case_directions cd JOIN directions d ON d.direction_id=cd.direction_id
                  WHERE cd.case_id=c.case_id),'[]'::jsonb),
@@ -49,7 +50,7 @@ SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c
                     'mime_type',f.mime_type,'size_bytes',f.size_bytes,'visibility',cf.visibility) ORDER BY f.created_at,f.file_id)
                  FROM case_files cf JOIN files f ON f.file_id=cf.file_id AND f.status='active'
                  WHERE cf.case_id=c.case_id /*FILE_VISIBILITY*/),'[]'::jsonb),
-       COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',ec.criterion_id,'name',ec.name,'weight',ec.weight,'max_score',ec.max_score,'ordinal',ec.ordinal) ORDER BY ec.ordinal)
+       COALESCE((SELECT jsonb_agg(jsonb_build_object('criterion_id',ec.criterion_id,'name',ec.name,'max_score',ec.max_score,'ordinal',ec.ordinal) ORDER BY ec.ordinal)
                  FROM evaluation_criteria ec WHERE ec.case_id=c.case_id),'[]'::jsonb)
 FROM cases c JOIN companies company ON company.company_id=c.company_id`
 
@@ -70,7 +71,7 @@ func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 		&item.AdmissionMode, &item.Capacity, &item.TeamSizeMin, &item.TeamSizeMax, &item.CourseMin,
 		&item.CourseMax, &item.ApplicationDeadline, &item.DueAt, &item.Duration, &item.ResultRequirements,
 		&item.EvaluationRules, &item.IPTerms, &item.TermsVersion, &item.NDARequired, &item.Status,
-		&item.Visibility, &item.CreatedAt, &item.UpdatedAt, &directions, &competencies, &technologies,
+		&item.Visibility, &item.CoverFileID, &item.CreatedAt, &item.UpdatedAt, &directions, &competencies, &technologies,
 		&rewards, &files, &criteria,
 	)
 	if err != nil {
@@ -184,7 +185,7 @@ func (r *Repository) Create(ctx context.Context, userID string, input models.Cas
 	if err != nil {
 		return nil, fmt.Errorf("create case: %w", err)
 	}
-	if err := writeCaseRelations(ctx, tx, caseID, userID, input); err != nil {
+	if err := writeCaseRelations(ctx, tx, caseID, userID, input, true); err != nil {
 		return nil, err
 	}
 	if err := insertRevision(ctx, tx, caseID, userID, 1, input); err != nil {
@@ -214,15 +215,25 @@ func (r *Repository) Update(ctx context.Context, userID, caseID string, input mo
 	if companyID != input.CompanyID || (status != "draft" && status != "revision" && status != "published") {
 		return nil, ErrInvalidTransition
 	}
+	if status != "draft" {
+		unchanged, compareErr := evaluationCriteriaUnchanged(ctx, tx, caseID, input.EvaluationCriteria)
+		if compareErr != nil {
+			return nil, compareErr
+		}
+		if !unchanged {
+			return nil, ErrInvalidTransition
+		}
+	}
 	version++
 	_, err = tx.ExecContext(ctx, `UPDATE cases SET title=$2,summary=$3,full_brief=$4,type=$5,difficulty=NULLIF($6,''),work_format=$7,participation_mode=$8,admission_mode=$9,capacity=$10,team_size_min=$11,team_size_max=$12,course_min=$13,course_max=$14,application_deadline=$15,due_at=$16,duration=NULLIF($17,''),result_requirements=$18,evaluation_rules=NULLIF($19,''),ip_terms=$20,terms_version=$21,nda_required=$22,visibility=$23,status=CASE WHEN status='published' THEN 'revision' ELSE status END WHERE case_id=$1`, caseID, input.Title, input.Summary, input.FullBrief, input.Type, input.Difficulty, input.WorkFormat, input.ParticipationMode, input.AdmissionMode, input.Capacity, input.TeamSizeMin, input.TeamSizeMax, input.CourseMin, input.CourseMax, input.ApplicationDeadline, input.DueAt, input.Duration, input.ResultRequirements, input.EvaluationRules, input.IPTerms, version, input.NDARequired, input.Visibility)
 	if err != nil {
 		return nil, fmt.Errorf("update case: %w", err)
 	}
-	if err := clearCaseRelations(ctx, tx, caseID); err != nil {
+	criteriaMutable := status == "draft"
+	if err := clearCaseRelations(ctx, tx, caseID, criteriaMutable); err != nil {
 		return nil, err
 	}
-	if err := writeCaseRelations(ctx, tx, caseID, userID, input); err != nil {
+	if err := writeCaseRelations(ctx, tx, caseID, userID, input, criteriaMutable); err != nil {
 		return nil, err
 	}
 	if err := insertRevision(ctx, tx, caseID, userID, version, input); err != nil {
@@ -309,7 +320,7 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 	return r.GetManaged(ctx, moderatorID, caseID, true)
 }
 
-func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string) error {
+func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string, includeCriteria bool) error {
 	statements := []string{
 		`DELETE FROM case_directions WHERE case_id=$1`,
 		`DELETE FROM case_competencies WHERE case_id=$1`,
@@ -317,7 +328,9 @@ func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string) error {
 		`DELETE FROM case_files WHERE case_id=$1`,
 		`DELETE FROM prize_places WHERE case_reward_id IN (SELECT case_reward_id FROM case_rewards WHERE case_id=$1)`,
 		`DELETE FROM case_rewards WHERE case_id=$1`,
-		`DELETE FROM evaluation_criteria WHERE case_id=$1`,
+	}
+	if includeCriteria {
+		statements = append(statements, `DELETE FROM evaluation_criteria WHERE case_id=$1`)
 	}
 	for _, statement := range statements {
 		if _, err := tx.ExecContext(ctx, statement, caseID); err != nil {
@@ -327,7 +340,7 @@ func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string) error {
 	return nil
 }
 
-func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, input models.CaseInput) error {
+func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, input models.CaseInput, includeCriteria bool) error {
 	for _, id := range input.DirectionIDs {
 		result, err := tx.ExecContext(ctx, `INSERT INTO case_directions (case_id,direction_id) SELECT $1,direction_id FROM directions WHERE direction_id=$2 AND is_active`, caseID, id)
 		if err != nil {
@@ -376,12 +389,48 @@ func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, 
 			}
 		}
 	}
-	for _, criterion := range input.EvaluationCriteria {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,weight,max_score,ordinal) VALUES($1,$2,$3,$4,$5)`, caseID, criterion.Name, criterion.Weight, criterion.MaxScore, criterion.Ordinal); err != nil {
-			return fmt.Errorf("create evaluation criterion: %w", err)
+	if includeCriteria {
+		for _, criterion := range input.EvaluationCriteria {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,max_score,ordinal) VALUES($1,$2,$3,$4)`, caseID, criterion.Name, criterion.MaxScore, criterion.Ordinal); err != nil {
+				return fmt.Errorf("create evaluation criterion: %w", err)
+			}
 		}
 	}
 	return nil
+}
+
+func evaluationCriteriaUnchanged(ctx context.Context, tx *sql.Tx, caseID string, input []models.EvaluationCriterionInput) (bool, error) {
+	rows, err := tx.QueryContext(ctx, `SELECT name,max_score,ordinal FROM evaluation_criteria WHERE case_id=$1`, caseID)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	type criterion struct {
+		name string
+		max  float64
+	}
+	existing := map[int]criterion{}
+	for rows.Next() {
+		var x criterion
+		var ordinal int
+		if err = rows.Scan(&x.name, &x.max, &ordinal); err != nil {
+			return false, err
+		}
+		existing[ordinal] = x
+	}
+	if err = rows.Err(); err != nil {
+		return false, err
+	}
+	if len(existing) != len(input) {
+		return false, nil
+	}
+	for _, x := range input {
+		saved, ok := existing[x.Ordinal]
+		if !ok || saved.name != x.Name || math.Abs(saved.max-x.MaxScore) > 1e-9 {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 func (r *Repository) ListStages(ctx context.Context, caseID string, public bool, userID string, admin bool) ([]models.CaseStage, error) {

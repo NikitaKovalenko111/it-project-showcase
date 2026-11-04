@@ -36,6 +36,21 @@ func validate(in models.StudentProjectInput) error {
 	default:
 		return ErrInvalid
 	}
+	if in.Visibility == "" {
+		in.Visibility = "public"
+	}
+	if in.Visibility != "public" && in.Visibility != "private" || len(in.Tags) > 10 {
+		return ErrInvalid
+	}
+	tagSeen := map[string]bool{}
+	for _, tag := range in.Tags {
+		tag = strings.TrimSpace(tag)
+		key := strings.ToLower(tag)
+		if tag == "" || utf8.RuneCountInString(tag) > 40 || tagSeen[key] {
+			return ErrInvalid
+		}
+		tagSeen[key] = true
+	}
 	if in.CoverFileID != "" && !validID(in.CoverFileID) {
 		return ErrInvalid
 	}

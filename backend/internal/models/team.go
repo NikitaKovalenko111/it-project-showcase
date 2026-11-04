@@ -12,13 +12,16 @@ type TeamMember struct {
 }
 
 type Team struct {
-	TeamID    string       `json:"team_id"`
-	Name      string       `json:"name"`
-	LeaderID  string       `json:"leader_id"`
-	Status    string       `json:"status"`
-	Members   []TeamMember `json:"members"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	TeamID            string       `json:"team_id"`
+	Name              string       `json:"name"`
+	LeaderID          string       `json:"leader_id"`
+	Status            string       `json:"status"`
+	Description       string       `json:"description"`
+	Visibility        string       `json:"visibility"`
+	LookingForMembers bool         `json:"looking_for_members"`
+	Members           []TeamMember `json:"members"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
 }
 
 type TeamInvitation struct {

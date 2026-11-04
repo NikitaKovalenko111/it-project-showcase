@@ -171,6 +171,23 @@ func (s *Service) DownloadPublicStudentProjectFile(ctx context.Context, projectI
 	file, err := s.repo.GetPublicStudentProjectFile(ctx, projectID, fileID)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadPublicPortfolioFile(ctx context.Context, studentID, fileID string) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(studentID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetPublicPortfolioFile(ctx, studentID, fileID)
+	return s.open(ctx, file, err)
+}
+func (s *Service) DownloadPublicCaseCover(ctx context.Context, caseID string) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(caseID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetPublicCaseCover(ctx, caseID)
+	return s.open(ctx, file, err)
+}
 func (s *Service) open(ctx context.Context, file *models.File, err error) (*models.File, io.ReadCloser, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

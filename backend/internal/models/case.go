@@ -67,6 +67,7 @@ type Case struct {
 	NDARequired          bool                  `json:"nda_required"`
 	Status               string                `json:"status"`
 	Visibility           string                `json:"visibility"`
+	CoverFileID          *string               `json:"cover_file_id"`
 	Directions           []CaseCatalogItem     `json:"directions"`
 	RequiredCompetencies []CaseCompetency      `json:"required_competencies"`
 	Technologies         []CaseCatalogItem     `json:"technologies"`

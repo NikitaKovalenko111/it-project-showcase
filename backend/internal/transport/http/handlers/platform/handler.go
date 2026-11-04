@@ -192,6 +192,21 @@ func (h *Handler) ListAudit(w http.ResponseWriter, r *http.Request) {
 	pkg.WriteJSON(w, 200, pagination.NewPageResponse(xs, q, total))
 }
 func (h *Handler) SearchStudents(w http.ResponseWriter, r *http.Request) {
+	sort := r.URL.Query().Get("sort")
+	if sort == "rating_asc" || sort == "rating_desc" {
+		q, e := pagination.ParsePageQuery(r.URL.Query())
+		if e != nil {
+			pagination.WriteQueryError(w, e)
+			return
+		}
+		xs, total, e := h.s.SearchStudentsByRating(r.Context(), r.URL.Query().Get("search"), r.URL.Query().Get("direction"), r.URL.Query().Get("technology"), sort, q.PageSize, q.Offset)
+		if e != nil {
+			h.err(w, r, e)
+			return
+		}
+		pkg.WriteJSON(w, 200, pagination.NewPageResponse(xs, q, int64(total)))
+		return
+	}
 	q, e := pagination.ParseCursorQuery(r.URL.Query(), "student-search")
 	if e != nil {
 		pagination.WriteQueryError(w, e)

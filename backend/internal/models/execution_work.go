@@ -5,13 +5,11 @@ import "time"
 type EvaluationCriterion struct {
 	CriterionID string  `json:"criterion_id"`
 	Name        string  `json:"name"`
-	Weight      float64 `json:"weight"`
 	MaxScore    float64 `json:"max_score"`
 	Ordinal     int     `json:"ordinal"`
 }
 type EvaluationCriterionInput struct {
 	Name     string  `json:"name"`
-	Weight   float64 `json:"weight"`
 	MaxScore float64 `json:"max_score"`
 	Ordinal  int     `json:"ordinal"`
 }

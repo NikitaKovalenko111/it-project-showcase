@@ -41,6 +41,7 @@ type StudentSearchItem struct {
 	Competencies []string  `json:"competencies"`
 	Technologies []string  `json:"technologies"`
 	PhotoFileID  *string   `json:"photo_file_id"`
+	Rating       float64   `json:"rating"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 type Portfolio struct {

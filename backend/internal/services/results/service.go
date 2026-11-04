@@ -152,6 +152,9 @@ func mapErr(e error, notFound bool) error {
 	if errors.Is(e, result_repo.ErrForbidden) {
 		return ErrForbidden
 	}
+	if errors.Is(e, result_repo.ErrIncompleteScores) {
+		return ErrInvalid
+	}
 	if errors.Is(e, sql.ErrNoRows) {
 		if notFound {
 			return ErrNotFound

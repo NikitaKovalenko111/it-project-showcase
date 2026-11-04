@@ -32,10 +32,10 @@ type responseRequest struct {
 	Status string `json:"status"`
 }
 
-func (h *Handler) StartTeams(mux *http.ServeMux) {
-	mux.HandleFunc("POST /", h.Create)
-	mux.HandleFunc("GET /{team_id}", h.Get)
-	mux.HandleFunc("POST /{team_id}/invitations", h.Invite)
+func (h *Handler) StartTeams(mux *http.ServeMux, student func(http.Handler) http.Handler) {
+	mux.Handle("POST /", student(http.HandlerFunc(h.Create)))
+	mux.Handle("GET /{team_id}", student(http.HandlerFunc(h.Get)))
+	mux.Handle("POST /{team_id}/invitations", student(http.HandlerFunc(h.Invite)))
 	mux.HandleFunc("/", shared.NotFound)
 }
 func (h *Handler) StartInvitations(mux *http.ServeMux) {
@@ -143,7 +143,10 @@ func decode(w http.ResponseWriter, r *http.Request, target any) bool {
 	return true
 }
 func hasRole(r *http.Request, want string) bool {
-	claims, _ := middleware.TokenClaimsFromContext(r.Context())
+	claims, ok := middleware.TokenClaimsFromContext(r.Context())
+	if !ok || claims == nil {
+		return false
+	}
 	for _, role := range claims.Roles {
 		if role == want {
 			return true

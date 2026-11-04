@@ -182,7 +182,7 @@ func (r *Repository) ListAudit(ctx context.Context, entity, action string, limit
 func scanStudent(row interface{ Scan(...any) error }) (models.StudentSearchItem, error) {
 	var x models.StudentSearchItem
 	var c, t []byte
-	e := row.Scan(&x.UserID, &x.Username, &x.FullName, &x.Institute, &x.Direction, &x.Course, &c, &t, &x.PhotoFileID, &x.CreatedAt)
+	e := row.Scan(&x.UserID, &x.Username, &x.FullName, &x.Institute, &x.Direction, &x.Course, &c, &t, &x.PhotoFileID, &x.Rating, &x.CreatedAt)
 	if e == nil {
 		e = json.Unmarshal(c, &x.Competencies)
 	}
@@ -192,7 +192,7 @@ func scanStudent(row interface{ Scan(...any) error }) (models.StudentSearchItem,
 	return x, e
 }
 
-const studentSelect = `SELECT u.user_id,u.username,concat_ws(' ',s.last_name,s.first_name,s.patronymic),s.institute_name,s.study_direction,s.course,s.competencies,s.technologies,s.photo_file_id,u.created_at FROM students s JOIN users u ON u.user_id=s.user_id`
+const studentSelect = `SELECT u.user_id,u.username,concat_ws(' ',s.last_name,s.first_name,s.patronymic),s.institute_name,s.study_direction,s.course,s.competencies,s.technologies,s.photo_file_id,COALESCE(r.quality_score+r.completion_score+r.project_score+r.achievement_score,0),u.created_at FROM students s JOIN users u ON u.user_id=s.user_id LEFT JOIN student_ratings r ON r.student_id=s.user_id`
 
 func (r *Repository) SearchStudents(ctx context.Context, q, direction, technology string, limit int, before *time.Time, bid string) ([]models.StudentSearchItem, error) {
 	sqlq := studentSelect + ` WHERE u.status='active' AND ($1='' OR concat_ws(' ',s.last_name,s.first_name,s.patronymic) ILIKE '%'||$1||'%' OR u.username ILIKE '%'||$1||'%') AND ($2='' OR s.study_direction=$2) AND ($3='' OR s.technologies ? $3)`
@@ -218,11 +218,34 @@ func (r *Repository) SearchStudents(ctx context.Context, q, direction, technolog
 	}
 	return out, rows.Err()
 }
+func (r *Repository) SearchStudentsByRating(ctx context.Context, q, direction, technology, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
+	where := ` WHERE u.status='active' AND ($1='' OR concat_ws(' ',s.last_name,s.first_name,s.patronymic) ILIKE '%'||$1||'%' OR u.username ILIKE '%'||$1||'%') AND ($2='' OR s.study_direction=$2) AND ($3='' OR s.technologies ? $3)`
+	order := "DESC"
+	if sort == "rating_asc" {
+		order = "ASC"
+	}
+	rows, e := r.db.QueryContext(ctx, studentSelect+where+` ORDER BY 10 `+order+`,u.user_id DESC LIMIT $4 OFFSET $5`, q, direction, technology, limit, offset)
+	if e != nil {
+		return nil, 0, e
+	}
+	defer rows.Close()
+	out := []models.StudentSearchItem{}
+	for rows.Next() {
+		x, e := scanStudent(rows)
+		if e != nil {
+			return nil, 0, e
+		}
+		out = append(out, x)
+	}
+	var total int
+	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM students s JOIN users u ON u.user_id=s.user_id`+where, q, direction, technology).Scan(&total)
+	return out, total, e
+}
 func (r *Repository) GetPortfolio(ctx context.Context, viewer, student string, admin bool) (*models.Portfolio, error) {
 	var p models.Portfolio
 	var visibility, headline, about string
 	var projects, executions, certs, awards []byte
-	e := r.db.QueryRowContext(ctx, `SELECT COALESCE(ps.visibility,'public'),COALESCE(ps.headline,''),COALESCE(ps.about,''),COALESCE((SELECT jsonb_agg(jsonb_build_object('project_id',x.project_id,'owner_id',x.owner_id,'title',x.title,'category',x.category,'short_description',x.short_description,'full_description',x.full_description,'status',x.status,'likes_count',(SELECT count(*) FROM student_project_likes l WHERE l.project_id=x.project_id),'direction_ids','[]'::jsonb,'technology_ids','[]'::jsonb,'members','[]'::jsonb,'assets','[]'::jsonb,'created_at',x.created_at,'updated_at',x.updated_at)) FROM student_projects x JOIN project_members m ON m.project_id=x.project_id WHERE m.student_id=s.user_id AND x.status='published'),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('execution_id',e.execution_id,'case_id',e.case_id,'case_title',c.title,'application_id',e.application_id,'status',e.status,'members','[]'::jsonb,'created_at',e.created_at)) FROM execution_members em JOIN executions e ON e.execution_id=em.execution_id JOIN cases c ON c.case_id=e.case_id WHERE em.student_id=s.user_id AND em.left_at IS NULL AND e.status IN ('done','closed')),'[]'),COALESCE((SELECT jsonb_agg(to_jsonb(z)) FROM certificates z WHERE z.student_id=s.user_id AND z.revoked_at IS NULL),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('award_id',a.award_id,'execution_id',a.execution_id,'title',a.title,'place_no',a.place_no,'amount',a.amount,'currency',a.currency,'awarded_by',a.awarded_by,'awarded_at',a.awarded_at,'fulfillment_status',COALESCE(f.status,'pending'))) FROM awards a JOIN execution_members em ON em.execution_id=a.execution_id LEFT JOIN reward_fulfillments f ON f.award_id=a.award_id WHERE em.student_id=s.user_id),'[]') FROM students s LEFT JOIN portfolio_settings ps ON ps.student_id=s.user_id WHERE s.user_id=$1 AND (COALESCE(ps.visibility,'public')='public' OR s.user_id=$2 OR $3)`, student, viewer, admin).Scan(&visibility, &headline, &about, &projects, &executions, &certs, &awards)
+	e := r.db.QueryRowContext(ctx, `SELECT COALESCE(ps.visibility,'public'),COALESCE(ps.headline,''),COALESCE(ps.about,''),COALESCE((SELECT jsonb_agg(jsonb_build_object('project_id',x.project_id,'owner_id',x.owner_id,'title',x.title,'category',x.category,'short_description',x.short_description,'full_description',x.full_description,'status',x.status,'visibility',x.visibility,'tags',x.tags,'likes_count',(SELECT count(*) FROM student_project_likes l WHERE l.project_id=x.project_id),'direction_ids','[]'::jsonb,'technology_ids','[]'::jsonb,'members','[]'::jsonb,'assets','[]'::jsonb,'created_at',x.created_at,'updated_at',x.updated_at)) FROM student_projects x JOIN project_members m ON m.project_id=x.project_id WHERE m.student_id=s.user_id AND x.status='published' AND (x.visibility='public' OR s.user_id=$2 OR $3)),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('execution_id',e.execution_id,'case_id',e.case_id,'case_title',c.title,'application_id',e.application_id,'status',e.status,'members','[]'::jsonb,'created_at',e.created_at)) FROM execution_members em JOIN executions e ON e.execution_id=em.execution_id JOIN cases c ON c.case_id=e.case_id WHERE em.student_id=s.user_id AND em.left_at IS NULL AND e.status IN ('done','closed')),'[]'),COALESCE((SELECT jsonb_agg(to_jsonb(z)) FROM certificates z WHERE z.student_id=s.user_id AND z.revoked_at IS NULL),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('award_id',a.award_id,'execution_id',a.execution_id,'title',a.title,'place_no',a.place_no,'amount',a.amount,'currency',a.currency,'awarded_by',a.awarded_by,'awarded_at',a.awarded_at,'fulfillment_status',COALESCE(f.status,'pending'))) FROM awards a JOIN execution_members em ON em.execution_id=a.execution_id LEFT JOIN reward_fulfillments f ON f.award_id=a.award_id WHERE em.student_id=s.user_id),'[]') FROM students s LEFT JOIN portfolio_settings ps ON ps.student_id=s.user_id WHERE s.user_id=$1 AND (COALESCE(ps.visibility,'public')='public' OR s.user_id=$2 OR $3)`, student, viewer, admin).Scan(&visibility, &headline, &about, &projects, &executions, &certs, &awards)
 	if e != nil {
 		return nil, e
 	}

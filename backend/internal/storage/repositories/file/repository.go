@@ -69,7 +69,15 @@ func (r *Repository) GetSubmissionFile(ctx context.Context, submissionID, fileID
 }
 
 func (r *Repository) GetPublicStudentProjectFile(ctx context.Context, projectID, fileID string) (*models.File, error) {
-	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM student_projects p JOIN files f ON f.file_id=$2 AND f.status='active' WHERE p.project_id=$1 AND p.status='published' AND (p.cover_file_id=f.file_id OR EXISTS(SELECT 1 FROM student_project_files pf WHERE pf.project_id=p.project_id AND pf.file_id=f.file_id))`, projectID, fileID))
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM student_projects p JOIN files f ON f.file_id=$2 AND f.status='active' WHERE p.project_id=$1 AND p.status='published' AND p.visibility='public' AND (p.cover_file_id=f.file_id OR EXISTS(SELECT 1 FROM student_project_files pf WHERE pf.project_id=p.project_id AND pf.file_id=f.file_id))`, projectID, fileID))
+}
+
+func (r *Repository) GetPublicPortfolioFile(ctx context.Context, studentID, fileID string) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM student_profile_files pf JOIN files f ON f.file_id=pf.file_id AND f.status='active' WHERE pf.student_id=$1 AND pf.file_id=$2 AND pf.visibility='public' AND pf.detached_at IS NULL`, studentID, fileID))
+}
+
+func (r *Repository) GetPublicCaseCover(ctx context.Context, caseID string) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at FROM cases c JOIN files f ON f.file_id=c.cover_file_id AND f.status='active' WHERE c.case_id=$1 AND c.status IN ('published','in_progress','completed') AND c.visibility='public'`, caseID))
 }
 
 func (r *Repository) CreateCompanyLogo(ctx context.Context, userID, companyID string, file models.File) (*models.File, string, error) {
