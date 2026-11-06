@@ -36,6 +36,8 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin func(
 	mux.Handle("PATCH /{case_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
 	mux.HandleFunc("GET /{case_id}/stages", h.ListStages)
 	mux.Handle("POST /{case_id}/stages", representative(http.HandlerFunc(h.CreateStage)))
+	mux.Handle("PATCH /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.UpdateStage)))
+	mux.Handle("PUT /{case_id}/stages/order", representative(http.HandlerFunc(h.ReorderStages)))
 	mux.Handle("DELETE /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.DeleteStage)))
 	mux.HandleFunc("/", shared.NotFound)
 }
@@ -76,6 +78,34 @@ func (h *Handler) DeleteStage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.WriteEmpty(w, http.StatusNoContent)
+}
+
+func (h *Handler) UpdateStage(w http.ResponseWriter, r *http.Request) {
+	var input models.CaseStageInput
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	item, err := h.service.UpdateStage(r.Context(), userID, r.PathValue("case_id"), r.PathValue("stage_id"), input)
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
+func (h *Handler) ReorderStages(w http.ResponseWriter, r *http.Request) {
+	var input models.CaseStageOrderInput
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	items, err := h.service.ReorderStages(r.Context(), userID, r.PathValue("case_id"), input.StageIDs)
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, map[string]any{"items": items})
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request)           { h.list(w, r, false) }
@@ -245,7 +275,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {
 }
 
 func parseFilter(w http.ResponseWriter, values url.Values) (models.CaseListFilter, bool) {
-	allowed := map[string]bool{"limit": true, "cursor": true, "search": true, "company_id": true, "direction_id": true, "difficulty": true, "participation_mode": true, "work_format": true, "type": true, "has_reward": true, "status": true}
+	allowed := map[string]bool{"limit": true, "cursor": true, "search": true, "company_id": true, "direction_id": true, "difficulty": true, "participation_mode": true, "work_format": true, "type": true, "event_format": true, "has_reward": true, "status": true}
 	for key := range values {
 		if !allowed[key] {
 			pkg.WriteError(w, http.StatusBadRequest, "invalid_query", "Query parameters are invalid")
@@ -274,6 +304,9 @@ func parseFilter(w http.ResponseWriter, values url.Values) (models.CaseListFilte
 		return filter, false
 	}
 	if filter.Type, ok = get("type"); !ok {
+		return filter, false
+	}
+	if filter.EventFormat, ok = get("event_format"); !ok {
 		return filter, false
 	}
 	reward, ok := get("has_reward")
@@ -325,6 +358,8 @@ func writeCaseError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.WriteError(w, http.StatusUnprocessableEntity, "case_reference_not_found", "A referenced catalog item or file is unavailable")
 	case errors.Is(err, cases_service.ErrInvalidTransition):
 		pkg.WriteError(w, http.StatusConflict, "invalid_case_transition", "Case status transition is not allowed")
+	case errors.Is(err, cases_service.ErrStagesLocked):
+		pkg.WriteError(w, http.StatusConflict, "case_stages_locked", "Case stages cannot be changed after an execution has been created")
 	default:
 		middleware.QueueErrorLog(r.Context(), "case request failed", err)
 		pkg.WriteError(w, http.StatusInternalServerError, "case_request_failed", "Case request failed")

@@ -28,6 +28,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	manager := h.withRoles("company_representative", "admin")
 	student := h.withRoles("student", "admin")
 	workflow := h.withRoles("student", "company_representative", "admin")
+	executionArea := h.withRoles("student", "company_representative", "university_staff", "admin")
 	studentSearch := h.withRoles("company_representative", "university_staff", "admin")
 	studentOnly := h.withRoles("student")
 
@@ -64,7 +65,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Applications.StartApplications(applications)
 	h.handlers.Files.StartApplications(applications)
 
-	executions := mount(api, "/executions", workflow)
+	executions := mount(api, "/executions", executionArea)
 	h.handlers.Applications.StartExecutions(executions)
 	h.handlers.Executions.Start(executions)
 	h.handlers.Results.StartExecutions(executions)

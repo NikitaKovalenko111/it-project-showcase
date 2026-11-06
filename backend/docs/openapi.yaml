@@ -4,7 +4,13 @@ info:
   version: 1.0.0
   description: |
     Канонический контракт backend. Все бизнес-маршруты имеют префикс `/api/v1`.
-    Access token передаётся как Bearer JWT. Refresh token является серверной сессией и ротируется.
+    ### Авторизация
+    Операции с символом замка требуют короткоживущий access token.
+    Нажмите **Authorize**, вставьте только значение `access_token` без слова `Bearer`.
+    Swagger UI автоматически отправит HTTP-заголовок `Authorization: Bearer <access_token>`.
+    Refresh token в этот заголовок не передаётся: он является серверной сессией,
+    используется только в теле `/auth/refresh` и ротируется при обновлении токенов.
+
     Большие коллекции используют cursor pagination либо page pagination, явно указанную у операции.
 servers:
   - url: /api/v1
@@ -162,7 +168,7 @@ paths:
       tags: [Cases]
       operationId: listCases
       summary: Витрина кейсов
-      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}, {name: search, in: query, schema: {type: string}}, {name: company_id, in: query, schema: {type: string, format: uuid}}]
+      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}, {name: search, in: query, schema: {type: string}}, {name: company_id, in: query, schema: {type: string, format: uuid}}, {name: event_format, in: query, schema: {type: string, enum: [case, hackathon, olympiad]}}]
       responses: {'200': {description: Кейсы, content: {application/json: {schema: {$ref: '#/components/schemas/CursorPage'}}}}}
     post:
       tags: [Cases]
@@ -678,14 +684,32 @@ paths:
       operationId: createCaseStage
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
-      responses: {'201': {description: Этап создан}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CaseStageInput'}}}}
+      responses: {'201': {description: Этап создан}, '409': {description: Структура заблокирована существующим выполнением}}
   /cases/{case_id}/stages/{stage_id}:
+    patch:
+      tags: [Cases]
+      operationId: updateCaseStage
+      description: Изменяет название, результат, дедлайн и ordinal. Запрещено после создания первого execution.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}, {$ref: '#/components/parameters/StageID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CaseStageInput'}}}}
+      responses: {'200': {description: Этап обновлён}, '409': {description: Структура заблокирована существующим выполнением}}
     delete:
       tags: [Cases]
       operationId: deleteCaseStage
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}, {$ref: '#/components/parameters/StageID'}]
-      responses: {'204': {description: Этап удалён из редактируемого кейса}}
+      responses: {'204': {description: Этап удалён из редактируемого кейса}, '409': {description: Структура заблокирована существующим выполнением}}
+  /cases/{case_id}/stages/order:
+    put:
+      tags: [Cases]
+      operationId: reorderCaseStages
+      description: Атомарно задаёт полный порядок этапов. Набор UUID должен точно совпадать с этапами кейса.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [stage_ids], properties: {stage_ids: {type: array, minItems: 1, maxItems: 100, uniqueItems: true, items: {type: string, format: uuid}}}}}}}
+      responses: {'200': {description: Этапы в новом порядке}, '409': {description: Структура заблокирована существующим выполнением}}
   /cases/{case_id}/files/{file_id}:
     get:
       tags: [Cases, Files]
@@ -754,6 +778,7 @@ paths:
       operationId: listExecutionStages
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ExecutionID'}]
+      description: Доступно участникам, компании, администратору и активному куратору хотя бы одного участника выполнения.
       responses: {'200': {description: Этапы выполнения}}
   /executions/{execution_id}/stages/{stage_id}:
     patch:
@@ -991,7 +1016,14 @@ paths:
       responses: {'200': {description: Решение по NDA}}
 components:
   securitySchemes:
-    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Введите только `access_token`, полученный из `POST /auth/login`, без префикса `Bearer`.
+        Для операций с замком Swagger UI добавит заголовок
+        `Authorization: Bearer <access_token>` автоматически.
   parameters:
     UserID: {name: user_id, in: path, required: true, schema: {type: string, format: uuid}}
     StudentID: {name: student_id, in: path, required: true, schema: {type: string, format: uuid}}
@@ -1079,6 +1111,7 @@ components:
         summary: {type: string}
         full_brief: {type: string}
         type: {type: string, enum: [educational, contest, paid, other_reward]}
+        event_format: {type: string, enum: [case, hackathon, olympiad], default: case, description: Формат мероприятия компании; не является категорией студенческого проекта.}
         work_format: {type: string, enum: [remote, onsite, hybrid]}
         participation_mode: {type: string, enum: [individual, team, both]}
         admission_mode: {type: string, enum: [open, selection, test, invitation]}
@@ -1086,6 +1119,7 @@ components:
         ip_terms: {type: string}
         nda_required: {type: boolean}
         evaluation_criteria: {type: array, items: {$ref: '#/components/schemas/EvaluationCriterionInput'}}
+    CaseStageInput: {type: object, required: [ordinal, title], properties: {ordinal: {type: integer, minimum: 1}, title: {type: string, minLength: 1, maxLength: 300}, expected_result: {type: string, maxLength: 3000}, due_at: {type: string, format: date-time, nullable: true}}}
     ModerationRequest: {type: object, required: [decision], properties: {decision: {type: string, enum: [approve, request_revision, reject, hide]}, comment: {type: string}}}
     Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, created_at: {type: string, format: date-time}}}
     ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}

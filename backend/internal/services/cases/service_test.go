@@ -11,8 +11,23 @@ import (
 func validInput() models.CaseInput {
 	return models.CaseInput{
 		CompanyID: "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1", Title: "Case", Summary: "Summary", FullBrief: "Brief",
-		Type: "educational", Difficulty: "beginner", WorkFormat: "remote", ParticipationMode: "individual",
+		Type: "educational", EventFormat: "case", Difficulty: "beginner", WorkFormat: "remote", ParticipationMode: "individual",
 		AdmissionMode: "open", ResultRequirements: "Result", IPTerms: "Author retains rights", Visibility: "public",
+	}
+}
+
+func TestCaseEventFormat(t *testing.T) {
+	for _, format := range []string{"case", "hackathon", "olympiad"} {
+		input := validInput()
+		input.EventFormat = format
+		if err := validate(input); err != nil {
+			t.Fatalf("event format %q must be valid: %v", format, err)
+		}
+	}
+	input := validInput()
+	input.EventFormat = "conference"
+	if err := validate(input); !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("unknown event format must be rejected: %v", err)
 	}
 }
 

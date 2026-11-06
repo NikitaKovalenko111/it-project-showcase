@@ -23,6 +23,7 @@ var (
 	ErrInvalidCursor     = errors.New("invalid case cursor")
 	ErrInvalidTransition = errors.New("invalid case status transition")
 	ErrReferenceNotFound = errors.New("case reference not found")
+	ErrStagesLocked      = errors.New("case stages are locked by existing executions")
 )
 
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -163,6 +164,9 @@ func validateFilter(filter models.CaseListFilter) error {
 	if filter.Type != "" && !oneOf(filter.Type, "educational", "contest", "paid", "other_reward") {
 		return ErrInvalidFilter
 	}
+	if filter.EventFormat != "" && !oneOf(filter.EventFormat, "case", "hackathon", "olympiad") {
+		return ErrInvalidFilter
+	}
 	return nil
 }
 
@@ -172,6 +176,10 @@ func normalize(input models.CaseInput) models.CaseInput {
 	input.Summary = strings.TrimSpace(input.Summary)
 	input.FullBrief = strings.TrimSpace(input.FullBrief)
 	input.Type = strings.TrimSpace(input.Type)
+	input.EventFormat = strings.TrimSpace(input.EventFormat)
+	if input.EventFormat == "" {
+		input.EventFormat = "case"
+	}
 	input.Difficulty = strings.TrimSpace(input.Difficulty)
 	input.WorkFormat = strings.TrimSpace(input.WorkFormat)
 	input.ParticipationMode = strings.TrimSpace(input.ParticipationMode)
@@ -217,7 +225,7 @@ func validate(input models.CaseInput) error {
 	if utf8.RuneCountInString(input.Title) > 300 || utf8.RuneCountInString(input.Summary) > 1000 || utf8.RuneCountInString(input.FullBrief) > 30000 || utf8.RuneCountInString(input.ResultRequirements) > 10000 || utf8.RuneCountInString(input.EvaluationRules) > 10000 || utf8.RuneCountInString(input.IPTerms) > 10000 || utf8.RuneCountInString(input.Duration) > 200 {
 		return ErrInvalidInput
 	}
-	if !oneOf(input.Type, "educational", "contest", "paid", "other_reward") || (input.Difficulty != "" && !oneOf(input.Difficulty, "beginner", "intermediate", "advanced")) || !oneOf(input.WorkFormat, "remote", "onsite", "hybrid") || !oneOf(input.ParticipationMode, "individual", "team", "both") || !oneOf(input.AdmissionMode, "open", "selection", "test", "invitation") || !oneOf(input.Visibility, "public", "restricted") {
+	if !oneOf(input.Type, "educational", "contest", "paid", "other_reward") || !oneOf(input.EventFormat, "case", "hackathon", "olympiad") || (input.Difficulty != "" && !oneOf(input.Difficulty, "beginner", "intermediate", "advanced")) || !oneOf(input.WorkFormat, "remote", "onsite", "hybrid") || !oneOf(input.ParticipationMode, "individual", "team", "both") || !oneOf(input.AdmissionMode, "open", "selection", "test", "invitation") || !oneOf(input.Visibility, "public", "restricted") {
 		return ErrInvalidInput
 	}
 	if !validRange(input.TeamSizeMin, input.TeamSizeMax, 1, 100) || !validRange(input.CourseMin, input.CourseMax, 1, 8) || (input.Capacity != nil && (*input.Capacity < 1 || *input.Capacity > 10000)) {
@@ -321,6 +329,9 @@ func mapRepositoryError(err error) error {
 	if errors.Is(err, case_repo.ErrReferenceNotFound) {
 		return ErrReferenceNotFound
 	}
+	if errors.Is(err, case_repo.ErrStagesLocked) {
+		return ErrStagesLocked
+	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && (pgErr.Code == "23503" || pgErr.Code == "23514" || pgErr.Code == "23505") {
 		return ErrInvalidInput
@@ -347,5 +358,33 @@ func (s *Service) CreateStage(ctx context.Context, userID, caseID string, input 
 		return nil, ErrInvalidInput
 	}
 	x, err := s.repo.CreateStage(ctx, userID, caseID, input)
+	return x, mapRepositoryError(err)
+}
+
+func (s *Service) UpdateStage(ctx context.Context, userID, caseID, stageID string, input models.CaseStageInput) (*models.CaseStage, error) {
+	input.Title = strings.TrimSpace(input.Title)
+	input.ExpectedResult = strings.TrimSpace(input.ExpectedResult)
+	if !uuidPattern.MatchString(caseID) || !uuidPattern.MatchString(stageID) || input.Ordinal < 1 || input.Title == "" || utf8.RuneCountInString(input.Title) > 300 || utf8.RuneCountInString(input.ExpectedResult) > 3000 {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.UpdateStage(ctx, userID, caseID, stageID, input)
+	return x, mapRepositoryError(err)
+}
+
+func (s *Service) ReorderStages(ctx context.Context, userID, caseID string, stageIDs []string) ([]models.CaseStage, error) {
+	if !uuidPattern.MatchString(caseID) || len(stageIDs) == 0 || len(stageIDs) > 100 {
+		return nil, ErrInvalidInput
+	}
+	seen := make(map[string]struct{}, len(stageIDs))
+	for _, stageID := range stageIDs {
+		if !uuidPattern.MatchString(stageID) {
+			return nil, ErrInvalidInput
+		}
+		if _, exists := seen[stageID]; exists {
+			return nil, ErrInvalidInput
+		}
+		seen[stageID] = struct{}{}
+	}
+	x, err := s.repo.ReorderStages(ctx, userID, caseID, stageIDs)
 	return x, mapRepositoryError(err)
 }

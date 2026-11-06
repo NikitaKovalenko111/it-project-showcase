@@ -41,7 +41,7 @@ func (r *Repository) getExecution(ctx context.Context, user, id string, company 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 func (r *Repository) authorize(ctx context.Context, user, id string, company, admin bool) error {
 	var allowed bool
-	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1`, id, user, company, admin).Scan(&allowed)
+	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL)) FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1`, id, user, company, admin).Scan(&allowed)
 	if errors.Is(err, sql.ErrNoRows) || !allowed {
 		return ErrForbidden
 	}
@@ -51,7 +51,7 @@ func (r *Repository) ListStages(ctx context.Context, user, id string, company, a
 	if err := r.authorize(ctx, user, id, company, admin); err != nil {
 		return nil, err
 	}
-	rows, err := r.db.QueryContext(ctx, `SELECT s.stage_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at,x.status,COALESCE(x.feedback,''),x.completed_at,x.updated_at FROM executions e JOIN cases c ON c.case_id=e.case_id JOIN execution_stages x ON x.execution_id=e.execution_id JOIN case_stages s ON s.stage_id=x.stage_id WHERE e.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) ORDER BY s.ordinal`, id, user, company, admin)
+	rows, err := r.db.QueryContext(ctx, `SELECT s.stage_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at,x.status,COALESCE(x.feedback,''),x.completed_at,x.updated_at FROM executions e JOIN cases c ON c.case_id=e.case_id JOIN execution_stages x ON x.execution_id=e.execution_id JOIN case_stages s ON s.stage_id=x.stage_id WHERE e.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL)) ORDER BY s.ordinal`, id, user, company, admin)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (r *Repository) UpdateStage(ctx context.Context, user, executionID, stageID
 }
 func (r *Repository) AddComment(ctx context.Context, user, executionID string, stageID *string, body string, company, admin bool) (*models.ExecutionComment, error) {
 	var x models.ExecutionComment
-	err := r.db.QueryRowContext(ctx, `INSERT INTO execution_comments(execution_id,stage_id,author_id,body) SELECT e.execution_id,$2,$3,$4 FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1 AND ($6 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$3 AND m.left_at IS NULL) OR ($5 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company'))) RETURNING comment_id,execution_id,stage_id,author_id,body,created_at`, executionID, stageID, user, body, company, admin).Scan(&x.CommentID, &x.ExecutionID, &x.StageID, &x.AuthorID, &x.Body, &x.CreatedAt)
+	err := r.db.QueryRowContext(ctx, `INSERT INTO execution_comments(execution_id,stage_id,author_id,body) SELECT e.execution_id,$2,$3,$4 FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1 AND ($6 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$3 AND m.left_at IS NULL) OR ($5 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$3 AND sc.revoked_at IS NULL)) RETURNING comment_id,execution_id,stage_id,author_id,body,created_at`, executionID, stageID, user, body, company, admin).Scan(&x.CommentID, &x.ExecutionID, &x.StageID, &x.AuthorID, &x.Body, &x.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
@@ -89,7 +89,7 @@ func (r *Repository) ListComments(ctx context.Context, user, executionID string,
 	if err := r.authorize(ctx, user, executionID, company, admin); err != nil {
 		return nil, err
 	}
-	q := `SELECT x.comment_id,x.execution_id,x.stage_id,x.author_id,x.body,x.created_at FROM execution_comments x JOIN executions e ON e.execution_id=x.execution_id JOIN cases c ON c.case_id=e.case_id WHERE x.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')))`
+	q := `SELECT x.comment_id,x.execution_id,x.stage_id,x.author_id,x.body,x.created_at FROM execution_comments x JOIN executions e ON e.execution_id=x.execution_id JOIN cases c ON c.case_id=e.case_id WHERE x.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL))`
 	args := []any{executionID, user, company, admin}
 	if before != nil {
 		args = append(args, *before, beforeID)
@@ -124,7 +124,7 @@ func (r *Repository) ListMentors(ctx context.Context, user, executionID string, 
 	if err := r.authorize(ctx, user, executionID, company, admin); err != nil {
 		return nil, err
 	}
-	rows, err := r.db.QueryContext(ctx, `SELECT m.execution_id,m.user_id,m.role_name,m.assigned_at FROM execution_mentors m JOIN executions e ON e.execution_id=m.execution_id JOIN cases c ON c.case_id=e.case_id WHERE m.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members x WHERE x.execution_id=e.execution_id AND x.student_id=$2 AND x.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) ORDER BY m.assigned_at,m.user_id`, executionID, user, company, admin)
+	rows, err := r.db.QueryContext(ctx, `SELECT m.execution_id,m.user_id,m.role_name,m.assigned_at FROM execution_mentors m JOIN executions e ON e.execution_id=m.execution_id JOIN cases c ON c.case_id=e.case_id WHERE m.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members x WHERE x.execution_id=e.execution_id AND x.student_id=$2 AND x.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL)) ORDER BY m.assigned_at,m.user_id`, executionID, user, company, admin)
 	if err != nil {
 		return nil, err
 	}

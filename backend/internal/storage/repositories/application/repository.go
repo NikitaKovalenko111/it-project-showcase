@@ -264,7 +264,7 @@ const executionSelect = `SELECT e.execution_id,e.case_id,c.title,e.application_i
 func (r *Repository) GetExecution(ctx context.Context, userID, executionID string, isCompany, isAdmin bool) (*models.Execution, error) {
 	var item models.Execution
 	var members []byte
-	err := r.db.QueryRowContext(ctx, executionSelect+` WHERE e.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')))`, executionID, userID, isCompany, isAdmin).Scan(&item.ExecutionID, &item.CaseID, &item.CaseTitle, &item.ApplicationID, &item.TeamID, &item.Status, &item.StartedAt, &item.DueAt, &item.EndedAt, &item.CreatedAt, &members)
+	err := r.db.QueryRowContext(ctx, executionSelect+` WHERE e.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL))`, executionID, userID, isCompany, isAdmin).Scan(&item.ExecutionID, &item.CaseID, &item.CaseTitle, &item.ApplicationID, &item.TeamID, &item.Status, &item.StartedAt, &item.DueAt, &item.EndedAt, &item.CreatedAt, &members)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}

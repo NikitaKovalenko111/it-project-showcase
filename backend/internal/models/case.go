@@ -48,6 +48,7 @@ type Case struct {
 	Summary              string                `json:"summary"`
 	FullBrief            string                `json:"full_brief"`
 	Type                 string                `json:"type"`
+	EventFormat          string                `json:"event_format"`
 	Difficulty           string                `json:"difficulty,omitempty"`
 	WorkFormat           string                `json:"work_format"`
 	ParticipationMode    string                `json:"participation_mode"`
@@ -110,6 +111,7 @@ type CaseInput struct {
 	Summary             string                     `json:"summary"`
 	FullBrief           string                     `json:"full_brief"`
 	Type                string                     `json:"type"`
+	EventFormat         string                     `json:"event_format"`
 	Difficulty          string                     `json:"difficulty,omitempty"`
 	WorkFormat          string                     `json:"work_format"`
 	ParticipationMode   string                     `json:"participation_mode"`
@@ -143,6 +145,7 @@ type CaseListFilter struct {
 	ParticipationMode string
 	WorkFormat        string
 	Type              string
+	EventFormat       string
 	HasReward         *bool
 	Statuses          []string
 	IncludeRestricted bool

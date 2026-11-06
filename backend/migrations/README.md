@@ -32,3 +32,5 @@ The server embeds these files, applies them in version order and records version
 
 `000011_sprint4_expansion.up.sql` adds tree comments and reports, team discovery and join applications, leaderboards, internships, curators, portfolio files, case covers, project visibility and tags, versioned NDA text, and locks evaluation criteria after draft.
 
+`000012_case_formats_stage_editing_curator_access.up.sql` adds the company event format (`case`, `hackathon`, `olympiad`). Stage editing and curator access are implemented in application code against the existing stage and curator relations.
+
