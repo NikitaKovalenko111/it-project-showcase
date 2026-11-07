@@ -1,3 +1,6 @@
+import { apiRuntime } from '../api/runtime'
+import { formatDate } from '../utils/date'
+import { AdminCaseActions } from '../components/AdminCaseActions'
 import { PublicationContext } from '../components/PublicationContext'
 import { canReceiveApplications } from '../utils/recruiting'
 import { CaseComments } from '../components/CaseComments'
@@ -66,7 +69,7 @@ export const CaseDetailPage: React.FC = () => {
     }
   }, [dispatch, id])
 
-  if (error) return <div role="alert" className="card" style={{ padding: 24 }}>{error} <Link to="/cases">К списку кейсов</Link></div>
+  if (error) return <div role="alert" className="card" style={{ padding: 24 }}>{error} <Link to={sessionStorage.getItem('cases-return-url')?.startsWith('/cases?') ? sessionStorage.getItem('cases-return-url')! : '/cases'}>К списку кейсов</Link></div>
 
   if (loading || !activeCase || activeCase.id !== id) {
     return <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>Загрузка кейса...</div>
@@ -89,7 +92,8 @@ export const CaseDetailPage: React.FC = () => {
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
 
-  const canReviewApplications = (isCompanyRepresentative || isCuratorOrAdmin) && !['olympiad','hackathon'].includes(activeCase.kind || '')
+  const instantRegistration=apiRuntime.mode!=='live'&&['olympiad','hackathon'].includes(activeCase.kind || '')
+  const canReviewApplications = (isCompanyRepresentative || isCuratorOrAdmin) && !instantRegistration
 
   const handleStatusChange = (appId: string, status: any) => {
     dispatch(updateApplicationStatusRequest(appId, status))
@@ -97,14 +101,14 @@ export const CaseDetailPage: React.FC = () => {
 
   return (
     <div>
-      {activeCase.coverUrl && <img src={activeCase.coverUrl} alt="Обложка кейса" style={{width:'100%',maxHeight:280,objectFit:'cover',borderRadius:12,marginBottom:20}} />}
+      {activeCase.coverUrl && isPublished(activeCase) && <img src={activeCase.coverUrl} alt="Обложка кейса" style={{width:'100%',maxHeight:280,objectFit:'cover',borderRadius:12,marginBottom:20}} />}
       {/* Back button & Action header */}
       <div className="page-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <Link to="/cases" className="btn btn-secondary btn-sm">
+        <Link to={sessionStorage.getItem('cases-return-url')?.startsWith('/cases?') ? sessionStorage.getItem('cases-return-url')! : '/cases'} className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Вернуться к витрине кейсов
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><ReportButton targetType="case" targetId={activeCase.id} />
+        <div className="page-actions"><AdminCaseActions project={activeCase}/><ReportButton targetType="case" targetId={activeCase.id} />
           {currentUser?.role === 'student' && <button
             className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
             aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'} aria-pressed={isFavorite} onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
@@ -120,11 +124,11 @@ export const CaseDetailPage: React.FC = () => {
           ) : currentUser?.role === 'student' && isPublished(activeCase) ? (
             userApplication ? (
               <span className="badge badge-status status-open" style={{ padding: '8px 12px', fontSize: '12px' }}>
-                <CheckCircle2 size={14} /> {['olympiad','hackathon'].includes(activeCase.kind || '') ? 'Вы зарегистрированы' : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
+                <CheckCircle2 size={14} /> {instantRegistration ? 'Вы зарегистрированы' : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
               </span>
             ) : (
               <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
-                <Send size={15} /> {['olympiad','hackathon'].includes(activeCase.kind || '') ? 'Зарегистрироваться' : 'Подать заявку на кейс'}
+                <Send size={15} /> {instantRegistration ? 'Зарегистрироваться' : 'Подать заявку'}
               </button>
             )
           ) : null}
@@ -400,7 +404,7 @@ export const CaseDetailPage: React.FC = () => {
                             {pp.reward}
                           </div>
                           <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                            Критерий: {pp.criteria}
+                            Критерий: {pp.criteria.length>120?<details><summary>{pp.criteria.slice(0,120)}… Подробнее</summary>{pp.criteria}</details>:pp.criteria}
                           </div>
                         </div>
                       ))}
@@ -445,7 +449,7 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card__header">
               <h3 style={{ margin: 0, fontSize: '15px' }}>Параметры выполнения</h3>
             </div>
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}><p>Тип: {({ case: 'Кейс', hackathon: 'Хакатон', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p>{activeCase.participationFormat === 'individual' ? 'Максимум участников' : 'Максимум команд'}: {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}
+            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{activeCase.specificationFile&&<a className="btn btn-secondary" href={activeCase.specificationFile.url} target="_blank" rel="noreferrer">Техническое задание: {activeCase.specificationFile.name}</a>}<p><strong>Тип мероприятия</strong><br/>{({ case: 'Кейс', hackathon: 'Хакатон', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p><strong>{activeCase.participationFormat === 'team' ? 'Максимум команд' : activeCase.participationFormat === 'both' ? 'Лимит заявок' : 'Максимум участников'}</strong><br/> {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}
               <div className="action-row"><span className="badge badge-direction">{activeCase.direction}</span><span className="badge badge-complexity-medium">Уровень: {activeCase.complexity.toLowerCase()}</span></div>
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Формат работы:</span>
@@ -460,7 +464,7 @@ export const CaseDetailPage: React.FC = () => {
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Крайний срок (Дедлайн):</span>
                 <strong style={{ fontSize: '13px', color: '#b45309' }}>
-                  {new Date(activeCase.deadlineDate).toLocaleDateString('ru-RU')}
+                  {formatDate(activeCase.deadlineDate)}
                 </strong>
               </div>
 

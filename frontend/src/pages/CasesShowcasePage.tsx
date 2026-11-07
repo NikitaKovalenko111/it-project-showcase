@@ -1,8 +1,10 @@
+import { apiRuntime } from '../api/runtime'
+import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { ScrollToolbar } from '../components/ScrollToolbar'
-import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
+import { publicationLabels, publicationStatus, isPublished, matchesSearch } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import {
   fetchCasesRequest,
@@ -39,22 +41,39 @@ import {
 export const CasesShowcasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
+  useEffect(()=>{sessionStorage.setItem('cases-return-url',location.pathname+location.search)},[location.pathname,location.search])
   const { casesList, favorites, filters, loading, error } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [eventFormat,setEventFormat]=useState('all')
+  const live=apiRuntime.mode==='live'
+  const requestFilters=live?undefined:filters
   const [activeTab, setActiveTab] = useState<'cases' | 'recruiting'>('cases')
 
   useEffect(() => {
-    dispatch(fetchCasesRequest(filters))
-  }, [dispatch, filters])
+    dispatch(fetchCasesRequest(requestFilters))
+  }, [dispatch, requestFilters])
 
   useEffect(() => {
     dispatch(fetchFavoritesRequest())
   }, [dispatch])
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
-  const visibleCases = selectShowcaseCases(visibleCasesFor(currentUser, casesList), {
+  const cases=visibleCasesFor(currentUser,casesList)
+  const directions=[...new Set(cases.map(item=>item.direction).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'))
+  const filteredCases=cases.filter(item=>
+    (eventFormat==='all'||(item.kind || 'case')===eventFormat)
+    && (!live || (
+      matchesSearch(filters.search,item.title,item.companyName,item.shortDescription,item.requiredCompetencies,item.recommendedTech)
+      && (filters.direction==='all'||item.direction===filters.direction)
+      && (filters.complexity==='all'||item.complexity===filters.complexity)
+      && (filters.workFormat==='all'||item.workFormat===filters.workFormat)
+      && (filters.rewardType==='all'||item.rewardType===filters.rewardType)
+      && (!filters.hasReward||!!item.prizeFund||!!item.rewardAmount||!!item.rewardDescription)
+    )))
+  const visibleCases = selectShowcaseCases(filteredCases, {
     period: 'all', technology: 'all', recruiting: activeTab === 'recruiting', sort,
   })
 
@@ -70,6 +89,7 @@ export const CasesShowcasePage: React.FC = () => {
   const handleResetFilters = () => {
     setActiveTab('cases')
     setSort('newest')
+    setEventFormat('all')
     dispatch(resetCaseFilters())
   }
 
@@ -149,7 +169,7 @@ export const CasesShowcasePage: React.FC = () => {
           </button>}
         </div>
 
-        <div className="uust-box"><label className="catalog-sort">Сортировать<select className="uust-select" value={sort} onChange={e => setSort(e.target.value as ShowcaseSort)}><option value="newest">Сначала новые</option><option value="deadline">Ближайший дедлайн</option><option value="popular">По заявкам</option></select></label>
+        <div className="uust-box">
           {/* Row 1: Search input */}
           <div className="uust-filter-row">
             <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
@@ -173,6 +193,7 @@ export const CasesShowcasePage: React.FC = () => {
                 placeholder="Поиск по названию задачи, компании или стеку (React, Python, Computer Vision, Go)..."
               />
             </div>
+            <label className="catalog-sort">Сортировать<select className="uust-select" value={sort} onChange={e => setSort(e.target.value as ShowcaseSort)}><option value="newest">Сначала новые</option><option value="deadline">Ближайший дедлайн</option>{!live&&<option value="popular">По заявкам</option>}</select></label>
           </div>
 
           {/* Row 2: Clean dropdowns like on photo */}
@@ -185,13 +206,7 @@ export const CasesShowcasePage: React.FC = () => {
               onChange={(e) => handleFilterChange('direction', e.target.value)}
             >
               <option value="all">Все направления разработки</option>
-              <option value="Искусственный интеллект">Искусственный интеллект & ML (ИИМР)</option>
-              <option value="Компьютерное зрение">Компьютерное зрение (ИИМР)</option>
-              <option value="Мобильная разработка">Мобильная разработка</option>
-              <option value="Frontend">Frontend-разработка</option>
-              <option value="Backend">Backend и микросервисы</option>
-              <option value="Информационная безопасность">Информационная безопасность</option>
-              <option value="IoT">IoT и робототехника (ИАТМ)</option>
+              {(live?directions:['Искусственный интеллект','Компьютерное зрение','Мобильная разработка','Frontend','Backend','Информационная безопасность','IoT','Программирование','Математика']).map(direction=><option key={direction}>{direction}</option>)}
             </select>
 
             <select
@@ -235,6 +250,9 @@ export const CasesShowcasePage: React.FC = () => {
 
           {/* Row 3: Semester pills matching the screenshot */}
           <div className="uust-pills-row">
+            <select aria-label="Тип события" className="uust-select" value={eventFormat} onChange={e=>setEventFormat(e.target.value)}>
+              <option value="all">Все события</option><option value="case">Кейсы</option><option value="hackathon">Хакатоны</option><option value="olympiad">Олимпиады</option>
+            </select>
             <button
               className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
               onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
@@ -276,7 +294,7 @@ export const CasesShowcasePage: React.FC = () => {
         <div className="card" role="alert" style={{ padding: 24 }}>
           <h3>Не удалось загрузить кейсы</h3>
           <p>{error}</p>
-          <button className="btn btn-primary btn-sm" onClick={() => dispatch(fetchCasesRequest(filters))}>Повторить загрузку</button>
+          <button className="btn btn-primary btn-sm" onClick={() => dispatch(fetchCasesRequest(requestFilters))}>Повторить загрузку</button>
         </div>
       ) : visibleCases.length === 0 ? (
         <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -336,7 +354,7 @@ export const CasesShowcasePage: React.FC = () => {
                   {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
 
                   <div className="case-card__tags"><span className="badge badge-direction">{({case:'Проект',hackathon:'Хакатон',olympiad:'Олимпиада',internship:'Стажировка'})[item.kind || 'case']}</span>
-                    <span className="badge badge-direction">{item.direction}</span>
+                    {item.direction&&<span className="badge badge-direction">{item.direction}</span>}
                     <span className={`badge ${getComplexityClass(item.complexity)}`}>Уровень: {item.complexity.toLowerCase()}</span>
                     {item.isConfidential && (
                       <span className="badge badge-confidential">
@@ -351,7 +369,7 @@ export const CasesShowcasePage: React.FC = () => {
                     <div className="meta-item">
                       <Calendar size={13} />
                       <span>
-                        Дедлайн: <strong>{new Date(item.deadlineDate).toLocaleDateString('ru-RU')}</strong>
+                        Дедлайн: <strong>{formatDate(item.deadlineDate)}</strong>
                       </span>
                     </div>
                     <div className="meta-item">

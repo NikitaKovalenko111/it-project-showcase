@@ -1,5 +1,9 @@
+import { apiRuntime } from '../api/runtime'
+import { formatDate } from '../utils/date'
+import { AdminCompanyActions } from '../components/AdminCompanyActions'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { communityApi } from '../api/community'
+import { ReportButton } from '../components/ReportButton'
 import { CompanyProgram } from '../components/CompanyProgram'
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -40,7 +44,7 @@ export const CompanyDetailPage: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false)
   const [description, setDescription] = useState('')
-  const [activeTab, setActiveTab] = useState<'cases' | 'internships' | 'mentors'>('cases')
+  const [activeTab, setActiveTab] = useState<'cases' | 'internships' | 'practices' | 'mentors'>('cases')
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [caseSearch, setCaseSearch] = useState('')
@@ -72,7 +76,9 @@ export const CompanyDetailPage: React.FC = () => {
   const isCuratorOrAdmin =
     currentUser?.role === 'admin'
 
-  const companyCases = casesList.filter((c) => c.companyId === activeCompany.id || c.companyName === activeCompany.name)
+  const live=apiRuntime.mode==='live'
+  const companyCases = casesList.filter(c => c.companyId === activeCompany.id)
+  const publicCases = companyCases.filter(c=>c.isModerated && ['open','in_progress','completed'].includes(c.status))
 
   const filteredCases = companyCases.filter((c) => `${c.title} ${c.shortDescription}`.toLowerCase().includes(caseSearch.trim().toLowerCase()) && (caseDirection === 'all' || c.direction === caseDirection) && (caseStatus === 'all' || c.status === caseStatus)).sort((a, b) => caseSort === 'deadline' ? a.deadlineDate.localeCompare(b.deadlineDate) : caseSort === 'popular' ? b.applicationsCount - a.applicationsCount : b.publishedAt.localeCompare(a.publishedAt))
 
@@ -85,7 +91,7 @@ export const CompanyDetailPage: React.FC = () => {
           <ArrowLeft size={15} /> Все компании-партнёры
         </Link>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="page-actions"><ReportButton targetType="company" targetId={activeCompany.id}/><AdminCompanyActions key={activeCompany.id} company={activeCompany}/>
           {(isCompanyRepresentative || isCuratorOrAdmin) && (
             <button className="btn btn-primary btn-sm" onClick={() => setCreateCaseModalOpen(true)}>
               <Plus size={14} /> Разместить кейс от компании
@@ -97,11 +103,9 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
         <div className="company-hero__top">
-          <img
-            src={activeCompany.logo}
-            alt={activeCompany.name}
-            className="company-hero__logo"
-          />
+          {activeCompany.logo
+            ? <img src={activeCompany.logo} alt="" className="company-hero__logo" />
+            : <span className="company-hero__logo company-hero__logo--placeholder" aria-hidden="true"><Building2 size={32}/></span>}
 
           <div className="company-hero__info">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -119,8 +123,7 @@ export const CompanyDetailPage: React.FC = () => {
 
             <div style={{ fontSize: '13px', color: '#b9d4f6', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>Краткое наименование: <strong>{activeCompany.shortName}</strong></span>
-              <span>•</span>
-              <span>ИНН: 0274198273</span>
+              {!live&&<span>• ИНН: 0274198273</span>}
             </div>
           </div>
 
@@ -146,7 +149,7 @@ export const CompanyDetailPage: React.FC = () => {
               />
               <button
                 className="btn btn-primary btn-sm mt-2"
-                disabled={saving} onClick={async () => { setSaving(true); try { dispatch(fetchCompanyByIdSuccess(await communityApi.updateCompanyContent(activeCompany.id, { description, internshipProgram: activeCompany.internshipProgram || '' }))); setIsEditing(false); setSaveError('') } catch (e) { setSaveError((e as Error).message) } finally { setSaving(false) } }}
+                disabled={saving} onClick={async () => { setSaving(true); try { dispatch(fetchCompanyByIdSuccess(await communityApi.updateCompanyContent(activeCompany.id, { description, ...(apiRuntime.mode==='mock'?{internshipProgram: activeCompany.internshipProgram || ''}:{}) }))); setIsEditing(false); setSaveError('') } catch (e) { setSaveError((e as Error).message) } finally { setSaving(false) } }}
                 style={{ marginTop: '10px' }}
               >
                 <Save size={14} /> Сохранить изменения
@@ -163,16 +166,16 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Key Metrics Row */}
       <div className="company-metrics-row">
         <div className="metric-card metric-card--blue">
-          <div className="metric-value">{activeCompany.activeCasesCount || companyCases.length || 3}</div>
+          <div className="metric-value">{live?publicCases.filter(c=>c.status!=='completed').length:activeCompany.activeCasesCount}</div>
           <div className="metric-label">Активных кейсов в семестре</div>
         </div>
 
         <div className="metric-card metric-card--emerald">
-          <div className="metric-value">{activeCompany.completedProjectsCount || 8}</div>
-          <div className="metric-label">Успешно сданных проектов</div>
+          <div className="metric-value">{live?publicCases.filter(c=>c.status==='completed').length:activeCompany.completedProjectsCount}</div>
+          <div className="metric-label">Завершённых кейсов</div>
         </div>
 
-        <div className="metric-card metric-card--amber">
+        {!live&&<><div className="metric-card metric-card--amber">
           <div className="metric-value">16+</div>
           <div className="metric-label">Студентов на стажировке / в штате</div>
         </div>
@@ -180,12 +183,12 @@ export const CompanyDetailPage: React.FC = () => {
         <div className="metric-card metric-card--coral">
           <div className="metric-value">3 года</div>
           <div className="metric-label">Сотрудничества с кафедрой ИИМР</div>
-        </div>
+        </div></>}
       </div>
 
       {/* Contact Cards Grid */}
-      <div className="company-contacts-grid">
-        <div className="contact-card">
+      {(activeCompany.website||activeCompany.email||activeCompany.phone||activeCompany.contactPerson)&&<div className="company-contacts-grid">
+        {activeCompany.website&&<div className="contact-card">
           <div className="contact-card__icon contact-card__icon--blue">
             <Globe size={18} />
           </div>
@@ -197,23 +200,21 @@ export const CompanyDetailPage: React.FC = () => {
               </a>
             </div>
           </div>
-        </div>
+        </div>}
 
-        <div className="contact-card">
+        {activeCompany.email&&<div className="contact-card">
           <div className="contact-card__icon contact-card__icon--emerald">
             <Mail size={18} />
           </div>
           <div className="contact-card__text">
-            <div className="label">Email для заявок</div>
+            <div className="label">{apiRuntime.mode==='live'?'Контакты':'Email для заявок'}</div>
             <div className="value">
-              <a href={`mailto:${activeCompany.email}`}>
-                {activeCompany.email}
-              </a>
+              {apiRuntime.mode==='live'?(activeCompany.email || 'Не указаны'):<a href={`mailto:${activeCompany.email}`}>{activeCompany.email}</a>}
             </div>
           </div>
-        </div>
+        </div>}
 
-        <div className="contact-card">
+        {activeCompany.phone&&<div className="contact-card">
           <div className="contact-card__icon contact-card__icon--amber">
             <Phone size={18} />
           </div>
@@ -221,9 +222,9 @@ export const CompanyDetailPage: React.FC = () => {
             <div className="label">Телефон координатора</div>
             <div className="value">{activeCompany.phone}</div>
           </div>
-        </div>
+        </div>}
 
-        <div className="contact-card">
+        {activeCompany.contactPerson&&<div className="contact-card">
           <div className="contact-card__icon contact-card__icon--purple">
             <User size={18} />
           </div>
@@ -231,11 +232,11 @@ export const CompanyDetailPage: React.FC = () => {
             <div className="label">Куратор от компании</div>
             <div className="value">{activeCompany.contactPerson}</div>
           </div>
-        </div>
-      </div>
+        </div>}
+      </div>}
 
       {/* Tech Stack Cloud */}
-      <div style={{ marginBottom: '24px' }}>
+      {activeCompany.techStack.length>0&&<div style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0c1938', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Code2 size={16} color="#3a75b4" /> Технологический стек и специализация:
         </h3>
@@ -246,7 +247,7 @@ export const CompanyDetailPage: React.FC = () => {
             </span>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Tabs Row (Schedule-style authorial container) */}
       <div className="uust-container">
@@ -261,8 +262,9 @@ export const CompanyDetailPage: React.FC = () => {
             className={`uust-tab ${activeTab === 'internships' ? 'active' : ''}`}
             onClick={() => setActiveTab('internships')}
           >
-            <GraduationCap size={14} /> Программа стажировок
+            <GraduationCap size={14} /> Стажировки
           </button>
+          <button className={`uust-tab ${activeTab==='practices'?'active':''}`} onClick={()=>setActiveTab('practices')}><GraduationCap size={14}/> Практики</button>
           <button
             className={`uust-tab ${activeTab === 'mentors' ? 'active' : ''}`}
             onClick={() => setActiveTab('mentors')}
@@ -274,7 +276,7 @@ export const CompanyDetailPage: React.FC = () => {
         <div className="uust-box">
           {activeTab === 'cases' && (
             <div>
-              <div className="feature-toolbar"><input className="input" type="search" aria-label="Поиск кейсов компании" placeholder="Найти кейс" value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} /><select className="select" aria-label="Направление кейса компании" value={caseDirection} onChange={(e) => setCaseDirection(e.target.value)}><option value="all">Все направления</option>{[...new Set(companyCases.map((c) => c.direction))].map((d) => <option key={d}>{d}</option>)}</select><select className="select" aria-label="Статус кейса компании" value={caseStatus} onChange={(e) => setCaseStatus(e.target.value)}><option value="all">Все статусы</option><option value="open">Открыт набор</option><option value="in_progress">В работе</option><option value="completed">Завершен</option></select><select className="select" aria-label="Сортировка кейсов компании" value={caseSort} onChange={(e) => setCaseSort(e.target.value)}><option value="newest">Сначала новые</option><option value="deadline">По дедлайну</option><option value="popular">По заявкам</option></select></div>
+              <div className="feature-toolbar"><input className="input" type="search" aria-label="Поиск кейсов компании" placeholder="Найти кейс" value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} /><select className="select" aria-label="Направление кейса компании" value={caseDirection} onChange={(e) => setCaseDirection(e.target.value)}><option value="all">Все направления</option>{[...new Set(companyCases.map((c) => c.direction).filter(Boolean))].map((d) => <option key={d}>{d}</option>)}</select><select className="select" aria-label="Статус кейса компании" value={caseStatus} onChange={(e) => setCaseStatus(e.target.value)}><option value="all">Все статусы</option><option value="open">Открыт набор</option><option value="in_progress">В работе</option><option value="completed">Завершен</option></select><select className="select" aria-label="Сортировка кейсов компании" value={caseSort} onChange={(e) => setCaseSort(e.target.value)}><option value="newest">Сначала новые</option><option value="deadline">По дедлайну</option><option value="popular">По заявкам</option></select></div>
 
               {filteredCases.length === 0 ? (
                 <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
@@ -287,7 +289,7 @@ export const CompanyDetailPage: React.FC = () => {
                       <div className="case-card__top-accent" />
                       <div className="card__body">
                         <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                          <span className="badge badge-direction">{c.direction}</span>
+                          {c.direction&&<span className="badge badge-direction">{c.direction}</span>}
                           <span className="badge badge-complexity-medium">{c.complexity}</span>
                         </div>
 
@@ -300,7 +302,7 @@ export const CompanyDetailPage: React.FC = () => {
                         <div className="case-card__meta-grid">
                           <div className="meta-item">
                             <Calendar size={13} />
-                            <span>Дедлайн: <strong>{new Date(c.deadlineDate).toLocaleDateString('ru-RU')}</strong></span>
+                            <span>Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong></span>
                           </div>
                           <div className="meta-item">
                             <Users size={13} />
@@ -342,6 +344,7 @@ export const CompanyDetailPage: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'practices' && <CompanyProgram key="practices" company={activeCompany} editable={isCompanyRepresentative} practice/>}
           {activeTab === 'internships' && <CompanyProgram company={activeCompany} editable={isCompanyRepresentative} />}
 
           {activeTab === 'mentors' && (

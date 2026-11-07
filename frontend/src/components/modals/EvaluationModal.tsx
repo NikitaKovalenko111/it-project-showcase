@@ -41,9 +41,9 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
 
   if (!isOpen) return null
 
-  const criteriaLabels = (project?.evaluationCriteria || legacyCriteria).map(c => ({key:c.id,label:c.label,weight:c.weight}))
-  const maxScore = criteriaLabels.length * 10
-  const totalScore = evaluationTotal(criteriaLabels.map(c => ({id:c.key,label:c.label,weight:c.weight})), scores)
+  const criteriaLabels = (project?.evaluationCriteria || legacyCriteria).map(c => ({key:c.id,label:c.label,weight:c.weight,maxScore:c.maxScore}))
+  const maxScore = criteriaLabels.reduce((sum,c)=>sum+(c.maxScore ?? 10),0)
+  const totalScore = evaluationTotal(criteriaLabels.map(c => ({id:c.key,label:c.label,weight:c.weight,maxScore:c.maxScore})), scores)
 
   const handleScoreChange = (key: string, value: number) => {
     setScores((prev) => ({ ...prev, [key]: value }))
@@ -120,16 +120,16 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
 
             {/* 10 Evaluation Criteria Sliders */}
             <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px', marginBottom: '20px' }}>
-              {criteriaLabels.map(({ key, label, weight }) => (
+              {criteriaLabels.map(({ key, label, maxScore }) => (
                 <div key={key}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}>
-                    <span>{label} · вес {weight}</span>
-                    <span style={{ color: '#1b5e91' }}>{scores[key] || 0} / 10</span>
+                    <span>{label}</span>
+                    <span style={{ color: '#1b5e91' }}>{scores[key] || 0} / {maxScore ?? 10}</span>
                   </div>
                   <input
                     type="range"
                     min="0"
-                    max="10"
+                    max={maxScore ?? 10}
                     value={scores[key] || 0}
                     onChange={(e) => handleScoreChange(key, Number(e.target.value))}
                     style={{ width: '100%', cursor: 'pointer' }}

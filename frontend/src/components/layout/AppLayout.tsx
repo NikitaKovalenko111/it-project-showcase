@@ -6,7 +6,7 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
 export const AppLayout: React.FC = () => {
-  const { currentUser, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { currentUser, loading } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -80,8 +80,7 @@ export const AppLayout: React.FC = () => {
     }
   }
 
-  if (!isAuthenticated && localStorage.getItem('uust_logged_out') === 'true') return <Navigate to="/login" replace />
-  if (!currentUser) return <p role="status">Загрузка профиля...</p>
+  if (!currentUser) return loading ? <p role="status">Загрузка профиля...</p> : <Navigate to="/login" replace />
   return (
     <div className="app-shell">
       <Sidebar

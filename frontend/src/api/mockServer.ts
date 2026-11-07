@@ -90,6 +90,7 @@ export class MockServer {
   private milestones: ProjectMilestone[] = load('milestones', INITIAL_MILESTONES)
   private submissions: ProjectSubmission[] = load('submissions', INITIAL_SUBMISSIONS)
   private evaluations: ProjectEvaluation[] = load('evaluations', INITIAL_EVALUATIONS)
+  private projectLikes:Record<string,string[]> = load('studentProjectLikes', {})
   private studentProjects: StudentProject[] = load('studentProjects', INITIAL_STUDENT_PROJECTS)
   private applications: CaseApplication[] = load('applications', INITIAL_APPLICATIONS)
   private teams: ProjectTeam[] = load('teams', INITIAL_TEAMS)
@@ -111,7 +112,7 @@ export class MockServer {
     for(const entry of this.executions){ const seed=demo.executions.find(e=>e.id===entry.id);if(seed?.teamId&&!entry.teamId)entry.teamId=seed.teamId }
     save('teams',this.teams);save('executions',this.executions)
     if(!load('demo_shared_plan_v1',false)) {
-      demo.cases.forEach(c=>{if(!this.milestones.some(m=>m.caseId===c.id)) ['Старт и разбор задания','Промежуточный результат','Финальная сдача'].forEach((title,i)=>this.milestones.push({id:`${c.id}_plan_${i}`,caseId:c.id,stepNumber:i+1,title:c.kind==='olympiad'?`Тур ${i+1}`:title,description:'Общий этап для всех участников. Материалы сдавайте в своём выполнении.',deadline:c.deadlineDate,status:'pending',attachedMaterials:[]}))})
+      demo.cases.forEach(c=>{if(!this.milestones.some(m=>m.caseId===c.id)) ['Старт и разбор задания','Промежуточный результат','Финальная сдача'].forEach((title,i)=>this.milestones.push({id:`${c.id}_plan_${i}`,caseId:c.id,stepNumber:i+1,title:c.kind==='olympiad'?`Тур ${i+1}`:title,description:'Общий этап для всех участников. Материалы сдавайте в своём выполнении.',deadline:new Date(Date.parse(c.deadlineDate+'T12:00:00Z')-(2-i)*7*86400000).toISOString().slice(0,10),status:'pending',attachedMaterials:[]}))})
       save('milestones',this.milestones);save('demo_shared_plan_v1',true)
     }
     const missing = demo.cases.filter(c => !this.cases.some(x => x.id === c.id))
@@ -186,7 +187,7 @@ export class MockServer {
     if(project.status==='completed')throw new Error('Проект завершён, план зафиксирован')
     if(new Set(rows.map(r=>r.id)).size!==rows.length || rows.some(r=>!r.id||!r.title.trim()||r.title.length>150||!/^\d{4}-\d{2}-\d{2}$/.test(r.deadline)||!Number.isFinite(Date.parse(r.deadline))||new Date(r.deadline).toISOString().slice(0,10)!==r.deadline))throw new Error('Укажите уникальные этапы, названия и корректные даты')
     if(rows.some(r=>this.milestones.some(m=>m.id===r.id&&m.caseId!==caseId)))throw new Error('Этап принадлежит другому проекту')
-    if(rows.some(r=>r.deadline>project.deadlineDate))throw new Error('Срок этапа позже завершения проекта. Сначала измените срок проекта в публикации.')
+    // Individual stage extensions may exceed the original case deadline.
     this.syncExecutions(caseId)
     const previous=this.milestones.filter(m=>m.caseId===caseId)
     const removed=previous.filter(m=>!rows.some(r=>r.id===m.id))
@@ -220,10 +221,10 @@ export class MockServer {
     const project=this.requireCaseManager(entry.caseId), user=this.actor()
     if(project.status==='completed')throw new Error('Итоги опубликованы, оценки зафиксированы')
     if(!entry.submission)throw new Error('Работа ещё не сдана')
-    const items=project.kind==='olympiad' ? (project.olympiadTasks || []).map(t=>({id:t.id,max:t.maxScore,weight:1})) : (project.evaluationCriteria || legacyCriteria).map(c=>({...c,max:10}))
+    const items=project.kind==='olympiad' ? (project.olympiadTasks || []).map(t=>({id:t.id,max:t.maxScore,weight:1})) : (project.evaluationCriteria || legacyCriteria).map(c=>({...c,max:c.maxScore ?? 10}))
     if(!items.length || items.some(c=>!Number.isFinite(scores[c.id]) || scores[c.id]<0 || scores[c.id]>c.max))throw new Error('Укажите баллы в пределах максимума каждой задачи или критерия')
     const clean=Object.fromEntries(items.map(c=>[c.id,scores[c.id]]))
-    const total=project.kind==='olympiad'?Object.values(clean).reduce((a,b)=>a+b,0):evaluationTotal(items.map(c=>({id:c.id,label:'',weight:c.weight})),clean)
+    const total=project.kind==='olympiad'?Object.values(clean).reduce((a,b)=>a+b,0):evaluationTotal(items.map(c=>({id:c.id,label:'',weight:c.weight,maxScore:('maxScore' in c?c.maxScore:undefined) as number|undefined})),clean)
     entry.evaluation={id:`evaluation_${id}`,caseId:entry.caseId,companyId:project.companyId,companyName:project.companyName,evaluatorName:user.fullName,scores:clean,totalScore:total,maxScore:items.reduce((a,c)=>a+c.max,0),feedback,evaluatedAt:new Date().toISOString()}
     entry.status='evaluated';save('executions',this.executions);return entry
   }
@@ -275,12 +276,12 @@ export class MockServer {
     }
     project.visibility = visibility; save('studentProjects', this.studentProjects); return project
   }
-  updateCompanyContent(id: string, patch: { description: string; internshipProgram: string }): Company {
+  updateCompanyContent(id: string, patch: { description: string; internshipProgram?: string; practiceProgram?: string }): Company {
     const user = this.actor()
     if (user.role !== 'admin' && !(user.role === 'company' && user.companyProfile?.companyId === id)) throw new Error('Нет прав на изменение компании')
     const company = this.companies.find((c) => c.id === id)
     if (!company) throw new Error('Компания не найдена')
-    Object.assign(company, { description: patch.description, internshipProgram: patch.internshipProgram }); save('companies', this.companies); return company
+    Object.assign(company, patch); save('companies', this.companies); return company
   }
   assignStudentCurator(studentId: string, curatorId: string): User {
     const user = this.actor()
@@ -527,7 +528,7 @@ export class MockServer {
 
   // Companies
   getCompanies(): Company[] {
-    return this.companies
+    return this.companies.filter(c=>!c.isBlocked || this.actor().role==='admin' || this.actor().companyProfile?.companyId===c.id)
   }
 
   getCompanyById(id: string): Company | undefined {
@@ -540,6 +541,14 @@ export class MockServer {
     return updated
   }
 
+  suspendCompany(id: string): Company {
+    this.requireAdmin()
+    const company=this.companies.find(c=>c.id===id)
+    if(!company)throw new Error('Компания не найдена')
+    company.isBlocked=true
+    save('companies',this.companies)
+    return company
+  }
   verifyCompany(companyId: string, status: boolean): Company {
     this.requireAdmin()
     const comp = this.companies.find((c) => c.id === companyId)
@@ -1024,7 +1033,7 @@ export class MockServer {
   // Student projects
   getStudentProjects(filters?: { search?: string; category?: string; direction?: string; badge?: string }): StudentProject[] {
     let list = visibleStudentProjectsFor(this.sessionUser(), this.studentProjects)
-    if (!filters) return list
+    filters ||= {}
 
     if (filters.search) {
       const s = filters.search.trim().toLowerCase()
@@ -1046,11 +1055,12 @@ export class MockServer {
       list = list.filter((p) => p.badges.includes(filters.badge as any))
     }
 
-    return list
+    return list.map(p=>({...p,likedByMe:(this.projectLikes[p.id] || []).includes(this.sessionUser()?.id || '')}))
   }
 
   getStudentProjectById(id: string): StudentProject | undefined {
-    return visibleStudentProjectsFor(this.sessionUser(), this.studentProjects).find((p) => p.id === id)
+    const project=visibleStudentProjectsFor(this.sessionUser(), this.studentProjects).find((p) => p.id === id)
+    return project?{...project,likedByMe:(this.projectLikes[id] || []).includes(this.sessionUser()?.id || '')}:undefined
   }
 
   createStudentProject(data: Omit<StudentProject, 'id' | 'createdAt' | 'likesCount' | 'isModerated'>): StudentProject {
@@ -1071,12 +1081,15 @@ export class MockServer {
   }
 
   toggleStudentProjectLike(id: string): StudentProject {
-    const p = this.studentProjects.find((x) => x.id === id)
-    if (p) {
-      p.likesCount += 1
-      save('studentProjects', this.studentProjects)
-    }
-    return p!
+    const user=this.actor()
+    if(!this.getStudentProjectById(id))throw new Error('Проект не найден')
+    const project=this.studentProjects.find(p=>p.id===id)!
+    const voters=this.projectLikes[id] || []
+    const liked=voters.includes(user.id)
+    this.projectLikes[id]=liked?voters.filter(id=>id!==user.id):[...voters,user.id]
+    project.likesCount=Math.max(0,project.likesCount+(liked?-1:1))
+    save('studentProjectLikes',this.projectLikes);save('studentProjects',this.studentProjects)
+    return {...project,likedByMe:!liked}
   }
 
   moderatePublication(kind: 'case' | 'student', id: string, status: ModerationStatus, comment = ''): CaseProject | StudentProject {
@@ -1215,7 +1228,7 @@ export class MockServer {
     minRating?: number
   }): User[] {
     let list = this.users.filter((u) => u.role === 'student')
-    if (!filters) return list
+    filters ||= {}
 
     if (filters.search) {
       const s = filters.search.trim().toLowerCase()
@@ -1275,4 +1288,5 @@ export const createMockServer = (): MockServer => new Proxy(new MockServer(), {
   },
 })
 
-export const mockServer = createMockServer()
+let lazyMock: MockServer | undefined
+export const mockServer = new Proxy({} as MockServer,{get(_target,key){return (...args:unknown[])=>{lazyMock ||= createMockServer();return Reflect.apply((lazyMock as any)[key],lazyMock,args)}}})

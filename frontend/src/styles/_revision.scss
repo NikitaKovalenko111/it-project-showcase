@@ -11,8 +11,8 @@
 .scroll-toolbar { position: static; padding: 0; background: transparent; transform: none; opacity: 1; }
 .scroll-toolbar .uust-container { margin-bottom: 0; }
 .scroll-toolbar--floating { position: fixed; top: 64px; left: calc(var(--sidebar-width, 240px) + 24px); right: 24px; z-index: 30; background: #fff; border-radius: 12px; box-shadow: 0 8px 28px #172d4c26; max-height: calc(100vh - 90px); overflow-y: auto; }
-.catalog-sort { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; justify-content: flex-end; }
-.catalog-sort select { width: auto; }
+.catalog-sort { display: flex; align-items: center; gap: 8px; margin: 0; flex-wrap: wrap; }
+.catalog-sort select { width: auto; min-width: 0; max-width: 100%; }
 .modal-dialog__body label { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
 .modal-dialog__body label:has(input[type=radio]), .modal-dialog__body label:has(input[type=checkbox]) { flex-direction: row; align-items: center; }
 .modal-dialog__body .feature-toolbar { align-items: end; gap: 16px; margin-bottom: 16px; }

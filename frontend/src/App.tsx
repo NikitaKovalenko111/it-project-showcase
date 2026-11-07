@@ -1,3 +1,4 @@
+import { FeedbackPage } from './pages/FeedbackPage'
 import { TeamsPage } from './pages/TeamsPage'
 import { InvitationPage } from './pages/InvitationPage'
 import React, { useEffect } from 'react'
@@ -39,7 +40,7 @@ export const App: React.FC = () => {
       <Route path="/register" element={<LoginPage initialMode="register" />} />
 
       <Route element={<AppLayout />}>
-        <Route index element={<HomePage />} />
+        <Route index element={<HomePage />} /><Route path="feedback" element={<FeedbackPage/>}/>
         <Route path="cases" element={<CasesShowcasePage />} />
         <Route path="cases/:id" element={<CaseDetailPage />} />
         <Route path="cases/:id/workspace" element={<ProjectWorkspacePage />} />

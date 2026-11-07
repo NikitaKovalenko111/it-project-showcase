@@ -6,6 +6,7 @@ export const publicationStatus = (project: Pick<StudentProject, 'isModerated' | 
 export const isPublished = (project: Pick<StudentProject, 'isModerated' | 'moderationStatus'> & { visibility?: string }) => publicationStatus(project) === 'approved' && project.visibility !== 'private'
 export const publicationLabels = { pending: 'На рассмотрении', approved: 'Опубликован', rejected: 'Отклонен', revision: 'На доработке', hidden: 'Скрыт' }
 export const caseStatusLabels: Record<CaseProject['status'], string> = {
+  draft: 'Черновик',
   open: 'Открыт набор', application: 'Прием заявок', selection: 'Отбор', accepted: 'Команда сформирована',
   in_progress: 'В работе', submitted: 'Результат сдан', review: 'На проверке', revision: 'На доработке',
   completed: 'Завершен', archived: 'В архиве', moderation: 'На рассмотрении',

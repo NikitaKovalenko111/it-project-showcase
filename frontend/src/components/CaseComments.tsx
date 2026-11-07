@@ -1,3 +1,4 @@
+import {useConfirm} from './ConfirmProvider'
 import { Heart, SlidersHorizontal } from 'lucide-react'
 import { PaginatedGrid } from './PaginatedGrid'
 import React, { useEffect, useState } from 'react'
@@ -9,6 +10,7 @@ import { ProjectComment } from '../types/models'
 import { ReportButton } from './ReportButton'
 
 export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
+ const confirm=useConfirm()
   const user = useAppSelector((s) => s.auth.currentUser)
   const [comments, setComments] = useState<ProjectComment[]>([]), [sort, setSort] = useState('newest'), [text, setText] = useState(''), [parentId, setParentId] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false)
   useEffect(() => { apiClient.getComments(caseId).then(setComments).catch((e) => setError(e.message)) }, [caseId])
@@ -24,7 +26,7 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
     </form>
   const renderComment = (comment: ProjectComment, depth = 0): React.ReactNode => <article className="feature-row comment-item" key={comment.id} style={{ marginLeft: depth ? 12 : 0 }}>
     <div className="feature-toolbar"><Link to={`/profile/${comment.authorId}`}>{comment.authorAvatar && <img className="comment-avatar" src={comment.authorAvatar} alt="" />}{comment.authorName}</Link><time>{new Date(comment.createdAt).toLocaleString('ru-RU')}</time></div><p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{comment.content}</p>
-    <div className="action-row"><button className="comment-like" aria-label="Поставить или убрать лайк" disabled={busy || !user} aria-pressed={comment.likedBy?.includes(user?.id || '') || false} onClick={async () => { setBusy(true); try { const updated = await communityApi.likeComment(comment.id); setComments((prev) => prev.map((c) => c.id === updated.id ? updated : c)) } catch (e) { setError((e as Error).message) } finally { setBusy(false) } }}><Heart size={18} fill={comment.likedBy?.includes(user?.id || '') ? 'currentColor' : 'none'} /> {comment.likedBy?.length || 0}</button>{user && <button className="btn btn-secondary btn-sm" onClick={() => setParentId(comment.id)}>Ответить</button>}{user?.id === comment.authorId && <button className="btn btn-secondary btn-sm" disabled={busy} onClick={async () => { if (!confirm('Удалить комментарий? Ответы сохранятся.')) return; setBusy(true); try { await apiClient.deleteComment(caseId, comment.id); setComments(await apiClient.getComments(caseId)) } catch(e) { setError((e as Error).message) } finally { setBusy(false) } }}>Удалить</button>}<ReportButton targetType="comment" targetId={comment.id} /></div>
+    <div className="action-row"><button className="comment-like" aria-label="Поставить или убрать лайк" disabled={busy || !user} aria-pressed={comment.likedBy?.includes(user?.id || '') || false} onClick={async () => { setBusy(true); try { const updated = await communityApi.likeComment(comment.id); setComments((prev) => prev.map((c) => c.id === updated.id ? updated : c)) } catch (e) { setError((e as Error).message) } finally { setBusy(false) } }}><Heart size={18} fill={comment.likedBy?.includes(user?.id || '') ? 'currentColor' : 'none'} /> {comment.likedBy?.length || 0}</button>{user && <button className="btn btn-secondary btn-sm" onClick={() => setParentId(comment.id)}>Ответить</button>}{user?.id === comment.authorId && <button className="btn btn-secondary btn-sm" disabled={busy} onClick={async () => { if (!await confirm('Удалить комментарий? Ответы сохранятся.')) return; setBusy(true); try { await apiClient.deleteComment(caseId, comment.id); setComments(await apiClient.getComments(caseId)) } catch(e) { setError((e as Error).message) } finally { setBusy(false) } }}>Удалить</button>}<ReportButton targetType="comment" targetId={comment.id} /></div>
     {parentId === comment.id && commentForm}
     {comments.some(c => c.parentId === comment.id) && <button className="btn btn-secondary btn-sm" aria-expanded={!!shown[comment.id]} onClick={() => setShown(s => ({ ...s, [comment.id]: s[comment.id] ? 0 : 10 }))}>{shown[comment.id] ? 'Скрыть ответы' : `Ответы: ${comments.filter(c => c.parentId === comment.id).length}`}</button>}
     {sorted(comments.filter(c => c.parentId === comment.id)).slice(0, shown[comment.id] || 0).map(c => renderComment(c, depth + 1))}

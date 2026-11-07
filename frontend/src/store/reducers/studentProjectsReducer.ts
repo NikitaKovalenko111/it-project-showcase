@@ -2,6 +2,7 @@ import { StudentProject } from '../../types/models'
 import * as types from '../types'
 
 export interface StudentProjectsState {
+  pendingLikes: string[]
   projectsList: StudentProject[]
   activeProject: StudentProject | null
   filters: {
@@ -22,6 +23,7 @@ const initialFilters = {
 }
 
 const initialState: StudentProjectsState = {
+  pendingLikes: [],
   projectsList: [],
   activeProject: null,
   filters: initialFilters,
@@ -49,10 +51,15 @@ export const studentProjectsReducer = (state = initialState, action: any): Stude
         projectsList: [action.payload.project, ...state.projectsList],
       }
 
+    case types.LIKE_STUDENT_PROJECT_REQUEST:
+      return {...state,error:null,pendingLikes:[...new Set([...state.pendingLikes,action.payload.id])]}
+    case types.LIKE_STUDENT_PROJECT_FAILURE:
+      return {...state,pendingLikes:state.pendingLikes.filter(id=>id!==action.payload.id),error:action.payload.error}
     case types.UPDATE_STUDENT_PROJECT_SUCCESS:
     case types.LIKE_STUDENT_PROJECT_SUCCESS:
       return {
         ...state,
+        pendingLikes:state.pendingLikes.filter(id=>id!==action.payload.project.id),
         projectsList: state.projectsList.map((p) => (p.id === action.payload.project.id ? action.payload.project : p)),
         activeProject:
           state.activeProject?.id === action.payload.project.id ? action.payload.project : state.activeProject,

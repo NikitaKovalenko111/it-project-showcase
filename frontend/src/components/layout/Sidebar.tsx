@@ -16,6 +16,7 @@ import {
   LogOut,
   Search,
   ShieldCheck,
+  MessageSquare,
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -284,13 +285,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
         {/* Role pill */}
         <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
-          {pillInfo.text}
+          {role==='student'?['Студент',currentUser?.studentProfile?.institute,currentUser?.studentProfile?.group].filter(Boolean).join(' • '):pillInfo.text}
         </div>
       </div>
 
       {/* UUST Navigation in ISU Style */}
       <nav className="sidebar__nav-isu">
-        {navGroups.map((group, groupIdx) => (
+        {[...navGroups, [{to:'/feedback',label:'ОБРАТНАЯ СВЯЗЬ',icon:MessageSquare}]].map((group, groupIdx) => (
           <React.Fragment key={groupIdx}>
             {groupIdx > 0 && <div className="sidebar__nav-divider" />}
             {group.map((item) => {

@@ -1,9 +1,10 @@
 import { uploadFile } from '../../utils/files'
+import { apiRuntime } from '../../api/runtime'
 import { apiClient } from '../../api/client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { createApplicationSuccess, fetchCaseByIdRequest, fetchCasesRequest } from '../../store/actions'
-import { CaseProject } from '../../types/models'
+import { CaseProject, StudentProfile } from '../../types/models'
 import { CheckCircle2, FileText, Send, ShieldAlert, X } from 'lucide-react'
 
 interface ApplicationModalProps {
@@ -18,20 +19,28 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const { teamsList } = useAppSelector((state) => state.students)
 
   const registration=['olympiad','hackathon'].includes(caseItem.kind || '')
+  const instantRegistration=registration&&apiRuntime.mode!=='live'
   const studentProfile = currentUser?.studentProfile
   const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id))
 
+  const teamFits=(size:number)=>size>=caseItem.teamSize.min&&size<=caseItem.teamSize.max
+  const teamSizeText=caseItem.teamSize.min===caseItem.teamSize.max?String(caseItem.teamSize.min):`${caseItem.teamSize.min}–${caseItem.teamSize.max}`
   const [applicantType, setApplicantType] = useState<'individual' | 'team'>(caseItem.participationFormat === 'team' ? 'team' : 'individual')
-  const [selectedTeamId, setSelectedTeamId] = useState(userTeams[0]?.id || '')
+  const [selectedTeamId, setSelectedTeamId] = useState(userTeams.find(team=>teamFits(team.members.length))?.id || '')
   const [coverLetter, setCoverLetter] = useState(
     'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
   )
+  const [savedResume,setSavedResume]=useState<StudentProfile['resume']>()
+  useEffect(()=>{let active=true;if(isOpen&&!registration&&currentUser?.role==='student')apiClient.getResume().then(f=>{if(active)setSavedResume(f)}).catch(e=>{if(active)setSubmitError(e.message)});return()=>{active=false}},[isOpen,currentUser?.id,registration])
   const [resume, setResume] = useState<File | null>(null)
   const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || '')
   const [ipRightsAgreed, setIpRightsAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedSuccess, setSubmittedSuccess] = useState(false)
   const [submitError, setSubmitError] = useState('')
+
+  const selectedTeam = userTeams.find(t=>t.id===selectedTeamId)
+  const invalidTeam = applicantType==='team' && (!selectedTeam || !teamFits(selectedTeam.members.length))
 
   if (!isOpen) return null
 
@@ -53,18 +62,16 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!registration && !ipRightsAgreed) {
-      alert('Пожалуйста, подтвердите ознакомление с условиями прав на результаты интеллектуальной деятельности (РИД).')
+      setSubmitError('Подтвердите ознакомление с условиями использования результатов.')
       return
     }
 
     setIsSubmitting(true)
 
-    const selectedTeam = userTeams.find((t) => t.id === selectedTeamId)
-
     setSubmitError('')
     try {
-      if (applicantType === 'team' && !selectedTeam) throw new Error('Выберите свою команду')
-      const resumeFile = resume ? await uploadFile(resume) : undefined
+      if (invalidTeam) throw new Error(`Выберите команду подходящего размера: ${teamSizeText} чел.`)
+      const resumeFile = registration ? undefined : resume ? await uploadFile(resume) : savedResume
       const application = await apiClient.createApplication({
         caseId: caseItem.id,
         caseTitle: caseItem.title,
@@ -82,8 +89,8 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
         coverLetter: registration ? '' : coverLetter,
         resumeUrl: resumeFile?.url,
         resumeFileId: resumeFile?.file_id,
-        portfolioUrl: studentProfile?.portfolioUrl,
-        githubUrl,
+        portfolioUrl: registration ? undefined : studentProfile?.portfolioUrl,
+        githubUrl: registration ? '' : githubUrl,
         previousProjects: [],
       })
       dispatch(createApplicationSuccess(application))
@@ -96,15 +103,15 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog modal-dialog--lg" role="dialog" aria-modal="true" aria-labelledby="application-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div>
-            <h3>{['olympiad','hackathon'].includes(caseItem.kind || '') ? 'Регистрация на мероприятие' : 'Подача заявки на выполнение кейса'}</h3>
+            <h3 id="application-title">{instantRegistration ? 'Регистрация на мероприятие' : registration ? 'Заявка на участие' : 'Подача заявки на выполнение кейса'}</h3>
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
               Кейс: <strong>{caseItem.title}</strong> ({caseItem.companyName})
             </p>
           </div>
-          <button className="close-btn" onClick={onClose}>
+          <button className="close-btn" aria-label="Закрыть" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
@@ -114,24 +121,24 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
             <CheckCircle2 size={48} color="#16805b" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ margin: '0 0 8px', color: '#16805b' }}>Заявка успешно отправлена!</h3>
             <p style={{ color: '#64748b', fontSize: '13px' }}>
-              {['olympiad','hackathon'].includes(caseItem.kind || '') ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
+              {instantRegistration ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
             </p>
             <button className="btn btn-primary" onClick={() => { setSubmittedSuccess(false); onClose() }}>Готово</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            {submitError && <p className="form-error" role="alert">{submitError}</p>}
             <div className="modal-dialog__body">
+              {submitError && <p className="form-error application-error" role="alert">{submitError}</p>}
               {/* Participation format */}
               <div className="form-group">
                 <label>Формат участия в проекте:</label>
-                <div className="participation-options" style={{ display: 'flex', gap: '16px' }}>
+                <div className="participation-options">
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500 }}>
                     <input
                       type="radio"
                       name="applicantType"
                       disabled={caseItem.participationFormat === 'team'} checked={applicantType === 'individual'}
-                      onChange={() => setApplicantType('individual')}
+                      onChange={() => {setApplicantType('individual');setSubmitError('')}}
                     />
                     Индивидуально (Студент: {currentUser?.fullName})
                   </label>
@@ -140,7 +147,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                       type="radio"
                       name="applicantType"
                       disabled={caseItem.participationFormat === 'individual'} checked={applicantType === 'team'}
-                      onChange={() => setApplicantType('team')}
+                      onChange={() => {setApplicantType('team');setSubmitError('')}}
                     />
                     В составе команды
                   </label>
@@ -149,24 +156,27 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
 
               {applicantType === 'team' && (
                 <div className="form-group">
-                  <label>Выберите проектную команду:</label>
+                  <label htmlFor="application-team">Проектная команда</label>
                   <select
+                    id="application-team"
                     className="select"
+                    aria-describedby="application-team-size"
                     value={selectedTeamId}
-                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                    onChange={(e) => {setSelectedTeamId(e.target.value);setSubmitError('')}}
                     required
                   >
                     <option value="">Выберите команду</option>
                     {userTeams.length > 0 ? (
                       userTeams.map((team) => (
-                        <option key={team.id} value={team.id}>
-                          {team.name} ({team.members.length} участн.)
+                        <option key={team.id} value={team.id} disabled={!teamFits(team.members.length)}>
+                          {team.name} ({team.members.length} чел.){!teamFits(team.members.length) && ' · не подходит по размеру'}
                         </option>
                       ))
                     ) : (
                       <option value="" disabled>Сначала создайте команду</option>
                     )}
                   </select>
+                  <p id="application-team-size" className="form-hint">Размер команды — {teamSizeText} чел.{!userTeams.some(team=>teamFits(team.members.length))&&' Подходящих команд пока нет.'}</p>
                 </div>
               )}
 
@@ -184,14 +194,14 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
               </div>
 
               {/* Links */}
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="application-links">
                 <div className="form-group">
-                  <label>Резюме (CV), до 2 МБ<input type="file" className="input" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /></label>
+                  <label htmlFor="application-resume">Резюме (CV), до 2 МБ</label><input id="application-resume" type="file" className="input" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} />
                 </div>
                 <div className="form-group">
-                  <label>Ссылка на GitHub / GitLab:*</label>
+                  <label htmlFor="application-github">Ссылка на GitHub / GitLab:*</label>
                   <input
-                    type="url"
+                    id="application-github" type="url"
                     className="input"
                     value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
@@ -200,6 +210,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 </div>
               </div>
 
+              {savedResume&&!resume&&<p className="form-hint">К заявке будет приложено резюме из профиля: {savedResume.name}. Можно выбрать другой файл.</p>}
               {/* IP Rights Notice */}
               <div
                 style={{
@@ -230,16 +241,16 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 </label>
               </div>
               </>}
-              {registration && <p>Запись открытая. После регистрации участие сразу появится в активных проектах. Для олимпиады используется индивидуальный зачёт, для хакатона — выбранная команда.</p>}
+              {registration && <p>{instantRegistration?'После регистрации мероприятие появится в активных проектах.':'Мероприятие появится в активных проектах после одобрения заявки организатором.'}</p>}
             </div>
 
             <div className="modal-dialog__footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Отмена
               </button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting || (!registration && !ipRightsAgreed)}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || invalidTeam || (!registration && !ipRightsAgreed)}>
                 <Send size={15} />
-                {isSubmitting ? 'Отправка...' : registration ? 'Зарегистрироваться' : 'Отправить заявку'}
+                {isSubmitting ? 'Отправка...' : instantRegistration ? 'Зарегистрироваться' : 'Отправить заявку'}
               </button>
             </div>
           </form>

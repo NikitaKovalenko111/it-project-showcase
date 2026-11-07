@@ -1,3 +1,4 @@
+import { formatDate } from '../utils/date'
 import { PaginatedGrid } from './PaginatedGrid'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -46,7 +47,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
         <h2 className="case-card__title"><Link to={`/${kind === 'case' ? 'cases' : 'student-projects'}/${project.id}`}>{project.title}</Link></h2>
         <p>{'companyName' in project ? project.companyName : project.authorName}</p>
         <p>{project.shortDescription}</p>
-        {'deadlineDate' in project && <p>Срок: {new Date(project.deadlineDate).toLocaleDateString('ru-RU')} · Вознаграждение: {project.rewardDescription || 'Не указано'}</p>}
+        {'deadlineDate' in project && <p>Срок: {formatDate(project.deadlineDate)} · Вознаграждение: {project.rewardDescription || 'Не указано'}</p>}
         <Link className="btn btn-secondary btn-sm" to={`/${kind === 'case' ? 'cases' : 'student-projects'}/${project.id}`}>Прочитать описание и условия</Link>
         {project.moderationComment && <p>Предыдущее решение: {project.moderationComment}</p>}
         <label className="review-comment">Комментарий к решению<textarea className="textarea" value={comments[project.id] || ''} onChange={(event) => setComments({ ...comments, [project.id]: event.target.value })} placeholder="Для отклонения, доработки или скрытия укажите причину" /></label>

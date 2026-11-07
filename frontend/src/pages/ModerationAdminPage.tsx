@@ -1,3 +1,4 @@
+import {useConfirm} from '../components/ConfirmProvider'
 import { AdminInsights } from '../components/AdminInsights'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import React, { useState, useEffect, useRef } from 'react'
@@ -31,6 +32,7 @@ import {
 } from 'lucide-react'
 
 export const ModerationAdminPage: React.FC = () => {
+  const confirm=useConfirm()
   const dispatch = useAppDispatch()
   const { casesList: allCases } = useAppSelector((state) => state.cases)
   const { companiesList: allCompanies } = useAppSelector((state) => state.companies)
@@ -79,7 +81,8 @@ export const ModerationAdminPage: React.FC = () => {
     dispatch(verifyCompanyRequest(companyId, status))
   }
 
-  const handleToggleBlock = (userId: string) => {
+  const handleToggleBlock = async (userId: string) => {
+    if(!await confirm('Изменить статус блокировки пользователя?'))return
     dispatch(toggleUserBlockRequest(userId))
   }
 

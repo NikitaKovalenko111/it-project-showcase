@@ -1,3 +1,4 @@
+import { formatDate } from '../utils/date'
 import { isPublished, publicationLabels, publicationStatus } from '../utils/publication'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -160,7 +161,7 @@ export const HomePage: React.FC = () => {
                 <div className="case-card__top-accent" />
                 <div className="card__body">
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <span className="badge badge-direction">{c.direction}</span>
+                    {c.direction&&<span className="badge badge-direction">{c.direction}</span>}
                     <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
                     {!isPublished(c) && <span className={`badge publication-${publicationStatus(c)}`}>{publicationLabels[publicationStatus(c)]}</span>}
                   </div>
@@ -174,11 +175,11 @@ export const HomePage: React.FC = () => {
                   <div className="case-card__meta-grid">
                     <div className="meta-item">
                       <Calendar size={13} />
-                      <span>Дедлайн: <strong>{new Date(c.deadlineDate).toLocaleDateString('ru-RU')}</strong></span>
+                      <span>Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong></span>
                     </div>
                     <div className="meta-item">
                       <Users size={13} />
-                      <span>Команда: <strong>{c.teamSize.min}–{c.teamSize.max} чел.</strong></span>
+                      <span>Команда: <strong>{c.teamSize.min===c.teamSize.max?c.teamSize.min:`${c.teamSize.min}–${c.teamSize.max}`} чел.</strong></span>
                     </div>
                   </div>
                 </div>
@@ -461,7 +462,7 @@ export const HomePage: React.FC = () => {
             <Briefcase size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">{casesList.length || 18}</div>
+            <div className="stat-number">{casesList.length}</div>
             <div className="stat-label">Кейсов от предприятий</div>
             <div className="stat-meta">Открыт прием заявок</div>
           </div>
@@ -472,7 +473,7 @@ export const HomePage: React.FC = () => {
             <Rocket size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">{projectsList.length || 42}</div>
+            <div className="stat-number">{projectsList.length}</div>
             <div className="stat-label">Студенческих стартапов</div>
             <div className="stat-meta">Pet-проекты, ВКР, хакатоны</div>
           </div>
@@ -483,7 +484,7 @@ export const HomePage: React.FC = () => {
             <Building2 size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">{companiesList.length || 12}</div>
+            <div className="stat-number">{companiesList.length}</div>
             <div className="stat-label">Партнёров в реестре</div>
             <div className="stat-meta">Верифицированные компании</div>
           </div>
@@ -494,7 +495,7 @@ export const HomePage: React.FC = () => {
             <Award size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">1.85 млн ₽</div>
+            <div className="stat-number">{casesList.reduce((sum,c)=>sum+(c.prizeFund || c.rewardAmount || 0),0).toLocaleString('ru-RU')} ₽</div>
             <div className="stat-label">Призовой фонд семестра</div>
             <div className="stat-meta">Гранты, премии, офферы</div>
           </div>
@@ -539,18 +540,18 @@ export const HomePage: React.FC = () => {
                 <p className="case-card__desc">{c.shortDescription}</p>
 
                 <div className="case-card__tags">
-                  <span className="badge badge-direction">{c.direction}</span>
+                  {c.direction&&<span className="badge badge-direction">{c.direction}</span>}
                   <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
                 </div>
 
                 <div className="case-card__meta-grid">
                   <div className="meta-item">
                     <Calendar size={13} />
-                    <span>Дедлайн: <strong>{new Date(c.deadlineDate).toLocaleDateString('ru-RU')}</strong></span>
+                    <span>Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong></span>
                   </div>
                   <div className="meta-item">
                     <Users size={13} />
-                    <span>Команда: <strong>{c.teamSize.min}–{c.teamSize.max} чел.</strong></span>
+                    <span>Команда: <strong>{c.teamSize.min===c.teamSize.max?c.teamSize.min:`${c.teamSize.min}–${c.teamSize.max}`} чел.</strong></span>
                   </div>
                 </div>
               </div>

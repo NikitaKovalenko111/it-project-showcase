@@ -16,7 +16,7 @@ export const TeamsPanel: React.FC<{caseId?:string; searchMode?:boolean}> = ({cas
   const [requests,setRequests]=useState<TeamRequest[]>([]), [seekers,setSeekers]=useState<TeamSeeker[]>([]), [cases,setCases]=useState<CaseProject[]>([])
   const [selected,setSelected]=useState(''), [query,setQuery]=useState(''), [inviteMessage,setInviteMessage]=useState('')
   const [about,setAbout]=useState(''), [stack,setStack]=useState(''), [preferredCase,setPreferredCase]=useState(''), [filterCase,setFilterCase]=useState(caseId || '')
-  const [view,setView]=useState('teams'), [direction,setDirection]=useState('incoming')
+  const [teamQuery,setTeamQuery]=useState(''), [view,setView]=useState('teams'), [direction,setDirection]=useState('incoming')
   const [create,setCreate]=useState(false), [busy,setBusy]=useState(false), [error,setError]=useState(''), [notice,setNotice]=useState(''), [loading,setLoading]=useState(true)
   const refresh=async()=>{
     const [t,s,r,q,c]=await Promise.all([apiClient.getTeams(),apiClient.getStudents(),communityApi.getTeamRequests(),communityApi.getSeekers(),apiClient.getCases()])
@@ -37,7 +37,7 @@ export const TeamsPanel: React.FC<{caseId?:string; searchMode?:boolean}> = ({cas
   const filteredRequests=requests.filter(r=>direction==='incoming'?incoming(r):r.senderId===user?.id)
   const pending=(t:ProjectTeam,id:string)=>requests.some(r=>r.teamId===t.id&&r.studentId===id&&r.status==='pending')
   const recruitable=cases.filter(c=>c.participationFormat!=='individual'&&c.status==='open')
-  const shown=searchMode?teams.filter(t=>!t.caseId&&(!filterCase||t.recruitingCaseId===filterCase)):
+  const shown=searchMode?teams.filter(t=>!t.caseId&&t.leaderId!==user?.id&&!t.members.some(m=>m.id===user?.id)&&t.name.toLowerCase().includes(teamQuery.toLowerCase())&&(!filterCase||t.recruitingCaseId===filterCase)):
     caseId?teams.filter(t=>t.caseId===caseId||t.recruitingCaseId===caseId):mine
   const candidates=seekers.filter(s=>s.studentId!==user?.id&&(!managed?.recruitingCaseId||!s.caseId||s.caseId===managed.recruitingCaseId))
   if(!user)return null
@@ -55,7 +55,7 @@ export const TeamsPanel: React.FC<{caseId?:string; searchMode?:boolean}> = ({cas
           <label>Предпочтительный проект · необязательно<select className="select" value={preferredCase} onChange={e=>setPreferredCase(e.target.value)}><option value="">Любой проект</option>{recruitable.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
           <button className="btn btn-primary btn-sm" disabled={busy}>{seekers.some(s=>s.studentId===user.id&&s.caseId===(preferredCase || undefined))?'Обновить анкету':'Опубликовать анкету'}</button>
         </form>
-        <div className="team-search-toolbar"><div><h2>Команды, в которые можно вступить</h2><p>Отправьте кандидатуру капитану. В состав вы попадёте после его подтверждения.</p></div><label>Проект<select className="select" value={filterCase} onChange={e=>setFilterCase(e.target.value)}><option value="">Все проекты</option>{recruitable.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
+        <label className="team-search-field">Поиск команды<input className="input" value={teamQuery} onChange={e=>setTeamQuery(e.target.value)} placeholder="Название команды"/></label><div className="team-search-toolbar"><div><h2>Команды, в которые можно вступить</h2><p>Отправьте кандидатуру капитану. В состав вы попадёте после его подтверждения.</p></div><label>Проект<select className="select" value={filterCase} onChange={e=>setFilterCase(e.target.value)}><option value="">Все проекты</option>{recruitable.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
       </>}
       {(searchMode||view==='teams')&&<>
         <PaginatedGrid className="teams-grid">{shown.map(t=>{
@@ -71,7 +71,7 @@ export const TeamsPanel: React.FC<{caseId?:string; searchMode?:boolean}> = ({cas
         })}</PaginatedGrid>
         {!shown.length&&<div className="empty-state"><Users size={28}/><p>{searchMode?'Сейчас нет команд с открытым набором. Опубликуйте анкету — капитан сможет пригласить вас.':'Вы пока не состоите в командах. Создайте команду или примите приглашение.'}</p></div>}
       </>}
-      {!searchMode&&view==='teams'&&managed&&<section className="team-management">
+      {!searchMode&&view==='teams'&&managed&&<div className="modal-backdrop"><section className="modal-dialog team-management" role="dialog" aria-modal="true" aria-label="Приглашение участников">
         <div className="feature-toolbar"><h3>Набор в «{managed.name}»</h3><button className="btn btn-secondary btn-sm" onClick={()=>setSelected('')}>Закрыть</button></div><p>Вы капитан. Приглашённый студент появится в составе только после согласия.</p>
         {!managed.caseId&&<div className="team-form-row"><label>Для какого проекта набираете команду<select className="select" value={filterCase} onChange={e=>setFilterCase(e.target.value)}><option value="">Выберите проект</option>{recruitable.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label><button className="btn btn-secondary btn-sm" disabled={busy||!filterCase} onClick={()=>act(()=>communityApi.linkTeamToCase(managed.id,filterCase),'Набор на проект открыт. Команда доступна в поиске.')}>Открыть набор</button></div>}
         <label>Сообщение к приглашению<textarea className="textarea" maxLength={2000} value={inviteMessage} onChange={e=>setInviteMessage(e.target.value)}/></label>
@@ -79,7 +79,7 @@ export const TeamsPanel: React.FC<{caseId?:string; searchMode?:boolean}> = ({cas
         <h4>{query.trim()?'Результаты поиска':'Кандидаты, которые ищут команду'}</h4>
         <PaginatedGrid className="request-list">{(query.trim()?students.filter(s=>`${s.fullName} ${s.email}`.toLowerCase().includes(query.toLowerCase())):students.filter(s=>candidates.some(c=>c.studentId===s.id))).filter(s=>s.id!==user.id&&!managed.members.some(m=>m.id===s.id)).map(s=><article className="candidate-row" key={s.id}><div><Link to={`/profile/${s.id}`}><strong>{s.fullName}</strong></Link><p>{candidates.find(c=>c.studentId===s.id)?.message || s.email}</p></div><button className="btn btn-primary btn-sm" disabled={busy||pending(managed,s.id)} onClick={()=>act(()=>communityApi.requestTeam(managed.id,s.id,'invitation',inviteMessage.trim()||'Приглашаем в нашу команду'),'Приглашение отправлено студенту.')}>{pending(managed,s.id)?'Ожидаем ответ':'Пригласить'}</button></article>)}</PaginatedGrid>
         {!query.trim()&&!candidates.length&&<p className="empty-state">Анкет пока нет. Найдите участника по имени или email.</p>}
-      </section>}
+      </section></div>}
       {!searchMode&&view==='requests'&&<>
         <div className="action-row request-directions"><button className={`btn ${direction==='incoming'?'btn-primary':'btn-secondary'} btn-sm`} onClick={()=>setDirection('incoming')}>Входящие</button><button className={`btn ${direction==='outgoing'?'btn-primary':'btn-secondary'} btn-sm`} onClick={()=>setDirection('outgoing')}>Исходящие</button></div>
         {!filteredRequests.length&&<div className="empty-state request-empty"><UserPlus size={28}/><h3>{direction==='incoming'?'Входящих заявок и приглашений пока нет':'Исходящих заявок и приглашений пока нет'}</h3><p>{direction==='incoming'?'Здесь появятся приглашения в команды и заявки в команды, где вы капитан.':'Здесь можно отслеживать отправленные кандидатуры и приглашения участников.'}</p></div>}

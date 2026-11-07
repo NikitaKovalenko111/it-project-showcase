@@ -32,7 +32,7 @@ import {
 export const StudentProjectsPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { studentsList: authors } = useAppSelector((state) => state.students)
-  const { projectsList, filters, loading } = useAppSelector((state) => state.studentProjects)
+  const { projectsList, filters, loading, pendingLikes } = useAppSelector((state) => state.studentProjects)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [query] = useSearchParams()
@@ -55,7 +55,8 @@ export const StudentProjectsPage: React.FC = () => {
 
   const handleLike = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
-    dispatch(likeStudentProjectRequest(id))
+    e.stopPropagation()
+    if(currentUser&&!pendingLikes.includes(id))dispatch(likeStudentProjectRequest(id))
   }
 
   const getBadgeTitle = (b: string) => {
@@ -178,7 +179,7 @@ export const StudentProjectsPage: React.FC = () => {
               value={filters.badge}
               onChange={(e) => handleFilterChange('badge', e.target.value)}
             >
-              <option value="all">Все отметки (бейджы)</option>
+              <option value="all">Все бейджи</option>
               <option value="seeking_company">Ищу компанию / партнёра</option>
               <option value="seeking_team">Ищу команду разработчиков</option>
               <option value="seeking_mentor">Ищу наставника</option>
@@ -232,7 +233,7 @@ export const StudentProjectsPage: React.FC = () => {
                 <img src={item.coverImage} alt={item.title} />
                 <span className="category-tag">{item.category}</span>
                 <button
-                  onClick={(e) => handleLike(e, item.id)}
+                  onClick={(e) => handleLike(e, item.id)} disabled={!currentUser||pendingLikes.includes(item.id)} aria-pressed={!!item.likedByMe} aria-label={item.likedByMe?'Убрать лайк':'Поставить лайк'}
                   style={{
                     position: 'absolute',
                     top: 12,
@@ -251,7 +252,7 @@ export const StudentProjectsPage: React.FC = () => {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                   }}
                 >
-                  <Heart size={13} fill="#e11d48" /> {item.likesCount}
+                  <Heart size={13} fill={item.likedByMe?'#e11d48':'none'} /> {item.likesCount}
                 </button>
               </div>
 

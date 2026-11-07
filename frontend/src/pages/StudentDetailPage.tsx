@@ -24,7 +24,7 @@ export const StudentDetailPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const currentUser = useAppSelector(state => state.auth.currentUser)
   const { studentsList: authors } = useAppSelector((state) => state.students)
-  const { activeProject, loading, error } = useAppSelector((state) => state.studentProjects)
+  const { activeProject, loading, error, pendingLikes } = useAppSelector((state) => state.studentProjects)
 
   useEffect(() => {
     if (id) {
@@ -82,10 +82,10 @@ export const StudentDetailPage: React.FC = () => {
 
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => dispatch(likeStudentProjectRequest(activeProject.id))}
+                  onClick={() => dispatch(likeStudentProjectRequest(activeProject.id))} disabled={!currentUser||pendingLikes.includes(activeProject.id)} aria-pressed={!!activeProject.likedByMe} aria-label={activeProject.likedByMe?'Убрать лайк':'Поставить лайк'}
                   style={{ color: '#e11d48' }}
                 >
-                  <Heart size={15} fill="#e11d48" /> {activeProject.likesCount}
+                  <Heart size={15} fill={activeProject.likedByMe?'#e11d48':'none'} /> {activeProject.likesCount}
                 </button>
               </div>
 

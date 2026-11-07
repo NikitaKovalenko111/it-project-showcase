@@ -13,7 +13,7 @@ const initialState: AuthState = {
   currentUser: null,
   allUsers: [],
   isAuthenticated: false,
-  loading: false,
+  loading: true,
   error: null,
 }
 
@@ -61,9 +61,10 @@ export const authReducer = (state = initialState, action: any): AuthState => {
         currentUser: state.currentUser?.id === action.payload.user.id ? action.payload.user : state.currentUser,
       }
 
+    case types.FETCH_CURRENT_USER_FAILURE:
+      return {...state,loading:false,currentUser:null,isAuthenticated:false,error:null}
     case types.LOGIN_FAILURE:
     case types.REGISTER_FAILURE:
-    case types.FETCH_CURRENT_USER_FAILURE:
     case types.UPDATE_USER_PROFILE_FAILURE:
     case types.FETCH_ALL_USERS_FAILURE:
       return { ...state, loading: false, error: action.payload.error }

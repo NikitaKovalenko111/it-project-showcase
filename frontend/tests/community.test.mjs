@@ -124,3 +124,33 @@ test('team cap prevents accepting excess applications without changing their sta
   assert.throws(() => server.updateApplicationStatus(pending[0].id, 'accepted'), /Лимит/)
   assert.notEqual(server.getApplications('case_1').find((a) => a.id === pending[0].id).status, 'accepted')
 })
+
+test('only admin suspends companies; state persists and company disappears from student catalog', () => {
+  const {server,login}=setup()
+  login('usr_student_1')
+  const company=server.getCompanies()[0]
+  assert.throws(()=>server.suspendCompany(company.id), /прав|администратор/i)
+  const admin=server.getUsers().find(u=>u.role==='admin')
+  login(admin.id)
+  assert.equal(server.suspendCompany(company.id).isBlocked,true)
+  assert.equal(new MockServer().getCompanies().find(c=>c.id===company.id).isBlocked,true)
+  login('usr_student_1')
+  assert.equal(new MockServer().getCompanies().some(c=>c.id===company.id),false)
+})
+
+test('project likes toggle once per actor and survive reload',()=>{
+ const {server,login}=setup();login('usr_student_1')
+ const project=server.getStudentProjects().find(p=>p.isModerated)
+ const baseline=project.likesCount
+ assert.equal(server.toggleStudentProjectLike(project.id).likesCount,baseline+1)
+ assert.equal(new MockServer().getStudentProjectById(project.id).likedByMe,true)
+ assert.equal(new MockServer().getStudentProjects().find(p=>p.id===project.id).likedByMe,true)
+ login('usr_student_2')
+ assert.equal(server.getStudentProjectById(project.id).likedByMe,false)
+ assert.equal(server.toggleStudentProjectLike(project.id).likesCount,baseline+2)
+ login('usr_student_1')
+ assert.equal(server.toggleStudentProjectLike(project.id).likesCount,baseline+1)
+ for(let i=0;i<10;i++)server.toggleStudentProjectLike(project.id)
+ assert.equal(server.getStudentProjectById(project.id).likesCount,baseline+1)
+ login('usr_student_2');assert.equal(server.toggleStudentProjectLike(project.id).likesCount,baseline)
+})

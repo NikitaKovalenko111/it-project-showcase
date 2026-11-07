@@ -1,12 +1,15 @@
 import { communityApi } from '../api/community'
+import { ReportTableView } from '../components/ReportTableView'
 import { AdminInsights } from '../components/AdminInsights'
 import React, { useEffect, useMemo, useState } from 'react'
-import { Download, FileSpreadsheet } from 'lucide-react'
+import { Download, FileSpreadsheet, RotateCcw } from 'lucide-react'
 import { useAppSelector } from '../store'
 import { apiClient } from '../api/client'
 import type { ProjectEvaluation, ProjectMilestone } from '../types/models'
 import { buildAnalyticsReport, type AnalyticsFilters, type ReportTable } from '../utils/analytics'
 import { downloadCsvReport, downloadExcelReport, downloadPdfReport } from '../utils/exportReport'
+
+const defaultFilters: AnalyticsFilters = { period: 'all', company: 'all', direction: 'all', institute: 'all', course: 'all', type: 'all' }
 
 export const AnalyticsPage: React.FC = () => {
   const { currentUser } = useAppSelector((state) => state.auth)
@@ -16,7 +19,8 @@ export const AnalyticsPage: React.FC = () => {
   const { applicationsList } = useAppSelector((state) => state.applications)
   const { companiesList } = useAppSelector((state) => state.companies)
   const companyView = currentUser?.role === 'company'
-  const [filters, setFilters] = useState<AnalyticsFilters>({ period: 'all', company: 'all', direction: 'all', institute: 'all', course: 'all', type: 'all' })
+  const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters)
+  const [selectedReport,setSelectedReport]=useState('')
   const [details, setDetails] = useState<{ milestones: ProjectMilestone[]; evaluations: ProjectEvaluation[] }>({ milestones: [], evaluations: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -57,6 +61,8 @@ export const AnalyticsPage: React.FC = () => {
     } catch (cause) { setExportError(cause instanceof Error ? cause.message : 'Не удалось выгрузить отчет') }
     finally { setExporting(false) }
   }
+  const activeReport=report.tables.find(table=>table.title===selectedReport) || report.tables[0]
+  const activeFilterCount=Object.values(filters).filter(value=>value!=='all').length
   const busy = loading || casesLoading || exporting
   const metrics = companyView
     ? [['Опубликовано кейсов', report.metrics.published], ['Получено заявок', report.metrics.applications], ['Назначено интервью', report.metrics.interviews], ['Завершено кейсов', report.metrics.completed]]
@@ -69,27 +75,36 @@ export const AnalyticsPage: React.FC = () => {
         <button className="btn btn-primary btn-sm" disabled={busy || !!error} onClick={() => exportReport('pdf')}><Download size={15} /> PDF</button>
       </div>
     </div>
-    <div className="analytics-filters card">
+    <section className="card analytics-filter-panel" aria-labelledby="analytics-filter-title">
+      <div className="feature-toolbar">
+        <h2 id="analytics-filter-title">Фильтры {activeFilterCount>0&&<span className="badge badge-direction">{activeFilterCount}</span>}</h2>
+        <button type="button" className="btn btn-secondary btn-sm" disabled={!activeFilterCount} onClick={() => setFilters(defaultFilters)}><RotateCcw size={15}/> Сбросить</button>
+      </div>
+      <div className="analytics-filters">
       <label>Период<select className="select" value={filters.period} onChange={(event) => setFilter('period', event.target.value)}><option value="all">За все время</option>{[academicYear, academicYear - 1, academicYear - 2].map((year) => <option value={year} key={year}>{year}/{year + 1} учебный год</option>)}</select></label>
       {!companyView && <label>Компания<select className="select" value={filters.company} onChange={(event) => setFilter('company', event.target.value)}><option value="all">Все компании</option>{companiesList.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label>}
-      <label>Направление<select className="select" value={filters.direction} onChange={(event) => setFilter('direction', event.target.value)}><option value="all">Все направления</option>{[...new Set([...casesList.map((project) => project.direction), ...(!companyView ? projectsList.map((project) => project.direction) : [])])].sort().map((direction) => <option key={direction}>{direction}</option>)}</select></label>
+      <label>Направление<select className="select" value={filters.direction} onChange={(event) => setFilter('direction', event.target.value)}><option value="all">Все направления</option>{[...new Set([...casesList.map((project) => project.direction), ...(!companyView ? projectsList.map((project) => project.direction) : [])].filter(Boolean))].sort().map((direction) => <option key={direction}>{direction}</option>)}</select></label>
       <label>Институт<select className="select" value={filters.institute} onChange={(event) => setFilter('institute', event.target.value)}><option value="all">Все институты</option>{[...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean))].map((institute) => <option key={institute}>{institute}</option>)}</select></label>
       <label>Курс<select className="select" value={filters.course} onChange={(event) => setFilter('course', event.target.value)}><option value="all">Все курсы</option>{[1, 2, 3, 4, 5, 6].map((course) => <option key={course} value={course}>{course}</option>)}</select></label>
       {!companyView && <label>Тип проекта<select className="select" value={filters.type} onChange={(event) => setFilter('type', event.target.value)}><option value="all">Все типы</option><option value="company">Кейсы компаний</option><option value="student">Студенческие проекты</option></select></label>}
-      <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ period: 'all', company: 'all', direction: 'all', institute: 'all', course: 'all', type: 'all' })}>Сбросить фильтры</button>
-    </div>
+      </div>
+    </section>
     {error && <p role="alert">{error}</p>}
     {exportError && <p role="alert">{exportError}</p>}
-    {currentUser?.role === 'admin' && <AdminInsights />}
     {loading || casesLoading ? <p role="status">Подготовка аналитики…</p> : <>
       <div className="kpi-grid">{metrics.map(([label, value]) => <div className="kpi-card" key={label}><div className="kpi-card__value">{value}</div><div className="kpi-card__label">{label}</div></div>)}</div>
       <p className="analytics-note">Период относится к дате публикации проекта. Курс и институт отбирают проекты по заявителям и участникам. Интервью учитываются по текущему статусу; фонды показывают заявленные суммы, а выплаты — только подтвержденные. История приглашений на стажировки пока недоступна.</p>
-      {report.tables.map((table) => <section className="card analytics-table" key={table.title}>
-        <div className="card__header"><h2>{table.title}</h2><span>{table.rows.length} записей</span></div>
-        <div className="table-container"><table className="data-table"><thead><tr>{table.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead>
-          <tbody>{table.rows.map((row, index) => <tr key={index}>{row.map((value, cell) => <td key={cell}>{value}</td>)}</tr>)}{!table.rows.length && <tr><td colSpan={table.headers.length}>Нет данных для выбранных фильтров</td></tr>}</tbody>
-        </table></div>
-      </section>)}
+      {activeReport&&<section className="card analytics-table">
+        <div className="card__header analytics-report-header">
+          <div><h2>Детальные отчёты</h2><span>{activeReport.rows.length} записей в выбранном отчёте</span></div>
+          <select className="select" aria-label="Детальный отчёт" value={activeReport.title} onChange={event=>setSelectedReport(event.target.value)}>
+            {report.tables.map(table=><option key={table.title}>{table.title}</option>)}
+          </select>
+        </div>
+        <ReportTableView key={`${activeReport.title}:${JSON.stringify(filters)}`} label={activeReport.title} headers={activeReport.headers}
+          rows={activeReport.rows.map((cells,index)=>({id:index,cells}))} emptyText="Нет данных для выбранных фильтров." />
+      </section>}
     </>}
+    {currentUser?.role === 'admin' && <AdminInsights />}
   </div>
 }

@@ -35,8 +35,7 @@ function* handleUpdateApplicationStatus(action: {
       action.payload.notes
     )
     yield put(actions.updateApplicationStatusSuccess(app))
-    yield put(actions.fetchCasesRequest())
-    yield put(actions.fetchCaseByIdRequest(app.caseId))
+    if(app.status==='accepted'){yield put(actions.fetchCasesRequest())}
   } catch (error: any) {
     yield put(actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'))
   }

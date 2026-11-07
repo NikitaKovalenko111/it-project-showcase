@@ -4,6 +4,7 @@ export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' 
 export type EducationLevel = 'Бакалавриат' | 'Специалитет' | 'Магистратура' | 'Аспирантура'
 
 export interface StudentProfile {
+  resume?: {name:string;url:string;file_id?:string;size?:string}
   files?: { name: string; url: string; file_id?: string; size?: string }[]
   educationLevel?: EducationLevel
   curatorId?: string
@@ -47,7 +48,9 @@ export interface User {
 }
 
 export interface Company {
+  isBlocked?: boolean
   internshipProgram?: string
+  practiceProgram?: string
   id: string
   name: string
   shortName: string
@@ -67,6 +70,11 @@ export interface Company {
 }
 
 export type ProjectDirection =
+  | 'Математика'
+  | 'Программирование'
+  | 'Физика'
+  | 'Информатика'
+  | 'Другое'
   | 'Backend'
   | 'Frontend'
   | 'Fullstack'
@@ -98,6 +106,7 @@ export type RewardType = 'educational' | 'contest' | 'monetary' | 'other'
 export type PaymentStatus = 'not_provided' | 'pending' | 'confirmed' | 'paid'
 
 export type CaseStatus =
+  | 'draft'
   | 'open'        // Открыт для заявок
   | 'application' // Заявка
   | 'selection'   // Отбор
@@ -129,7 +138,8 @@ export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
   olympiadTasks?: { id: string; title: string; maxScore: number }[]
   publicationDetails?: { startDate: string; venue: string; schedule: string; position: string; workload: string; selection: string }
-  evaluationCriteria?: { id: string; label: string; weight: number }[]
+  evaluationCriteria?: { id: string; label: string; weight: number; maxScore?: number }[]
+  specificationFile?: { name: string; url: string; file_id?: string }
   coverUrl?: string
   coverFileId?: string
   kind?: CaseKind
@@ -165,6 +175,7 @@ export interface CaseProject {
   paymentStatus: PaymentStatus
   status: CaseStatus
   isConfidential: boolean // NDA required
+  ipRightsDescription?: string
   ipRights: IPRightsType
   publishedAt: string
   viewsCount: number
@@ -304,6 +315,7 @@ export type StudentProjectBadge =
   | 'open_for_job'         // Открыт к предложениям о работе
 
 export interface StudentProject {
+  likedByMe?: boolean
   visibility?: 'private' | 'public'
   moderationStatus?: ModerationStatus
   moderationComment?: string
@@ -407,4 +419,4 @@ export interface TeamRequest {
   createdAt: string
 }
 export interface TeamSeeker { id: string; caseId?: string; studentId: string; message: string; techStack: string[] }
-export interface ContentReport { id: string; authorId: string; targetType: 'case' | 'project' | 'comment' | 'user'; targetId: string; reason: string; message: string; status: 'pending' | 'resolved'; createdAt: string }
+export interface ContentReport { id: string; authorId: string; targetType: 'case' | 'project' | 'comment' | 'user' | 'company'; targetId: string; reason: string; message: string; status: 'pending' | 'resolved'; createdAt: string }

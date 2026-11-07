@@ -1,6 +1,6 @@
 import { apiRuntime } from '../../api/runtime'
 import React, { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { markAllNotificationsReadRequest, markNotificationReadRequest, switchUserRequest } from '../../store/actions'
 import { mockServer } from '../../api/mockServer'
@@ -14,7 +14,7 @@ import {
   ClipboardList,
   Menu,
   MessageSquare,
-  MoreVertical,
+  Info,
   Star,
 } from 'lucide-react'
 
@@ -26,24 +26,37 @@ interface TopbarProps {
 export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const caseId = useMatch('/cases/:id/*')?.params.id
   const { currentUser } = useAppSelector((state) => state.auth)
   const { notificationsList, unreadCount } = useAppSelector((state) => state.notifications)
-  const { favorites } = useAppSelector((state) => state.cases)
+  const { favorites, activeCase, casesList } = useAppSelector((state) => state.cases)
+  const { teamsList } = useAppSelector((state) => state.students)
   const { applicationsList } = useAppSelector((state) => state.applications)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
-  const roleMenuRef = useRef<HTMLDivElement>(null)
+  const infoRef = useRef<HTMLDivElement>(null)
+  const infoButtonRef = useRef<HTMLButtonElement>(null)
+  const project = caseId ? activeCase?.id === caseId ? activeCase : casesList.find(item=>item.id===caseId) : undefined
+  const ownTeams = currentUser?.role==='student'
+    ? teamsList.filter(team=>team.leaderId===currentUser.id||team.members.some(member=>member.id===currentUser.id))
+    : []
+  const projectTeams = project
+    ? ownTeams.filter(team=>team.caseId===project.id||applicationsList.some(application=>
+      application.caseId===project.id&&application.teamId===team.id&&application.status==='accepted'))
+    : ownTeams
 
   const allUsers = apiRuntime.mode === 'mock' ? mockServer.getUsers() : []
+  useEffect(() => setShowInfo(false), [pathname])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setShowNotifications(false)
       }
-      if (roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) {
-        setShowRoleMenu(false)
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) {
+        setShowInfo(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -66,7 +79,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
     const u = allUsers.find((user) => user.id === userId)
     if (u) {
       dispatch(switchUserRequest(u))
-      setShowRoleMenu(false)
+      setShowInfo(false)
       // Immediately navigate to home root so role-specific dashboard appears
       navigate('/')
     }
@@ -185,19 +198,33 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
           )}
         </div>
 
-        {/* Role Switch / Menu (More icon from screenshot) */}
-        <div className="topbar-isu__more-wrap" ref={roleMenuRef}>
+        <div className="topbar-isu__more-wrap" ref={infoRef} onKeyDown={event=>{
+          if(event.key==='Escape'&&showInfo){setShowInfo(false);infoButtonRef.current?.focus()}
+        }}>
           <button
+            ref={infoButtonRef}
+            type="button"
             className="topbar-isu__icon-btn"
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
-            hidden={apiRuntime.mode !== 'mock'} title="Сменить роль / меню"
+            onClick={() => setShowInfo(!showInfo)}
+            aria-expanded={showInfo}
+            aria-controls="topbar-project-info"
+            aria-label="Информация о проекте и командах"
+            title="Информация о проекте и командах"
           >
-            <MoreVertical size={17} />
+            <Info size={17} />
           </button>
 
-          {showRoleMenu && apiRuntime.mode === 'mock' && (
-            <div className="topbar-isu__menu-dropdown">
-              <div className="dropdown-title">Переключить профиль:</div>
+          {showInfo && (
+            <section id="topbar-project-info" className="topbar-isu__menu-dropdown project-info-popover" aria-label="Информация о проекте и командах">
+              <div className="dropdown-title">Проекты и команды</div>
+              <div className="project-info-popover__body">
+                {project&&<div><Link to={`/cases/${project.id}`} onClick={()=>setShowInfo(false)}><strong>{project.title}</strong></Link><small>{project.companyName}</small></div>}
+                {projectTeams.length>0&&<ul>{projectTeams.slice(0,3).map(team=><li key={team.id}>{team.name} <small>{team.members.length} чел.</small></li>)}</ul>}
+                <Link to="/workspace" onClick={()=>setShowInfo(false)}>Открыть список проектов</Link>
+                {currentUser?.role==='student'&&<Link to="/teams" onClick={()=>setShowInfo(false)}>Мои команды</Link>}
+              </div>
+              {apiRuntime.mode==='mock'&&<details className="project-info-popover__demo">
+              <summary>Демо-профили</summary>
               <button
                 className={`dropdown-item ${currentUser?.role === 'student' ? 'active' : ''}`}
                 onClick={() => handleSwitchUser('usr_student_1')}
@@ -222,7 +249,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
               >
                 <Settings size={14} aria-hidden="true" /> Администратор ИСУ
               </button>
-            </div>
+              </details>}
+            </section>
           )}
         </div>
       </div>

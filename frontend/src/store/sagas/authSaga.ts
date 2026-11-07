@@ -67,7 +67,7 @@ function* handleFetchAllUsers() {
     const users: User[] = yield call(apiClient.getUsers)
     yield put(actions.fetchAllUsersSuccess(users))
   } catch (error: any) {
-    console.error(error)
+    yield put({type:types.FETCH_ALL_USERS_FAILURE,payload:{error:error.message}})
   }
 }
 

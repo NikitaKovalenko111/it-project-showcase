@@ -9,7 +9,7 @@ export const ReportButton: React.FC<{ targetType: ContentReport['targetType']; t
   const user = useAppSelector((s) => s.auth.currentUser)
   const [open, setOpen] = useState(false), [reason, setReason] = useState('Спам'), [message, setMessage] = useState(''), [error, setError] = useState(''), [sent, setSent] = useState(false), [busy, setBusy] = useState(false)
   if (!user) return null
-  return <><button className="btn btn-secondary btn-sm" onClick={() => setOpen(true)}><Flag size={14} /> Пожаловаться</button>
+  return <><button className="btn btn-secondary btn-sm" onClick={() => setOpen(true)}><Flag size={14} /> Пожаловаться {({company:'на компанию',case:'на кейс',user:'на пользователя',project:'на проект',comment:'на комментарий'} as const)[targetType]}</button>
     {open && createPortal(<div className="modal-backdrop"><section role="dialog" aria-modal="true" aria-label="Жалоба" className="modal-dialog report-dialog">
       <div className="modal-dialog__header"><h3>Пожаловаться</h3><button aria-label="Закрыть жалобу" className="close-btn" onClick={() => setOpen(false)}><X /></button></div>
       <form onSubmit={async (e) => { e.preventDefault(); setBusy(true); setError(''); try { await communityApi.reportContent(targetType, targetId, reason, message); setSent(true) } catch (e) { setError((e as Error).message) } finally { setBusy(false) } }}>

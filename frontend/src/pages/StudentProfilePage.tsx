@@ -1,3 +1,8 @@
+import {ResumeUpload} from '../components/ResumeUpload'
+import { apiRuntime } from '../api/runtime'
+import { apiClient } from '../api/client'
+import type { User as ProfileUser } from '../types/models'
+import { AdminUserActions } from '../components/AdminUserActions'
 import { communityApi } from '../api/community'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { PortfolioFiles } from '../components/PortfolioFiles'
@@ -54,7 +59,10 @@ export const StudentProfilePage: React.FC = () => {
 
   // Resolve only the requested student; never substitute another person's profile.
   const targetId = id === 'me' ? currentUser?.id : id
-  const targetUser = [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find((u) => u.id === targetId)
+  const [remoteProfile,setRemoteProfile]=useState<ProfileUser>()
+  const [profileError,setProfileError]=useState('')
+  useEffect(()=>{if(apiRuntime.mode!=='live'||!targetId)return;let active=true;setProfileError('');apiClient.getStudentById(targetId).then(u=>{if(active)setRemoteProfile(u)}).catch(e=>{if(active)setProfileError(e.message)});return()=>{active=false}},[targetId])
+  const targetUser = (remoteProfile?.id===targetId?remoteProfile:undefined) || [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find((u) => u.id === targetId)
   const isOwnProfile = currentUser?.id === targetUser?.id
   const student = targetUser?.studentProfile
 
@@ -103,7 +111,7 @@ export const StudentProfilePage: React.FC = () => {
   const [achievementError,setAchievementError]=useState('')
   const completedKey=casesList.filter(c=>c.status==='completed').map(c=>c.id).join(',')
   useEffect(()=>{let active=true;setAchievements([]);setAchievementError('');if(targetId)communityApi.getStudentAchievements(targetId).then(items=>{if(active)setAchievements(items)}).catch(e=>{if(active)setAchievementError(e.message)});return()=>{active=false}},[targetId,completedKey])
-  if (!targetUser?.studentProfile) return <div className="card" style={{ padding: 24 }}>Профиль студента не найден или загружается.</div>
+  if (!targetUser?.studentProfile) return <div className="card" style={{ padding: 24 }}>{profileError || 'Профиль студента не найден или загружается.'}</div>
 
   // Verified cases where student participated and received review
   const verifiedCases = casesList.filter(
@@ -116,6 +124,7 @@ export const StudentProfilePage: React.FC = () => {
   return (
     <div>
       {error && <p role="alert">{error}</p>}{achievementError && <p role="alert">{achievementError}</p>}
+      <div className="page-actions page-actions--top"><AdminUserActions key={targetUser.id} user={targetUser}/>{!isOwnProfile&&<ReportButton targetType="user" targetId={targetUser.id}/>}</div>
       {/* Profile Header Banner */}
       <div
         className="card"
@@ -221,6 +230,7 @@ export const StudentProfilePage: React.FC = () => {
           </div>
           <form onSubmit={handleSaveProfile}>
             <div className="card__body">
+              <ResumeUpload key={targetUser.id}/>
               <label>Уровень обучения<select className="select" value={educationLevel} onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}><option value="">Не указан</option>{['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => <option key={level}>{level}</option>)}</select></label>
               <div className="form-group">
                 <label>О себе (краткое описание):</label>
@@ -551,7 +561,7 @@ export const StudentProfilePage: React.FC = () => {
       </div>
 
 
-      {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
+
       {/* Modal for inviting student */}
       <InviteStudentModal
         student={targetUser}

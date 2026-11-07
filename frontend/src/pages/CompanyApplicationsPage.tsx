@@ -1,3 +1,4 @@
+import {FileDownload} from '../components/FileDownload'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import React, { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -52,7 +53,7 @@ export const CompanyApplicationsPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="company-applications-page">
       <div className="page-header">
         <div className="page-header__content">
           <h1>Входящие заявки студентов на кейсы</h1>
@@ -203,6 +204,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#627282' }}>
                     <Phone size={13} /> {app.studentPhone}
                   </span>
+                  {app.resumeUrl&&<FileDownload file={{name:'Резюме',url:app.resumeUrl}}/>}
                   {app.portfolioUrl && (
                     <a href={app.portfolioUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#3a75b4', fontWeight: 700 }}>
                       <FileText size={13} /> Портфолио
@@ -217,7 +219,7 @@ export const CompanyApplicationsPage: React.FC = () => {
 
                 <div className="action-row">
                   {['pending', 'interview'].includes(app.status) && <button disabled={loading} className="btn btn-secondary btn-sm" onClick={() => handleUpdateStatus(app.id, 'need_info')}>Запросить уточнения</button>}
-                  {app.status === 'accepted' && <Link className="btn btn-primary btn-sm" to={`/cases/${app.caseId}/workspace`}>К проекту команды</Link>}
+                  {app.status === 'accepted' && <Link className="btn btn-primary btn-sm" to={`/cases/${app.caseId}/workspace?application=${app.id}`}>К проекту команды</Link>}
                   {['pending', 'interview', 'need_info'].includes(app.status) && (
                     <button
                       disabled={loading} className="btn btn-success btn-sm"

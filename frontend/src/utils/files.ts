@@ -5,9 +5,9 @@ export async function uploadFile(file: File): Promise<{ name: string; url: strin
   const size = `${Math.ceil(file.size / 1024)} КБ`
   if (apiRuntime.mode === 'live') {
     const body = new FormData(); body.append('file', file)
-    const { data } = await axiosInstance.post('/files/upload', body, { headers: { 'Content-Type': 'multipart/form-data' } })
-    if (!data.file_id || !data.url) throw new Error('Сервер не вернул file_id и URL загруженного файла')
-    return { name: file.name, url: data.url, size, file_id: data.file_id }
+    const { data } = await axiosInstance.post('/files', body, { headers: { 'Content-Type': 'multipart/form-data' } })
+    if (!data.file_id) throw new Error('Сервер не вернул file_id и URL загруженного файла')
+    return { name: file.name, url: `${apiRuntime.baseUrl || '/api/v1'}/files/${data.file_id}`, size, file_id: data.file_id }
   }
   const url = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('Не удалось прочитать файл')); reader.readAsDataURL(file)

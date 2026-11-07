@@ -1,3 +1,4 @@
+import {PasswordInput} from '../components/PasswordInput'
 import { apiClient } from '../api/client'
 import { apiRuntime } from '../api/runtime'
 import React, { useEffect, useState } from 'react'
@@ -32,7 +33,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   useEffect(() => { if (isAuthenticated) navigate('/') }, [isAuthenticated, navigate])
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [roleToRegister, setRoleToRegister] = useState<'student' | 'company'>('student')
-  const [username, setUsername] = useState('student')
+  const [username, setUsername] = useState(apiRuntime.mode==='mock'?'student':'')
   const [password, setPassword] = useState('')
 
   // Registration fields - Student
@@ -178,7 +179,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                     className="input"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="student, company, curator или admin"
+                    aria-label="Логин или email"
+                    placeholder={apiRuntime.mode==='mock'?'student, company, curator или admin':'Введите логин или email'}
                     required
                   />
                 </div>
@@ -188,8 +190,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 <label>Пароль:*</label>
                 <div className="search-input-wrap">
                   <Lock size={16} className="search-icon" />
-                  <input
-                    type="password"
+                  <PasswordInput
+                    aria-label="Пароль"
                     className="input"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
@@ -205,7 +207,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
             </form>
 
             {/* Quick Demo Login Buttons */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '18px' }}>
+            {apiRuntime.mode==='mock'&&<div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '18px' }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '10px', textAlign: 'center' }}>
                 Быстрый вход под тестовой ролью:
               </span>
@@ -247,7 +249,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   <Settings size={14} aria-hidden="true" /> Администратор
                 </button>
               </div>
-            </div>
+            </div>}
           </div>
         ) : (
           /* REGISTRATION FORM */
@@ -461,7 +463,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               </label>
             </div>
 
-            <div className="form-group"><label>Пароль<input type="password" className="input" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" minLength={8} required /></label></div>
+            <div className="form-group"><label>Пароль<PasswordInput aria-label="Пароль при регистрации" className="input" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" minLength={8} required /></label></div>
             <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={!consentPD}>
               Зарегистрироваться и войти
             </button>

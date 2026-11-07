@@ -7,7 +7,7 @@
 .workspace-filter-panel .workspace-status-filter { margin: 0; }
 .workspace-filter-panel .catalog-search { margin: 0; }
 .execution-board { display: block; }
-.workspace-back { display: inline-block; margin-bottom: 16px; color: #345d8a; font-weight: 600; }
+.workspace-back { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; margin-bottom: 16px; color: #345d8a; font-weight: 600; }
 .execution-header { margin-bottom: 24px; }
 .execution-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
 .execution-heading > div:first-child { flex: 1; min-width: 0; }
