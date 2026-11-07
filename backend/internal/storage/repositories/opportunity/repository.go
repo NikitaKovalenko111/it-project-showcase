@@ -159,16 +159,16 @@ func (r *Repository) ListTeamProfiles(ctx context.Context, limit, offset int) ([
 	return items, total, e
 }
 
-const internshipCols = `p.program_id,p.company_id,c.full_name,p.created_by,p.title,p.summary,p.content_markdown,p.status,COALESCE(p.moderation_comment,''),p.application_deadline,p.created_at,p.updated_at,p.published_at`
+const internshipCols = `p.program_id,p.company_id,c.full_name,p.created_by,p.title,p.summary,p.content_markdown,p.status,COALESCE(p.moderation_comment,''),p.application_deadline,p.created_at,p.updated_at,p.published_at,p.capacity`
 
 func scanInternship(row interface{ Scan(...any) error }) (*models.InternshipProgram, error) {
 	var x models.InternshipProgram
-	e := row.Scan(&x.ProgramID, &x.CompanyID, &x.CompanyName, &x.CreatedBy, &x.Title, &x.Summary, &x.ContentMarkdown, &x.Status, &x.ModerationComment, &x.ApplicationDeadline, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt)
+	e := row.Scan(&x.ProgramID, &x.CompanyID, &x.CompanyName, &x.CreatedBy, &x.Title, &x.Summary, &x.ContentMarkdown, &x.Status, &x.ModerationComment, &x.ApplicationDeadline, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt, &x.Capacity)
 	return &x, e
 }
 func (r *Repository) CreateInternship(ctx context.Context, user string, in models.InternshipInput) (*models.InternshipProgram, error) {
 	var id string
-	e := r.db.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline) SELECT $2,$1,$3,$4,$5,$6 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline).Scan(&id)
+	e := r.db.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline,capacity) SELECT $2,$1,$3,$4,$5,$6,$7 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity).Scan(&id)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
@@ -209,14 +209,15 @@ func (r *Repository) ListInternships(ctx context.Context, status string, limit, 
 func (r *Repository) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
 	item, err := scanInternship(r.db.QueryRowContext(ctx, `WITH updated AS (
 		UPDATE showcase.internship_programs p
-		SET title=$4,summary=$5,content_markdown=$6,application_deadline=$7,
+		SET title=$4,summary=$5,content_markdown=$6,application_deadline=$7,capacity=COALESCE($8,p.capacity),
 			status=CASE WHEN p.status='published' THEN 'revision' ELSE p.status END
 		WHERE p.program_id=$1 AND p.company_id=$3 AND p.status IN ('draft','revision','published')
+			AND ($8::int IS NULL OR $8 >= (SELECT count(*) FROM showcase.internship_applications a WHERE a.program_id=p.program_id AND a.status='accepted'))
 			AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id
 				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
 		RETURNING p.*
 	) SELECT `+internshipCols+` FROM updated p JOIN showcase.companies c ON c.company_id=p.company_id`,
-		programID, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline))
+		programID, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}

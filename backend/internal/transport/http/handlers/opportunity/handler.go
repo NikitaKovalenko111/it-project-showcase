@@ -430,6 +430,8 @@ func writeError(w http.ResponseWriter, e error) {
 		pkg.WriteError(w, 404, "resource_not_found", "Resource not found")
 	case errors.Is(e, opportunities_service.ErrCuratorAssigned):
 		pkg.WriteError(w, 409, "student_curator_already_assigned", "Student already has an active curator")
+	case errors.Is(e, opportunities_service.ErrInternshipFull):
+		pkg.WriteError(w, 409, "internship_capacity_reached", "All internship places are taken")
 	case errors.Is(e, opportunities_service.ErrConflict):
 		pkg.WriteError(w, 409, "resource_conflict", "Resource conflict")
 	default:

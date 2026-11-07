@@ -15,6 +15,21 @@ func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
 const fileColumns = `file_id, storage_key, original_name, mime_type, size_bytes, checksum_sha256, uploaded_by, created_at`
 
+func (r *Repository) GetFeedbackFile(ctx context.Context, feedbackID, fileID, userID string, admin bool) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at
+		FROM showcase.feedback_files x JOIN showcase.feedback_messages m ON m.feedback_id=x.feedback_id
+		JOIN showcase.files f ON f.file_id=x.file_id
+		WHERE x.feedback_id=$1 AND x.file_id=$2 AND f.status='active' AND (m.author_id=$3 OR $4)`, feedbackID, fileID, userID, admin))
+}
+
+func (r *Repository) GetInternshipResume(ctx context.Context, applicationID, userID string, admin bool) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at
+		FROM showcase.internship_applications a JOIN showcase.internship_programs p ON p.program_id=a.program_id
+		JOIN showcase.files f ON f.file_id=a.resume_file_id AND f.status='active'
+		WHERE a.application_id=$1 AND ($3 OR a.student_id=$2 OR EXISTS(SELECT 1 FROM showcase.company_members m
+		WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company'))`, applicationID, userID, admin))
+}
+
 func scanFile(row interface{ Scan(...any) error }) (*models.File, error) {
 	var file models.File
 	err := row.Scan(&file.FileID, &file.StorageKey, &file.OriginalName, &file.MIMEType, &file.SizeBytes, &file.ChecksumSHA256, &file.UploadedBy, &file.CreatedAt)

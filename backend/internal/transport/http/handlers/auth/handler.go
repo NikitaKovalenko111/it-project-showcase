@@ -114,6 +114,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			pkg.WriteError(w, http.StatusLocked, "account_temporarily_locked", "Too many failed login attempts")
 			return
 		}
+		if errors.Is(err, auth_service.ErrRoleAwaitingApproval) {
+			pkg.WriteError(w, http.StatusForbidden, "role_approval_pending", "Moderator approval is required")
+			return
+		}
+		if errors.Is(err, auth_service.ErrRoleRejected) {
+			pkg.WriteError(w, http.StatusForbidden, "role_request_rejected", "Moderator rejected the role request")
+			return
+		}
 
 		pkg.WriteError(w, http.StatusInternalServerError, "login_failed", "Failed to login")
 		return

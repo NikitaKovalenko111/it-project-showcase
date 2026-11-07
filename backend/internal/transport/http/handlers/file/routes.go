@@ -2,6 +2,13 @@ package file_handler
 
 import "net/http"
 
+func (h *Handler) StartFeedback(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
+	mux.Handle("GET /{feedback_id}/files/{file_id}", authorize(http.HandlerFunc(h.DownloadFeedbackFile)))
+}
+func (h *Handler) StartInternships(mux *http.ServeMux, workflow func(http.Handler) http.Handler) {
+	mux.Handle("GET /applications/{application_id}/resume", workflow(http.HandlerFunc(h.DownloadInternshipResume)))
+}
+
 func (h *Handler) StartUsers(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
 	mux.Handle("PUT /me/photo", authorize(http.HandlerFunc(h.UploadStudentPhoto)))
 }

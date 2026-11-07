@@ -55,6 +55,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, input models.StudentRegi
 	input.Phone = strings.TrimSpace(input.Phone)
 	input.Bio = strings.TrimSpace(input.Bio)
 	input.ConsentVersion = strings.TrimSpace(input.ConsentVersion)
+	input.EducationLevel = strings.TrimSpace(input.EducationLevel)
 	if err := ValidateRegisterRequest(input); err != nil {
 		return "", err
 	}
@@ -64,7 +65,12 @@ func (s *AuthService) RegisterUser(ctx context.Context, input models.StudentRegi
 		return "", err
 	}
 
-	id, err := s.userRepo.RegisterStudent(ctx, input, passwordHash)
+	var id string
+	if input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff" {
+		id, err = s.userRepo.RegisterRoleApplicant(ctx, input, passwordHash)
+	} else {
+		id, err = s.userRepo.RegisterStudent(ctx, input, passwordHash)
+	}
 	if err != nil {
 		if conflictErr := registrationConflictError(err); conflictErr != nil {
 			return "", conflictErr
@@ -73,6 +79,9 @@ func (s *AuthService) RegisterUser(ctx context.Context, input models.StudentRegi
 	}
 	return id, nil
 }
+
+var ErrRoleAwaitingApproval = errors.New("role awaiting moderator approval")
+var ErrRoleRejected = errors.New("role request rejected")
 
 func registrationConflictError(err error) error {
 	var pgError *pgconn.PgError
@@ -120,6 +129,19 @@ func (s *AuthService) LoginUser(ctx context.Context, login, password string) (st
 	roles, err := s.userRepo.GetUserRoles(ctx, credentials.UserID)
 	if err != nil {
 		return "", "", "", fmt.Errorf("get user roles: %w", err)
+	}
+	if len(roles) == 0 {
+		status, err := s.userRepo.RoleRequestStatus(ctx, credentials.UserID)
+		if err != nil {
+			return "", "", "", err
+		}
+		if status == "rejected" {
+			return "", "", "", ErrRoleRejected
+		}
+		if status == "pending" || status == "approved" {
+			return "", "", "", ErrRoleAwaitingApproval
+		}
+		return "", "", "", ErrAccountBlocked
 	}
 	if err := s.userRepo.RecordSuccessfulLogin(ctx, credentials.UserID); err != nil {
 		return "", "", "", fmt.Errorf("record successful login: %w", err)

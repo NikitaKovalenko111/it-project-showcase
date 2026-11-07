@@ -81,6 +81,9 @@ func (s *Service) ListTeamProfiles(ctx context.Context, l, o int) ([]models.Team
 	return s.repo.ListTeamProfiles(ctx, l, o)
 }
 func validateInternship(in *models.InternshipInput) error {
+	if in.Capacity != nil && (*in.Capacity < 1 || *in.Capacity > 10000) {
+		return ErrInvalid
+	}
 	in.Title = strings.TrimSpace(in.Title)
 	in.Summary = strings.TrimSpace(in.Summary)
 	in.ContentMarkdown = strings.TrimSpace(in.ContentMarkdown)
@@ -91,6 +94,9 @@ func validateInternship(in *models.InternshipInput) error {
 }
 
 func (s *Service) CreateInternship(ctx context.Context, u string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	if in.Capacity == nil {
+		return nil, ErrInvalid
+	}
 	if err := validateInternship(&in); err != nil {
 		return nil, err
 	}

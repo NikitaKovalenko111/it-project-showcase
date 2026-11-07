@@ -49,6 +49,9 @@ type Case struct {
 	FullBrief            string                `json:"full_brief"`
 	Type                 string                `json:"type"`
 	EventFormat          string                `json:"event_format"`
+	RegistrationsCount   int                   `json:"registrations_count"`
+	ViewsCount           int                   `json:"views_count"`
+	ApplicationsCount    int                   `json:"applications_count"`
 	Difficulty           string                `json:"difficulty,omitempty"`
 	WorkFormat           string                `json:"work_format"`
 	ParticipationMode    string                `json:"participation_mode"`
@@ -138,6 +141,7 @@ type CaseInput struct {
 }
 
 type CaseListFilter struct {
+	ManagerID         string
 	Search            string
 	CompanyID         string
 	DirectionID       string

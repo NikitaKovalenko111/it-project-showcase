@@ -130,6 +130,14 @@ func (s *Service) ListForModeration(ctx context.Context, status string, limit in
 	return s.list(ctx, status, limit, position, id)
 }
 func (s *Service) list(ctx context.Context, status string, limit int, position, id string) ([]models.Company, error) {
+	return s.listScope(ctx, status, "", limit, position, id)
+}
+
+func (s *Service) ListMine(ctx context.Context, userID string, limit int, position, id string) ([]models.Company, error) {
+	return s.listScope(ctx, "", userID, limit, position, id)
+}
+
+func (s *Service) listScope(ctx context.Context, status, owner string, limit int, position, id string) ([]models.Company, error) {
 	var before *time.Time
 	if position != "" {
 		value, err := time.Parse(time.RFC3339Nano, position)
@@ -137,6 +145,9 @@ func (s *Service) list(ctx context.Context, status string, limit int, position, 
 			return nil, ErrInvalidCursor
 		}
 		before = &value
+	}
+	if owner != "" {
+		return s.repo.ListMine(ctx, owner, limit, before, id)
 	}
 	return s.repo.List(ctx, status, limit, before, id)
 }

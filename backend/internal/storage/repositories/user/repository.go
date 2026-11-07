@@ -84,6 +84,11 @@ func (r *UsersRepo) RegisterStudent(ctx context.Context, input models.StudentReg
 	if err != nil {
 		return "", fmt.Errorf("create student profile: %w", err)
 	}
+	if input.EducationLevel != "" {
+		if _, err = tx.ExecContext(ctx, `UPDATE students SET education_level=$2 WHERE user_id=$1`, userID, input.EducationLevel); err != nil {
+			return "", err
+		}
+	}
 
 	result, err := tx.ExecContext(ctx, `
 		INSERT INTO user_roles (user_id, role_id)
@@ -159,7 +164,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 			COALESCE(s.professional_interests, '[]'::jsonb),
 			COALESCE(s.competencies, '[]'::jsonb),
 			COALESCE(s.technologies, '[]'::jsonb),
-			COALESCE(s.links, '[]'::jsonb), s.photo_file_id
+			COALESCE(s.links, '[]'::jsonb), s.photo_file_id, COALESCE(s.education_level,'')
 		FROM users u
 		LEFT JOIN students s ON s.user_id = u.user_id
 		WHERE u.user_id = $1
@@ -168,7 +173,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 		&profile.LastName, &profile.FirstName, &profile.Patronymic,
 		&profile.Institute, &profile.Direction, &profile.Program,
 		&profile.Course, &profile.GroupName, &profile.Phone, &profile.Bio,
-		&interests, &competencies, &technologies, &links, &profile.PhotoFileID,
+		&interests, &competencies, &technologies, &links, &profile.PhotoFileID, &profile.EducationLevel,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("select user by id: %w", err)

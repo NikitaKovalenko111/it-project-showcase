@@ -7,6 +7,8 @@ import (
 )
 
 type RegisterRequest struct {
+	Role                  string               `json:"role"`
+	EducationLevel        string               `json:"education_level"`
 	Username              string               `json:"username"`
 	Email                 string               `json:"email"`
 	Password              string               `json:"password"`
@@ -29,6 +31,7 @@ type RegisterRequest struct {
 
 func (r RegisterRequest) model() models.StudentRegistration {
 	return models.StudentRegistration{
+		RequestedRole: r.Role, EducationLevel: r.EducationLevel,
 		Username: r.Username, Email: r.Email, Password: r.Password,
 		LastName: r.LastName, FirstName: r.FirstName, Patronymic: r.Patronymic,
 		Institute: r.Institute, Direction: r.Direction, Program: r.Program,

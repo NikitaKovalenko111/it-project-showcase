@@ -61,6 +61,29 @@ func (r *Repository) Create(ctx context.Context, userID, name string) (*models.T
 	return r.Get(ctx, userID, teamID, false)
 }
 
+func (r *Repository) ListMine(ctx context.Context, userID string, limit int, offset int64) ([]models.Team, int64, error) {
+	const filter = ` WHERE t.status='active' AND EXISTS(SELECT 1 FROM team_members m WHERE m.team_id=t.team_id AND m.student_id=$1 AND m.left_at IS NULL)`
+	rows, err := r.db.QueryContext(ctx, teamSelect+filter+` ORDER BY t.created_at DESC,t.team_id DESC LIMIT $2 OFFSET $3`, userID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	items := make([]models.Team, 0)
+	for rows.Next() {
+		item, err := scanTeam(rows)
+		if err != nil {
+			return nil, 0, err
+		}
+		items = append(items, *item)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, 0, err
+	}
+	var total int64
+	err = r.db.QueryRowContext(ctx, `SELECT count(*) FROM teams t`+filter, userID).Scan(&total)
+	return items, total, err
+}
+
 func (r *Repository) Get(ctx context.Context, userID, teamID string, admin bool) (*models.Team, error) {
 	item, err := scanTeam(r.db.QueryRowContext(ctx, teamSelect+` WHERE t.team_id=$1 AND ($3 OR EXISTS(SELECT 1 FROM team_members m WHERE m.team_id=t.team_id AND m.student_id=$2 AND m.left_at IS NULL))`, teamID, userID, admin))
 	if err != nil {

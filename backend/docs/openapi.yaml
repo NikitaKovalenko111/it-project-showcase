@@ -34,6 +34,386 @@ tags:
   - {name: Files}
 security: []
 paths:
+  /users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      description: 'Модератор получает учётные записи и состояние заявок на роли.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /users/{user_id}/role-request:
+    patch:
+      tags: [Users]
+      operationId: reviewUserRole
+      description: 'Модератор одобряет или отклоняет запрошенную роль.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/UserID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RoleRequestDecision'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /students/me/profile:
+    put:
+      tags: [Users]
+      operationId: replaceStudentProfile
+      description: 'Студент сохраняет личные и учебные данные своего профиля.'
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/StudentProfileUpdate'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /companies/mine:
+    get:
+      tags: [Companies]
+      operationId: listMyCompanies
+      description: 'Представитель получает компании со своим активным членством.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatCursorPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /cases/mine:
+    get:
+      tags: [Cases]
+      operationId: listMyCases
+      description: 'Представитель получает кейсы управляемых компаний.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatCursorPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /teams/mine:
+    get:
+      tags: [Teams]
+      operationId: listMyTeams
+      description: 'Пользователь получает команды со своим активным членством.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /event-registrations:
+    post:
+      tags: [Applications]
+      operationId: registerForEvent
+      description: 'Регистрация на хакатон или олимпиаду. Команда зачисляется после согласия всех участников.'
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventRegistrationInput'}}}}
+      responses:
+        '201': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/EventRegistration'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+        '409': {description: 'event_capacity_reached или wrong_event_entry_kind'}
+  /cases/{case_id}/view:
+    put:
+      tags: [Cases]
+      operationId: recordCaseView
+      description: 'Учитывает один просмотр от авторизованного пользователя.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /cases/{case_id}/deadline-history:
+    get:
+      tags: [Cases]
+      operationId: listCaseDeadlineHistory
+      description: История переносов для управляющей компании и модератора.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: История переносов, content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '403': {description: Недостаточно прав}
+  /cases/{case_id}/deadline:
+    patch:
+      tags: [Cases]
+      operationId: changeCaseDeadline
+      description: 'Компания меняет дедлайн для всех активных выполнений.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeadlineChange'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /cases/{case_id}/stages/{stage_id}/deadline:
+    patch:
+      tags: [Cases]
+      operationId: changeCaseStageDeadline
+      description: 'Компания меняет срок общей контрольной точки.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}, {$ref: '#/components/parameters/StageID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeadlineChange'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /cases/{case_id}/rounds/{round_id}/deadline:
+    patch:
+      tags: [Cases]
+      operationId: changeEventRoundDeadline
+      description: 'Компания меняет дедлайн тура для всех участников.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}, {name: round_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeadlineChange'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /cases/{case_id}/event-plan:
+    get:
+      tags: [Cases]
+      operationId: getEventPlan
+      description: 'Расписание мероприятия. Условия и материалы тура доступны участнику с момента открытия.'
+      security: [{}, {bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/EventPlan'}}}}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+    put:
+      tags: [Cases]
+      operationId: setEventPlan
+      description: 'Представитель заменяет план черновика или кейса на доработке до начала выполнений.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventPlan'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /cases/{case_id}/rounds/{round_id}/tasks/{task_id}/files/{file_id}:
+    get:
+      tags: [Files]
+      operationId: downloadEventTaskFile
+      description: 'Скачивание условия задачи с проверкой времени открытия и участия.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}, {name: round_id, in: path, required: true, schema: {type: string, format: uuid}}, {name: task_id, in: path, required: true, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/FileID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/octet-stream: {schema: {type: string, format: binary}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /executions/{execution_id}/rounds/{round_id}/submission:
+    post:
+      tags: [Results]
+      operationId: submitEventRound
+      description: 'Участник сдаёт все подготовленные решения одной работой в пределах времени тура.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ExecutionID'}, {name: round_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventRoundSubmissionInput'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+        '409': {description: 'event_round_closed или event_round_already_submitted'}
+  /executions/{execution_id}/rounds/{round_id}/evaluation:
+    put:
+      tags: [Results]
+      operationId: gradeEventRound
+      description: 'Компания или модератор выставляет баллы по каждому заданию тура.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ExecutionID'}, {name: round_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EventRoundEvaluationInput'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /executions/{execution_id}/round-submissions:
+    get:
+      tags: [Results]
+      operationId: listEventRoundSubmissions
+      description: 'Сданные туры и суммарные баллы выполнения.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ExecutionID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/EventRoundResults'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /executions/{execution_id}/rounds/{round_id}/files/{file_id}:
+    get:
+      tags: [Files]
+      operationId: downloadEventSolutionFile
+      description: 'Скачать файл решения участнику выполнения, компании или модератору.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ExecutionID'}, {name: round_id, in: path, required: true, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/FileID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/octet-stream: {schema: {type: string, format: binary}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /submissions/{submission_id}/review-details:
+    get:
+      tags: [Results]
+      operationId: getSubmissionReviewDetails
+      description: 'Названия файлов и имена оценивших для управляющего представителя или модератора.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/SubmissionID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/ResultReviewDetails'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /feedback:
+    get:
+      tags: [Community]
+      operationId: listFeedback
+      description: 'Очередь обращений модератора.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}, {name: status, in: query, schema: {type: string, enum: [reviewing, accepted, rejected]}}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+    post:
+      tags: [Community]
+      operationId: createFeedback
+      description: 'Отправить обращение с максимум пятью вложениями по 2 МиБ.'
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackInput'}}}}
+      responses:
+        '201': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/Feedback'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /feedback/mine:
+    get:
+      tags: [Community]
+      operationId: listMyFeedback
+      description: 'Список обращений текущего пользователя.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /feedback/{feedback_id}/status:
+    patch:
+      tags: [Community]
+      operationId: reviewFeedback
+      description: 'Модератор принимает или отклоняет обращение без текстового ответа.'
+      security: [{bearerAuth: []}]
+      parameters: [{name: feedback_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackDecision'}}}}
+      responses:
+        '204': {description: 'Действие выполнено'}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+  /feedback/{feedback_id}/files/{file_id}:
+    get:
+      tags: [Files]
+      operationId: downloadFeedbackFile
+      description: 'Скачать приватное вложение может автор или модератор.'
+      security: [{bearerAuth: []}]
+      parameters: [{name: feedback_id, in: path, required: true, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/FileID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/octet-stream: {schema: {type: string, format: binary}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /internships/{program_id}/applications:
+    post:
+      tags: [Internships]
+      operationId: applyForInternship
+      description: 'Студент подаёт заявку на стажировку.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ProgramID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipApplicationInput'}}}}
+      responses:
+        '201': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/InternshipApplication'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+    get:
+      tags: [Internships]
+      operationId: listInternshipApplications
+      description: 'Компания получает заявки на свою стажировку.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ProgramID'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /internships/applications/mine:
+    get:
+      tags: [Internships]
+      operationId: listMyInternshipApplications
+      description: 'Студент получает свои заявки.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+  /internships/applications/{application_id}/status:
+    patch:
+      tags: [Internships]
+      operationId: decideInternshipApplication
+      description: 'Компания принимает или отклоняет заявку. Студент может отозвать свою заявку.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ApplicationID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipApplicationDecision'}}}}
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/InternshipApplication'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
+        '422': {description: Некорректные данные}
+        '409': {description: 'internship_capacity_reached'}
+  /internships/applications/{application_id}/resume:
+    get:
+      tags: [Files]
+      operationId: downloadInternshipResume
+      description: 'Скачать резюме могут автор заявки, управляющий представитель и модератор.'
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ApplicationID'}]
+      responses:
+        '200': {description: 'Успешный ответ', content: {application/octet-stream: {schema: {type: string, format: binary}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Недостаточно прав}
+        '404': {description: Ресурс недоступен}
   /system/health:
     get:
       tags: [System]
@@ -52,7 +432,7 @@ paths:
         content:
           application/json: {schema: {$ref: '#/components/schemas/RegisterRequest'}}
       responses:
-        '201': {description: Пользователь создан, content: {application/json: {schema: {$ref: '#/components/schemas/AuthTokens'}}}}
+        '201': {description: Учётная запись создана, content: {application/json: {schema: {type: object, properties: {user_id: {type: string, format: uuid}, message: {type: string}}}}}}
         '409': {$ref: '#/components/responses/Conflict'}
         '422': {$ref: '#/components/responses/Validation'}
   /auth/login:
@@ -1171,8 +1551,17 @@ components:
     LoginRequest: {type: object, required: [login, password], properties: {login: {type: string}, password: {type: string, format: password}}}
     RegisterRequest:
       type: object
-      required: [username, email, password, last_name, first_name, institute, direction, course, group_name, consent_version]
+      description: Для student обязательны личные и учебные поля. Для остальных доступных ролей создаётся заявка на подтверждение.
+      required: [username, email, password, consent_version]
+      oneOf:
+        - required: [last_name, first_name, institute, direction, course, group_name]
+          properties:
+            role: {type: string, enum: [student]}
+        - required: [role]
+          properties:
+            role: {type: string, enum: [company_representative, university_staff]}
       properties:
+        role: {type: string, enum: [student, company_representative, university_staff], default: student}
         username: {type: string, minLength: 3, maxLength: 32}
         email: {type: string, format: email}
         password: {type: string, format: password, minLength: 8}
@@ -1180,6 +1569,7 @@ components:
         first_name: {type: string}
         institute: {type: string}
         direction: {type: string}
+        education_level: {type: string, maxLength: 150}
         course: {type: integer, minimum: 1, maximum: 8}
         group_name: {type: string}
         consent_version: {type: string}
@@ -1198,6 +1588,9 @@ components:
         event_format: {type: string, enum: [case, hackathon, olympiad], default: case, description: Формат мероприятия компании; не является категорией студенческого проекта.}
         work_format: {type: string, enum: [remote, onsite, hybrid]}
         participation_mode: {type: string, enum: [individual, team, both]}
+        capacity: {type: integer, minimum: 1, maximum: 10000, description: Обязательный при создании лимит команд или индивидуальных участников.}
+        team_size_min: {type: integer, minimum: 1, maximum: 100, description: Обязательный при создании минимальный размер команды.}
+        team_size_max: {type: integer, minimum: 1, maximum: 100, description: Обязательный при создании максимальный размер команды.}
         admission_mode: {type: string, enum: [open, selection, test, invitation]}
         result_requirements: {type: string}
         ip_terms: {type: string}
@@ -1216,6 +1609,83 @@ components:
     EvaluationInput: {type: object, required: [scores], properties: {feedback: {type: string}, scores: {type: array, items: {type: object, required: [criterion_id, score], properties: {criterion_id: {type: string, format: uuid}, score: {type: number, minimum: 0}, comment: {type: string}}}}}}
     PlacementsInput: {type: object, required: [placements], properties: {placements: {type: array, items: {type: object, required: [execution_id], properties: {execution_id: {type: string, format: uuid}, place_no: {type: integer, minimum: 1}, nomination: {type: string}}}}}}
     StudentProjectInput: {type: object, required: [title, category, short_description, full_description], properties: {title: {type: string}, category: {type: string, enum: [coursework, pet_project, startup, research, hackathon, other]}, short_description: {type: string}, full_description: {type: string}, visibility: {type: string, enum: [public, private], default: public}, tags: {type: array, maxItems: 10, uniqueItems: true, items: {type: string, maxLength: 40}}, cover_file_id: {type: string, format: uuid}}}
-    InternshipInput: {type: object, required: [company_id, title, summary, content_markdown], properties: {company_id: {type: string, format: uuid}, title: {type: string}, summary: {type: string}, content_markdown: {type: string}, application_deadline: {type: string, format: date-time}}}
+    InternshipInput: {type: object, required: [company_id, title, summary, content_markdown], properties: {company_id: {type: string, format: uuid}, title: {type: string}, summary: {type: string}, content_markdown: {type: string}, capacity: {type: integer, minimum: 1, maximum: 10000, description: При создании обязателен лимит людей.}, application_deadline: {type: string, format: date-time}}}
+    RoleRequestDecision: {type: object, required: [status], properties: {status: {type: string, enum: [approved, rejected]}}}
+    StudentProfileUpdate:
+      type: object
+      required: [email, first_name, last_name, institute, direction, course, group_name]
+      properties:
+        email: {type: string, format: email}
+        first_name: {type: string}
+        last_name: {type: string}
+        patronymic: {type: string}
+        institute: {type: string}
+        direction: {type: string}
+        program: {type: string}
+        education_level: {type: string}
+        course: {type: integer, minimum: 1, maximum: 8}
+        group_name: {type: string}
+        phone: {type: string}
+        bio: {type: string, maxLength: 2000}
+        professional_interests: {type: array, maxItems: 50, items: {type: string}}
+        competencies: {type: array, maxItems: 50, items: {type: string}}
+        technologies: {type: array, maxItems: 50, items: {type: string}}
+        links: {type: array, maxItems: 50, items: {type: object, required: [kind, url], properties: {kind: {type: string}, url: {type: string, format: uri}}}}
+    EventRegistrationInput: {type: object, required: [case_id, applicant_type], properties: {case_id: {type: string, format: uuid}, applicant_type: {type: string, enum: [individual, team]}, team_id: {type: string, format: uuid}}}
+    EventRegistration: {type: object, required: [application_id, entry_kind, status], properties: {application_id: {type: string, format: uuid}, entry_kind: {type: string, enum: [registration]}, status: {type: string, enum: [accepted, consent_pending]}, execution_id: {type: string, format: uuid, nullable: true}}}
+    DeadlineChange: {type: object, required: [due_at, reason], properties: {due_at: {type: string, format: date-time}, reason: {type: string, minLength: 1, maxLength: 1000}}}
+    EventPlan:
+      type: object
+      required: [subject, time_zone]
+      properties:
+        subject: {type: string}
+        time_zone: {type: string, example: Asia/Yekaterinburg}
+        venue_name: {type: string}
+        address: {type: string}
+        building: {type: string}
+        room: {type: string}
+        platform_name: {type: string}
+        platform_url: {type: string, format: uri}
+        regulations: {type: string}
+        agenda: {type: string}
+        defense_at: {type: string, format: date-time}
+        rounds: {type: array, maxItems: 20, items: {$ref: '#/components/schemas/EventRound'}}
+    EventRound: {type: object, required: [title, opens_at, due_at], properties: {round_id: {type: string, format: uuid, readOnly: true}, title: {type: string}, opens_at: {type: string, format: date-time}, due_at: {type: string, format: date-time}, rules: {type: string}, tasks: {type: array, items: {$ref: '#/components/schemas/EventTask'}}}}
+    EventTask: {type: object, required: [title, statement, max_score], properties: {task_id: {type: string, format: uuid, readOnly: true}, title: {type: string}, statement: {type: string}, max_score: {type: number, minimum: 0, exclusiveMinimum: true}, file_ids: {type: array, maxItems: 10, items: {type: string, format: uuid}}}}
+    EventSolution: {type: object, required: [task_id], properties: {task_id: {type: string, format: uuid}, text: {type: string}, url: {type: string, format: uri}, file_id: {type: string, format: uuid}}}
+    EventTaskScore: {type: object, required: [task_id, score], properties: {task_id: {type: string, format: uuid}, score: {type: number, minimum: 0}}}
+    EventRoundSubmissionInput: {type: object, required: [solutions], properties: {solutions: {type: array, minItems: 1, maxItems: 50, items: {$ref: '#/components/schemas/EventSolution'}}}}
+    EventRoundEvaluationInput: {type: object, required: [scores], properties: {scores: {type: array, minItems: 1, maxItems: 50, items: {$ref: '#/components/schemas/EventTaskScore'}}}}
+    EventRoundResults:
+      type: object
+      required: [items, total_score]
+      properties:
+        total_score: {type: number}
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              round_id: {type: string, format: uuid}
+              execution_id: {type: string, format: uuid}
+              submitted_at: {type: string, format: date-time}
+              evaluated_at: {type: string, format: date-time, nullable: true}
+              evaluator_name: {type: string}
+              file_metadata: {type: array, items: {type: object, properties: {file_id: {type: string, format: uuid}, original_name: {type: string}, mime_type: {type: string}, size_bytes: {type: integer, format: int64}}}}
+              total_score: {type: number, nullable: true}
+              max_score: {type: number, nullable: true}
+              solutions: {type: array, items: {$ref: '#/components/schemas/EventSolution'}}
+              scores: {type: array, items: {$ref: '#/components/schemas/EventTaskScore'}}
+    FeedbackInput: {type: object, required: [body], properties: {body: {type: string, minLength: 1, maxLength: 4000}, file_ids: {type: array, maxItems: 5, uniqueItems: true, items: {type: string, format: uuid}}}}
+    FeedbackDecision: {type: object, required: [status], properties: {status: {type: string, enum: [accepted, rejected]}}}
+    Feedback: {type: object, properties: {feedback_id: {type: string, format: uuid}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [reviewing, accepted, rejected]}, file_ids: {type: array, items: {type: string, format: uuid}}, moderator_id: {type: string, format: uuid, nullable: true}, created_at: {type: string, format: date-time}, reviewed_at: {type: string, format: date-time, nullable: true}}}
+    InternshipApplicationInput: {type: object, properties: {cover_letter: {type: string, maxLength: 4000}, resume_file_id: {type: string, format: uuid}}}
+    InternshipApplicationDecision: {type: object, required: [status], properties: {status: {type: string, enum: [accepted, rejected, withdrawn]}}}
+    InternshipApplication: {type: object, properties: {application_id: {type: string, format: uuid}, program_id: {type: string, format: uuid}, student_id: {type: string, format: uuid}, cover_letter: {type: string}, resume_file_id: {type: string, format: uuid, nullable: true}, status: {type: string, enum: [submitted, accepted, rejected, withdrawn]}, created_at: {type: string, format: date-time}, decided_at: {type: string, format: date-time, nullable: true}}}
+    ResultReviewDetails:
+      type: object
+      properties:
+        files: {type: array, items: {type: object, properties: {file_id: {type: string, format: uuid}, original_name: {type: string}, mime_type: {type: string}, size_bytes: {type: integer, format: int64}}}}
+        evaluators: {type: array, items: {type: object, properties: {evaluation_id: {type: string, format: uuid}, name: {type: string}}}}
     PortfolioFileInput: {type: object, required: [file_id, kind, visibility], properties: {file_id: {type: string, format: uuid}, kind: {type: string, enum: [resume, portfolio, certificate, other]}, is_default: {type: boolean}, visibility: {type: string, enum: [public, private]}}}
     NDAInput: {type: object, required: [text], properties: {text: {type: string, minLength: 1, maxLength: 50000}, file_id: {type: string, format: uuid}}}

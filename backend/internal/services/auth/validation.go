@@ -33,17 +33,8 @@ type ValidationError struct {
 func (e *ValidationError) Error() string { return e.Message }
 
 func ValidateRegisterRequest(input models.StudentRegistration) error {
-	checks := []struct {
-		field string
-		value string
-		max   int
-	}{
-		{"last_name", input.LastName, maxShortText},
-		{"first_name", input.FirstName, maxShortText},
-		{"institute", input.Institute, maxShortText},
-		{"direction", input.Direction, maxShortText},
-		{"group_name", input.GroupName, maxShortText},
-		{"consent_version", input.ConsentVersion, 50},
+	if input.RequestedRole != "" && input.RequestedRole != "student" && input.RequestedRole != "company_representative" && input.RequestedRole != "university_staff" {
+		return validationError("role", "invalid_role", "Role cannot be selected during public registration")
 	}
 	if err := validateUsername(input.Username); err != nil {
 		return err
@@ -54,12 +45,46 @@ func ValidateRegisterRequest(input models.StudentRegistration) error {
 	if err := validatePassword(input.Password); err != nil {
 		return err
 	}
+	if strings.TrimSpace(input.ConsentVersion) == "" || utf8.RuneCountInString(input.ConsentVersion) > 50 {
+		return validationError("consent_version", "invalid_consent", "consent_version is required and must be at most 50 characters")
+	}
+	if input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff" {
+		return nil
+	}
+	return ValidateStudentProfile(input)
+}
+
+func ValidateStudentProfile(input models.StudentRegistration) error {
+	if err := validateEmail(input.Email); err != nil {
+		return err
+	}
+	checks := []struct {
+		field string
+		value string
+		max   int
+	}{
+		{"last_name", input.LastName, maxShortText},
+		{"first_name", input.FirstName, maxShortText},
+		{"institute", input.Institute, maxShortText},
+		{"direction", input.Direction, maxShortText},
+		{"group_name", input.GroupName, maxShortText},
+	}
 	for _, check := range checks {
 		if strings.TrimSpace(check.value) == "" {
 			return validationError(check.field, "required", check.field+" is required")
 		}
 		if utf8.RuneCountInString(check.value) > check.max {
 			return validationError(check.field, "too_long", check.field+" is too long")
+		}
+	}
+	if strings.EqualFold(strings.TrimSpace(input.Direction), "Не указано") {
+		return validationError("direction", "required", "Enter the study direction")
+	}
+	for _, field := range []struct{ name, value string }{
+		{"patronymic", input.Patronymic}, {"program", input.Program}, {"phone", input.Phone}, {"education_level", input.EducationLevel},
+	} {
+		if utf8.RuneCountInString(field.value) > maxShortText {
+			return validationError(field.name, "too_long", field.name+" is too long")
 		}
 	}
 	if input.Course < 1 || input.Course > 8 {
@@ -72,6 +97,9 @@ func ValidateRegisterRequest(input models.StudentRegistration) error {
 		if len(values) > 50 {
 			return validationError("profile", "too_many_items", "profile lists may contain at most 50 items")
 		}
+	}
+	if len(input.Links) > 50 {
+		return validationError("links", "too_many_items", "At most 50 links are allowed")
 	}
 	for index, link := range input.Links {
 		if strings.TrimSpace(link.Kind) == "" {

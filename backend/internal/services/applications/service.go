@@ -23,6 +23,8 @@ var (
 	ErrConsentPending    = errors.New("application consent pending")
 	ErrConflict          = errors.New("application conflict")
 	ErrInvalidCursor     = errors.New("invalid cursor")
+	ErrEventCapacity     = errors.New("event capacity reached")
+	ErrWrongEntryKind    = errors.New("wrong entry route for event format")
 )
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
 
@@ -135,6 +137,12 @@ func mapError(err error) error {
 	}
 	if errors.Is(err, application_repo.ErrConsentPending) {
 		return ErrConsentPending
+	}
+	if errors.Is(err, application_repo.ErrEventCapacity) {
+		return ErrEventCapacity
+	}
+	if errors.Is(err, application_repo.ErrWrongEntryKind) {
+		return ErrWrongEntryKind
 	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {

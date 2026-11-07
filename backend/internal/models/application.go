@@ -18,6 +18,7 @@ type Application struct {
 	PortfolioURL   string    `json:"portfolio_url,omitempty"`
 	GithubURL      string    `json:"github_url,omitempty"`
 	Status         string    `json:"status"`
+	EntryKind      string    `json:"entry_kind"`
 	CompanyNotes   string    `json:"company_notes,omitempty"`
 	ConsentCount   int       `json:"consent_count"`
 	MemberCount    int       `json:"member_count"`
@@ -27,6 +28,7 @@ type Application struct {
 }
 
 type ApplicationInput struct {
+	Registration  bool
 	CaseID        string
 	ApplicantType string
 	TeamID        string

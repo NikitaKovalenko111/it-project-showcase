@@ -38,3 +38,5 @@ The server embeds these files, applies them in version order and records version
 
 `000014_remove_mentor_role.up.sql` removes the legacy role, closes active student assignments held without `university_staff`, and preserves assignment history.
 
+Migrations `000015` through `000019` add event registrations, feedback and deadline history, profile education level and role requests, internship applications and unique case views, and event plans with round submissions and scores.
+

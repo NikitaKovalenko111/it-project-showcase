@@ -18,6 +18,33 @@ var (
 type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
+
+func (r *Repository) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
+	var rawFiles, rawEvaluators []byte
+	err := r.db.QueryRowContext(ctx, `SELECT
+		COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'original_name',f.original_name,'mime_type',f.mime_type,'size_bytes',f.size_bytes)
+		ORDER BY sf.ordinal,f.file_id) FROM submission_files sf JOIN files f ON f.file_id=sf.file_id AND f.status='active' WHERE sf.submission_id=s.submission_id),'[]'::jsonb),
+		COALESCE((SELECT jsonb_agg(jsonb_build_object('evaluation_id',v.evaluation_id,'name',COALESCE(NULLIF(concat_ws(' ',p.last_name,p.first_name),''),u.username))
+		ORDER BY v.created_at,v.evaluation_id) FROM evaluations v JOIN users u ON u.user_id=v.evaluator_id LEFT JOIN students p ON p.user_id=u.user_id
+		WHERE v.submission_id=s.submission_id AND v.status='published'),'[]'::jsonb)
+		FROM submissions s JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id
+		WHERE s.submission_id=$1 AND ($4 OR ($3 AND EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id
+			AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, submission, user, company, admin).Scan(&rawFiles, &rawEvaluators)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	if err != nil {
+		return nil, err
+	}
+	var item models.ResultReviewDetails
+	if err = json.Unmarshal(rawFiles, &item.Files); err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(rawEvaluators, &item.Evaluators); err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
 func (r *Repository) authorize(ctx context.Context, u, e string, c, a bool) error {
 	var ok bool
 	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=x.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) FROM executions x WHERE x.execution_id=$1`, e, u, c, a).Scan(&ok)

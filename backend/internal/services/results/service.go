@@ -47,6 +47,14 @@ func (s *Service) GetSubmission(ctx context.Context, u, id string, c, a bool) (*
 	x, e := s.repo.GetSubmission(ctx, u, id, c, a)
 	return x, mapErr(e, true)
 }
+
+func (s *Service) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
+	if !validID(submission) {
+		return nil, ErrNotFound
+	}
+	item, err := s.repo.ReviewDetails(ctx, user, submission, company, admin)
+	return item, mapErr(err, true)
+}
 func (s *Service) CreateSubmission(ctx context.Context, u, e string, in models.SubmissionInput) (*models.Submission, error) {
 	in.Title = strings.TrimSpace(in.Title)
 	in.Description = strings.TrimSpace(in.Description)

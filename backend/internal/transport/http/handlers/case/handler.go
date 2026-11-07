@@ -26,6 +26,7 @@ func Init(service *cases_service.Service) *Handler { return &Handler{service: se
 
 func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
+	mux.Handle("GET /mine", representative(http.HandlerFunc(h.ListMine)))
 	mux.HandleFunc("GET /{case_id}", h.Get)
 	mux.Handle("GET /moderation", admin(http.HandlerFunc(h.ListModeration)))
 	mux.Handle("GET /{case_id}/manage", manager(http.HandlerFunc(h.GetManaged)))
@@ -38,6 +39,10 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, opti
 	mux.Handle("POST /{case_id}/stages", representative(http.HandlerFunc(h.CreateStage)))
 	mux.Handle("PATCH /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.UpdateStage)))
 	mux.Handle("PUT /{case_id}/stages/order", representative(http.HandlerFunc(h.ReorderStages)))
+	mux.Handle("PATCH /{case_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("PATCH /{case_id}/stages/{stage_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("PATCH /{case_id}/rounds/{round_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("GET /{case_id}/deadline-history", manager(http.HandlerFunc(h.ListDeadlineChanges)))
 	mux.Handle("DELETE /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.DeleteStage)))
 	mux.HandleFunc("/", shared.NotFound)
 }
@@ -108,16 +113,48 @@ func (h *Handler) ReorderStages(w http.ResponseWriter, r *http.Request) {
 	pkg.WriteJSON(w, http.StatusOK, map[string]any{"items": items})
 }
 
-func (h *Handler) List(w http.ResponseWriter, r *http.Request)           { h.list(w, r, false) }
-func (h *Handler) ListModeration(w http.ResponseWriter, r *http.Request) { h.list(w, r, true) }
+func (h *Handler) ChangeDeadline(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		DueAt  time.Time `json:"due_at"`
+		Reason string    `json:"reason"`
+	}
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	user, _ := middleware.UserIDFromContext(r.Context())
+	if err := h.service.ChangeDeadline(r.Context(), user, r.PathValue("case_id"), r.PathValue("stage_id"), r.PathValue("round_id"), input.DueAt, input.Reason); err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteEmpty(w, http.StatusNoContent)
+}
 
-func (h *Handler) list(w http.ResponseWriter, r *http.Request, moderation bool) {
+func (h *Handler) ListDeadlineChanges(w http.ResponseWriter, r *http.Request) {
+	query, err := pagination.ParsePageQuery(r.URL.Query())
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	user, admin := eventActor(r)
+	items, total, err := h.service.ListDeadlineChanges(r.Context(), user, r.PathValue("case_id"), admin, query.PageSize, query.Offset)
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, 200, pagination.NewPageResponse(items, query, total))
+}
+
+func (h *Handler) List(w http.ResponseWriter, r *http.Request)           { h.list(w, r, "public") }
+func (h *Handler) ListModeration(w http.ResponseWriter, r *http.Request) { h.list(w, r, "moderation") }
+func (h *Handler) ListMine(w http.ResponseWriter, r *http.Request)       { h.list(w, r, "mine") }
+
+func (h *Handler) list(w http.ResponseWriter, r *http.Request, mode string) {
 	filter, ok := parseFilter(w, r.URL.Query())
 	if !ok {
 		return
 	}
 	status := ""
-	if moderation {
+	if mode == "moderation" {
 		status, ok = singleQuery(w, r.URL.Query(), "status")
 		if !ok {
 			return
@@ -127,8 +164,10 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request, moderation bool) 
 		}
 	}
 	scope := cursorScope(r.URL.Query(), "cases")
-	if moderation {
+	if mode == "moderation" {
 		scope = cursorScope(r.URL.Query(), "cases-moderation")
+	} else if mode == "mine" {
+		scope = cursorScope(r.URL.Query(), "cases-mine")
 	}
 	query, err := pagination.ParseCursorQuery(r.URL.Query(), scope)
 	if err != nil {
@@ -140,8 +179,11 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request, moderation bool) 
 		position, id = query.Cursor.Position, query.Cursor.ID
 	}
 	var items []models.Case
-	if moderation {
+	if mode == "moderation" {
 		items, err = h.service.ListForModeration(r.Context(), filter, status, query.Limit+1, position, id)
+	} else if mode == "mine" {
+		user, _ := middleware.UserIDFromContext(r.Context())
+		items, err = h.service.ListMine(r.Context(), user, filter, query.Limit+1, position, id)
 	} else {
 		items, err = h.service.List(r.Context(), filter, query.Limit+1, position, id)
 	}
@@ -170,6 +212,19 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
+func (h *Handler) StartViews(mux *http.ServeMux, authorize func(http.Handler) http.Handler) {
+	mux.Handle("PUT /{case_id}/view", authorize(http.HandlerFunc(h.RecordView)))
+}
+
+func (h *Handler) RecordView(w http.ResponseWriter, r *http.Request) {
+	user, _ := middleware.UserIDFromContext(r.Context())
+	if err := h.service.RecordView(r.Context(), r.PathValue("case_id"), user); err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteEmpty(w, 204)
 }
 
 func (h *Handler) GetManaged(w http.ResponseWriter, r *http.Request) {
@@ -360,6 +415,12 @@ func writeCaseError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.WriteError(w, http.StatusConflict, "invalid_case_transition", "Case status transition is not allowed")
 	case errors.Is(err, cases_service.ErrStagesLocked):
 		pkg.WriteError(w, http.StatusConflict, "case_stages_locked", "Case stages cannot be changed after an execution has been created")
+	case errors.Is(err, cases_service.ErrRoundWindow):
+		pkg.WriteError(w, http.StatusConflict, "event_round_closed", "Round is not open for submissions")
+	case errors.Is(err, cases_service.ErrRoundAlreadySubmitted):
+		pkg.WriteError(w, http.StatusConflict, "event_round_already_submitted", "Round already submitted")
+	case errors.Is(err, cases_service.ErrEventPlanRequired):
+		pkg.WriteError(w, http.StatusUnprocessableEntity, "event_plan_required", "Configure the event plan and deadlines before moderation")
 	default:
 		middleware.QueueErrorLog(r.Context(), "case request failed", err)
 		pkg.WriteError(w, http.StatusInternalServerError, "case_request_failed", "Case request failed")

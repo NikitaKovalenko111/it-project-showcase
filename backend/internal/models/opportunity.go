@@ -23,6 +23,7 @@ type TeamSearchProfile struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 type InternshipProgram struct {
+	Capacity            *int       `json:"capacity"`
 	ProgramID           string     `json:"program_id"`
 	CompanyID           string     `json:"company_id"`
 	CompanyName         string     `json:"company_name"`
@@ -38,11 +39,23 @@ type InternshipProgram struct {
 	PublishedAt         *time.Time `json:"published_at"`
 }
 type InternshipInput struct {
+	Capacity            *int       `json:"capacity"`
 	CompanyID           string     `json:"company_id"`
 	Title               string     `json:"title"`
 	Summary             string     `json:"summary"`
 	ContentMarkdown     string     `json:"content_markdown"`
 	ApplicationDeadline *time.Time `json:"application_deadline"`
+}
+
+type InternshipApplication struct {
+	ApplicationID string     `json:"application_id"`
+	ProgramID     string     `json:"program_id"`
+	StudentID     string     `json:"student_id"`
+	CoverLetter   string     `json:"cover_letter"`
+	ResumeFileID  *string    `json:"resume_file_id"`
+	Status        string     `json:"status"`
+	CreatedAt     time.Time  `json:"created_at"`
+	DecidedAt     *time.Time `json:"decided_at"`
 }
 type LeaderboardEntry struct {
 	PlaceNo          *int    `json:"place_no"`

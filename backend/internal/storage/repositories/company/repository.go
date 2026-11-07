@@ -142,8 +142,16 @@ func scanCompany(row interface{ Scan(...any) error }) (*models.Company, error) {
 }
 
 func (r *Repository) List(ctx context.Context, status string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
-	query := `SELECT ` + companyColumns() + ` FROM companies WHERE status = $1`
-	args := []any{status}
+	return r.list(ctx, "status=$1", status, limit, before, beforeID)
+}
+
+func (r *Repository) ListMine(ctx context.Context, user string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
+	return r.list(ctx, `EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=companies.company_id AND m.user_id=$1 AND m.status='active')`, user, limit, before, beforeID)
+}
+
+func (r *Repository) list(ctx context.Context, predicate, value string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
+	query := `SELECT ` + companyColumns() + ` FROM companies WHERE ` + predicate
+	args := []any{value}
 	if before != nil {
 		query += ` AND (created_at, company_id) < ($2, $3)`
 		args = append(args, *before, beforeID)

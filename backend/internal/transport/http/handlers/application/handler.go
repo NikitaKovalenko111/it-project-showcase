@@ -50,7 +50,20 @@ func (h *Handler) StartExecutions(mux *http.ServeMux) {
 	mux.HandleFunc("GET /{execution_id}", h.GetExecution)
 	mux.HandleFunc("/", shared.NotFound)
 }
+func (h *Handler) StartRegistrations(mux *http.ServeMux) {
+	mux.HandleFunc("POST /{$}", h.Register)
+	mux.HandleFunc("/", shared.NotFound)
+}
+
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+	h.create(w, r, false)
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	h.create(w, r, true)
+}
+
+func (h *Handler) create(w http.ResponseWriter, r *http.Request, registration bool) {
 	if !hasRole(r, "student") {
 		pkg.WriteError(w, http.StatusForbidden, "permission_denied", "Permission denied")
 		return
@@ -60,7 +73,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID, _ := middleware.UserIDFromContext(r.Context())
-	item, err := h.service.Create(r.Context(), userID, models.ApplicationInput{CaseID: req.CaseID, ApplicantType: req.ApplicantType, TeamID: req.TeamID, CoverLetter: req.CoverLetter, ResumeFileID: req.ResumeFileID, PortfolioURL: req.PortfolioURL, GithubURL: req.GithubURL})
+	item, err := h.service.Create(r.Context(), userID, models.ApplicationInput{Registration: registration, CaseID: req.CaseID, ApplicantType: req.ApplicantType, TeamID: req.TeamID, CoverLetter: req.CoverLetter, ResumeFileID: req.ResumeFileID, PortfolioURL: req.PortfolioURL, GithubURL: req.GithubURL})
 	if err != nil {
 		writeError(w, r, err)
 		return
@@ -261,6 +274,10 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.WriteError(w, http.StatusConflict, "invalid_application_transition", "Application status transition is not allowed")
 	case errors.Is(err, applications_service.ErrCaseUnavailable):
 		pkg.WriteError(w, http.StatusConflict, "case_not_accepting_applications", "Case is not accepting applications")
+	case errors.Is(err, applications_service.ErrEventCapacity):
+		pkg.WriteError(w, http.StatusConflict, "event_capacity_reached", "All event places are taken")
+	case errors.Is(err, applications_service.ErrWrongEntryKind):
+		pkg.WriteError(w, http.StatusConflict, "wrong_event_entry_kind", "Use the entry route for this event format")
 	case errors.Is(err, applications_service.ErrConsentPending):
 		pkg.WriteError(w, http.StatusConflict, "application_consent_pending", "Every team member must accept the current case revision")
 	case errors.Is(err, applications_service.ErrConflict):

@@ -151,6 +151,25 @@ func (s *Service) DownloadApplicationResume(ctx context.Context, applicationID, 
 	file, err := s.repo.GetApplicationResume(ctx, applicationID, userID, isAdmin)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadFeedbackFile(ctx context.Context, feedbackID, fileID, userID string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(feedbackID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetFeedbackFile(ctx, feedbackID, fileID, userID, admin)
+	return s.open(ctx, file, err)
+}
+
+func (s *Service) DownloadInternshipResume(ctx context.Context, applicationID, userID string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(applicationID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetInternshipResume(ctx, applicationID, userID, admin)
+	return s.open(ctx, file, err)
+}
+
 func (s *Service) DownloadSubmissionFile(ctx context.Context, submissionID, fileID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(submissionID); err != nil {
 		return nil, nil, ErrNotFound
