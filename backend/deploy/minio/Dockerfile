@@ -14,6 +14,7 @@ RUN MS_GO_NOSYSTEMCRYPTO=1 CGO_ENABLED=0 go build -tags kqueue -trimpath -ldflag
 RUN mkdir -p /data /tmp && chmod 0777 /data && chmod 1777 /tmp
 
 FROM scratch
+COPY --from=busybox:1.37.0-musl /bin/busybox /bin/busybox
 
 COPY --from=builder /out/minio /usr/local/bin/minio
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
