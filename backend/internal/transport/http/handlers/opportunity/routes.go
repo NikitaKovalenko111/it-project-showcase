@@ -9,6 +9,7 @@ func (h *Handler) StartTeams(mux *http.ServeMux, student func(http.Handler) http
 	mux.Handle("GET /{team_id}/join-applications", student(http.HandlerFunc(h.ListTeamApplications)))
 }
 func (h *Handler) StartTeamApplications(mux *http.ServeMux) {
+	mux.HandleFunc("GET /mine", h.ListMyTeamApplications)
 	mux.HandleFunc("PATCH /{application_id}", h.RespondTeamApplication)
 }
 func (h *Handler) StartTeamSearchProfile(mux *http.ServeMux) {
@@ -17,10 +18,12 @@ func (h *Handler) StartTeamSearchProfile(mux *http.ServeMux) {
 func (h *Handler) StartTeamSearchProfiles(mux *http.ServeMux) {
 	mux.HandleFunc("GET /", h.ListTeamProfiles)
 }
-func (h *Handler) StartInternships(mux *http.ServeMux, representative, authorize func(http.Handler) http.Handler) {
+func (h *Handler) StartInternships(mux *http.ServeMux, representative, admin, authorize, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.ListInternships)
-	mux.HandleFunc("GET /{program_id}", h.GetInternship)
+	mux.Handle("GET /moderation", admin(http.HandlerFunc(h.ListInternshipModeration)))
+	mux.Handle("GET /{program_id}", optionalAuthorization(http.HandlerFunc(h.GetInternship)))
 	mux.Handle("POST /", representative(http.HandlerFunc(h.CreateInternship)))
+	mux.Handle("PUT /{program_id}", representative(http.HandlerFunc(h.UpdateInternship)))
 	mux.Handle("PATCH /{program_id}/status", authorize(http.HandlerFunc(h.UpdateInternshipStatus)))
 }
 func (h *Handler) StartCases(mux *http.ServeMux, representative, manager, studentOnly func(http.Handler) http.Handler) {

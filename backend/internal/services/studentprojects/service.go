@@ -80,7 +80,7 @@ func validate(in models.StudentProjectInput) error {
 	}
 	return nil
 }
-func (s *Service) List(ctx context.Context, u, search, cat, dir string, limit int, pos, id string) ([]models.StudentProject, error) {
+func (s *Service) List(ctx context.Context, u, search, cat, dir string, mine bool, limit int, pos, id string) ([]models.StudentProject, error) {
 	var before *time.Time
 	if pos != "" {
 		x, e := time.Parse(time.RFC3339Nano, pos)
@@ -89,7 +89,7 @@ func (s *Service) List(ctx context.Context, u, search, cat, dir string, limit in
 		}
 		before = &x
 	}
-	return s.repo.List(ctx, u, strings.TrimSpace(search), cat, dir, limit, before, id)
+	return s.repo.List(ctx, u, strings.TrimSpace(search), cat, dir, mine, limit, before, id)
 }
 func (s *Service) Get(ctx context.Context, u, id string, a bool) (*models.StudentProject, error) {
 	if !validID(id) {

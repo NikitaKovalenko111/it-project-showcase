@@ -7,6 +7,7 @@ import (
 	"it-project-showcase/backend/internal/middleware"
 	"it-project-showcase/backend/internal/models"
 	opportunities_service "it-project-showcase/backend/internal/services/opportunities"
+	"it-project-showcase/backend/internal/transport/http/pagination"
 	"it-project-showcase/backend/pkg"
 	"net/http"
 	"strconv"
@@ -143,6 +144,20 @@ func (h *Handler) ApplyTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 201, x)
 }
+func (h *Handler) ListMyTeamApplications(w http.ResponseWriter, r *http.Request) {
+	query, err := pagination.ParsePageQuery(r.URL.Query())
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	items, total, err := h.service.ListMyTeamApplications(r.Context(), user(r), query.PageSize, query.Offset)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, pagination.NewPageResponse(items, query, int64(total)))
+}
+
 func (h *Handler) ListTeamApplications(w http.ResponseWriter, r *http.Request) {
 	x, e := h.service.ListTeamApplications(r.Context(), user(r), r.PathValue("team_id"))
 	if e != nil {
@@ -188,12 +203,20 @@ func (h *Handler) ListTeamProfiles(w http.ResponseWriter, r *http.Request) {
 	page(w, x, t, l, o)
 }
 func (h *Handler) ListInternships(w http.ResponseWriter, r *http.Request) {
+	h.listInternships(w, r, "published")
+}
+
+func (h *Handler) ListInternshipModeration(w http.ResponseWriter, r *http.Request) {
+	h.listInternships(w, r, "moderation")
+}
+
+func (h *Handler) listInternships(w http.ResponseWriter, r *http.Request, status string) {
 	l, o, ok := paging(r)
 	if !ok {
 		badQuery(w)
 		return
 	}
-	x, t, e := h.service.ListInternships(r.Context(), l, o)
+	x, t, e := h.service.ListInternships(r.Context(), status, l, o)
 	if e != nil {
 		writeError(w, e)
 		return
@@ -220,6 +243,19 @@ func (h *Handler) CreateInternship(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 201, x)
 }
+func (h *Handler) UpdateInternship(w http.ResponseWriter, r *http.Request) {
+	var input models.InternshipInput
+	if !decode(w, r, &input) {
+		return
+	}
+	item, err := h.service.UpdateInternship(r.Context(), user(r), r.PathValue("program_id"), input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
 func (h *Handler) UpdateInternshipStatus(w http.ResponseWriter, r *http.Request) {
 	var q statusRequest
 	if !decode(w, r, &q) {

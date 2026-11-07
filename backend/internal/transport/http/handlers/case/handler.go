@@ -24,7 +24,7 @@ type Handler struct{ service *cases_service.Service }
 
 func Init(service *cases_service.Service) *Handler { return &Handler{service: service} }
 
-func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin func(http.Handler) http.Handler) {
+func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
 	mux.HandleFunc("GET /{case_id}", h.Get)
 	mux.Handle("GET /moderation", admin(http.HandlerFunc(h.ListModeration)))
@@ -34,7 +34,7 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin func(
 	mux.Handle("POST /{case_id}/submit-moderation", representative(http.HandlerFunc(h.SubmitForModeration)))
 	mux.Handle("PATCH /{case_id}/status", representative(http.HandlerFunc(h.SetStatus)))
 	mux.Handle("PATCH /{case_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
-	mux.HandleFunc("GET /{case_id}/stages", h.ListStages)
+	mux.Handle("GET /{case_id}/stages", optionalAuthorization(http.HandlerFunc(h.ListStages)))
 	mux.Handle("POST /{case_id}/stages", representative(http.HandlerFunc(h.CreateStage)))
 	mux.Handle("PATCH /{case_id}/stages/{stage_id}", representative(http.HandlerFunc(h.UpdateStage)))
 	mux.Handle("PUT /{case_id}/stages/order", representative(http.HandlerFunc(h.ReorderStages)))

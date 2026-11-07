@@ -262,16 +262,43 @@ func (r *Repository) SetStatus(ctx context.Context, userID, applicationID, statu
 const executionSelect = `SELECT e.execution_id,e.case_id,c.title,e.application_id,e.team_id,e.status,e.started_at,e.due_at,e.ended_at,e.created_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'name',concat_ws(' ',s.last_name,s.first_name,s.patronymic),'role_id',m.role_id,'role_name',COALESCE(r.name,''),'joined_at',m.joined_at,'left_at',m.left_at) ORDER BY m.joined_at,m.student_id) FROM execution_members m JOIN students s ON s.user_id=m.student_id LEFT JOIN team_roles r ON r.team_role_id=m.role_id WHERE m.execution_id=e.execution_id),'[]'::jsonb) FROM executions e JOIN cases c ON c.case_id=e.case_id`
 
 func (r *Repository) GetExecution(ctx context.Context, userID, executionID string, isCompany, isAdmin bool) (*models.Execution, error) {
-	var item models.Execution
-	var members []byte
-	err := r.db.QueryRowContext(ctx, executionSelect+` WHERE e.execution_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL))`, executionID, userID, isCompany, isAdmin).Scan(&item.ExecutionID, &item.CaseID, &item.CaseTitle, &item.ApplicationID, &item.TeamID, &item.Status, &item.StartedAt, &item.DueAt, &item.EndedAt, &item.CreatedAt, &members)
+	item, err := scanExecution(r.db.QueryRowContext(ctx, executionSelect+` WHERE e.execution_id=$1 AND `+executionAccess, executionID, userID, isCompany, isAdmin))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
+	return item, err
+}
+
+const executionAccess = `($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL)
+	OR ($3 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))
+	OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.execution_id=e.execution_id AND em.left_at IS NULL WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL))`
+
+func (r *Repository) ListExecutions(ctx context.Context, userID string, isCompany, isAdmin bool, limit int, before *time.Time, beforeID string) ([]models.Execution, error) {
+	rows, err := r.db.QueryContext(ctx, executionSelect+` WHERE `+executionAccess+`
+		AND ($1::timestamptz IS NULL OR (e.created_at,e.execution_id)<($1,NULLIF($5,'')::uuid))
+		ORDER BY e.created_at DESC,e.execution_id DESC LIMIT $6`, before, userID, isCompany, isAdmin, beforeID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("get execution: %w", err)
+		return nil, fmt.Errorf("list executions: %w", err)
 	}
-	if err = json.Unmarshal(members, &item.Members); err != nil {
+	defer rows.Close()
+	items := make([]models.Execution, 0)
+	for rows.Next() {
+		item, err := scanExecution(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, *item)
+	}
+	return items, rows.Err()
+}
+
+func scanExecution(row interface{ Scan(...any) error }) (*models.Execution, error) {
+	var item models.Execution
+	var members []byte
+	if err := row.Scan(&item.ExecutionID, &item.CaseID, &item.CaseTitle, &item.ApplicationID, &item.TeamID, &item.Status, &item.StartedAt, &item.DueAt, &item.EndedAt, &item.CreatedAt, &members); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(members, &item.Members); err != nil {
 		return nil, fmt.Errorf("decode execution members: %w", err)
 	}
 	return &item, nil

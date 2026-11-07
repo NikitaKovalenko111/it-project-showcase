@@ -47,9 +47,9 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Files.StartCompanies(companies, representative)
 
 	cases := mount(api, "/cases", nil)
-	h.handlers.Cases.Start(cases, representative, manager, admin)
+	h.handlers.Cases.Start(cases, representative, manager, admin, h.optionalAuthorization)
 	h.handlers.Files.StartCases(cases, h.authorize)
-	h.handlers.Community.StartCases(cases, h.authorize)
+	h.handlers.Community.StartCases(cases, h.authorize, h.optionalAuthorization)
 	h.handlers.Opportunities.StartCases(cases, representative, manager, studentOnly)
 	h.handlers.Executions.StartCases(cases, workflow)
 
@@ -79,11 +79,11 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	projects := mount(api, "/student-projects", nil)
 	h.handlers.StudentProjects.Start(projects, student, admin, h.authorize)
 	h.handlers.Files.StartStudentProjects(projects)
-	h.handlers.Community.StartStudentProjects(projects, h.authorize)
+	h.handlers.Community.StartStudentProjects(projects, h.authorize, h.optionalAuthorization)
 
-	h.handlers.Community.StartComments(mount(api, "/comments", nil), h.authorize)
+	h.handlers.Community.StartComments(mount(api, "/comments", nil), h.authorize, h.optionalAuthorization)
 	h.handlers.Community.StartReports(mount(api, "/reports", nil), h.authorize, admin)
-	h.handlers.Opportunities.StartInternships(mount(api, "/internships", nil), representative, h.authorize)
+	h.handlers.Opportunities.StartInternships(mount(api, "/internships", nil), representative, admin, h.authorize, h.optionalAuthorization)
 
 	h.handlers.Platform.StartFavorites(mount(api, "/favorites", h.authorize))
 	h.handlers.Platform.StartNotifications(mount(api, "/notifications", h.authorize))
@@ -107,6 +107,17 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Files.Start(mount(api, "/files", h.authorize))
 
 	api.HandleFunc("/", shared.NotFound)
+}
+
+func (h *HTTP) optionalAuthorization(next http.Handler) http.Handler {
+	authenticated := h.authorize(next)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		authenticated.ServeHTTP(w, r)
+	})
 }
 
 func (h *HTTP) withRoles(roles ...string) protect {

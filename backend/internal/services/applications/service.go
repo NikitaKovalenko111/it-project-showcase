@@ -90,6 +90,18 @@ func (s *Service) GetExecution(ctx context.Context, userID, id string, isCompany
 	item, err := s.repo.GetExecution(ctx, userID, id, isCompany, isAdmin)
 	return item, mapError(err)
 }
+
+func (s *Service) ListExecutions(ctx context.Context, userID string, isCompany, isAdmin bool, limit int, position, id string) ([]models.Execution, error) {
+	var before *time.Time
+	if position != "" {
+		value, err := time.Parse(time.RFC3339Nano, position)
+		if err != nil || !uuidPattern.MatchString(id) {
+			return nil, ErrInvalidCursor
+		}
+		before = &value
+	}
+	return s.repo.ListExecutions(ctx, userID, isCompany, isAdmin, limit, before, id)
+}
 func validURL(value string) bool {
 	if value == "" {
 		return true

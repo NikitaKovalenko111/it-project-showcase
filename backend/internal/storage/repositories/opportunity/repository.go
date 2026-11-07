@@ -63,8 +63,25 @@ func (r *Repository) ApplyTeam(ctx context.Context, user, team, role, resume, le
 	}
 	return &x, e
 }
+
+const teamApplicationsSelect = `SELECT a.join_application_id,a.team_id,a.student_id,concat_ws(' ',s.last_name,s.first_name),a.role_id,a.resume_file_id,a.cover_letter,a.status,a.created_at,a.responded_at FROM showcase.team_join_applications a JOIN showcase.teams t ON t.team_id=a.team_id JOIN showcase.students s ON s.user_id=a.student_id`
+
 func (r *Repository) ListTeamApplications(ctx context.Context, user, team string) ([]models.TeamJoinApplication, error) {
-	rows, e := r.db.QueryContext(ctx, `SELECT a.join_application_id,a.team_id,a.student_id,concat_ws(' ',s.last_name,s.first_name),a.role_id,a.resume_file_id,a.cover_letter,a.status,a.created_at,a.responded_at FROM showcase.team_join_applications a JOIN showcase.teams t ON t.team_id=a.team_id JOIN showcase.students s ON s.user_id=a.student_id WHERE a.team_id=$1 AND t.leader_id=$2 ORDER BY a.created_at DESC`, team, user)
+	return r.listTeamApplications(ctx, ` WHERE a.team_id=$1 AND t.leader_id=$2 ORDER BY a.created_at DESC,a.join_application_id DESC`, team, user)
+}
+
+func (r *Repository) ListMyTeamApplications(ctx context.Context, user string, limit int, offset int64) ([]models.TeamJoinApplication, int, error) {
+	items, err := r.listTeamApplications(ctx, ` WHERE a.student_id=$1 ORDER BY a.created_at DESC,a.join_application_id DESC LIMIT $2 OFFSET $3`, user, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	var total int
+	err = r.db.QueryRowContext(ctx, `SELECT count(*) FROM showcase.team_join_applications WHERE student_id=$1`, user).Scan(&total)
+	return items, total, err
+}
+
+func (r *Repository) listTeamApplications(ctx context.Context, suffix string, args ...any) ([]models.TeamJoinApplication, error) {
+	rows, e := r.db.QueryContext(ctx, teamApplicationsSelect+suffix, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -159,15 +176,15 @@ func (r *Repository) CreateInternship(ctx context.Context, user string, in model
 	}
 	return r.GetInternship(ctx, id, false, user)
 }
-func (r *Repository) GetInternship(ctx context.Context, id string, public bool, user string) (*models.InternshipProgram, error) {
-	x, e := scanInternship(r.db.QueryRowContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id WHERE p.program_id=$1 AND ($2 OR p.status='published' OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$3 AND m.status='active'))`, id, public, user))
+func (r *Repository) GetInternship(ctx context.Context, id string, admin bool, user string) (*models.InternshipProgram, error) {
+	x, e := scanInternship(r.db.QueryRowContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id WHERE p.program_id=$1 AND ($2 OR p.status='published' OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=NULLIF($3,'')::uuid AND m.status='active'))`, id, admin, user))
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	return x, e
 }
-func (r *Repository) ListInternships(ctx context.Context, limit, offset int) ([]models.InternshipProgram, int, error) {
-	rows, e := r.db.QueryContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id WHERE p.status='published' ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, limit, offset)
+func (r *Repository) ListInternships(ctx context.Context, status string, limit, offset int) ([]models.InternshipProgram, int, error) {
+	rows, e := r.db.QueryContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id WHERE p.status=$1 ORDER BY p.created_at DESC,p.program_id DESC LIMIT $2 OFFSET $3`, status, limit, offset)
 	if e != nil {
 		return nil, 0, e
 	}
@@ -180,9 +197,29 @@ func (r *Repository) ListInternships(ctx context.Context, limit, offset int) ([]
 		}
 		items = append(items, *x)
 	}
+	if e = rows.Err(); e != nil {
+		return nil, 0, e
+	}
 	var total int
-	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM showcase.internship_programs WHERE status='published'`).Scan(&total)
+	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM showcase.internship_programs WHERE status=$1`, status).Scan(&total)
 	return items, total, e
+}
+
+func (r *Repository) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	item, err := scanInternship(r.db.QueryRowContext(ctx, `WITH updated AS (
+		UPDATE showcase.internship_programs p
+		SET title=$4,summary=$5,content_markdown=$6,application_deadline=$7,
+			status=CASE WHEN p.status='published' THEN 'revision' ELSE p.status END
+		WHERE p.program_id=$1 AND p.company_id=$3 AND p.status IN ('draft','revision','published')
+			AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id
+				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+		RETURNING p.*
+	) SELECT `+internshipCols+` FROM updated p JOIN showcase.companies c ON c.company_id=p.company_id`,
+		programID, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	return item, err
 }
 func (r *Repository) UpdateInternshipStatus(ctx context.Context, user, id, status, comment string, admin bool) (*models.InternshipProgram, error) {
 	res, e := r.db.ExecContext(ctx, `UPDATE showcase.internship_programs p SET status=$3,moderation_comment=NULLIF($4,''),published_at=CASE WHEN $3='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END WHERE p.program_id=$1 AND (($5 AND ((p.status='moderation' AND $3 IN ('published','revision')) OR (p.status='published' AND $3='hidden'))) OR (NOT $5 AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='published' AND $3='closed'))))`, id, user, status, comment, admin)

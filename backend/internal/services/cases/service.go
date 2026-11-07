@@ -376,14 +376,16 @@ func (s *Service) ReorderStages(ctx context.Context, userID, caseID string, stag
 		return nil, ErrInvalidInput
 	}
 	seen := make(map[string]struct{}, len(stageIDs))
-	for _, stageID := range stageIDs {
+	for i, stageID := range stageIDs {
 		if !uuidPattern.MatchString(stageID) {
 			return nil, ErrInvalidInput
 		}
+		stageID = strings.ToLower(stageID)
 		if _, exists := seen[stageID]; exists {
 			return nil, ErrInvalidInput
 		}
 		seen[stageID] = struct{}{}
+		stageIDs[i] = stageID
 	}
 	x, err := s.repo.ReorderStages(ctx, userID, caseID, stageIDs)
 	return x, mapRepositoryError(err)

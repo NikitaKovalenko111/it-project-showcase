@@ -49,6 +49,10 @@ func (s *Service) ApplyTeam(ctx context.Context, u, team, role, resume, letter s
 	x, e := s.repo.ApplyTeam(ctx, u, team, role, resume, strings.TrimSpace(letter))
 	return x, mapped(e)
 }
+func (s *Service) ListMyTeamApplications(ctx context.Context, user string, limit int, offset int64) ([]models.TeamJoinApplication, int, error) {
+	return s.repo.ListMyTeamApplications(ctx, user, limit, offset)
+}
+
 func (s *Service) ListTeamApplications(ctx context.Context, u, team string) ([]models.TeamJoinApplication, error) {
 	if !id(team) {
 		return nil, ErrInvalid
@@ -73,15 +77,33 @@ func (s *Service) UpsertTeamProfile(ctx context.Context, u, headline, desc, resu
 func (s *Service) ListTeamProfiles(ctx context.Context, l, o int) ([]models.TeamSearchProfile, int, error) {
 	return s.repo.ListTeamProfiles(ctx, l, o)
 }
-func (s *Service) CreateInternship(ctx context.Context, u string, in models.InternshipInput) (*models.InternshipProgram, error) {
+func validateInternship(in *models.InternshipInput) error {
 	in.Title = strings.TrimSpace(in.Title)
 	in.Summary = strings.TrimSpace(in.Summary)
 	in.ContentMarkdown = strings.TrimSpace(in.ContentMarkdown)
 	if !id(in.CompanyID) || in.Title == "" || len(in.Title) > 200 || in.Summary == "" || len(in.Summary) > 1000 || in.ContentMarkdown == "" || len(in.ContentMarkdown) > 50000 {
-		return nil, ErrInvalid
+		return ErrInvalid
+	}
+	return nil
+}
+
+func (s *Service) CreateInternship(ctx context.Context, u string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	if err := validateInternship(&in); err != nil {
+		return nil, err
 	}
 	x, e := s.repo.CreateInternship(ctx, u, in)
 	return x, mapped(e)
+}
+
+func (s *Service) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	if !id(programID) {
+		return nil, ErrNotFound
+	}
+	if err := validateInternship(&in); err != nil {
+		return nil, err
+	}
+	item, err := s.repo.UpdateInternship(ctx, user, programID, in)
+	return item, mapped(err)
 }
 func (s *Service) GetInternship(ctx context.Context, idv, user string, admin bool) (*models.InternshipProgram, error) {
 	if !id(idv) {
@@ -90,8 +112,8 @@ func (s *Service) GetInternship(ctx context.Context, idv, user string, admin boo
 	x, e := s.repo.GetInternship(ctx, idv, admin, user)
 	return x, mapped(e)
 }
-func (s *Service) ListInternships(ctx context.Context, l, o int) ([]models.InternshipProgram, int, error) {
-	return s.repo.ListInternships(ctx, l, o)
+func (s *Service) ListInternships(ctx context.Context, status string, l, o int) ([]models.InternshipProgram, int, error) {
+	return s.repo.ListInternships(ctx, status, l, o)
 }
 func (s *Service) UpdateInternshipStatus(ctx context.Context, u, idv, status, comment string, admin bool) (*models.InternshipProgram, error) {
 	allowed := map[string]bool{"moderation": true, "published": true, "revision": true, "closed": true, "hidden": true}

@@ -439,13 +439,16 @@ func evaluationCriteriaUnchanged(ctx context.Context, tx *sql.Tx, caseID string,
 
 func (r *Repository) ListStages(ctx context.Context, caseID string, public bool, userID string, admin bool) ([]models.CaseStage, error) {
 	var allowed bool
-	if err := r.db.QueryRowContext(ctx, `SELECT (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) FROM cases c WHERE c.case_id=$1`, caseID, public, userID, admin).Scan(&allowed); err != nil {
+	const stageAccess = `(($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public')
+		OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id
+		AND cm.user_id=NULLIF($3,'')::uuid AND cm.status='active' AND cm.permissions ? 'manage_company'))`
+	if err := r.db.QueryRowContext(ctx, `SELECT `+stageAccess+` FROM cases c WHERE c.case_id=$1`, caseID, public, userID, admin).Scan(&allowed); err != nil {
 		return nil, err
 	}
 	if !allowed {
 		return nil, ErrAccessDenied
 	}
-	query := `SELECT s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at FROM case_stages s JOIN cases c ON c.case_id=s.case_id WHERE s.case_id=$1 AND (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) ORDER BY s.ordinal`
+	query := `SELECT s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at FROM case_stages s JOIN cases c ON c.case_id=s.case_id WHERE s.case_id=$1 AND ` + stageAccess + ` ORDER BY s.ordinal`
 	rows, err := r.db.QueryContext(ctx, query, caseID, public, userID, admin)
 	if err != nil {
 		return nil, fmt.Errorf("list case stages: %w", err)
@@ -561,34 +564,59 @@ func (r *Repository) ReorderStages(ctx context.Context, userID, caseID string, s
 			return nil, ErrReferenceNotFound
 		}
 	}
-	for ordinal, stageID := range stageIDs {
-		if _, err = tx.ExecContext(ctx, `UPDATE case_stages SET ordinal=$3 WHERE case_id=$1 AND stage_id=$2`, caseID, stageID, -(ordinal + 1)); err != nil {
-			return nil, fmt.Errorf("temporarily reorder case stage: %w", err)
-		}
+	order, err := json.Marshal(stageIDs)
+	if err != nil {
+		return nil, err
 	}
-	for ordinal, stageID := range stageIDs {
-		if _, err = tx.ExecContext(ctx, `UPDATE case_stages SET ordinal=$3 WHERE case_id=$1 AND stage_id=$2`, caseID, stageID, ordinal+1); err != nil {
-			return nil, fmt.Errorf("reorder case stage: %w", err)
+	rows, err = tx.QueryContext(ctx, `WITH updated AS (
+		UPDATE case_stages s SET ordinal=input.ordinal
+		FROM jsonb_array_elements_text($2::jsonb) WITH ORDINALITY AS input(stage_id, ordinal)
+		WHERE s.case_id=$1 AND s.stage_id=input.stage_id::uuid
+		RETURNING s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,'') AS expected_result,s.due_at
+	) SELECT stage_id,case_id,ordinal,title,expected_result,due_at FROM updated ORDER BY ordinal`, caseID, string(order))
+	if err != nil {
+		return nil, fmt.Errorf("reorder case stages: %w", err)
+	}
+	items := make([]models.CaseStage, 0, len(stageIDs))
+	for rows.Next() {
+		var item models.CaseStage
+		if err = rows.Scan(&item.StageID, &item.CaseID, &item.Ordinal, &item.Title, &item.ExpectedResult, &item.DueAt); err != nil {
+			rows.Close()
+			return nil, err
 		}
+		items = append(items, item)
+	}
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit stage reorder: %w", err)
 	}
-	return r.ListStages(ctx, caseID, false, userID, false)
+	return items, nil
 }
 
 func lockMutableStages(ctx context.Context, tx *sql.Tx, userID, caseID string) error {
 	var status string
 	var allowed, hasExecutions bool
-	err := tx.QueryRowContext(ctx, `SELECT c.status,EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'),EXISTS(SELECT 1 FROM executions e WHERE e.case_id=c.case_id) FROM cases c WHERE c.case_id=$1 FOR UPDATE`, caseID, userID).Scan(&status, &allowed, &hasExecutions)
-	if errors.Is(err, sql.ErrNoRows) || !allowed || (status != "draft" && status != "revision") {
+	err := tx.QueryRowContext(ctx, `SELECT c.status,EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') FROM cases c WHERE c.case_id=$1 FOR UPDATE`, caseID, userID).Scan(&status, &allowed)
+	if errors.Is(err, sql.ErrNoRows) {
 		return ErrAccessDenied
 	}
 	if err != nil {
 		return err
 	}
+	if !allowed {
+		return ErrAccessDenied
+	}
+	if err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM executions WHERE case_id=$1)`, caseID).Scan(&hasExecutions); err != nil {
+		return err
+	}
 	if hasExecutions {
 		return ErrStagesLocked
+	}
+	if status != "draft" && status != "revision" {
+		return ErrAccessDenied
 	}
 	return nil
 }

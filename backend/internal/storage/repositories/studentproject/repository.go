@@ -45,8 +45,11 @@ func scan(row interface{ Scan(...any) error }) (*models.StudentProject, error) {
 	}
 	return &x, err
 }
-func (r *Repository) List(ctx context.Context, user, search, category, direction string, limit int, before *time.Time, bid string) ([]models.StudentProject, error) {
+func (r *Repository) List(ctx context.Context, user, search, category, direction string, mine bool, limit int, before *time.Time, bid string) ([]models.StudentProject, error) {
 	q := selectProject + ` WHERE p.status='published' AND p.visibility='public'`
+	if mine {
+		q = selectProject + ` WHERE p.owner_id=NULLIF($1,'')::uuid`
+	}
 	args := []any{user}
 	if search != "" {
 		args = append(args, "%"+search+"%")

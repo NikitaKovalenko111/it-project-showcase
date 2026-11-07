@@ -475,6 +475,7 @@ draft -> moderation -> published
 
 ### Контрольные точки кейса
 
+- `GET /cases/{case_id}/stages` — список этапов в порядке `ordinal`. Гость видит этапы публичного кейса в статусе `published`, `in_progress` или `completed`. Для черновика и доработки передайте Bearer управляющего представителя или администратора;
 - `POST /cases/{case_id}/stages` — создать этап;
 - `PATCH /cases/{case_id}/stages/{stage_id}` — изменить название, ожидаемый результат, дедлайн и `ordinal`;
 - `PUT /cases/{case_id}/stages/order` — атомарно задать полный порядок через `{"stage_ids":[...]}`;
@@ -640,6 +641,10 @@ case -> application -> execution -> submission -> evaluation
 
 Один кейс может иметь несколько выполнений и несколько версий результата. Поэтому результат и оценка адресуются через execution/submission, а не только через case.
 
+### GET `/executions?limit=20&cursor=...`
+
+Возвращает `{items, next_cursor}`, порядок `created_at DESC, execution_id DESC`. Студент видит свои выполнения, представитель — выполнения управляемых компаний, куратор — выполнения с активным участием закреплённого за ним студента, администратор — все.
+
 ### GET `/executions/{execution_id}`
 
 Возвращает execution и зафиксированный состав. Доступен участнику выполнения, управляющему участнику компании-владельца, администратору или активному куратору хотя бы одного участника выполнения.
@@ -750,6 +755,8 @@ Mock-фронтенд может вернуть JavaScript `undefined`, но HTT
 Сертификат выдаётся участнику завершённого execution. PDF или изображение сначала загружается в MinIO, затем передаётся `file_id`. Пара `(execution_id, student_id)` уникальна, `verification_code` глобально уникален.
 
 ## Студенческие проекты
+
+`GET /student-projects/mine` возвращает постраничный список проектов текущего владельца любых статусов и видимости. Параметры `limit`, `cursor`, `search`, `category` и `direction_id`. Ответ `{items, next_cursor}`.
 
 ### GET `/student-projects`
 
@@ -937,7 +944,8 @@ Backend не добавляет эти значения в заявку скры
 
 ### Жалобы
 
-- `POST /reports` — жалоба на `case`, `student_project`, `comment` или `profile`;
+- `PUT /comments/{comment_id}/like` и `DELETE /comments/{comment_id}/like` — установить или снять свой лайк на активном публичном комментарии или ответе. Ответ `{likes_count, liked_by_me}`. В списках комментариев эти поля также доступны. Передайте Bearer для вычисления `liked_by_me`.
+- `POST /reports` — жалоба на `case`, `student_project`, `comment`, `profile` или одобренную `company`. Для компании передайте её UUID как `resource_id`. Недоступная цель возвращает `404 resource_not_found`, повторная открытая жалоба — `409 report_conflict`.
 - `GET /reports` — очередь администратора;
 - `PATCH /reports/{report_id}` — `reviewing`, `resolved` или `rejected`.
 
@@ -951,6 +959,7 @@ Backend не добавляет эти значения в заявку скры
 - `GET /teams/{team_id}/join-applications` — отклики для лидера;
 - `PATCH /team-join-applications/{application_id}` — `accepted|rejected`;
 - `PUT /team-search-profile/me` — профиль «ищу команду».
+- `GET /team-join-applications/mine` — собственные исходящие кандидатуры. Параметры `page`, `page_size`. Ответ `{items, page, page_size, total}`.
 - `GET /team-search-profiles` — видимые профили студентов, которые ищут команду.
 
 Принятие отклика атомарно добавляет участника в `team_members`. Текстового ответа и обратного уведомления пока нет.
@@ -966,6 +975,8 @@ Backend не добавляет эти значения в заявку скры
 
 - `GET /internships`, `GET /internships/{program_id}` — публичные программы;
 - `POST /internships` — черновик представителя компании;
+- `PUT /internships/{program_id}` — полное обновление содержания управляемого объявления через тот же DTO, что и при создании. `company_id` должен совпадать с владельцем объявления. Для `published` обновление переводит объявление в `revision` для повторной модерации. Для `draft` и `revision` статус сохраняется;
+- `GET /internships/moderation` — очередь объявлений в статусе `moderation` для администратора. Параметры `page`, `page_size`. Ответ `{items, meta: {total, page, page_size}}`;
 - `PATCH /internships/{program_id}/status` — модерация и смена состояния.
 
 Описание хранится как Markdown (`content_markdown`), а не непроверенный HTML. Статусы: `draft`, `moderation`, `revision`, `published`, `closed`, `hidden`.

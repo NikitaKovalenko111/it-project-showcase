@@ -39,7 +39,19 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	q, e := pagination.ParseCursorQuery(r.URL.Query(), "student-projects")
+	h.list(w, r, false)
+}
+
+func (h *Handler) ListMine(w http.ResponseWriter, r *http.Request) {
+	h.list(w, r, true)
+}
+
+func (h *Handler) list(w http.ResponseWriter, r *http.Request, mine bool) {
+	scope := "student-projects"
+	if mine {
+		scope = "student-projects-mine"
+	}
+	q, e := pagination.ParseCursorQuery(r.URL.Query(), scope)
 	if e != nil {
 		pagination.WriteQueryError(w, e)
 		return
@@ -48,13 +60,13 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	if q.Cursor != nil {
 		pos, id = q.Cursor.Position, q.Cursor.ID
 	}
-	xs, e := h.s.List(r.Context(), user(r), r.URL.Query().Get("search"), r.URL.Query().Get("category"), r.URL.Query().Get("direction_id"), q.Limit+1, pos, id)
+	xs, e := h.s.List(r.Context(), user(r), r.URL.Query().Get("search"), r.URL.Query().Get("category"), r.URL.Query().Get("direction_id"), mine, q.Limit+1, pos, id)
 	if e != nil {
 		h.err(w, r, e)
 		return
 	}
 	page, e := pagination.NewCursorPage(xs, q.Limit, func(x models.StudentProject) (pagination.Cursor, error) {
-		return pagination.Cursor{Scope: "student-projects", Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.ProjectID}, nil
+		return pagination.Cursor{Scope: scope, Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.ProjectID}, nil
 	})
 	if e != nil {
 		h.err(w, r, e)

@@ -12,9 +12,16 @@ type Comment struct {
 	Body            string     `json:"body"`
 	Status          string     `json:"status"`
 	ReplyCount      int        `json:"reply_count"`
+	LikesCount      int        `json:"likes_count"`
+	LikedByMe       bool       `json:"liked_by_me"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
+}
+
+type CommentLikeState struct {
+	LikesCount int  `json:"likes_count"`
+	LikedByMe  bool `json:"liked_by_me"`
 }
 
 type Report struct {

@@ -81,7 +81,8 @@ func (h *Handler) ListReplies(w http.ResponseWriter, r *http.Request) {
 		pkg.WriteError(w, 400, "invalid_query", "Invalid pagination")
 		return
 	}
-	items, total, e := h.service.ListReplies(r.Context(), r.PathValue("comment_id"), limit, offset)
+	viewer, _ := middleware.UserIDFromContext(r.Context())
+	items, total, e := h.service.ListReplies(r.Context(), viewer, r.PathValue("comment_id"), limit, offset)
 	if e != nil {
 		writeError(w, e)
 		return
@@ -108,7 +109,8 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request, k, id, parent str
 		return
 	}
 	sort := defaultValue(r.URL.Query().Get("sort"), "newest")
-	items, total, e := h.service.ListComments(r.Context(), k, id, parent, sort, limit, offset)
+	viewer, _ := middleware.UserIDFromContext(r.Context())
+	items, total, e := h.service.ListComments(r.Context(), viewer, k, id, parent, sort, limit, offset)
 	if e != nil {
 		writeError(w, e)
 		return
@@ -137,6 +139,16 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(204)
 }
+func (h *Handler) SetCommentLike(w http.ResponseWriter, r *http.Request) {
+	user, _ := middleware.UserIDFromContext(r.Context())
+	state, err := h.service.SetCommentLike(r.Context(), user, r.PathValue("comment_id"), r.Method == http.MethodPut)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, state)
+}
+
 func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 	var req reportRequest
 	if !decode(w, r, &req) {

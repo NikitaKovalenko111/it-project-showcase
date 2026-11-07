@@ -34,3 +34,5 @@ The server embeds these files, applies them in version order and records version
 
 `000012_case_formats_stage_editing_curator_access.up.sql` adds the company event format (`case`, `hackathon`, `olympiad`). Stage editing and curator access are implemented in application code against the existing stage and curator relations.
 
+`000013_stage_order_and_company_reports.up.sql` enables atomic stage reordering, validates company report targets, adds unique comment likes and indexes outgoing team applications.
+

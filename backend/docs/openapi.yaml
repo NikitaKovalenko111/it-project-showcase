@@ -211,6 +211,7 @@ paths:
     get:
       tags: [Community]
       operationId: listCaseComments
+      security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}, {name: sort, in: query, schema: {type: string, enum: [newest, oldest, popular], default: newest}}]
       responses: {'200': {description: Корневые комментарии, content: {application/json: {schema: {$ref: '#/components/schemas/Page'}}}}}
     post:
@@ -224,6 +225,7 @@ paths:
     get:
       tags: [Community]
       operationId: listCommentReplies
+      security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CommentID'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
       responses: {'200': {description: Ответы по 10 по умолчанию}}
     post:
@@ -233,6 +235,23 @@ paths:
       parameters: [{$ref: '#/components/parameters/CommentID'}]
       requestBody: {$ref: '#/components/requestBodies/Comment'}
       responses: {'201': {description: Ответ создан}}
+  /comments/{comment_id}/like:
+    put:
+      tags: [Community]
+      operationId: likeComment
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CommentID'}]
+      responses:
+        '200': {description: Лайк установлен, content: {application/json: {schema: {$ref: '#/components/schemas/CommentLikeState'}}}}
+        '404': {description: Активный публичный комментарий недоступен}
+    delete:
+      tags: [Community]
+      operationId: unlikeComment
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CommentID'}]
+      responses:
+        '200': {description: Лайк снят, content: {application/json: {schema: {$ref: '#/components/schemas/CommentLikeState'}}}}
+        '404': {description: Активный публичный комментарий недоступен}
   /comments/{comment_id}:
     delete:
       tags: [Community]
@@ -296,6 +315,13 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/TeamID'}]
       responses: {'200': {description: Отклики команды}}
+  /team-join-applications/mine:
+    get:
+      tags: [Teams]
+      operationId: listMyTeamJoinApplications
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses: {'200': {description: Собственные исходящие кандидатуры, content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}}
   /team-join-applications/{application_id}:
     patch:
       tags: [Teams]
@@ -338,6 +364,14 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ApplicationID'}]
       responses: {'204': {description: Согласие с версией условий записано}}
+  /executions:
+    get:
+      tags: [Executions]
+      operationId: listExecutions
+      description: Студент видит свои выполнения, представитель — выполнения управляемых компаний, куратор — выполнения активно закреплённых студентов, администратор — все.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}]
+      responses: {'200': {description: Доступные выполнения, content: {application/json: {schema: {$ref: '#/components/schemas/FlatCursorPage'}}}}}
   /executions/{execution_id}:
     get:
       tags: [Executions]
@@ -398,6 +432,13 @@ paths:
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/StudentProjectInput'}}}}
       responses: {'201': {description: Черновик создан}}
+  /student-projects/mine:
+    get:
+      tags: [Student projects]
+      operationId: listMyStudentProjects
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}, {name: search, in: query, schema: {type: string}}, {name: category, in: query, schema: {type: string}}, {name: direction_id, in: query, schema: {type: string, format: uuid}}]
+      responses: {'200': {description: Проекты владельца любых статусов и видимости, content: {application/json: {schema: {$ref: '#/components/schemas/FlatCursorPage'}}}}}
   /student-projects/{project_id}:
     get:
       tags: [Student projects]
@@ -415,6 +456,7 @@ paths:
     get:
       tags: [Community]
       operationId: listProjectComments
+      security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ProjectID'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
       responses: {'200': {description: Комментарии проекта}}
     post:
@@ -436,12 +478,29 @@ paths:
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
       responses: {'201': {description: Черновик программы}}
+  /internships/moderation:
+    get:
+      tags: [Internships]
+      operationId: listInternshipModeration
+      description: Администратор получает объявления в статусе moderation.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}]
+      responses: {'200': {description: Очередь модерации, content: {application/json: {schema: {$ref: '#/components/schemas/Page'}}}}}
   /internships/{program_id}:
     get:
       tags: [Internships]
       operationId: getInternship
+      security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ProgramID'}]
       responses: {'200': {description: Программа с Markdown-содержимым}}
+    put:
+      tags: [Internships]
+      operationId: updateInternship
+      description: Представитель с manage_company редактирует объявление. Опубликованная программа переходит в revision.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ProgramID'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
+      responses: {'200': {description: Содержимое программы обновлено}}
   /internships/{program_id}/status:
     patch:
       tags: [Internships]
@@ -677,6 +736,7 @@ paths:
     get:
       tags: [Cases]
       operationId: listCaseStages
+      security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       responses: {'200': {description: Контрольные точки}}
     post:
@@ -1076,6 +1136,14 @@ components:
           required: [code, message]
           properties: {code: {type: string}, message: {type: string}, details: {type: object, additionalProperties: true}}
     ItemsResponse: {type: object, required: [items], properties: {items: {type: array, items: {type: object, additionalProperties: true}}}}
+    FlatCursorPage:
+      allOf:
+        - {$ref: '#/components/schemas/ItemsResponse'}
+        - {type: object, required: [next_cursor], properties: {next_cursor: {type: string, nullable: true}}}
+    FlatPage:
+      allOf:
+        - {$ref: '#/components/schemas/ItemsResponse'}
+        - {type: object, required: [page, page_size, total], properties: {page: {type: integer}, page_size: {type: integer}, total: {type: integer}}}
     CursorPage:
       allOf:
         - {$ref: '#/components/schemas/ItemsResponse'}
@@ -1121,8 +1189,9 @@ components:
         evaluation_criteria: {type: array, items: {$ref: '#/components/schemas/EvaluationCriterionInput'}}
     CaseStageInput: {type: object, required: [ordinal, title], properties: {ordinal: {type: integer, minimum: 1}, title: {type: string, minLength: 1, maxLength: 300}, expected_result: {type: string, maxLength: 3000}, due_at: {type: string, format: date-time, nullable: true}}}
     ModerationRequest: {type: object, required: [decision], properties: {decision: {type: string, enum: [approve, request_revision, reject, hide]}, comment: {type: string}}}
-    Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, created_at: {type: string, format: date-time}}}
-    ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}
+    Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, likes_count, liked_by_me, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}, created_at: {type: string, format: date-time}}}
+    CommentLikeState: {type: object, required: [likes_count, liked_by_me], properties: {likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}}}
+    ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile, company]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}
     TeamDiscoveryInput: {type: object, required: [name, visibility, looking_for_members], properties: {name: {type: string}, description: {type: string}, visibility: {type: string, enum: [private, open]}, looking_for_members: {type: boolean}}}
     TeamJoinInput: {type: object, properties: {role_id: {type: string, format: uuid}, resume_file_id: {type: string, format: uuid}, cover_letter: {type: string, maxLength: 4000}}}
     TeamSearchProfileInput: {type: object, properties: {headline: {type: string, maxLength: 200}, description: {type: string, maxLength: 4000}, resume_file_id: {type: string, format: uuid}, is_visible: {type: boolean}}}

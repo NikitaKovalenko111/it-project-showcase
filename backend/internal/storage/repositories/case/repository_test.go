@@ -28,7 +28,9 @@ func TestUpdateStageRejectedWhenExecutionExists(t *testing.T) {
 	defer db.Close()
 	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT c.status").WithArgs("case", "user").
-		WillReturnRows(sqlmock.NewRows([]string{"status", "allowed", "has_executions"}).AddRow("revision", true, true))
+		WillReturnRows(sqlmock.NewRows([]string{"status", "allowed"}).AddRow("in_progress", true))
+	mock.ExpectQuery("SELECT EXISTS").WithArgs("case").
+		WillReturnRows(sqlmock.NewRows([]string{"has_executions"}).AddRow(true))
 	mock.ExpectRollback()
 	_, err := Init(db).UpdateStage(context.Background(), "user", "case", "stage", models.CaseStageInput{Ordinal: 1, Title: "Stage"})
 	if !errors.Is(err, ErrStagesLocked) {

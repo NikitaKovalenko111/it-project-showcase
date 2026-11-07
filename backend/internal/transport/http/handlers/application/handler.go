@@ -46,6 +46,7 @@ func (h *Handler) StartApplications(mux *http.ServeMux) {
 	mux.HandleFunc("/", shared.NotFound)
 }
 func (h *Handler) StartExecutions(mux *http.ServeMux) {
+	mux.HandleFunc("GET /{$}", h.ListExecutions)
 	mux.HandleFunc("GET /{execution_id}", h.GetExecution)
 	mux.HandleFunc("/", shared.NotFound)
 }
@@ -146,6 +147,44 @@ func (h *Handler) SetStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, http.StatusOK, item)
 }
+func (h *Handler) ListExecutions(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	for key := range values {
+		if key != "limit" && key != "cursor" {
+			pkg.WriteError(w, http.StatusBadRequest, "invalid_query", "Query parameters are invalid")
+			return
+		}
+	}
+	const scope = "executions"
+	query, err := pagination.ParseCursorQuery(values, scope)
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	position, id := "", ""
+	if query.Cursor != nil {
+		position, id = query.Cursor.Position, query.Cursor.ID
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	items, err := h.service.ListExecutions(r.Context(), userID, hasRole(r, "company_representative"), hasRole(r, "admin"), query.Limit+1, position, id)
+	if err != nil {
+		if errors.Is(err, applications_service.ErrInvalidCursor) {
+			pkg.WriteError(w, http.StatusBadRequest, "invalid_cursor", "Query parameter cursor is invalid")
+			return
+		}
+		writeError(w, r, err)
+		return
+	}
+	page, err := pagination.NewCursorPage(items, query.Limit, func(item models.Execution) (pagination.Cursor, error) {
+		return pagination.Cursor{Scope: scope, Position: item.CreatedAt.UTC().Format(time.RFC3339Nano), ID: item.ExecutionID}, nil
+	})
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, page)
+}
+
 func (h *Handler) GetExecution(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	item, err := h.service.GetExecution(r.Context(), userID, r.PathValue("execution_id"), hasRole(r, "company_representative"), hasRole(r, "admin"))

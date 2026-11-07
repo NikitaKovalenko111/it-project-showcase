@@ -4,6 +4,7 @@ import "net/http"
 
 func (h *Handler) Start(mux *http.ServeMux, student, admin, authorize func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
+	mux.Handle("GET /mine", student(http.HandlerFunc(h.ListMine)))
 	mux.HandleFunc("GET /{project_id}", h.Get)
 	mux.Handle("GET /{project_id}/manage", student(http.HandlerFunc(h.Get)))
 	mux.Handle("POST /", student(http.HandlerFunc(h.Create)))
