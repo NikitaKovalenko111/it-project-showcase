@@ -1,0 +1,34 @@
+.feature-panel form, .modal-dialog__body form { display: grid; gap: 18px; }
+.feature-panel label, .modal-dialog__body .form-group { display: flex; flex-direction: column; gap: 6px; }
+.modal-dialog__body .form-group { margin-bottom: 18px; }
+.modal-dialog__body fieldset { min-width: 0; margin: 0 0 20px; padding: 16px; border: 1px solid #dbe3ec; border-radius: 10px; }
+.modal-dialog__body fieldset .feature-toolbar { gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.feature-toolbar { gap: 16px; flex-wrap: wrap; }
+.feature-panel > form { margin-bottom: 24px; }
+.feature-row .action-row, .report-footer { margin-top: 16px; margin-bottom: 16px; }
+.feature-row p { overflow-wrap: anywhere; }
+.feature-row .feature-row { margin-top: 12px; border-left: 2px solid #dbe3ec; padding-left: 12px; }
+.feature-panel > .feature-toolbar { justify-content: space-between; }
+input[type='file'] { padding: 8px; height: auto; max-width: 100%; }
+input[type='file']::file-selector-button { border: 0; border-radius: 6px; background: #e8f0fa; color: #1b5e91; padding: 8px 12px; margin-right: 12px; cursor: pointer; }
+.case-card__header { padding-right: 36px; }
+.badge { align-items: center; vertical-align: middle; gap: 5px; }
+.badge svg { flex-shrink: 0; vertical-align: middle; }
+.action-row { flex-wrap: wrap; gap: 10px; }
+.scroll-toolbar { position: sticky; top: 0; z-index: 10; background: #f8fafc; padding: 8px 0; transition: transform .18s, opacity .18s; }
+.scroll-toolbar--hidden { transform: translateY(-110%); opacity: 0; pointer-events: none; }
+.participation-options { flex-wrap: wrap; }
+.portfolio-file { position: relative; border: 1px solid #dbe3ec; border-radius: 8px; padding: 16px 28px 16px 12px; }
+.file-remove { position: absolute; top: 0; right: 0; border: 0; background: #e8f0fa; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; opacity: 0; }
+.portfolio-file:hover .file-remove, .portfolio-file:focus-within .file-remove { opacity: 1; }
+@media (hover: none) { .file-remove { opacity: 1; } }
+.btn { white-space: normal; }
+.modal-dialog__body button, .tab-btn { min-height: 36px; }
+@media (max-width: 600px) {
+  .feature-panel { padding: 16px; }
+  .feature-panel .feature-row { margin-left: 0 !important; padding: 12px; }
+  .feature-toolbar > label { width: 100%; }
+  .modal-dialog__body { padding: 16px; }
+  .modal-dialog__body .btn { white-space: nowrap; }
+  .action-row .btn { font-size: 12px; padding: 8px 10px; }
+}
