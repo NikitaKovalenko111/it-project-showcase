@@ -1,0 +1,38 @@
+name: CD
+
+on:
+    workflow_run:
+        workflows:
+            - CI
+        types:
+            - completed
+        branches:
+            - main
+
+jobs:
+    deploy:
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Configure SSH
+              run: |
+                  mkdir -p ~/.ssh
+
+                  echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+
+                  echo "${{ secrets.SERVER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+            - name: Deploy
+              run: |
+                  ssh -p 2222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+                    set -e
+
+                    cd /projects/kod_v_sapoge/it-project-showcase
+
+                    git pull --ff-only origin main
+
+                    docker compose up -d --build --remove-orphans
+                  '
