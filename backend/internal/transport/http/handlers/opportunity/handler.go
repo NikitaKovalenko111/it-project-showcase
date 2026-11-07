@@ -307,6 +307,15 @@ func (h *Handler) SetCurator(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 200, x)
 }
+func (h *Handler) AssignSelfCurator(w http.ResponseWriter, r *http.Request) {
+	item, err := h.service.AssignSelfCurator(r.Context(), user(r), r.PathValue("student_id"))
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
 func (h *Handler) RevokeCurator(w http.ResponseWriter, r *http.Request) {
 	if e := h.service.RevokeCurator(r.Context(), r.PathValue("student_id")); e != nil {
 		writeError(w, e)
@@ -419,6 +428,8 @@ func writeError(w http.ResponseWriter, e error) {
 		pkg.WriteError(w, 403, "permission_denied", "Permission denied")
 	case errors.Is(e, opportunities_service.ErrNotFound):
 		pkg.WriteError(w, 404, "resource_not_found", "Resource not found")
+	case errors.Is(e, opportunities_service.ErrCuratorAssigned):
+		pkg.WriteError(w, 409, "student_curator_already_assigned", "Student already has an active curator")
 	case errors.Is(e, opportunities_service.ErrConflict):
 		pkg.WriteError(w, 409, "resource_conflict", "Resource conflict")
 	default:

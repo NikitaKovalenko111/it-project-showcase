@@ -36,3 +36,5 @@ The server embeds these files, applies them in version order and records version
 
 `000013_stage_order_and_company_reports.up.sql` enables atomic stage reordering, validates company report targets, adds unique comment likes and indexes outgoing team applications.
 
+`000014_remove_mentor_role.up.sql` removes the legacy role, closes active student assignments held without `university_staff`, and preserves assignment history.
+

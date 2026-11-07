@@ -30,6 +30,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	workflow := h.withRoles("student", "company_representative", "admin")
 	executionArea := h.withRoles("student", "company_representative", "university_staff", "admin")
 	studentSearch := h.withRoles("company_representative", "university_staff", "admin")
+	curator := h.withRoles("university_staff")
 	studentOnly := h.withRoles("student")
 
 	h.handlers.System.Start(mount(api, "/system", nil))
@@ -91,7 +92,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 
 	students := mount(api, "/students", nil)
 	h.handlers.Platform.StartStudents(students, studentSearch)
-	h.handlers.Opportunities.StartStudents(students, h.authorize, admin)
+	h.handlers.Opportunities.StartStudents(students, h.authorize, admin, curator)
 	h.handlers.Files.StartStudents(students)
 
 	portfolio := mount(api, "/portfolio", student)

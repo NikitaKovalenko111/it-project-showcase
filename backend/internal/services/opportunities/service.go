@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	ErrInvalid   = errors.New("invalid opportunity request")
-	ErrForbidden = errors.New("opportunity access denied")
-	ErrNotFound  = errors.New("opportunity not found")
-	ErrConflict  = errors.New("opportunity conflict")
+	ErrInvalid         = errors.New("invalid opportunity request")
+	ErrForbidden       = errors.New("opportunity access denied")
+	ErrNotFound        = errors.New("opportunity not found")
+	ErrConflict        = errors.New("opportunity conflict")
+	ErrCuratorAssigned = errors.New("student already has an active curator")
 )
 
 type Service struct{ repo *opportunity_repo.Repository }
@@ -28,6 +29,8 @@ func mapped(e error) error {
 		return ErrNotFound
 	case errors.Is(e, opportunity_repo.ErrConflict):
 		return ErrConflict
+	case errors.Is(e, opportunity_repo.ErrCuratorAssigned):
+		return ErrCuratorAssigned
 	}
 	return e
 }
@@ -157,6 +160,14 @@ func (s *Service) SetCurator(ctx context.Context, a, student, curator string) (*
 	x, e := s.repo.SetCurator(ctx, a, student, curator)
 	return x, mapped(e)
 }
+func (s *Service) AssignSelfCurator(ctx context.Context, curator, student string) (*models.CuratorAssignment, error) {
+	if !id(student) {
+		return nil, ErrNotFound
+	}
+	item, err := s.repo.AssignSelfCurator(ctx, curator, student)
+	return item, mapped(err)
+}
+
 func (s *Service) GetCurator(ctx context.Context, student string) (*models.CuratorAssignment, error) {
 	if !id(student) {
 		return nil, ErrNotFound

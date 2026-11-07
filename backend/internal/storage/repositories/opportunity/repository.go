@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("opportunity not found")
-	ErrForbidden = errors.New("opportunity forbidden")
-	ErrConflict  = errors.New("opportunity conflict")
+	ErrNotFound        = errors.New("opportunity not found")
+	ErrForbidden       = errors.New("opportunity forbidden")
+	ErrConflict        = errors.New("opportunity conflict")
+	ErrCuratorAssigned = errors.New("student already has an active curator")
 )
 
 type Repository struct{ db *sql.DB }
@@ -280,37 +281,87 @@ func (r *Repository) SetPlacements(ctx context.Context, user, caseID string, ite
 }
 
 func (r *Repository) SetCurator(ctx context.Context, admin, student, curator string) (*models.CuratorAssignment, error) {
+	return r.assignCurator(ctx, admin, student, curator, true)
+}
+
+func (r *Repository) AssignSelfCurator(ctx context.Context, curator, student string) (*models.CuratorAssignment, error) {
+	return r.assignCurator(ctx, curator, student, curator, false)
+}
+
+func (r *Repository) assignCurator(ctx context.Context, actor, student, curator string, replace bool) (*models.CuratorAssignment, error) {
 	tx, e := r.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
 	}
 	defer tx.Rollback()
-	_, e = tx.ExecContext(ctx, `UPDATE showcase.student_curators SET revoked_at=CURRENT_TIMESTAMP WHERE student_id=$1 AND revoked_at IS NULL`, student)
+	// Serialize moderator changes and self-assignments for the same student.
+	var studentID string
+	e = tx.QueryRowContext(ctx, `SELECT s.user_id FROM showcase.students s
+		JOIN showcase.users u ON u.user_id=s.user_id
+		WHERE s.user_id=$1 AND u.status='active' FOR NO KEY UPDATE OF s`, student).Scan(&studentID)
+	if errors.Is(e, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
 	if e != nil {
 		return nil, e
 	}
-	res, e := tx.ExecContext(ctx, `INSERT INTO showcase.student_curators(student_id,curator_id,assigned_by) SELECT $1,$2,$3 WHERE EXISTS(SELECT 1 FROM showcase.user_roles ur JOIN showcase.roles r ON r.role_id=ur.role_id WHERE ur.user_id=$2 AND r.code IN ('university_staff','mentor','admin'))`, student, curator, admin)
-	if e != nil {
-		return nil, e
-	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	var curatorID string
+	e = tx.QueryRowContext(ctx, `SELECT u.user_id FROM showcase.users u
+		JOIN showcase.user_roles ur ON ur.user_id=u.user_id
+		JOIN showcase.roles r ON r.role_id=ur.role_id
+		WHERE u.user_id=$1 AND u.status='active' AND r.code='university_staff'`, curator).Scan(&curatorID)
+	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
+	}
+	if e != nil {
+		return nil, e
+	}
+	current, e := getCurator(ctx, tx, studentID, true)
+	if e == nil {
+		if current.CuratorID == curatorID {
+			return current, tx.Commit()
+		}
+		if !replace {
+			return nil, ErrCuratorAssigned
+		}
+		if _, e = tx.ExecContext(ctx, `UPDATE showcase.student_curators SET revoked_at=clock_timestamp() WHERE student_id=$1 AND revoked_at IS NULL`, studentID); e != nil {
+			return nil, e
+		}
+	} else if !errors.Is(e, ErrNotFound) {
+		return nil, e
+	}
+	if _, e = tx.ExecContext(ctx, `INSERT INTO showcase.student_curators(student_id,curator_id,assigned_by,assigned_at) VALUES ($1,$2,$3,clock_timestamp())`, studentID, curatorID, actor); e != nil {
+		return nil, e
+	}
+	item, e := getCurator(ctx, tx, studentID, false)
+	if e != nil {
+		return nil, e
 	}
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
-	return r.GetCurator(ctx, student)
+	return item, nil
 }
 func (r *Repository) GetCurator(ctx context.Context, student string) (*models.CuratorAssignment, error) {
+	return getCurator(ctx, r.db, student, false)
+}
+
+func getCurator(ctx context.Context, db interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}, student string, lock bool) (*models.CuratorAssignment, error) {
 	var x models.CuratorAssignment
-	e := r.db.QueryRowContext(ctx, `SELECT sc.student_id,sc.curator_id,COALESCE(NULLIF(concat_ws(' ',s.last_name,s.first_name),''),u.username),sc.assigned_by,sc.assigned_at FROM showcase.student_curators sc JOIN showcase.users u ON u.user_id=sc.curator_id LEFT JOIN showcase.students s ON s.user_id=sc.curator_id WHERE sc.student_id=$1 AND sc.revoked_at IS NULL`, student).Scan(&x.StudentID, &x.CuratorID, &x.CuratorName, &x.AssignedBy, &x.AssignedAt)
+	query := `SELECT sc.student_id,sc.curator_id,COALESCE(NULLIF(concat_ws(' ',s.last_name,s.first_name),''),u.username),sc.assigned_by,sc.assigned_at FROM showcase.student_curators sc JOIN showcase.users u ON u.user_id=sc.curator_id LEFT JOIN showcase.students s ON s.user_id=sc.curator_id WHERE sc.student_id=$1 AND sc.revoked_at IS NULL`
+	if lock {
+		query += " FOR UPDATE OF sc"
+	}
+	e := db.QueryRowContext(ctx, query, student).Scan(&x.StudentID, &x.CuratorID, &x.CuratorName, &x.AssignedBy, &x.AssignedAt)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	return &x, e
 }
 func (r *Repository) RevokeCurator(ctx context.Context, student string) error {
-	res, e := r.db.ExecContext(ctx, `UPDATE showcase.student_curators SET revoked_at=CURRENT_TIMESTAMP WHERE student_id=$1 AND revoked_at IS NULL`, student)
+	res, e := r.db.ExecContext(ctx, `UPDATE showcase.student_curators SET revoked_at=clock_timestamp() WHERE student_id=$1 AND revoked_at IS NULL`, student)
 	if e != nil {
 		return e
 	}

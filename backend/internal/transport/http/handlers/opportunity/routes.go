@@ -34,11 +34,12 @@ func (h *Handler) StartCases(mux *http.ServeMux, representative, manager, studen
 	mux.HandleFunc("GET /{case_id}/nda", h.GetNDA)
 	mux.Handle("POST /{case_id}/nda-versions", representative(http.HandlerFunc(h.CreateNDA)))
 }
-func (h *Handler) StartStudents(mux *http.ServeMux, authorize, admin func(http.Handler) http.Handler) {
+func (h *Handler) StartStudents(mux *http.ServeMux, authorize, admin, curator func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /{student_id}/portfolio/files", h.ListPublicPortfolioFiles)
 	mux.HandleFunc("GET /{student_id}/rating", h.Rating)
 	mux.Handle("GET /{student_id}/curator", authorize(http.HandlerFunc(h.GetCurator)))
 	mux.Handle("PUT /{student_id}/curator", admin(http.HandlerFunc(h.SetCurator)))
+	mux.Handle("PUT /{student_id}/curator/self", curator(http.HandlerFunc(h.AssignSelfCurator)))
 	mux.Handle("DELETE /{student_id}/curator", admin(http.HandlerFunc(h.RevokeCurator)))
 }
 func (h *Handler) StartPortfolio(mux *http.ServeMux) {

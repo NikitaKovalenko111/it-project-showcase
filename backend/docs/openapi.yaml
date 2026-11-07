@@ -563,6 +563,7 @@ paths:
     put:
       tags: [Portfolio]
       operationId: setStudentCurator
+      description: Модератор назначает или заменяет активного куратора с ролью university_staff.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/StudentID'}]
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [curator_id], properties: {curator_id: {type: string, format: uuid}}}}}}
@@ -573,6 +574,21 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/StudentID'}]
       responses: {'204': {description: Назначение отозвано}}
+  /students/{student_id}/curator/self:
+    put:
+      tags: [Portfolio]
+      operationId: assignSelfAsStudentCurator
+      description: Активный куратор university_staff прикрепляет себя к студенту. Повторный запрос возвращает существующее назначение.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/StudentID'}]
+      responses:
+        '200':
+          description: Активное назначение куратора
+          content: {application/json: {schema: {$ref: '#/components/schemas/CuratorAssignment'}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Требуется активная роль куратора}
+        '404': {description: Активный студент не найден}
+        '409': {description: 'У студента уже есть другой активный куратор. Код student_curator_already_assigned'}
   /cases/{case_id}/nda:
     get:
       tags: [Cases]
@@ -1191,6 +1207,7 @@ components:
     ModerationRequest: {type: object, required: [decision], properties: {decision: {type: string, enum: [approve, request_revision, reject, hide]}, comment: {type: string}}}
     Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, likes_count, liked_by_me, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}, created_at: {type: string, format: date-time}}}
     CommentLikeState: {type: object, required: [likes_count, liked_by_me], properties: {likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}}}
+    CuratorAssignment: {type: object, required: [student_id, curator_id, curator_name, assigned_by, assigned_at], properties: {student_id: {type: string, format: uuid}, curator_id: {type: string, format: uuid}, curator_name: {type: string}, assigned_by: {type: string, format: uuid}, assigned_at: {type: string, format: date-time}}}
     ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile, company]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}
     TeamDiscoveryInput: {type: object, required: [name, visibility, looking_for_members], properties: {name: {type: string}, description: {type: string}, visibility: {type: string, enum: [private, open]}, looking_for_members: {type: boolean}}}
     TeamJoinInput: {type: object, properties: {role_id: {type: string, format: uuid}, resume_file_id: {type: string, format: uuid}, cover_letter: {type: string, maxLength: 4000}}}

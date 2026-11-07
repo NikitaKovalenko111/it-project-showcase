@@ -114,7 +114,7 @@ func (r *Repository) ListComments(ctx context.Context, user, executionID string,
 }
 func (r *Repository) AddMentor(ctx context.Context, user, executionID, mentorID, role string) (*models.ExecutionMentor, error) {
 	var x models.ExecutionMentor
-	err := r.db.QueryRowContext(ctx, `INSERT INTO execution_mentors(execution_id,user_id,role_name) SELECT e.execution_id,$3,$4 FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') AND EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.role_id=ur.role_id WHERE ur.user_id=$3 AND r.code IN ('mentor','university_staff')) RETURNING execution_id,user_id,role_name,assigned_at`, executionID, user, mentorID, role).Scan(&x.ExecutionID, &x.UserID, &x.RoleName, &x.AssignedAt)
+	err := r.db.QueryRowContext(ctx, `INSERT INTO execution_mentors(execution_id,user_id,role_name) SELECT e.execution_id,$3,$4 FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') AND EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.role_id=ur.role_id JOIN users u ON u.user_id=ur.user_id WHERE u.user_id=$3 AND u.status='active' AND r.code='university_staff') RETURNING execution_id,user_id,role_name,assigned_at`, executionID, user, mentorID, role).Scan(&x.ExecutionID, &x.UserID, &x.RoleName, &x.AssignedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}

@@ -8,13 +8,17 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"it-project-showcase/backend/internal/middleware"
 	"it-project-showcase/backend/internal/models"
+	opportunities_service "it-project-showcase/backend/internal/services/opportunities"
 	"it-project-showcase/backend/internal/transport/http/handlers"
 	auth_handler "it-project-showcase/backend/internal/transport/http/handlers/auth"
 	documentation_handler "it-project-showcase/backend/internal/transport/http/handlers/documentation"
+	opportunity_handler "it-project-showcase/backend/internal/transport/http/handlers/opportunity"
 	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
+	"it-project-showcase/backend/pkg"
 )
 
 func TestRoutesUseAPIVersionPrefix(t *testing.T) {
@@ -100,6 +104,39 @@ func TestCompanyCreationWithoutTrailingSlashIsProtected(t *testing.T) {
 	mux.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestSelfAssignmentRequiresCuratorRole(t *testing.T) {
+	const secret = "test-secret"
+	handlerSet := &handlers.Handlers{Opportunities: opportunity_handler.Init(opportunities_service.Init(nil))}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization(secret, slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	for _, test := range []struct {
+		role string
+		want int
+	}{
+		{want: http.StatusUnauthorized},
+		{role: "student", want: http.StatusForbidden},
+		{role: "mentor", want: http.StatusForbidden},
+		{role: "university_staff", want: http.StatusNotFound},
+	} {
+		t.Run(test.role, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodPut, "/api/v1/students/bad-id/curator/self", nil)
+			if test.role != "" {
+				token, _, err := pkg.CreateAccessTokenWithRoles("curator", []string{test.role}, secret, time.Minute)
+				if err != nil {
+					t.Fatal(err)
+				}
+				request.Header.Set("Authorization", "Bearer "+token)
+			}
+			recorder := httptest.NewRecorder()
+			mux.ServeHTTP(recorder, request)
+			if recorder.Code != test.want {
+				t.Fatalf("status = %d, want %d, body = %s", recorder.Code, test.want, recorder.Body.String())
+			}
+		})
 	}
 }
 

@@ -158,10 +158,9 @@ Register не создаёт сессию и не выдаёт токены: п�
 Канонические коды:
 
 - `admin`;
-- `university_staff`;
+- `university_staff` — куратор;
 - `company_representative`;
-- `student`;
-- `mentor`.
+- `student`.
 
 Роли никогда не принимаются из публичного тела регистрации или обновления профиля. Их назначает только сервер после проверки полномочий инициатора.
 
@@ -667,7 +666,7 @@ case -> application -> execution -> submission -> evaluation
 
 ### GET/POST `/executions/{execution_id}/mentors`
 
-Компания назначает наставника только пользователю с серверной ролью `mentor` или `university_staff`. Участники выполнения могут читать список наставников.
+Компания может назначить на выполнение активного пользователя с серверной ролью `university_staff`. Участники выполнения могут читать список назначений. Это назначение относится к выполнению и не меняет закрепление куратора за студентом.
 
 ### POST/GET `/cases/{case_id}/nda-grants`
 
@@ -984,10 +983,11 @@ Backend не добавляет эти значения в заявку скры
 ### Куратор студента
 
 - `GET /students/{student_id}/curator`;
-- `PUT /students/{student_id}/curator` — назначение администратором;
+- `PUT /students/{student_id}/curator` — назначение или замена куратора модератором (`admin`). Тело запроса содержит `curator_id`;
+- `PUT /students/{student_id}/curator/self` — активный куратор (`university_staff`) прикрепляет себя к активному студенту. Идентификатор куратора берётся из Bearer-токена, тело запроса не требуется. Повторный запрос того же куратора возвращает существующую запись с `200`. При другом активном кураторе возвращается `409 student_curator_already_assigned`;
 - `DELETE /students/{student_id}/curator` — мягкий отзыв.
 
-История сохраняется; у студента один активный куратор. Куратором может быть `university_staff`, `mentor` или `admin`.
+У студента может быть один активный куратор с ролью `university_staff`. История назначений сохраняется.
 
 ### Обложка кейса
 
@@ -1137,7 +1137,7 @@ API MinIO доступен на `http://localhost:9000`, web-консоль — 
 
 ### Роли
 
-`admin`, `university_staff`, `company_representative`, `student`, `mentor`.
+`admin`, `university_staff`, `company_representative`, `student`.
 
 ### Состояние пользователя
 
