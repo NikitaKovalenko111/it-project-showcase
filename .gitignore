@@ -39,3 +39,12 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Local integration toolchain and test artifacts
+/tmp/toolchain/
+/tmp/gopath/
+/tmp/gocache/
+/tmp/go1.25.3.zip
+/tmp/integration-accounts.json
+/tmp
+/scripts
