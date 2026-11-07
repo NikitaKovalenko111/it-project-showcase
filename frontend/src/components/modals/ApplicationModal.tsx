@@ -19,7 +19,8 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const { teamsList } = useAppSelector((state) => state.students)
 
   const registration=['olympiad','hackathon'].includes(caseItem.kind || '')
-  const instantRegistration=registration&&apiRuntime.mode!=='live'
+  const instantRegistration=registration
+  const [awaitingConsent,setAwaitingConsent]=useState(false)
   const studentProfile = currentUser?.studentProfile
   const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id))
 
@@ -31,6 +32,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
   )
   const [savedResume,setSavedResume]=useState<StudentProfile['resume']>()
+  const [attachSavedResume,setAttachSavedResume]=useState(false)
   useEffect(()=>{let active=true;if(isOpen&&!registration&&currentUser?.role==='student')apiClient.getResume().then(f=>{if(active)setSavedResume(f)}).catch(e=>{if(active)setSubmitError(e.message)});return()=>{active=false}},[isOpen,currentUser?.id,registration])
   const [resume, setResume] = useState<File | null>(null)
   const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || '')
@@ -71,9 +73,10 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     setSubmitError('')
     try {
       if (invalidTeam) throw new Error(`Выберите команду подходящего размера: ${teamSizeText} чел.`)
-      const resumeFile = registration ? undefined : resume ? await uploadFile(resume) : savedResume
+      const resumeFile = registration ? undefined : resume ? await uploadFile(resume) : attachSavedResume ? savedResume : undefined
       const application = await apiClient.createApplication({
         caseId: caseItem.id,
+        registration,
         caseTitle: caseItem.title,
         companyId: caseItem.companyId,
         applicantType,
@@ -96,6 +99,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
       dispatch(createApplicationSuccess(application))
       dispatch(fetchCaseByIdRequest(caseItem.id))
       dispatch(fetchCasesRequest())
+      setAwaitingConsent(!!application.consentPending)
       setSubmittedSuccess(true)
     } catch (cause) { setSubmitError(cause instanceof Error ? cause.message : 'Не удалось отправить заявку') }
     finally { setIsSubmitting(false) }
@@ -121,7 +125,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
             <CheckCircle2 size={48} color="#16805b" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ margin: '0 0 8px', color: '#16805b' }}>Заявка успешно отправлена!</h3>
             <p style={{ color: '#64748b', fontSize: '13px' }}>
-              {instantRegistration ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
+              {awaitingConsent ? 'Остальные участники должны подтвердить условия в разделе «Заявки и избранное».' : instantRegistration ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
             </p>
             <button className="btn btn-primary" onClick={() => { setSubmittedSuccess(false); onClose() }}>Готово</button>
           </div>
@@ -210,7 +214,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 </div>
               </div>
 
-              {savedResume&&!resume&&<p className="form-hint">К заявке будет приложено резюме из профиля: {savedResume.name}. Можно выбрать другой файл.</p>}
+              {savedResume&&!resume&&<label className="form-hint"><input type="checkbox" checked={attachSavedResume} onChange={event=>setAttachSavedResume(event.target.checked)}/> Приложить резюме из профиля ({savedResume.name})</label>}
               {/* IP Rights Notice */}
               <div
                 style={{
@@ -241,7 +245,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                 </label>
               </div>
               </>}
-              {registration && <p>{instantRegistration?'После регистрации мероприятие появится в активных проектах.':'Мероприятие появится в активных проектах после одобрения заявки организатором.'}</p>}
+              {registration && <p>{instantRegistration?'После подтверждения регистрация появится в активных проектах. Для команды требуется согласие всех участников.':'Мероприятие появится в активных проектах после одобрения заявки организатором.'}</p>}
             </div>
 
             <div className="modal-dialog__footer">

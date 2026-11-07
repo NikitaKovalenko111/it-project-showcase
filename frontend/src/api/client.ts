@@ -108,7 +108,7 @@ export const apiClient = {
     if (apiRuntime.mode === 'live') {
       if(data.role && data.role!=='student')throw new Error('Публичная регистрация доступна студентам. Аккаунт компании создаёт администратор.')
       const [last_name,first_name,...rest]=(data.fullName || '').trim().split(/\s+/)
-      const registration={username:data.username,email:data.email,password:data.password,last_name,first_name,patronymic:rest.join(' '),institute:data.institute,direction:data.direction || 'Не указано',course:Number(data.course || 1),group_name:data.group || '',phone:data.phone || '',consent_version:'1'}
+      const registration={username:data.username,email:data.email,password:data.password,last_name,first_name,patronymic:rest.join(' '),institute:data.institute,direction:data.direction || '',course:Number(data.course || 1),group_name:data.group || '',phone:data.phone || '',consent_version:'1'}
       const res = await axiosInstance.post<{ access_token?: string; refresh_token?: string }>('/auth/register', registration)
       if (!res.data.access_token) return apiClient.login(data.username || data.email, data.password)
       tokenStore.set(res.data.access_token)
@@ -157,7 +157,21 @@ export const apiClient = {
   },
   async updateUser(user: User): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      throw new Error('Сервер пока не предоставляет изменение личных данных профиля')
+      const profile=user.studentProfile
+      if(user.role!=='student'||!profile)throw new Error('Редактирование доступно для профиля студента')
+      const [last_name,first_name,...rest]=user.fullName.trim().split(/\s+/)
+      const links=[...new Map([
+        ...(profile.links || []).filter(link=>!['github','gitlab','portfolio'].includes(link.kind)).map(link=>[link.kind,link] as const),
+        ...([['github',profile.githubUrl],['gitlab',profile.gitlabUrl],['portfolio',profile.portfolioUrl]] as const)
+          .filter(([,url])=>!!url).map(([kind,url])=>[kind,{kind,url:url!}] as const),
+      ]).values()]
+      await axiosInstance.put('/students/me/profile',{
+        email:user.email,last_name,first_name,patronymic:rest.join(' '),phone:profile.phone,
+        institute:profile.institute,direction:profile.fieldOfStudy,program:profile.educationalProgram,
+        course:profile.course,group_name:profile.group,bio:profile.bio,education_level:profile.educationLevel,
+        professional_interests:profile.interests,competencies:profile.skills,technologies:profile.techStack,links,
+      })
+      return apiClient.getCurrentUser()
     }
     await delay(150)
     const fresh=mockServer.getUserById(user.id)
@@ -190,7 +204,7 @@ export const apiClient = {
     if (apiRuntime.mode === 'live') {
       const actor=JSON.parse(localStorage.getItem('uust_current_user') || 'null')
       const rows=await collectPages<any>(params=>axiosInstance.get('/cases',{params}),{search:filters?.search,company_id:filters?.companyId})
-      if(actor?.role==='company')rows.push(...await collectNumbered<any>(params=>axiosInstance.get('/cases/mine',{params})))
+      if(actor?.role==='company')rows.push(...await collectPages<any>(params=>axiosInstance.get('/cases/mine',{params})))
       if(actor?.role==='admin')rows.push(...await collectPages<any>(params=>axiosInstance.get('/cases/moderation',{params})))
       return [...new Map(rows.map(d=>[d.case_id,d])).values()].map(fromCase)
     }
@@ -283,10 +297,14 @@ export const apiClient = {
 
   async createApplication(data: any): Promise<CaseApplication> {
     if (apiRuntime.mode === 'live') {
-      const {data:created}=await axiosInstance.post('/applications',{case_id:data.caseId,applicant_type:data.applicantType || 'individual',team_id:data.teamId || '',cover_letter:data.coverLetter,resume_file_id:data.resumeFileId || '',portfolio_url:data.portfolioUrl || '',github_url:data.githubUrl || ''});return fromApplication(created)
+      const {data:created}=await axiosInstance.post(data.registration?'/event-registrations':'/applications',{case_id:data.caseId,applicant_type:data.applicantType || 'individual',team_id:data.teamId || '',cover_letter:data.coverLetter,resume_file_id:data.resumeFileId || '',portfolio_url:data.portfolioUrl || '',github_url:data.githubUrl || ''});return fromApplication(created)
     }
     await delay(250)
     return mockServer.createApplication(data)
+  },
+
+  async consentApplication(id:string): Promise<void> {
+    await axiosInstance.post(`/applications/${id}/consents`)
   },
 
   async updateApplicationStatus(appId: string, status: CaseApplication['status'], notes?: string): Promise<CaseApplication> {
@@ -376,7 +394,10 @@ export const apiClient = {
   // Student Projects Showcase
   async getStudentProjects(filters?: any): Promise<StudentProject[]> {
     if (apiRuntime.mode === 'live') {
-      return (await collectPages<any>(params=>axiosInstance.get('/student-projects',{params}),filters)).map(fromProject)
+      const rows=await collectPages<any>(params=>axiosInstance.get('/student-projects',{params}),filters)
+      const actor=JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+      if(actor?.role==='student'&&!filters)rows.push(...await collectPages<any>(params=>axiosInstance.get('/student-projects/mine',{params})))
+      return [...new Map(rows.map(row=>[row.project_id,row])).values()].map(fromProject)
     }
     await delay(150)
     return mockServer.getStudentProjects(filters)
@@ -409,7 +430,7 @@ export const apiClient = {
   // Companies
   async getCompanies(): Promise<Company[]> {
     if (apiRuntime.mode === 'live') {
-      const actor=JSON.parse(localStorage.getItem('uust_current_user') || 'null');const rows=await collectPages<any>(params=>axiosInstance.get('/companies',{params}));if(actor?.role==='company')rows.push(...(await axiosInstance.get('/companies/mine')).data.items || []);if(actor?.role==='admin')rows.push(...await collectPages<any>(params=>axiosInstance.get('/companies/moderation',{params})));return [...new Map(rows.map(d=>[d.company_id,d])).values()].map(fromCompany)
+      const actor=JSON.parse(localStorage.getItem('uust_current_user') || 'null');const rows=await collectPages<any>(params=>axiosInstance.get('/companies',{params}));if(actor?.role==='company')rows.push(...await collectPages<any>(params=>axiosInstance.get('/companies/mine',{params})));if(actor?.role==='admin')rows.push(...await collectPages<any>(params=>axiosInstance.get('/companies/moderation',{params})));return [...new Map(rows.map(d=>[d.company_id,d])).values()].map(fromCompany)
     }
     await delay(120)
     return mockServer.getCompanies()
@@ -495,7 +516,7 @@ export const apiClient = {
 
   // Notifications
   async getNotifications(userId: string): Promise<SystemNotification[]> {
-    if (apiRuntime.mode === 'live')return (await collectPages<any>(params=>axiosInstance.get('/notifications',{params}))).map(d=>({id:d.notification_id,userId,type:d.type,title:d.title,message:d.body,read:!!d.read_at,createdAt:d.created_at}))
+    if (apiRuntime.mode === 'live')return (await collectPages<any>(params=>axiosInstance.get('/notifications',{params}))).map(d=>({id:d.notification_id,userId,type:d.type,title:d.title,message:d.body,read:!!d.read_at,createdAt:d.created_at,link:d.resource_type==='company_invitation'&&d.resource_id?`/invitations/${d.resource_id}`:d.resource_type==='case'&&d.resource_id?`/cases/${d.resource_id}`:undefined}))
     await delay(100)
     return mockServer.getNotifications(userId)
   },

@@ -22,7 +22,10 @@ export function createWorkflow(http:any){
    const apps=await collectPages<any>(params=>http.get('/applications',{params}),{case_id:caseId})
    return Promise.all([...new Set(apps.map(a=>a.execution_id).filter(Boolean))].map(id=>getExecution(id)))
  }
- const listCuratedExecutions=(caseId?:string)=>collectPages<ExecutionReference>(params=>http.get('/executions',{params}),caseId?{case_id:caseId}:{})
+ const listCuratedExecutions=async(caseId?:string)=>{
+   const items=await collectPages<ExecutionReference>(params=>http.get('/executions',{params}))
+   return caseId?items.filter(item=>item.case_id===caseId):items
+ }
  const getCuratedExecutions=async(caseId:string)=>Promise.all(
    (await listCuratedExecutions(caseId)).map(item=>getExecution(item.execution_id,true)),
  )

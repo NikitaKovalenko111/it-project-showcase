@@ -18,6 +18,7 @@ export interface StudentProfile {
   interests: string[]
   skills: string[]
   techStack: string[]
+  links?: {kind:string;url:string}[]
   githubUrl: string
   gitlabUrl?: string
   portfolioUrl?: string
@@ -136,6 +137,8 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  applicationDeadline?: string
+  registrationsCount?: number
   olympiadTasks?: { id: string; title: string; maxScore: number }[]
   publicationDetails?: { startDate: string; venue: string; schedule: string; position: string; workload: string; selection: string }
   evaluationCriteria?: { id: string; label: string; weight: number; maxScore?: number }[]
@@ -213,6 +216,8 @@ export interface CaseApplication {
   githubUrl: string
   previousProjects: string[]
   status: ApplicationStatus
+  consentPending?: boolean
+  isRegistration?: boolean
   companyNotes?: string
   createdAt: string
 }
@@ -396,6 +401,8 @@ export interface SystemNotification {
 
 export interface ProjectComment {
   parentId?: string
+  likesCount?: number
+  likedByMe?: boolean
   likedBy?: string[]
   id: string
   caseId: string

@@ -71,6 +71,7 @@ export const StudentProfilePage: React.FC = () => {
 
   // Edit fields
   const [educationLevel, setEducationLevel] = useState<EducationLevel | ''>(student?.educationLevel || '')
+  const [identity,setIdentity]=useState({fullName:'',email:'',phone:'',institute:'',fieldOfStudy:'',educationalProgram:'',course:1,group:''})
   const [bio, setBio] = useState(student?.bio || '')
   const [skills, setSkills] = useState(student?.skills.join(', ') || '')
   const [techStack, setTechStack] = useState(student?.techStack.join(', ') || '')
@@ -83,8 +84,10 @@ export const StudentProfilePage: React.FC = () => {
 
     const updatedUser = {
       ...targetUser,
+      fullName:identity.fullName,email:identity.email,
       studentProfile: {
         ...targetUser.studentProfile!,
+        phone:identity.phone,institute:identity.institute,fieldOfStudy:identity.fieldOfStudy,educationalProgram:identity.educationalProgram,course:identity.course,group:identity.group,
         bio,
         educationLevel: educationLevel || undefined,
         skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
@@ -99,6 +102,8 @@ export const StudentProfilePage: React.FC = () => {
 
   useEffect(() => {
     setIsEditing(false)
+    setIdentity({fullName:targetUser?.fullName || '',email:targetUser?.email || '',phone:student?.phone || '',institute:student?.institute || '',
+      fieldOfStudy:student?.fieldOfStudy || '',educationalProgram:student?.educationalProgram || '',course:student?.course || 1,group:student?.group || ''})
     setEducationLevel(student?.educationLevel || '')
     setBio(student?.bio || '')
     setSkills(student?.skills.join(', ') || '')
@@ -226,11 +231,21 @@ export const StudentProfilePage: React.FC = () => {
       {isEditing && (
         <div className="card" style={{ marginBottom: '24px' }}>
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование сведений портфолио</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование профиля</h3>
           </div>
           <form onSubmit={handleSaveProfile}>
             <div className="card__body">
               <ResumeUpload key={targetUser.id}/>
+              <div className="responsive-grid">
+                <label>Фамилия и имя<input className="input" required value={identity.fullName} onChange={e=>setIdentity({...identity,fullName:e.target.value})}/></label>
+                <label>Email<input className="input" type="email" required value={identity.email} onChange={e=>setIdentity({...identity,email:e.target.value})}/></label>
+                <label>Телефон<input className="input" type="tel" value={identity.phone} onChange={e=>setIdentity({...identity,phone:e.target.value})}/></label>
+                <label>Институт<input className="input" required value={identity.institute} onChange={e=>setIdentity({...identity,institute:e.target.value})}/></label>
+                <label>Направление<input className="input" required value={identity.fieldOfStudy} onChange={e=>setIdentity({...identity,fieldOfStudy:e.target.value})}/></label>
+                <label>Образовательная программа<input className="input" value={identity.educationalProgram} onChange={e=>setIdentity({...identity,educationalProgram:e.target.value})}/></label>
+                <label>Курс<input className="input" required type="number" min="1" max="8" value={identity.course} onChange={e=>setIdentity({...identity,course:+e.target.value})}/></label>
+                <label>Группа<input className="input" required value={identity.group} onChange={e=>setIdentity({...identity,group:e.target.value})}/></label>
+              </div>
               <label>Уровень обучения<select className="select" value={educationLevel} onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}><option value="">Не указан</option>{['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => <option key={level}>{level}</option>)}</select></label>
               <div className="form-group">
                 <label>О себе (краткое описание):</label>

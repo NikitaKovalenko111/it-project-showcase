@@ -1,3 +1,5 @@
+import { EventPlanPanel } from '../components/EventPlanPanel'
+import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { AdminCaseActions } from '../components/AdminCaseActions'
@@ -49,6 +51,10 @@ import {
 
 export const CaseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const viewerId=useAppSelector(state=>state.auth.currentUser?.id)
+  useEffect(()=>{
+    if(apiRuntime.mode==='live'&&id&&viewerId)void axiosInstance.put(`/cases/${id}/view`).catch(()=>undefined)
+  },[id,viewerId])
   const dispatch = useAppDispatch()
 
   const { activeCase, favorites, ndaAcceptedCases, loading, error } = useAppSelector((state) => state.cases)
@@ -92,7 +98,7 @@ export const CaseDetailPage: React.FC = () => {
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
 
-  const instantRegistration=apiRuntime.mode!=='live'&&['olympiad','hackathon'].includes(activeCase.kind || '')
+  const instantRegistration=['olympiad','hackathon'].includes(activeCase.kind || '')
   const canReviewApplications = (isCompanyRepresentative || isCuratorOrAdmin) && !instantRegistration
 
   const handleStatusChange = (appId: string, status: any) => {
@@ -124,7 +130,7 @@ export const CaseDetailPage: React.FC = () => {
           ) : currentUser?.role === 'student' && isPublished(activeCase) ? (
             userApplication ? (
               <span className="badge badge-status status-open" style={{ padding: '8px 12px', fontSize: '12px' }}>
-                <CheckCircle2 size={14} /> {instantRegistration ? 'Вы зарегистрированы' : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
+                <CheckCircle2 size={14} /> {instantRegistration ? (userApplication.consentPending?'Ожидаются согласия команды':'Заявка отправлена') : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
               </span>
             ) : (
               <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
@@ -509,6 +515,7 @@ export const CaseDetailPage: React.FC = () => {
 
       <PublicationContext project={activeCase} />
       <CaseComments caseId={activeCase.id} />
+      {apiRuntime.mode==='live'&&instantRegistration&&isPublished(activeCase)&&<EventPlanPanel key={activeCase.id} project={activeCase}/> }
       {currentUser?.role !== 'student' && !['olympiad','hackathon'].includes(activeCase.kind || '') && <TeamsPanel caseId={activeCase.id} />}
 
       <CreateCaseModal caseItem={activeCase} isOpen={editOpen} onClose={() => { setEditOpen(false); dispatch(fetchCaseByIdRequest(activeCase.id)) }} />

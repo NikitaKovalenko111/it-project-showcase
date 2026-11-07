@@ -41,6 +41,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [institute, setInstitute] = useState('Институт информатики, математики и робототехники')
+  const [direction,setDirection]=useState('')
   const [course, setCourse] = useState(2)
   const [group, setGroup] = useState('ТОП-204Б(73)')
   const [skills, setSkills] = useState('React, TypeScript, Python, Git')
@@ -71,6 +72,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
 
     const regData = {
       fullName,
+      direction,
+      course,
       password,
       email,
       username: email.split('@')[0] || `user_${Date.now()}`,
@@ -318,6 +321,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
 
                   <div className="form-group">
+                    <label>Направление подготовки:<input className="input" required={apiRuntime.mode==='live'} value={direction} onChange={e=>setDirection(e.target.value)}/></label>
                     <label>Курс:*</label>
                     <select className="select" value={course} onChange={(e) => setCourse(Number(e.target.value))}>
                       <option value={1}>1 курс</option>

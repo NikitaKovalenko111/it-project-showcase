@@ -8,6 +8,7 @@ import { CaseProject, ProjectMilestone } from '../types/models'
 type Row = Pick<ProjectMilestone,'id'|'title'|'description'|'deadline'>
 export const SharedProjectPlan: React.FC<{project:CaseProject; editable:boolean; onSaved:()=>Promise<void>}> = ({project,editable,onSaved}) => {
  const confirm=useConfirm()
+ const [locked,setLocked]=useState(false)
  const [rows,setRows]=useState<Row[]>([]),[baseline,setBaseline]=useState<Row[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState(false),[shift,setShift]=useState(1),[loading,setLoading]=useState(true)
  const loadPlan=async()=>{
   const result=await communityApi.getSharedPlan(project.id)
@@ -35,6 +36,8 @@ export const SharedProjectPlan: React.FC<{project:CaseProject; editable:boolean;
   }catch(e){
    const failure=e as Error & {code?:string}
    if(failure.code==='case_stages_locked'){
+    await loadPlan().catch(()=>undefined)
+    setLocked(true)
     setError('Этапы зафиксированы: по проекту уже создано выполнение.')
    }else if(apiRuntime.mode==='live'){
     try{
@@ -55,7 +58,7 @@ export const SharedProjectPlan: React.FC<{project:CaseProject; editable:boolean;
  const update=(index:number,patch:Partial<Row>)=>{setSaved(false);setRows(rs=>rs.map((r,i)=>i===index?{...r,...patch}:r))}
  const move=(index:number,delta:number)=>setRows(rs=>{const next=[...rs];[next[index],next[index+delta]]=[next[index+delta],next[index]];return next})
  if(loading)return <p role="status">Загрузка этапов…</p>
- if(!editable)return <section className="shared-plan readonly-plan"><h2>{project.kind==='olympiad'?'Расписание туров':'План задания'}</h2>{error&&<p role="alert">{error}</p>}<p>Организатор задаёт общие сроки и требования для всех участников.</p><div className="workspace-page__milestones">{rows.map((row,i)=><article className="milestone-item" key={row.id}><span className="step-number">{i+1}</span><div className="step-info"><h3 className="step-title">{row.title}</h3><p className="step-desc preserve-text">{row.description}</p><p className="step-deadline">Срок сдачи: {formatDate(row.deadline)}</p></div></article>)}</div>{!rows.length&&<p className="empty-state">План пока не заполнен.</p>}</section>
+ if(!editable||locked)return <section className="shared-plan readonly-plan"><h2>{project.kind==='olympiad'?'Расписание туров':'План задания'}</h2>{error&&<p role="alert">{error}</p>}<p>Организатор задаёт общие сроки и требования для всех участников.</p><div className="workspace-page__milestones">{rows.map((row,i)=><article className="milestone-item" key={row.id}><span className="step-number">{i+1}</span><div className="step-info"><h3 className="step-title">{row.title}</h3><p className="step-desc preserve-text">{row.description}</p><p className="step-deadline">Срок сдачи: {formatDate(row.deadline)}</p></div></article>)}</div>{!rows.length&&<p className="empty-state">План пока не заполнен.</p>}</section>
  return <section className="card shared-plan"><div className="feature-toolbar"><div><h2>{project.kind==='olympiad'?'Общее расписание туров':'Общий план реализации'}</h2><p>Названия, порядок и сроки общие для всех. Файлы, прогресс и рецензии хранятся отдельно у каждой команды.</p></div></div>
  {error&&<p role="alert" className="form-error">{error}</p>}{saved&&<p role="status">План сохранён.</p>}
  <form onSubmit={save}>

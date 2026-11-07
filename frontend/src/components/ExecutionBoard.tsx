@@ -1,4 +1,5 @@
 import {useConfirm} from './ConfirmProvider'
+import { EventPlanPanel } from './EventPlanPanel'
 import { WorkspaceFiles } from './WorkspaceFiles'
 import React, { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -22,11 +23,12 @@ export const ExecutionBoard: React.FC<{project:CaseProject; initialView?:string}
   const dispatch=useAppDispatch(), user=useAppSelector(s=>s.auth.currentUser)
   const manager=canManageCase(user,project), student=user?.role==='student', olympiad=project.kind==='olympiad'
   const live=apiRuntime.mode==='live'
+  const hasEventPlan=live&&(project.kind==='hackathon'||olympiad)
   const curator=live&&user?.role==='curator'
   const canSubmit=live&&user?.role==='company'&&manager&&['draft','revision'].includes(project.status)
   const [params] = useSearchParams()
   const [entries,setEntries]=useState<Execution[]>([]), [selected,setSelected]=useState(''), [tab,setTab]=useState('all'), [search,setSearch]=useState('')
-  const [view,setView]=useState(initialView), [finished,setFinished]=useState(project.status==='completed'), [loading,setLoading]=useState(true)
+  const [view,setView]=useState(params.get('view')==='event'&&hasEventPlan?'event':initialView), [finished,setFinished]=useState(project.status==='completed'), [loading,setLoading]=useState(true)
   const [ranking,setRanking]=useState<{complete:boolean;items:{id:string;name:string;score:number;max:number}[]}>({complete:false,items:[]})
   const [error,setError]=useState(''), [busy,setBusy]=useState(false)
   const refresh=async()=>{const [e,r]=await Promise.all([communityApi.getExecutions(project.id),curator||canSubmit?{complete:false,items:[]}:communityApi.getLeaderboard(project.id)]);if(params.get('application'))setSelected(e.find(x=>x.applicationId===params.get('application')||`app_${x.id}`===params.get('application'))?.id || '');setEntries(student?e.filter(x=>x.members.some(m=>m.id===user?.id)):e);setRanking(r);setFinished(r.complete||project.status==='completed')}
@@ -60,11 +62,12 @@ export const ExecutionBoard: React.FC<{project:CaseProject; initialView?:string}
         <div className="execution-stats"><span><strong>{entries.length}</strong> {olympiad&&project.participationFormat==='individual'?'участников':'команд / участников'}</span>{!curator&&<><span><strong>{entries.filter(e=>e.submission).length}</strong> сданных работ</span><span><strong>{entries.filter(e=>e.evaluation).length}</strong> оценено</span></>}{!manager&&<span className="observer-label">{curator?'Мониторинг куратора · этапы и комментарии':'Мониторинг куратора · просмотр этапов и результатов'}</span>}</div>}
     </header>
     <div className="uust-container attached-tabs execution-sections">
-      <nav className="uust-tabs-row workspace-navigation" aria-label="Разделы проекта">{tabs.map(([value,label])=><button key={value} className={`uust-tab ${view===value?'active':''}`} onClick={()=>setView(value)}>{label}</button>)}<button className={`uust-tab ${view==='discussion'?'active':''}`} onClick={()=>setView('discussion')}><MessageSquare size={15}/> Обсуждение и файлы</button>{manager&&(live||!['olympiad','hackathon'].includes(project.kind || ''))&&<Link className="uust-tab" to={`/company-applications?caseId=${project.id}`}>Заявки на участие</Link>}</nav>
+      <nav className="uust-tabs-row workspace-navigation" aria-label="Разделы проекта">{tabs.map(([value,label])=><button key={value} className={`uust-tab ${view===value?'active':''}`} onClick={()=>setView(value)}>{label}</button>)}<button className={`uust-tab ${view==='discussion'?'active':''}`} onClick={()=>setView('discussion')}><MessageSquare size={15}/> Обсуждение и файлы</button>{hasEventPlan&&<button className={`uust-tab ${view==='event'?'active':''}`} onClick={()=>setView('event')}>План мероприятия</button>}{manager&&(live||!['olympiad','hackathon'].includes(project.kind || ''))&&<Link className="uust-tab" to={`/company-applications?caseId=${project.id}`}>Заявки на участие</Link>}</nav>
       <div className="uust-box">
         {error&&<p className="form-error" role="alert">{error}</p>}
         {loading?<p role="status">Загрузка выполнений…</p>:<>
           {view==='discussion'&&<section><h2>Обсуждение и файлы</h2><WorkspaceFiles entries={entries}/><CaseComments caseId={project.id}/></section>}
+          {view==='event'&&hasEventPlan&&<EventPlanPanel project={project} editable={canSubmit&&!entries.length}/>}
           {view==='plan'&&<SharedProjectPlan project={project} editable={live?canSubmit&&!entries.length:manager} onSaved={refresh}/>}
           {((student&&['teams','submission','members'].includes(view))||(!student&&view==='teams'&&entry))&&entry&&<ExecutionDetail key={entry.id} project={project} entry={entry} manager={manager} finished={finished} onChange={refresh} section={student?(view==='teams'?'stages':view):undefined} onBack={student?undefined:()=>setSelected('')}/>}
           {student&&!own&&['teams','submission','members'].includes(view)&&<div className="empty-state"><h2>Выполнение пока недоступно</h2><p>{live?'Дождитесь одобрения заявки организатором.':'Для кейса дождитесь одобрения заявки. Запись на олимпиаду и хакатон подтверждается автоматически.'}</p><Link className="btn btn-secondary btn-sm" to={`/cases/${project.id}`}>Открыть задание</Link></div>}
