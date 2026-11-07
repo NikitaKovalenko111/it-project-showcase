@@ -69,6 +69,25 @@ services:
         condition: service_healthy
     ports:
       - "3005:3005"
+  
+  backup:
+    build:
+      context: ./backup
+    container_name: it-project-showcase-backup
+    restart: unless-stopped
+
+    environment:
+      TZ: Etc/UTC
+
+    volumes:
+      - ./backups:/backups
+      - ./.env:/run/backup.env:ro
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
 volumes:
   minio-data:
