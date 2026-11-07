@@ -22,9 +22,11 @@ import {
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
-  const currentUser = useAppSelector(state => state.auth.currentUser)
+  const currentUser = useAppSelector((state) => state.auth.currentUser)
   const { studentsList: authors } = useAppSelector((state) => state.students)
-  const { activeProject, loading, error, pendingLikes } = useAppSelector((state) => state.studentProjects)
+  const { activeProject, loading, error, pendingLikes } = useAppSelector(
+    (state) => state.studentProjects,
+  )
 
   useEffect(() => {
     if (id) {
@@ -32,9 +34,19 @@ export const StudentDetailPage: React.FC = () => {
     }
   }, [dispatch, id])
 
-  if (error) return <div className="card feature-panel" role="alert"><p>{error}</p><Link to="/student-projects">Вернуться к проектам</Link></div>
+  if (error)
+    return (
+      <div className="card feature-panel" role="alert">
+        <p>{error}</p>
+        <Link to="/student-projects">Вернуться к проектам</Link>
+      </div>
+    )
   if (loading || !activeProject || activeProject.id !== id) {
-    return <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>Загрузка проекта...</div>
+    return (
+      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+        Загрузка проекта...
+      </div>
+    )
   }
 
   const getBadgeTitle = (b: string) => {
@@ -58,14 +70,17 @@ export const StudentDetailPage: React.FC = () => {
 
   return (
     <div>
-
       <div className="detail-actions">
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам
-        </Link><ReportButton targetType="project" targetId={activeProject.id} />
+        </Link>
+        <ReportButton targetType="project" targetId={activeProject.id} />
       </div>
 
-      <div className="responsive-detail-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div
+        className="responsive-detail-grid"
+        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}
+      >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
             <img
@@ -75,25 +90,42 @@ export const StudentDetailPage: React.FC = () => {
             />
 
             <div className="card__body">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '12px',
+                }}
+              >
                 <span className="badge badge-direction" style={{ textTransform: 'uppercase' }}>
                   {activeProject.category} • {activeProject.direction}
                 </span>
 
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => dispatch(likeStudentProjectRequest(activeProject.id))} disabled={!currentUser||pendingLikes.includes(activeProject.id)} aria-pressed={!!activeProject.likedByMe} aria-label={activeProject.likedByMe?'Убрать лайк':'Поставить лайк'}
+                  onClick={() => dispatch(likeStudentProjectRequest(activeProject.id))}
+                  disabled={!currentUser || pendingLikes.includes(activeProject.id)}
+                  aria-pressed={!!activeProject.likedByMe}
+                  aria-label={activeProject.likedByMe ? 'Убрать лайк' : 'Поставить лайк'}
                   style={{ color: '#e11d48' }}
                 >
-                  <Heart size={15} fill={activeProject.likedByMe?'#e11d48':'none'} /> {activeProject.likesCount}
+                  <Heart size={15} fill={activeProject.likedByMe ? '#e11d48' : 'none'} />{' '}
+                  {activeProject.likesCount}
                 </button>
               </div>
 
-              <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f2b48', margin: '0 0 16px' }}>
+              <h1
+                style={{ fontSize: '24px', fontWeight: 800, color: '#0f2b48', margin: '0 0 16px' }}
+              >
                 {activeProject.title}
               </h1>
 
-              {activeProject.visibility !== 'private' && !isPublished(activeProject) && <p className={`badge publication-${publicationStatus(activeProject)}`}>{publicationLabels[publicationStatus(activeProject)]}</p>}
+              {activeProject.visibility !== 'private' && !isPublished(activeProject) && (
+                <p className={`badge publication-${publicationStatus(activeProject)}`}>
+                  {publicationLabels[publicationStatus(activeProject)]}
+                </p>
+              )}
               {activeProject.moderationComment && <p>{activeProject.moderationComment}</p>}
               {/* Badges п. 5.15 */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
@@ -119,7 +151,17 @@ export const StudentDetailPage: React.FC = () => {
                 <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '6px' }}>
                   <Lightbulb size={14} aria-hidden="true" /> Решаемая проблема:
                 </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, background: '#f8fafc', padding: '12px 16px', borderRadius: '8px' }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '13px',
+                    color: '#334155',
+                    lineHeight: 1.6,
+                    background: '#f8fafc',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                  }}
+                >
                   {activeProject.problemSolved}
                 </p>
               </div>
@@ -128,7 +170,15 @@ export const StudentDetailPage: React.FC = () => {
                 <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '8px' }}>
                   Подробное описание:
                 </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '13px',
+                    color: '#334155',
+                    lineHeight: 1.7,
+                    whiteSpace: 'pre-line',
+                  }}
+                >
                   {activeProject.fullDescription}
                 </p>
               </div>
@@ -136,12 +186,22 @@ export const StudentDetailPage: React.FC = () => {
               {/* Links */}
               <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
                 {activeProject.githubUrl && (
-                  <a href={activeProject.githubUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">
+                  <a
+                    href={activeProject.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                  >
                     <Github size={15} /> GitHub репозиторий
                   </a>
                 )}
                 {activeProject.productUrl && (
-                  <a href={activeProject.productUrl} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">
+                  <a
+                    href={activeProject.productUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-primary btn-sm"
+                  >
                     <ExternalLink size={15} /> Открыть работающий продукт
                   </a>
                 )}
@@ -157,7 +217,9 @@ export const StudentDetailPage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '15px' }}>Об авторе</h3>
             </div>
             <div className="card__body">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
+              >
                 <div
                   style={{
                     width: '46px',
@@ -173,7 +235,8 @@ export const StudentDetailPage: React.FC = () => {
                 </div>
                 <div>
                   <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block' }}>
-                    {authors.find((author) => author.id === activeProject.authorId)?.fullName || activeProject.authorName}
+                    {authors.find((author) => author.id === activeProject.authorId)?.fullName ||
+                      activeProject.authorName}
                   </strong>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>
                     {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент'}
@@ -181,7 +244,10 @@ export const StudentDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <Link to={`/profile/${activeProject.authorId}`} className="btn btn-secondary btn-sm btn-wide">
+              <Link
+                to={`/profile/${activeProject.authorId}`}
+                className="btn btn-secondary btn-sm btn-wide"
+              >
                 Перейти в портфолио студента →
               </Link>
             </div>
@@ -214,7 +280,12 @@ export const StudentDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {activeProject.authorId === currentUser?.id && <details className="card compact-settings"><summary>Настройки проекта</summary><ProjectVisibility project={activeProject} /></details>}
+      {activeProject.authorId === currentUser?.id && (
+        <details className="card compact-settings">
+          <summary>Настройки проекта</summary>
+          <ProjectVisibility project={activeProject} />
+        </details>
+      )}
     </div>
   )
 }

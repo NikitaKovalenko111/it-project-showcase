@@ -35,7 +35,7 @@ export const applicationsReducer = (state = initialState, action: any): Applicat
         ...state,
         loading: false,
         applicationsList: state.applicationsList.map((a) =>
-          a.id === action.payload.application.id ? action.payload.application : a
+          a.id === action.payload.application.id ? action.payload.application : a,
         ),
       }
 

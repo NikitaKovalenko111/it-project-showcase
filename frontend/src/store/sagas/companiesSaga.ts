@@ -24,7 +24,11 @@ function* handleFetchCompanyById(action: { type: string; payload: { id: string }
 
 function* handleVerifyCompany(action: { type: string; payload: { id: string; status: boolean } }) {
   try {
-    const company: Company = yield call(apiClient.verifyCompany, action.payload.id, action.payload.status)
+    const company: Company = yield call(
+      apiClient.verifyCompany,
+      action.payload.id,
+      action.payload.status,
+    )
     yield put(actions.verifyCompanySuccess(company))
   } catch (e) {
     console.error(e)

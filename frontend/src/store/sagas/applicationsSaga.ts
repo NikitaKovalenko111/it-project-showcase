@@ -4,9 +4,16 @@ import { CaseApplication } from '../../types/models'
 import * as actions from '../actions'
 import * as types from '../types'
 
-function* handleFetchApplications(action: { type: string; payload: { caseId?: string; studentId?: string } }) {
+function* handleFetchApplications(action: {
+  type: string
+  payload: { caseId?: string; studentId?: string }
+}) {
   try {
-    const apps: CaseApplication[] = yield call(apiClient.getApplications, action.payload.caseId, action.payload.studentId)
+    const apps: CaseApplication[] = yield call(
+      apiClient.getApplications,
+      action.payload.caseId,
+      action.payload.studentId,
+    )
     yield put(actions.fetchApplicationsSuccess(apps))
   } catch (error: any) {
     yield put(actions.fetchApplicationsFailure(error.message || 'Ошибка загрузки заявок'))
@@ -32,12 +39,16 @@ function* handleUpdateApplicationStatus(action: {
       apiClient.updateApplicationStatus,
       action.payload.appId,
       action.payload.status,
-      action.payload.notes
+      action.payload.notes,
     )
     yield put(actions.updateApplicationStatusSuccess(app))
-    if(app.status==='accepted'){yield put(actions.fetchCasesRequest())}
+    if (app.status === 'accepted') {
+      yield put(actions.fetchCasesRequest())
+    }
   } catch (error: any) {
-    yield put(actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'))
+    yield put(
+      actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'),
+    )
   }
 }
 

@@ -2,7 +2,15 @@ import React from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { switchUserRequest } from '../../store/actions'
 import { mockServer } from '../../api/mockServer'
-import {Building2, GraduationCap, Landmark, Palette, Settings,  Sparkles, UserCheck } from 'lucide-react'
+import {
+  Building2,
+  GraduationCap,
+  Landmark,
+  Palette,
+  Settings,
+  Sparkles,
+  UserCheck,
+} from 'lucide-react'
 
 export const DemoBar: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -25,7 +33,9 @@ export const DemoBar: React.FC = () => {
       </div>
 
       <div className="demo-bar__roles">
-        <span style={{ fontSize: '11px', color: '#8da4be', marginRight: '4px' }}>Переключить роль:</span>
+        <span style={{ fontSize: '11px', color: '#8da4be', marginRight: '4px' }}>
+          Переключить роль:
+        </span>
 
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_student_1' ? 'active' : ''}`}

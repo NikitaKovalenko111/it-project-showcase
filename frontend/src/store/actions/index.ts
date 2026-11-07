@@ -235,7 +235,11 @@ export const submitMilestoneSuccess = (milestone: ProjectMilestone) => ({
   payload: { milestone },
 })
 
-export const updateMilestoneStatusRequest = (milestoneId: string, status: any, feedback?: string) => ({
+export const updateMilestoneStatusRequest = (
+  milestoneId: string,
+  status: any,
+  feedback?: string,
+) => ({
   type: types.UPDATE_MILESTONE_STATUS_REQUEST,
   payload: { milestoneId, status, feedback },
 })
@@ -450,7 +454,12 @@ export const fetchStudentsFailure = (error: string) => ({
   payload: { error },
 })
 
-export const inviteStudentRequest = (studentId: string, caseId: string, inviteType: string, message: string) => ({
+export const inviteStudentRequest = (
+  studentId: string,
+  caseId: string,
+  inviteType: string,
+  message: string,
+) => ({
   type: types.INVITE_STUDENT_REQUEST,
   payload: { studentId, caseId, inviteType, message },
 })

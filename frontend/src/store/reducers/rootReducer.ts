@@ -20,7 +20,11 @@ const combinedReducer = combineReducers({
 })
 
 export const rootReducer = (state: ReturnType<typeof combinedReducer> | undefined, action: any) => {
-  if (action.type === 'auth/SWITCH_USER_SUCCESS' || action.type === 'auth/LOGOUT_SUCCESS' || action.type === 'auth/LOGIN_SUCCESS') {
+  if (
+    action.type === 'auth/SWITCH_USER_SUCCESS' ||
+    action.type === 'auth/LOGOUT_SUCCESS' ||
+    action.type === 'auth/LOGIN_SUCCESS'
+  ) {
     return combinedReducer(undefined, action)
   }
   return combinedReducer(state, action)

@@ -11,7 +11,11 @@ interface CreateStudentProjectModalProps {
   onSubmitted?: () => void
 }
 
-export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps> = ({ isOpen, onClose, onSubmitted }) => {
+export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmitted,
+}) => {
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.auth)
 
@@ -23,11 +27,14 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [problemSolved, setProblemSolved] = useState('')
   const [technologies, setTechnologies] = useState('React, TypeScript, Vite')
   const [coverImage, setCoverImage] = useState(
-    'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80',
   )
   const [githubUrl, setGithubUrl] = useState(currentUser?.studentProfile?.githubUrl || '')
   const [productUrl, setProductUrl] = useState('')
-  const [badges, setBadges] = useState<StudentProjectBadge[]>(['seeking_team', 'open_for_internship'])
+  const [badges, setBadges] = useState<StudentProjectBadge[]>([
+    'seeking_team',
+    'open_for_internship',
+  ])
 
   const [visibility, setVisibility] = useState<'private' | 'public'>('private')
   const [saving, setSaving] = useState(false)
@@ -69,7 +76,10 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         shortDescription,
         fullDescription: fullDescription || shortDescription,
         problemSolved,
-        technologies: technologies.split(',').map((s) => s.trim()).filter(Boolean),
+        technologies: technologies
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
         status: 'в разработке',
         githubUrl: githubUrl || undefined,
         productUrl: productUrl || undefined,
@@ -79,8 +89,11 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
       dispatch(createStudentProjectSuccess(created))
       onSubmitted?.()
       onClose()
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось отправить проект') }
-    finally { setSaving(false) }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не удалось отправить проект')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -102,9 +115,23 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {error && <p className="form-error" role="alert">{error}</p>}
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
           <div className="modal-dialog__body">
-            <label>Видимость проекта<select className="select" value={visibility} onChange={(e) => setVisibility(e.target.value as 'private' | 'public')}><option value="private">Только я</option><option value="public">Отправить на общее обозрение после проверки</option></select></label>
+            <label>
+              Видимость проекта
+              <select
+                className="select"
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as 'private' | 'public')}
+              >
+                <option value="private">Только я</option>
+                <option value="public">Отправить на общее обозрение после проверки</option>
+              </select>
+            </label>
             <div className="form-group">
               <label>Название проекта:*</label>
               <input
@@ -117,7 +144,10 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               />
             </div>
 
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div
+              className="responsive-grid"
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+            >
               <div className="form-group">
                 <label>Категория проекта:*</label>
                 <select
@@ -192,7 +222,10 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               />
             </div>
 
-            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div
+              className="responsive-grid"
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+            >
               <div className="form-group">
                 <label>Ссылка на репозиторий GitHub/GitLab:</label>
                 <input
@@ -244,7 +277,12 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
               Отмена
             </button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              <Plus size={16} /> {saving ? 'Отправка…' : visibility === 'private' ? 'Сохранить приватным' : 'Отправить на рассмотрение'}
+              <Plus size={16} />{' '}
+              {saving
+                ? 'Отправка…'
+                : visibility === 'private'
+                  ? 'Сохранить приватным'
+                  : 'Отправить на рассмотрение'}
             </button>
           </div>
         </form>

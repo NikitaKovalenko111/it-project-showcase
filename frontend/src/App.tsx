@@ -40,12 +40,20 @@ export const App: React.FC = () => {
       <Route path="/register" element={<LoginPage initialMode="register" />} />
 
       <Route element={<AppLayout />}>
-        <Route index element={<HomePage />} /><Route path="feedback" element={<FeedbackPage/>}/>
+        <Route index element={<HomePage />} />
+        <Route path="feedback" element={<FeedbackPage />} />
         <Route path="cases" element={<CasesShowcasePage />} />
         <Route path="cases/:id" element={<CaseDetailPage />} />
         <Route path="cases/:id/workspace" element={<ProjectWorkspacePage />} />
         <Route path="invitations/:id" element={<InvitationPage />} />
-        <Route path="teams" element={<RoleGuard roles={['student']}><TeamsPage /></RoleGuard>} />
+        <Route
+          path="teams"
+          element={
+            <RoleGuard roles={['student']}>
+              <TeamsPage />
+            </RoleGuard>
+          }
+        />
         <Route path="workspace" element={<WorkspaceListPage />} />
 
         <Route path="student-projects" element={<StudentProjectsPage />} />
@@ -53,13 +61,41 @@ export const App: React.FC = () => {
 
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="company/:id" element={<CompanyDetailPage />} />
-        <Route path="company-applications" element={<RoleGuard roles={['company', 'admin']}><CompanyApplicationsPage /></RoleGuard>} />
+        <Route
+          path="company-applications"
+          element={
+            <RoleGuard roles={['company', 'admin']}>
+              <CompanyApplicationsPage />
+            </RoleGuard>
+          }
+        />
 
         <Route path="students-search" element={<StudentsSearchPage />} />
         <Route path="profile/:id" element={<StudentProfilePage />} />
-        <Route path="favorites" element={<RoleGuard roles={['student']}><FavoritesPage /></RoleGuard>} />
-        <Route path="analytics" element={<RoleGuard roles={['company', 'curator', 'university', 'admin']}><AnalyticsPage /></RoleGuard>} />
-        <Route path="moderation" element={<RoleGuard roles={['admin']}><ModerationAdminPage /></RoleGuard>} />
+        <Route
+          path="favorites"
+          element={
+            <RoleGuard roles={['student']}>
+              <FavoritesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="analytics"
+          element={
+            <RoleGuard roles={['company', 'curator', 'university', 'admin']}>
+              <AnalyticsPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="moderation"
+          element={
+            <RoleGuard roles={['admin']}>
+              <ModerationAdminPage />
+            </RoleGuard>
+          }
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/cases" replace />} />

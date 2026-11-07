@@ -33,7 +33,10 @@ function* handleCreateCase(action: { type: string; payload: { caseData: any } })
     const created: CaseProject = yield call(apiClient.createCase, action.payload.caseData)
     yield put(actions.createCaseSuccess(created))
   } catch (error: any) {
-    yield put({ type: types.UPDATE_CASE_FAILURE, payload: { error: error.message || 'Не удалось сохранить кейс' } })
+    yield put({
+      type: types.UPDATE_CASE_FAILURE,
+      payload: { error: error.message || 'Не удалось сохранить кейс' },
+    })
   }
 }
 
@@ -42,7 +45,10 @@ function* handleUpdateCase(action: { type: string; payload: { caseData: CaseProj
     const updated: CaseProject = yield call(apiClient.updateCase, action.payload.caseData)
     yield put(actions.updateCaseSuccess(updated))
   } catch (error: any) {
-    yield put({ type: types.UPDATE_CASE_FAILURE, payload: { error: error.message || 'Не удалось сохранить кейс' } })
+    yield put({
+      type: types.UPDATE_CASE_FAILURE,
+      payload: { error: error.message || 'Не удалось сохранить кейс' },
+    })
   }
 }
 
@@ -85,19 +91,25 @@ function* handleAcceptNDA(action: { type: string; payload: { caseId: string; use
 // Milestones
 function* handleFetchMilestones(action: { type: string; payload: { caseId: string } }) {
   try {
-    const milestones: ProjectMilestone[] = yield call(apiClient.getMilestones, action.payload.caseId)
+    const milestones: ProjectMilestone[] = yield call(
+      apiClient.getMilestones,
+      action.payload.caseId,
+    )
     yield put(actions.fetchMilestonesSuccess(milestones))
   } catch (e) {
     console.error(e)
   }
 }
 
-function* handleSubmitMilestone(action: { type: string; payload: { milestoneId: string; materials: any[] } }) {
+function* handleSubmitMilestone(action: {
+  type: string
+  payload: { milestoneId: string; materials: any[] }
+}) {
   try {
     const updated: ProjectMilestone = yield call(
       apiClient.submitMilestone,
       action.payload.milestoneId,
-      action.payload.materials
+      action.payload.materials,
     )
     yield put(actions.submitMilestoneSuccess(updated))
   } catch (e) {
@@ -114,7 +126,7 @@ function* handleUpdateMilestoneStatus(action: {
       apiClient.updateMilestoneStatus,
       action.payload.milestoneId,
       action.payload.status,
-      action.payload.feedback
+      action.payload.feedback,
     )
     yield put(actions.updateMilestoneStatusSuccess(updated))
   } catch (e) {
@@ -125,7 +137,10 @@ function* handleUpdateMilestoneStatus(action: {
 // Submission & Evaluation
 function* handleFetchSubmission(action: { type: string; payload: { caseId: string } }) {
   try {
-    const sub: ProjectSubmission | undefined = yield call(apiClient.getSubmission, action.payload.caseId)
+    const sub: ProjectSubmission | undefined = yield call(
+      apiClient.getSubmission,
+      action.payload.caseId,
+    )
     yield put(actions.fetchSubmissionSuccess(sub))
   } catch (e) {
     console.error(e)
@@ -144,7 +159,10 @@ function* handleCreateSubmission(action: { type: string; payload: { data: any } 
 
 function* handleFetchEvaluation(action: { type: string; payload: { caseId: string } }) {
   try {
-    const evalData: ProjectEvaluation | undefined = yield call(apiClient.getEvaluation, action.payload.caseId)
+    const evalData: ProjectEvaluation | undefined = yield call(
+      apiClient.getEvaluation,
+      action.payload.caseId,
+    )
     yield put(actions.fetchEvaluationSuccess(evalData))
   } catch (e) {
     console.error(e)

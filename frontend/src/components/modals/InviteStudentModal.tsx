@@ -11,36 +11,55 @@ interface InviteStudentModalProps {
   onClose: () => void
 }
 
-export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student, isOpen, onClose }) => {
+export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
+  student,
+  isOpen,
+  onClose,
+}) => {
   const dispatch = useAppDispatch()
   const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const companyCases = casesList.filter((c) =>
-    currentUser?.companyProfile?.companyId ? c.companyId === currentUser.companyProfile.companyId : true
+    currentUser?.companyProfile?.companyId
+      ? c.companyId === currentUser.companyProfile.companyId
+      : true,
   )
 
   const [selectedCaseId, setSelectedCaseId] = useState(companyCases[0]?.id || '')
   const [inviteType, setInviteType] = useState('Участие в проекте')
   const [message, setMessage] = useState(
-    `Здравствуйте, ${student.fullName}! Ознакомились с вашим профилем и проектами. Ваши компетенции отлично подходят под наш кейс. Будем рады видеть вас среди исполнителей!`
+    `Здравствуйте, ${student.fullName}! Ознакомились с вашим профилем и проектами. Ваши компетенции отлично подходят под наш кейс. Будем рады видеть вас среди исполнителей!`,
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
 
-  useEffect(() => { if (isOpen) { setSent(false); setError(''); setSelectedCaseId(''); setMessage(`Здравствуйте, ${student.fullName}! Приглашаем обсудить участие в нашем проекте.`) } }, [isOpen, student.id])
+  useEffect(() => {
+    if (isOpen) {
+      setSent(false)
+      setError('')
+      setSelectedCaseId('')
+      setMessage(`Здравствуйте, ${student.fullName}! Приглашаем обсудить участие в нашем проекте.`)
+    }
+  }, [isOpen, student.id])
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true); setError('')
+    e.preventDefault()
+    setBusy(true)
+    setError('')
     try {
       const caseId = selectedCaseId || companyCases[0]?.id
       if (!caseId) throw new Error('Выберите кейс')
       await apiClient.inviteStudent(student.id, caseId, inviteType, message)
       setSent(true)
-    } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -52,7 +71,8 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
             <div>
               <h3>Приглашение студента</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
-                Кандидат: <strong>{student.fullName}</strong> ({student.studentProfile?.group || 'УУНиТ'})
+                Кандидат: <strong>{student.fullName}</strong> (
+                {student.studentProfile?.group || 'УУНиТ'})
               </p>
             </div>
           </div>
@@ -67,7 +87,10 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
             <h4 style={{ color: '#16805b', margin: '0 0 6px' }}>Приглашение успешно отправлено!</h4>
             <p style={{ color: '#64748b', fontSize: '12px' }}>
               Студент получит приглашение в личном кабинете.
-            </p><button className="btn btn-primary" onClick={onClose}>Готово</button>
+            </p>
+            <button className="btn btn-primary" onClick={onClose}>
+              Готово
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -75,10 +98,20 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
             <div className="modal-dialog__body">
               <div className="form-group">
                 <label>Тип приглашения:*</label>
-                <select className="select" value={inviteType} onChange={(e) => setInviteType(e.target.value)}>
-                  <option value="Участие в проекте">Участие в проекте (индивидуально/командой)</option>
-                  <option value="Оплачиваемая стажировка">Оплачиваемая стажировка в компании</option>
-                  <option value="Техническое собеседование">Приглашение на техническое собеседование</option>
+                <select
+                  className="select"
+                  value={inviteType}
+                  onChange={(e) => setInviteType(e.target.value)}
+                >
+                  <option value="Участие в проекте">
+                    Участие в проекте (индивидуально/командой)
+                  </option>
+                  <option value="Оплачиваемая стажировка">
+                    Оплачиваемая стажировка в компании
+                  </option>
+                  <option value="Техническое собеседование">
+                    Приглашение на техническое собеседование
+                  </option>
                 </select>
               </div>
 
@@ -92,7 +125,8 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({ student,
                 >
                   {companyCases.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.title} ({c.rewardType === 'contest' ? `Призовой фонд ${c.prizeFund} ₽` : c.direction})
+                      {c.title} (
+                      {c.rewardType === 'contest' ? `Призовой фонд ${c.prizeFund} ₽` : c.direction})
                     </option>
                   ))}
                 </select>

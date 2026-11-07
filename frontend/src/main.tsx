@@ -1,4 +1,4 @@
-import {ConfirmProvider} from './components/ConfirmProvider'
+import { ConfirmProvider } from './components/ConfirmProvider'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
@@ -11,8 +11,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <ConfirmProvider><App /></ConfirmProvider>
+        <ConfirmProvider>
+          <App />
+        </ConfirmProvider>
       </BrowserRouter>
     </Provider>
-  </React.StrictMode>
+  </React.StrictMode>,
 )

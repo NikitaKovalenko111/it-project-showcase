@@ -29,7 +29,9 @@ export const notificationsReducer = (state = initialState, action: any): Notific
     }
 
     case types.MARK_NOTIFICATION_READ_SUCCESS: {
-      const list = state.notificationsList.map((n) => (n.id === action.payload.id ? { ...n, read: true } : n))
+      const list = state.notificationsList.map((n) =>
+        n.id === action.payload.id ? { ...n, read: true } : n,
+      )
       return {
         ...state,
         notificationsList: list,

@@ -4,12 +4,23 @@ import test from 'node:test'
 import ts from 'typescript'
 
 const source = await readFile(new URL('../src/utils/showcase.ts', import.meta.url), 'utf8')
-const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext } })
-const { selectShowcaseCases } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const { outputText } = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.ESNext },
+})
+const { selectShowcaseCases } = await import(
+  `data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`
+)
 const options = { period: 'all', technology: 'all', recruiting: false, sort: 'newest' }
 const makeCase = (id, publishedAt, extra = {}) => ({
-  id, publishedAt, deadlineDate: '2027-05-01', applicationsCount: 0,
-  requiredCompetencies: [], recommendedTech: [], direction: 'Frontend', status: 'open', ...extra,
+  id,
+  publishedAt,
+  deadlineDate: '2027-05-01',
+  applicationsCount: 0,
+  requiredCompetencies: [],
+  recommendedTech: [],
+  direction: 'Frontend',
+  status: 'open',
+  ...extra,
 })
 const cases = [
   makeCase('old', '2026-08-31'),
@@ -37,6 +48,9 @@ test('sorting respects deadline and application count without mutating source', 
   const original = cases.map((c) => c.id)
   assert.equal(select({ sort: 'deadline' })[0], 'winter')
   assert.equal(select({ sort: 'popular' })[0], 'autumn')
-  assert.deepEqual(cases.map((c) => c.id), original)
+  assert.deepEqual(
+    cases.map((c) => c.id),
+    original,
+  )
   assert.deepEqual(selectShowcaseCases([], options), [])
 })

@@ -2,8 +2,98 @@ import React from 'react'
 import { CaseProject } from '../types/models'
 export type PublicationDetails = NonNullable<CaseProject['publicationDetails']>
 type Props = { value: PublicationDetails; onChange: (value: PublicationDetails) => void }
-const field = (p: Props, key: keyof PublicationDetails, label: string, type = 'text') => <label>{label}<input className="input" type={type} required value={p.value[key]} onChange={e => p.onChange({...p.value,[key]:e.target.value})}/></label>
-export const HackathonFields: React.FC<Props> = p => <section className="publication-specific"><h3>Хакатон · командная разработка</h3><div className="responsive-grid">{field(p,'startDate','Начало хакатона','date')}{field(p,'venue','Площадка или онлайн-платформа')}</div><label>Программа и защита решения<textarea className="textarea" required value={p.value.schedule} onChange={e=>p.onChange({...p.value,schedule:e.target.value})}/></label></section>
-export const CaseFields: React.FC<Props> = p => <section className="publication-specific"><h3>Кейс · отбор исполнителей</h3><div className="responsive-grid">{field(p,'startDate','Планируемое начало','date')}{field(p,'venue','Место работы / способ взаимодействия')}</div><label>План работ, материалы и ожидаемые результаты<textarea className="textarea" required value={p.value.schedule} onChange={e=>p.onChange({...p.value,schedule:e.target.value})}/></label></section>
-export const OlympiadFields: React.FC<Props> = p => <section className="publication-specific"><h3>Расписание олимпиады</h3><div className="responsive-grid">{field(p,'startDate','Дата первого тура','date')}{field(p,'venue','Место проведения / платформа')}</div><label>Туры, длительность и разрешённые материалы<textarea className="textarea" required value={p.value.schedule} onChange={e=>p.onChange({...p.value,schedule:e.target.value})}/></label></section>
-export const InternshipFields: React.FC<Props> = p => <section className="publication-specific"><h3>Стажировка · профессиональный опыт</h3><div className="responsive-grid">{field(p,'position','Позиция стажёра')}{field(p,'workload','Занятость, часов в неделю')}{field(p,'startDate','Начало стажировки','date')}{field(p,'venue','Место работы / удалённо')}</div><label>Этапы отбора<textarea className="textarea" required value={p.value.selection} onChange={e=>p.onChange({...p.value,selection:e.target.value})}/></label><label>Программа и ожидаемые результаты<textarea className="textarea" required value={p.value.schedule} onChange={e=>p.onChange({...p.value,schedule:e.target.value})}/></label></section>
+const field = (p: Props, key: keyof PublicationDetails, label: string, type = 'text') => (
+  <label>
+    {label}
+    <input
+      className="input"
+      type={type}
+      required
+      value={p.value[key]}
+      onChange={(e) => p.onChange({ ...p.value, [key]: e.target.value })}
+    />
+  </label>
+)
+export const HackathonFields: React.FC<Props> = (p) => (
+  <section className="publication-specific">
+    <h3>Хакатон · командная разработка</h3>
+    <div className="responsive-grid">
+      {field(p, 'startDate', 'Начало хакатона', 'date')}
+      {field(p, 'venue', 'Площадка или онлайн-платформа')}
+    </div>
+    <label>
+      Программа и защита решения
+      <textarea
+        className="textarea"
+        required
+        value={p.value.schedule}
+        onChange={(e) => p.onChange({ ...p.value, schedule: e.target.value })}
+      />
+    </label>
+  </section>
+)
+export const CaseFields: React.FC<Props> = (p) => (
+  <section className="publication-specific">
+    <h3>Кейс · отбор исполнителей</h3>
+    <div className="responsive-grid">
+      {field(p, 'startDate', 'Планируемое начало', 'date')}
+      {field(p, 'venue', 'Место работы / способ взаимодействия')}
+    </div>
+    <label>
+      План работ, материалы и ожидаемые результаты
+      <textarea
+        className="textarea"
+        required
+        value={p.value.schedule}
+        onChange={(e) => p.onChange({ ...p.value, schedule: e.target.value })}
+      />
+    </label>
+  </section>
+)
+export const OlympiadFields: React.FC<Props> = (p) => (
+  <section className="publication-specific">
+    <h3>Расписание олимпиады</h3>
+    <div className="responsive-grid">
+      {field(p, 'startDate', 'Дата первого тура', 'date')}
+      {field(p, 'venue', 'Место проведения / платформа')}
+    </div>
+    <label>
+      Туры, длительность и разрешённые материалы
+      <textarea
+        className="textarea"
+        required
+        value={p.value.schedule}
+        onChange={(e) => p.onChange({ ...p.value, schedule: e.target.value })}
+      />
+    </label>
+  </section>
+)
+export const InternshipFields: React.FC<Props> = (p) => (
+  <section className="publication-specific">
+    <h3>Стажировка · профессиональный опыт</h3>
+    <div className="responsive-grid">
+      {field(p, 'position', 'Позиция стажёра')}
+      {field(p, 'workload', 'Занятость, часов в неделю')}
+      {field(p, 'startDate', 'Начало стажировки', 'date')}
+      {field(p, 'venue', 'Место работы / удалённо')}
+    </div>
+    <label>
+      Этапы отбора
+      <textarea
+        className="textarea"
+        required
+        value={p.value.selection}
+        onChange={(e) => p.onChange({ ...p.value, selection: e.target.value })}
+      />
+    </label>
+    <label>
+      Программа и ожидаемые результаты
+      <textarea
+        className="textarea"
+        required
+        value={p.value.schedule}
+        onChange={(e) => p.onChange({ ...p.value, schedule: e.target.value })}
+      />
+    </label>
+  </section>
+)

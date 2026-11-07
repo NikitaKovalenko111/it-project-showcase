@@ -18,13 +18,25 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
   const { currentUser } = useAppSelector((state) => state.auth)
   const [agreed, setAgreed] = useState(false)
 
-  const [busy,setBusy]=useState(false), [error,setError]=useState('')
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState('')
   if (!isOpen) return null
 
   const handleConfirm = async () => {
     if (!agreed) return
     if (currentUser) {
-      setBusy(true);setError('');try { await apiClient.acceptNDA(caseItem.id,currentUser.id);dispatch(acceptNDASuccess(caseItem.id));onAccepted();onClose() } catch(e){setError((e as Error).message)} finally{setBusy(false)}
+      setBusy(true)
+      setError('')
+      try {
+        await apiClient.acceptNDA(caseItem.id, currentUser.id)
+        dispatch(acceptNDASuccess(caseItem.id))
+        onAccepted()
+        onClose()
+      } catch (e) {
+        setError((e as Error).message)
+      } finally {
+        setBusy(false)
+      }
     }
   }
 
@@ -35,7 +47,9 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FileLock2 size={22} color="#b45309" />
             <div>
-              <h3 style={{ color: '#92400e' }}>Соглашение о неразглашении конфиденциальной информации (NDA)</h3>
+              <h3 style={{ color: '#92400e' }}>
+                Соглашение о неразглашении конфиденциальной информации (NDA)
+              </h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Проект: {caseItem.title} • {caseItem.companyName}
               </p>
@@ -64,22 +78,23 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
               ТИПОВОЕ СОГЛАШЕНИЕ О КОНФИДЕНЦИАЛЬНОСТИ (NDA)
             </h4>
             <p>
-              Настоящее Соглашение заключается между <strong>{caseItem.companyName}</strong> (далее – «Раскрывающая
-              сторона») и обучающимся <strong>{currentUser?.fullName}</strong> (далее – «Принимающая сторона»).
+              Настоящее Соглашение заключается между <strong>{caseItem.companyName}</strong> (далее
+              – «Раскрывающая сторона») и обучающимся <strong>{currentUser?.fullName}</strong>{' '}
+              (далее – «Принимающая сторона»).
             </p>
             <p>
-              1. <strong>Предмет соглашения:</strong> Раскрывающая сторона предоставляет Принимающей стороне доступ к
-              полному тексту технического задания, архитектурным схемам, закрытым датасетам и исходным кодам в рамках
-              выполнения кейса «{caseItem.title}».
+              1. <strong>Предмет соглашения:</strong> Раскрывающая сторона предоставляет Принимающей
+              стороне доступ к полному тексту технического задания, архитектурным схемам, закрытым
+              датасетам и исходным кодам в рамках выполнения кейса «{caseItem.title}».
             </p>
             <p>
-              2. <strong>Обязательства:</strong> Принимающая сторона обязуется не распространять, не передавать третьим
-              лицам и не публиковать в открытых источниках конфиденциальные сведения без предварительного письменного
-              согласия компании.
+              2. <strong>Обязательства:</strong> Принимающая сторона обязуется не распространять, не
+              передавать третьим лицам и не публиковать в открытых источниках конфиденциальные
+              сведения без предварительного письменного согласия компании.
             </p>
             <p>
-              3. <strong>Срок действия:</strong> Соглашение вступает в силу с момента подтверждения и действует в
-              течение 3 (трех) лет.
+              3. <strong>Срок действия:</strong> Соглашение вступает в силу с момента подтверждения
+              и действует в течение 3 (трех) лет.
             </p>
           </div>
 
@@ -95,13 +110,19 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
                 color: '#1e293b',
               }}
             >
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-              Я подтверждаю подписание соглашения о неразглашении и принимаю условия конфиденциальности
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+              />
+              Я подтверждаю подписание соглашения о неразглашении и принимаю условия
+              конфиденциальности
             </label>
           </div>
         </div>
 
-        {error && <p role="alert">{error}</p>}<div className="modal-dialog__footer">
+        {error && <p role="alert">{error}</p>}
+        <div className="modal-dialog__footer">
           <button type="button" className="btn btn-secondary" onClick={onClose}>
             Отклонить и закрыть
           </button>

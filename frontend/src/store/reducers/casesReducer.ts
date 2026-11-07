@@ -59,8 +59,18 @@ const initialState: CasesState = {
 export const casesReducer = (state = initialState, action: any): CasesState => {
   switch (action.type) {
     case types.FETCH_CASE_BY_ID_REQUEST:
-      if (state.activeCase?.id === action.payload.id) return { ...state, loading: true, error: null }
-      return { ...state, loading: true, error: null, activeCase: null, milestones: [], submission: null, evaluation: null, comments: [] }
+      if (state.activeCase?.id === action.payload.id)
+        return { ...state, loading: true, error: null }
+      return {
+        ...state,
+        loading: true,
+        error: null,
+        activeCase: null,
+        milestones: [],
+        submission: null,
+        evaluation: null,
+        comments: [],
+      }
 
     case types.FETCH_CASES_REQUEST:
     case types.CREATE_CASE_REQUEST:
@@ -84,8 +94,13 @@ export const casesReducer = (state = initialState, action: any): CasesState => {
       return {
         ...state,
         loading: false,
-        casesList: state.casesList.map((c) => (c.id === action.payload.caseItem.id ? action.payload.caseItem : c)),
-        activeCase: state.activeCase?.id === action.payload.caseItem.id ? action.payload.caseItem : state.activeCase,
+        casesList: state.casesList.map((c) =>
+          c.id === action.payload.caseItem.id ? action.payload.caseItem : c,
+        ),
+        activeCase:
+          state.activeCase?.id === action.payload.caseItem.id
+            ? action.payload.caseItem
+            : state.activeCase,
       }
 
     case types.DELETE_CASE_SUCCESS:
@@ -124,7 +139,9 @@ export const casesReducer = (state = initialState, action: any): CasesState => {
     case types.UPDATE_MILESTONE_STATUS_SUCCESS:
       return {
         ...state,
-        milestones: state.milestones.map((m) => (m.id === action.payload.milestone.id ? action.payload.milestone : m)),
+        milestones: state.milestones.map((m) =>
+          m.id === action.payload.milestone.id ? action.payload.milestone : m,
+        ),
       }
 
     // Submissions & Evaluations

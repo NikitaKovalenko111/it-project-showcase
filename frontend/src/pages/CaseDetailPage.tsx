@@ -51,13 +51,16 @@ import {
 
 export const CaseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
-  const viewerId=useAppSelector(state=>state.auth.currentUser?.id)
-  useEffect(()=>{
-    if(apiRuntime.mode==='live'&&id&&viewerId)void axiosInstance.put(`/cases/${id}/view`).catch(()=>undefined)
-  },[id,viewerId])
+  const viewerId = useAppSelector((state) => state.auth.currentUser?.id)
+  useEffect(() => {
+    if (apiRuntime.mode === 'live' && id && viewerId)
+      void axiosInstance.put(`/cases/${id}/view`).catch(() => undefined)
+  }, [id, viewerId])
   const dispatch = useAppDispatch()
 
-  const { activeCase, favorites, ndaAcceptedCases, loading, error } = useAppSelector((state) => state.cases)
+  const { activeCase, favorites, ndaAcceptedCases, loading, error } = useAppSelector(
+    (state) => state.cases,
+  )
   const { applicationsList } = useAppSelector((state) => state.applications)
   const { currentUser } = useAppSelector((state) => state.auth)
 
@@ -68,17 +71,36 @@ export const CaseDetailPage: React.FC = () => {
   const [ndaAcceptedLocal, setNdaAcceptedLocal] = useState(false)
 
   useEffect(() => {
-    setNdaAcceptedLocal(false);setNdaModalOpen(false)
+    setNdaAcceptedLocal(false)
+    setNdaModalOpen(false)
     if (id) {
       dispatch(fetchCaseByIdRequest(id))
       dispatch(fetchApplicationsRequest(id))
     }
   }, [dispatch, id])
 
-  if (error) return <div role="alert" className="card" style={{ padding: 24 }}>{error} <Link to={sessionStorage.getItem('cases-return-url')?.startsWith('/cases?') ? sessionStorage.getItem('cases-return-url')! : '/cases'}>К списку кейсов</Link></div>
+  if (error)
+    return (
+      <div role="alert" className="card" style={{ padding: 24 }}>
+        {error}{' '}
+        <Link
+          to={
+            sessionStorage.getItem('cases-return-url')?.startsWith('/cases?')
+              ? sessionStorage.getItem('cases-return-url')!
+              : '/cases'
+          }
+        >
+          К списку кейсов
+        </Link>
+      </div>
+    )
 
   if (loading || !activeCase || activeCase.id !== id) {
-    return <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>Загрузка кейса...</div>
+    return (
+      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+        Загрузка кейса...
+      </div>
+    )
   }
 
   const isFavorite = favorites.includes(activeCase.id)
@@ -89,7 +111,7 @@ export const CaseDetailPage: React.FC = () => {
     currentUser?.role !== 'student'
 
   const userApplication = applicationsList.find(
-    (app) => app.caseId === activeCase.id && app.studentId === currentUser?.id
+    (app) => app.caseId === activeCase.id && app.studentId === currentUser?.id,
   )
 
   const isCompanyRepresentative =
@@ -98,8 +120,9 @@ export const CaseDetailPage: React.FC = () => {
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
 
-  const instantRegistration=['olympiad','hackathon'].includes(activeCase.kind || '')
-  const canReviewApplications = (isCompanyRepresentative || isCuratorOrAdmin) && !instantRegistration
+  const instantRegistration = ['olympiad', 'hackathon'].includes(activeCase.kind || '')
+  const canReviewApplications =
+    (isCompanyRepresentative || isCuratorOrAdmin) && !instantRegistration
 
   const handleStatusChange = (appId: string, status: any) => {
     dispatch(updateApplicationStatusRequest(appId, status))
@@ -107,30 +130,78 @@ export const CaseDetailPage: React.FC = () => {
 
   return (
     <div>
-      {activeCase.coverUrl && isPublished(activeCase) && <img src={activeCase.coverUrl} alt="Обложка кейса" style={{width:'100%',maxHeight:280,objectFit:'cover',borderRadius:12,marginBottom:20}} />}
+      {activeCase.coverUrl && isPublished(activeCase) && (
+        <img
+          src={activeCase.coverUrl}
+          alt="Обложка кейса"
+          style={{
+            width: '100%',
+            maxHeight: 280,
+            objectFit: 'cover',
+            borderRadius: 12,
+            marginBottom: 20,
+          }}
+        />
+      )}
       {/* Back button & Action header */}
-      <div className="page-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <Link to={sessionStorage.getItem('cases-return-url')?.startsWith('/cases?') ? sessionStorage.getItem('cases-return-url')! : '/cases'} className="btn btn-secondary btn-sm">
+      <div
+        className="page-toolbar"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px',
+        }}
+      >
+        <Link
+          to={
+            sessionStorage.getItem('cases-return-url')?.startsWith('/cases?')
+              ? sessionStorage.getItem('cases-return-url')!
+              : '/cases'
+          }
+          className="btn btn-secondary btn-sm"
+        >
           <ArrowLeft size={15} /> Вернуться к витрине кейсов
         </Link>
 
-        <div className="page-actions"><AdminCaseActions project={activeCase}/><ReportButton targetType="case" targetId={activeCase.id} />
-          {currentUser?.role === 'student' && <button
-            className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
-            aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'} aria-pressed={isFavorite} onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
-          >
-            <Bookmark size={22} fill={isFavorite ? '#d94326' : 'none'} color={isFavorite ? '#d94326' : '#64748b'} />
+        <div className="page-actions">
+          <AdminCaseActions project={activeCase} />
+          <ReportButton targetType="case" targetId={activeCase.id} />
+          {currentUser?.role === 'student' && (
+            <button
+              className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
+              aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'}
+              aria-pressed={isFavorite}
+              onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
+            >
+              <Bookmark
+                size={22}
+                fill={isFavorite ? '#d94326' : 'none'}
+                color={isFavorite ? '#d94326' : '#64748b'}
+              />
+            </button>
+          )}
 
-          </button>}
-
-          {canManageCase(currentUser, activeCase) || userApplication?.status === 'accepted' || activeCase.status === 'in_progress' || activeCase.status === 'submitted' || activeCase.status === 'completed' ? (
+          {canManageCase(currentUser, activeCase) ||
+          userApplication?.status === 'accepted' ||
+          activeCase.status === 'in_progress' ||
+          activeCase.status === 'submitted' ||
+          activeCase.status === 'completed' ? (
             <Link to={`/cases/${activeCase.id}/workspace`} className="btn btn-primary btn-sm">
               <Layers size={15} /> Участники и решения →
             </Link>
           ) : currentUser?.role === 'student' && isPublished(activeCase) ? (
             userApplication ? (
-              <span className="badge badge-status status-open" style={{ padding: '8px 12px', fontSize: '12px' }}>
-                <CheckCircle2 size={14} /> {instantRegistration ? (userApplication.consentPending?'Ожидаются согласия команды':'Заявка отправлена') : `Заявка: ${{pending:'На рассмотрении',accepted:'Принята',rejected:'Отклонена',interview:'Назначено интервью',need_info:'Нужны уточнения'}[userApplication.status]}`}
+              <span
+                className="badge badge-status status-open"
+                style={{ padding: '8px 12px', fontSize: '12px' }}
+              >
+                <CheckCircle2 size={14} />{' '}
+                {instantRegistration
+                  ? userApplication.consentPending
+                    ? 'Ожидаются согласия команды'
+                    : 'Заявка отправлена'
+                  : `Заявка: ${{ pending: 'На рассмотрении', accepted: 'Принята', rejected: 'Отклонена', interview: 'Назначено интервью', need_info: 'Нужны уточнения' }[userApplication.status]}`}
               </span>
             ) : (
               <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
@@ -148,15 +219,21 @@ export const CaseDetailPage: React.FC = () => {
           {/* Main Card */}
           <div className="card" style={{ marginBottom: '24px' }}>
             <div className="card__body">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
+              >
                 <img
                   src={activeCase.companyLogo}
                   alt={activeCase.companyName}
                   style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover' }}
                 />
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1b5e91' }}>{activeCase.companyName}</div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1b5e91' }}>
+                    {activeCase.companyName}
+                  </div>
+                  <div
+                    style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}
+                  >
                     {activeCase.isConfidential && (
                       <span className="badge badge-confidential">
                         <FileLock2 size={12} /> Конфиденциальный (NDA)
@@ -166,13 +243,32 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {!isPublished(activeCase) && <p className={`badge publication-${publicationStatus(activeCase)}`}>{publicationLabels[publicationStatus(activeCase)]}</p>}
+              {!isPublished(activeCase) && (
+                <p className={`badge publication-${publicationStatus(activeCase)}`}>
+                  {publicationLabels[publicationStatus(activeCase)]}
+                </p>
+              )}
               {activeCase.moderationComment && <p>{activeCase.moderationComment}</p>}
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f2b48', margin: '0 0 14px', lineHeight: 1.3 }}>
+              <h1
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 800,
+                  color: '#0f2b48',
+                  margin: '0 0 14px',
+                  lineHeight: 1.3,
+                }}
+              >
                 {activeCase.title}
               </h1>
 
-              <p style={{ fontSize: '14px', color: '#334155', lineHeight: 1.6, marginBottom: '20px' }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: '#334155',
+                  lineHeight: 1.6,
+                  marginBottom: '20px',
+                }}
+              >
                 {activeCase.shortDescription}
               </p>
 
@@ -184,12 +280,28 @@ export const CaseDetailPage: React.FC = () => {
                   marginTop: '10px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '14px',
+                  }}
+                >
                   <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f2b48' }}>
                     Полное техническое задание (ТЗ)
                   </h3>
                   {activeCase.isConfidential && isNDASigned && (
-                    <span style={{ fontSize: '11px', color: '#16805b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        color: '#16805b',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
                       <ShieldCheck size={14} /> NDA подписано
                     </span>
                   )}
@@ -209,8 +321,17 @@ export const CaseDetailPage: React.FC = () => {
                     <h4 style={{ margin: '0 0 6px', color: '#9f1239' }}>
                       Доступ ограничен: требуется подписать соглашение о неразглашении (NDA)
                     </h4>
-                    <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#881337', maxWidth: '500px', marginInline: 'auto' }}>
-                      Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну компании. Ознакомьтесь и подпишите электронное NDA в один клик.
+                    <p
+                      style={{
+                        margin: '0 0 16px',
+                        fontSize: '12px',
+                        color: '#881337',
+                        maxWidth: '500px',
+                        marginInline: 'auto',
+                      }}
+                    >
+                      Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну
+                      компании. Ознакомьтесь и подпишите электронное NDA в один клик.
                     </p>
                     <button className="btn btn-primary" onClick={() => setNdaModalOpen(true)}>
                       <ShieldAlert size={16} /> Ознакомиться и подписать NDA
@@ -235,9 +356,31 @@ export const CaseDetailPage: React.FC = () => {
               </div>
 
               {/* Requirements for the result & evaluation order */}
-              <div className="responsive-grid" style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 8px', color: '#0f2b48' }}>
+              <div
+                className="responsive-grid"
+                style={{
+                  marginTop: '24px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '16px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <h4
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      margin: '0 0 8px',
+                      color: '#0f2b48',
+                    }}
+                  >
                     <ClipboardList size={14} aria-hidden="true" /> Требования к результату:
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
@@ -245,8 +388,22 @@ export const CaseDetailPage: React.FC = () => {
                   </p>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 8px', color: '#0f2b48' }}>
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <h4
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      margin: '0 0 8px',
+                      color: '#0f2b48',
+                    }}
+                  >
                     <Scale size={14} aria-hidden="true" /> Порядок оценки:
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
@@ -256,12 +413,19 @@ export const CaseDetailPage: React.FC = () => {
               </div>
 
               <details className="rights-info">
-                <summary aria-label="Права на результаты" title="Права на результаты"><Info size={18} /></summary>
-                <p><strong>Права на результаты:</strong> {activeCase.ipRights === 'non_exclusive_license'
-                  ? 'Компания получает неисключительную лицензию, исключительные права сохраняются за авторами.'
-                  : activeCase.ipRights === 'open_source' ? 'Проект публикуется под свободной лицензией.'
-                  : activeCase.ipRights === 'author' ? 'Исключительные права сохраняются за автором.'
-                  : 'Условия передачи исключительных прав определяются отдельным соглашением с компанией.'}</p>
+                <summary aria-label="Права на результаты" title="Права на результаты">
+                  <Info size={18} />
+                </summary>
+                <p>
+                  <strong>Права на результаты:</strong>{' '}
+                  {activeCase.ipRights === 'non_exclusive_license'
+                    ? 'Компания получает неисключительную лицензию, исключительные права сохраняются за авторами.'
+                    : activeCase.ipRights === 'open_source'
+                      ? 'Проект публикуется под свободной лицензией.'
+                      : activeCase.ipRights === 'author'
+                        ? 'Исключительные права сохраняются за автором.'
+                        : 'Условия передачи исключительных прав определяются отдельным соглашением с компанией.'}
+                </p>
               </details>
             </div>
           </div>
@@ -270,10 +434,17 @@ export const CaseDetailPage: React.FC = () => {
           {canReviewApplications && (
             <div className="card" style={{ marginBottom: '24px' }}>
               <div className="card__header">
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Поступившие заявки от студентов ({applicationsList.length})</h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                  Поступившие заявки от студентов ({applicationsList.length})
+                </h3>
                 <span className="badge badge-direction">Модуль отбора</span>
               </div>
-              <div className="card__body case-incoming-list" tabIndex={0} aria-label="Поступившие заявки студентов" style={{ padding: 0 }}>
+              <div
+                className="card__body case-incoming-list"
+                tabIndex={0}
+                aria-label="Поступившие заявки студентов"
+                style={{ padding: 0 }}
+              >
                 {applicationsList.length === 0 ? (
                   <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
                     Заявок на данный кейс пока не поступало
@@ -290,18 +461,36 @@ export const CaseDetailPage: React.FC = () => {
                         gap: '10px',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img
-                            src={app.studentAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80'}
+                            src={
+                              app.studentAvatar ||
+                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80'
+                            }
                             alt=""
-                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                            }}
                           />
                           <div>
-                            <strong style={{ fontSize: '14px', color: '#1e293b' }}>{app.studentName}</strong>
+                            <strong style={{ fontSize: '14px', color: '#1e293b' }}>
+                              {app.studentName}
+                            </strong>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>
-                              {app.applicantType === 'team' ? `Команда: ${app.teamName}` : 'Индивидуальная заявка'} •{' '}
-                              {app.studentCourse} курс ({app.studentInstitute})
+                              {app.applicantType === 'team'
+                                ? `Команда: ${app.teamName}`
+                                : 'Индивидуальная заявка'}{' '}
+                              • {app.studentCourse} курс ({app.studentInstitute})
                             </div>
                           </div>
                         </div>
@@ -311,32 +500,63 @@ export const CaseDetailPage: React.FC = () => {
                             app.status === 'accepted'
                               ? 'status-completed'
                               : app.status === 'interview'
-                              ? 'status-open'
-                              : 'status-moderation'
+                                ? 'status-open'
+                                : 'status-moderation'
                           }`}
                         >
                           {app.status === 'accepted'
                             ? '✓ Принята'
                             : app.status === 'interview'
-                            ? 'Собеседование'
-                            : app.status === 'rejected'
-                            ? 'Отклонена'
-                            : 'На рассмотрении'}
+                              ? 'Собеседование'
+                              : app.status === 'rejected'
+                                ? 'Отклонена'
+                                : 'На рассмотрении'}
                         </span>
                       </div>
 
-                      <p style={{ margin: '4px 0', fontSize: '12px', color: '#334155', background: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
+                      <p
+                        style={{
+                          margin: '4px 0',
+                          fontSize: '12px',
+                          color: '#334155',
+                          background: '#f8fafc',
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                        }}
+                      >
                         "{app.coverLetter}"
                       </p>
 
                       <div style={{ display: 'flex', gap: '12px', fontSize: '11px' }}>
                         {app.githubUrl && (
-                          <a href={app.githubUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#1b5e91', fontWeight: 600 }}>
+                          <a
+                            href={app.githubUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: '#1b5e91',
+                              fontWeight: 600,
+                            }}
+                          >
                             <Github size={13} /> GitHub кандидата
                           </a>
                         )}
                         {app.portfolioUrl && (
-                          <a href={app.portfolioUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#1b5e91', fontWeight: 600 }}>
+                          <a
+                            href={app.portfolioUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: '#1b5e91',
+                              fontWeight: 600,
+                            }}
+                          >
                             <Globe size={13} /> Портфолио
                           </a>
                         )}
@@ -384,10 +604,24 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card__body">
               {activeCase.rewardType === 'contest' && (
                 <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      textTransform: 'uppercase',
+                      color: '#64748b',
+                      fontWeight: 700,
+                    }}
+                  >
                     Общий призовой фонд:
                   </span>
-                  <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f2b48', margin: '4px 0 12px' }}>
+                  <div
+                    style={{
+                      fontSize: '26px',
+                      fontWeight: 800,
+                      color: '#0f2b48',
+                      margin: '4px 0 12px',
+                    }}
+                  >
                     {activeCase.prizeFund?.toLocaleString('ru-RU')} ₽
                   </div>
 
@@ -403,14 +637,38 @@ export const CaseDetailPage: React.FC = () => {
                             padding: '10px 12px',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '12px', color: '#0f2b48' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              color: '#0f2b48',
+                            }}
+                          >
                             <Trophy size={14} color="#d97706" /> {pp.place} место
                           </div>
-                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#16805b', marginTop: '2px' }}>
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              color: '#16805b',
+                              marginTop: '2px',
+                            }}
+                          >
                             {pp.reward}
                           </div>
                           <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                            Критерий: {pp.criteria.length>120?<details><summary>{pp.criteria.slice(0,120)}… Подробнее</summary>{pp.criteria}</details>:pp.criteria}
+                            Критерий:{' '}
+                            {pp.criteria.length > 120 ? (
+                              <details>
+                                <summary>{pp.criteria.slice(0, 120)}… Подробнее</summary>
+                                {pp.criteria}
+                              </details>
+                            ) : (
+                              pp.criteria
+                            )}
                           </div>
                         </div>
                       ))}
@@ -421,10 +679,24 @@ export const CaseDetailPage: React.FC = () => {
 
               {activeCase.rewardType === 'monetary' && (
                 <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      textTransform: 'uppercase',
+                      color: '#64748b',
+                      fontWeight: 700,
+                    }}
+                  >
                     Денежное вознаграждение:
                   </span>
-                  <div style={{ fontSize: '26px', fontWeight: 800, color: '#16805b', margin: '4px 0 8px' }}>
+                  <div
+                    style={{
+                      fontSize: '26px',
+                      fontWeight: 800,
+                      color: '#16805b',
+                      margin: '4px 0 8px',
+                    }}
+                  >
                     {activeCase.rewardAmount?.toLocaleString('ru-RU')} ₽
                   </div>
                   <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
@@ -439,13 +711,27 @@ export const CaseDetailPage: React.FC = () => {
                     Образовательный проект
                   </span>
                   <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
-                    {activeCase.rewardDescription || 'Сертификат от компании, рекомендательное письмо и подтверждение в портфолио.'}
+                    {activeCase.rewardDescription ||
+                      'Сертификат от компании, рекомендательное письмо и подтверждение в портфолио.'}
                   </p>
                 </div>
               )}
 
-              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9', fontSize: '11px', color: '#64748b' }}>
-                Статус выплаты: <strong>{activeCase.paymentStatus === 'confirmed' ? 'Подтверждена компанией' : 'Ожидается приемка'}</strong>
+              <div
+                style={{
+                  marginTop: '14px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid #f1f5f9',
+                  fontSize: '11px',
+                  color: '#64748b',
+                }}
+              >
+                Статус выплаты:{' '}
+                <strong>
+                  {activeCase.paymentStatus === 'confirmed'
+                    ? 'Подтверждена компанией'
+                    : 'Ожидается приемка'}
+                </strong>
               </div>
             </div>
           </div>
@@ -455,27 +741,81 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card__header">
               <h3 style={{ margin: 0, fontSize: '15px' }}>Параметры выполнения</h3>
             </div>
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{activeCase.specificationFile&&<a className="btn btn-secondary" href={activeCase.specificationFile.url} target="_blank" rel="noreferrer">Техническое задание: {activeCase.specificationFile.name}</a>}<p><strong>Тип мероприятия</strong><br/>{({ case: 'Кейс', hackathon: 'Хакатон', olympiad: 'Олимпиада', internship: 'Стажировка' })[activeCase.kind || 'case']}</p><p><strong>{activeCase.participationFormat === 'team' ? 'Максимум команд' : activeCase.participationFormat === 'both' ? 'Лимит заявок' : 'Максимум участников'}</strong><br/> {activeCase.maxTeams || 'Без ограничений'}</p>{activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}{activeCase.internshipConditions && <p>Условия стажировки: {activeCase.internshipConditions}</p>}
-              <div className="action-row"><span className="badge badge-direction">{activeCase.direction}</span><span className="badge badge-complexity-medium">Уровень: {activeCase.complexity.toLowerCase()}</span></div>
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+            >
+              {activeCase.specificationFile && (
+                <a
+                  className="btn btn-secondary"
+                  href={activeCase.specificationFile.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Техническое задание: {activeCase.specificationFile.name}
+                </a>
+              )}
+              <p>
+                <strong>Тип мероприятия</strong>
+                <br />
+                {
+                  {
+                    case: 'Кейс',
+                    hackathon: 'Хакатон',
+                    olympiad: 'Олимпиада',
+                    internship: 'Стажировка',
+                  }[activeCase.kind || 'case']
+                }
+              </p>
+              <p>
+                <strong>
+                  {activeCase.participationFormat === 'team'
+                    ? 'Максимум команд'
+                    : activeCase.participationFormat === 'both'
+                      ? 'Лимит заявок'
+                      : 'Максимум участников'}
+                </strong>
+                <br /> {activeCase.maxTeams || 'Без ограничений'}
+              </p>
+              {activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}
+              {activeCase.internshipConditions && (
+                <p>Условия стажировки: {activeCase.internshipConditions}</p>
+              )}
+              <div className="action-row">
+                <span className="badge badge-direction">{activeCase.direction}</span>
+                <span className="badge badge-complexity-medium">
+                  Уровень: {activeCase.complexity.toLowerCase()}
+                </span>
+              </div>
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Формат работы:</span>
-                <strong style={{ fontSize: '13px', textTransform: 'capitalize' }}>{activeCase.workFormat}</strong>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                  Формат работы:
+                </span>
+                <strong style={{ fontSize: '13px', textTransform: 'capitalize' }}>
+                  {activeCase.workFormat}
+                </strong>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Длительность:</span>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                  Длительность:
+                </span>
                 <strong style={{ fontSize: '13px' }}>{activeCase.duration}</strong>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Крайний срок (Дедлайн):</span>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                  Крайний срок (Дедлайн):
+                </span>
                 <strong style={{ fontSize: '13px', color: '#b45309' }}>
                   {formatDate(activeCase.deadlineDate)}
                 </strong>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Размер команды:</span>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                  Размер команды:
+                </span>
                 <strong style={{ fontSize: '13px' }}>
                   {activeCase.participationFormat === 'individual'
                     ? 'Индивидуально'
@@ -484,7 +824,14 @@ export const CaseDetailPage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#64748b',
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
                   Необходимые компетенции:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -510,15 +857,41 @@ export const CaseDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {currentUser?.role === 'student' && isPublished(activeCase) && canReceiveApplications(activeCase) && activeCase.status === 'in_progress' && !userApplication && <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>Подать заявку своей команды</button>}
-      <div className="action-row">{canManageCase(currentUser, activeCase) && <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>Редактировать кейс</button>}</div>
+      {currentUser?.role === 'student' &&
+        isPublished(activeCase) &&
+        canReceiveApplications(activeCase) &&
+        activeCase.status === 'in_progress' &&
+        !userApplication && (
+          <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
+            Подать заявку своей команды
+          </button>
+        )}
+      <div className="action-row">
+        {canManageCase(currentUser, activeCase) && (
+          <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
+            Редактировать кейс
+          </button>
+        )}
+      </div>
 
       <PublicationContext project={activeCase} />
       <CaseComments caseId={activeCase.id} />
-      {apiRuntime.mode==='live'&&instantRegistration&&isPublished(activeCase)&&<EventPlanPanel key={activeCase.id} project={activeCase}/> }
-      {currentUser?.role !== 'student' && !['olympiad','hackathon'].includes(activeCase.kind || '') && <TeamsPanel caseId={activeCase.id} />}
+      {apiRuntime.mode === 'live' && instantRegistration && isPublished(activeCase) && (
+        <EventPlanPanel key={activeCase.id} project={activeCase} />
+      )}
+      {currentUser?.role !== 'student' &&
+        !['olympiad', 'hackathon'].includes(activeCase.kind || '') && (
+          <TeamsPanel caseId={activeCase.id} />
+        )}
 
-      <CreateCaseModal caseItem={activeCase} isOpen={editOpen} onClose={() => { setEditOpen(false); dispatch(fetchCaseByIdRequest(activeCase.id)) }} />
+      <CreateCaseModal
+        caseItem={activeCase}
+        isOpen={editOpen}
+        onClose={() => {
+          setEditOpen(false)
+          dispatch(fetchCaseByIdRequest(activeCase.id))
+        }}
+      />
       {/* Modals */}
       <ApplicationModal
         caseItem={activeCase}

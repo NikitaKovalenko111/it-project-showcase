@@ -43,7 +43,9 @@ export const authReducer = (state = initialState, action: any): AuthState => {
         ...state,
         loading: false,
         currentUser: action.payload.user,
-        allUsers: state.allUsers.map((u) => (u.id === action.payload.user.id ? action.payload.user : u)),
+        allUsers: state.allUsers.map((u) =>
+          u.id === action.payload.user.id ? action.payload.user : u,
+        ),
       }
 
     case types.FETCH_ALL_USERS_SUCCESS:
@@ -57,12 +59,17 @@ export const authReducer = (state = initialState, action: any): AuthState => {
     case types.CHANGE_USER_ROLE_SUCCESS:
       return {
         ...state,
-        allUsers: state.allUsers.map((u) => (u.id === action.payload.user.id ? action.payload.user : u)),
-        currentUser: state.currentUser?.id === action.payload.user.id ? action.payload.user : state.currentUser,
+        allUsers: state.allUsers.map((u) =>
+          u.id === action.payload.user.id ? action.payload.user : u,
+        ),
+        currentUser:
+          state.currentUser?.id === action.payload.user.id
+            ? action.payload.user
+            : state.currentUser,
       }
 
     case types.FETCH_CURRENT_USER_FAILURE:
-      return {...state,loading:false,currentUser:null,isAuthenticated:false,error:null}
+      return { ...state, loading: false, currentUser: null, isAuthenticated: false, error: null }
     case types.LOGIN_FAILURE:
     case types.REGISTER_FAILURE:
     case types.UPDATE_USER_PROFILE_FAILURE:

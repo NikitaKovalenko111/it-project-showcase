@@ -1,4 +1,4 @@
-import {useConfirm} from '../components/ConfirmProvider'
+import { useConfirm } from '../components/ConfirmProvider'
 import { AdminInsights } from '../components/AdminInsights'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
 import React, { useState, useEffect, useRef } from 'react'
@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 
 export const ModerationAdminPage: React.FC = () => {
-  const confirm=useConfirm()
+  const confirm = useConfirm()
   const dispatch = useAppDispatch()
   const { casesList: allCases } = useAppSelector((state) => state.cases)
   const { companiesList: allCompanies } = useAppSelector((state) => state.companies)
@@ -48,17 +48,55 @@ export const ModerationAdminPage: React.FC = () => {
   useEffect(() => {
     if (detail) detailRef.current?.showModal()
   }, [detail])
-  useEffect(() => { setSearch(''); setStatus('all') }, [activeTab])
-  const matches = (...values: unknown[]) => values.join(' ').toLocaleLowerCase('ru').includes(search.trim().toLocaleLowerCase('ru'))
-  const casesList = allCases.filter((c) => matches(c.id, c.title, c.companyName, c.direction) && (status === 'all' || c.status === status))
-  const companiesList = allCompanies.filter((c) => matches(c.id, c.name, c.industry, c.contactPerson, c.email) && (status === 'all' || String(c.isVerified) === status))
-  const allUsers = users.filter((u) => matches(u.id, u.fullName, u.email, u.studentProfile?.group) && (status === 'all' || u.role === status))
-  const auditLogs = logs.filter((log) => matches(log.id, log.userName, log.actionType, log.objectName, log.objectId, log.details) && (status === 'all' || log.actionType === status))
-  const statusOptions = activeTab === 'cases' ? [...new Set(allCases.map((c) => c.status))].map((value) => [value, value])
-    : activeTab === 'companies' ? [['true', 'Верифицирована'], ['false', 'Требует проверки']]
-    : activeTab === 'users' ? [['student', 'Студент'], ['company', 'Компания'], ['curator', 'Куратор'], ['admin', 'Администратор'], ['university', 'Сотрудник']]
-    : [...new Set(logs.map((log) => log.actionType))].map((value) => [value, value])
-  const found = { cases: casesList.length, companies: companiesList.length, users: allUsers.length, audit: auditLogs.length }[activeTab]
+  useEffect(() => {
+    setSearch('')
+    setStatus('all')
+  }, [activeTab])
+  const matches = (...values: unknown[]) =>
+    values.join(' ').toLocaleLowerCase('ru').includes(search.trim().toLocaleLowerCase('ru'))
+  const casesList = allCases.filter(
+    (c) =>
+      matches(c.id, c.title, c.companyName, c.direction) &&
+      (status === 'all' || c.status === status),
+  )
+  const companiesList = allCompanies.filter(
+    (c) =>
+      matches(c.id, c.name, c.industry, c.contactPerson, c.email) &&
+      (status === 'all' || String(c.isVerified) === status),
+  )
+  const allUsers = users.filter(
+    (u) =>
+      matches(u.id, u.fullName, u.email, u.studentProfile?.group) &&
+      (status === 'all' || u.role === status),
+  )
+  const auditLogs = logs.filter(
+    (log) =>
+      matches(log.id, log.userName, log.actionType, log.objectName, log.objectId, log.details) &&
+      (status === 'all' || log.actionType === status),
+  )
+  const statusOptions =
+    activeTab === 'cases'
+      ? [...new Set(allCases.map((c) => c.status))].map((value) => [value, value])
+      : activeTab === 'companies'
+        ? [
+            ['true', 'Верифицирована'],
+            ['false', 'Требует проверки'],
+          ]
+        : activeTab === 'users'
+          ? [
+              ['student', 'Студент'],
+              ['company', 'Компания'],
+              ['curator', 'Куратор'],
+              ['admin', 'Администратор'],
+              ['university', 'Сотрудник'],
+            ]
+          : [...new Set(logs.map((log) => log.actionType))].map((value) => [value, value])
+  const found = {
+    cases: casesList.length,
+    companies: companiesList.length,
+    users: allUsers.length,
+    audit: auditLogs.length,
+  }[activeTab]
 
   useEffect(() => {
     dispatch(fetchCasesRequest())
@@ -73,7 +111,7 @@ export const ModerationAdminPage: React.FC = () => {
         ...caseItem,
         status: newStatus,
         isModerated: newStatus !== 'moderation',
-      })
+      }),
     )
   }
 
@@ -82,7 +120,7 @@ export const ModerationAdminPage: React.FC = () => {
   }
 
   const handleToggleBlock = async (userId: string) => {
-    if(!await confirm('Изменить статус блокировки пользователя?'))return
+    if (!(await confirm('Изменить статус блокировки пользователя?'))) return
     dispatch(toggleUserBlockRequest(userId))
   }
 
@@ -97,7 +135,8 @@ export const ModerationAdminPage: React.FC = () => {
         <div className="page-header__content">
           <h1>Панель администрирования</h1>
           <p>
-            Управление контентом, верификация компаний, модерация кейсов и системный журнал аудита действий пользователей.
+            Управление контентом, верификация компаний, модерация кейсов и системный журнал аудита
+            действий пользователей.
           </p>
         </div>
       </div>
@@ -137,18 +176,46 @@ export const ModerationAdminPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="uust-container"><div className="uust-box">
-        <div className="uust-filter-row">
-          <label className="catalog-filter">Поиск по текущему разделу<input className="uust-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Название, ФИО, email, ID или описание…" /></label>
-          <label className="catalog-filter">{activeTab === 'users' ? 'Роль' : activeTab === 'audit' ? 'Операция' : 'Статус'}
-            <select className="uust-select" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">Все</option>
-              {statusOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
-          </label>
-          <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setStatus('all') }}>Сбросить</button>
+      <div className="uust-container">
+        <div className="uust-box">
+          <div className="uust-filter-row">
+            <label className="catalog-filter">
+              Поиск по текущему разделу
+              <input
+                className="uust-input"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Название, ФИО, email, ID или описание…"
+              />
+            </label>
+            <label className="catalog-filter">
+              {activeTab === 'users' ? 'Роль' : activeTab === 'audit' ? 'Операция' : 'Статус'}
+              <select
+                className="uust-select"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="all">Все</option>
+                {statusOptions.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                setSearch('')
+                setStatus('all')
+              }}
+            >
+              Сбросить
+            </button>
+          </div>
+          <p aria-live="polite">Найдено записей: {found}</p>
         </div>
-        <p aria-live="polite">Найдено записей: {found}</p>
-      </div></div>
+      </div>
       {found === 0 && <p>Записи по выбранным фильтрам не найдены.</p>}
       {/* TAB 1: CASES MODERATION */}
       {activeTab === 'cases' && <PublicationReviewQueue kind="case" />}
@@ -180,15 +247,27 @@ export const ModerationAdminPage: React.FC = () => {
                           <img
                             src={comp.logo}
                             alt=""
-                            style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                            }}
                           />
-                          <Link to={`/company/${comp.id}`}><strong>{comp.name}</strong></Link>
+                          <Link to={`/company/${comp.id}`}>
+                            <strong>{comp.name}</strong>
+                          </Link>
                         </div>
                       </td>
                       <td>{comp.industry}</td>
                       <td>{comp.contactPerson}</td>
                       <td>
-                        <a href={comp.website} target="_blank" rel="noreferrer" style={{ color: '#1b5e91' }}>
+                        <a
+                          href={comp.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ color: '#1b5e91' }}
+                        >
                           {comp.website}
                         </a>
                       </td>
@@ -220,7 +299,9 @@ export const ModerationAdminPage: React.FC = () => {
       {activeTab === 'users' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Управление пользователями и ролевая модель</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>
+              Управление пользователями и ролевая модель
+            </h3>
           </div>
           <div className="card__body" style={{ padding: 0 }}>
             <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>
@@ -240,15 +321,40 @@ export const ModerationAdminPage: React.FC = () => {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img
-                            src={u.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80'}
+                            src={
+                              u.avatar ||
+                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80'
+                            }
                             alt=""
-                            style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                            }}
                           />
                           <div>
-                            <button className="entity-link" onClick={() => setDetail({ title: u.fullName, fields: [
-                              ['ID', u.id], ['Email', u.email], ['Телефон', u.phone || '—'], ['Роль', u.role], ['Статус', u.isBlocked ? 'Заблокирован' : 'Активен'],
-                              ['Институт', u.studentProfile?.institute || '—'], ['Группа', u.studentProfile?.group || '—'], ['Компания', u.companyProfile?.companyName || '—'], ['Зарегистрирован', u.createdAt],
-                            ] })}>{u.fullName}</button>
+                            <button
+                              className="entity-link"
+                              onClick={() =>
+                                setDetail({
+                                  title: u.fullName,
+                                  fields: [
+                                    ['ID', u.id],
+                                    ['Email', u.email],
+                                    ['Телефон', u.phone || '—'],
+                                    ['Роль', u.role],
+                                    ['Статус', u.isBlocked ? 'Заблокирован' : 'Активен'],
+                                    ['Институт', u.studentProfile?.institute || '—'],
+                                    ['Группа', u.studentProfile?.group || '—'],
+                                    ['Компания', u.companyProfile?.companyName || '—'],
+                                    ['Зарегистрирован', u.createdAt],
+                                  ],
+                                })
+                              }
+                            >
+                              {u.fullName}
+                            </button>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>ID: {u.id}</div>
                           </div>
                         </div>
@@ -292,9 +398,7 @@ export const ModerationAdminPage: React.FC = () => {
       {activeTab === 'audit' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>
-              Журнал аудита критических операций
-            </h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Журнал аудита критических операций</h3>
             <span style={{ fontSize: '11px', color: '#64748b' }}>
               Фиксация: пользователь, дата/время, операция, объект, старое и новое значение
             </span>
@@ -333,14 +437,37 @@ export const ModerationAdminPage: React.FC = () => {
                         <strong>{log.objectName}</strong>
                         <div style={{ fontSize: '10px', color: '#94a3b8' }}>{log.objectType}</div>
                       </td>
-                      <td style={{ color: '#64748b', fontSize: '12px' }}>{log.previousValue || '—'}</td>
+                      <td style={{ color: '#64748b', fontSize: '12px' }}>
+                        {log.previousValue || '—'}
+                      </td>
                       <td style={{ color: '#16805b', fontWeight: 600, fontSize: '12px' }}>
                         {log.newValue || '—'}
                       </td>
-                      <td><button className="entity-link" onClick={() => setDetail({ title: `Событие: ${log.actionType}`, fields: [
-                        ['ID события', log.id], ['Время', log.timestamp], ['Пользователь', log.userName], ['Роль', log.userRole], ['Операция', log.actionType],
-                        ['Тип объекта', log.objectType], ['Объект', log.objectName], ['ID объекта', log.objectId], ['До изменения', log.previousValue || '—'], ['После изменения', log.newValue || '—'], ['Детали', log.details || '—'],
-                      ] })}>{log.details || 'Подробнее'}</button></td>
+                      <td>
+                        <button
+                          className="entity-link"
+                          onClick={() =>
+                            setDetail({
+                              title: `Событие: ${log.actionType}`,
+                              fields: [
+                                ['ID события', log.id],
+                                ['Время', log.timestamp],
+                                ['Пользователь', log.userName],
+                                ['Роль', log.userRole],
+                                ['Операция', log.actionType],
+                                ['Тип объекта', log.objectType],
+                                ['Объект', log.objectName],
+                                ['ID объекта', log.objectId],
+                                ['До изменения', log.previousValue || '—'],
+                                ['После изменения', log.newValue || '—'],
+                                ['Детали', log.details || '—'],
+                              ],
+                            })
+                          }
+                        >
+                          {log.details || 'Подробнее'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -349,10 +476,36 @@ export const ModerationAdminPage: React.FC = () => {
           </div>
         </div>
       )}
-      <dialog ref={detailRef} className="object-dialog" onCancel={() => setDetail(null)} onClose={() => setDetail(null)}>
-        {detail && <><div className="card__header"><h2>{detail.title}</h2><button className="btn btn-secondary btn-sm" onClick={() => { detailRef.current?.close(); setDetail(null) }}>Закрыть</button></div>
-          <dl className="detail-fields">{detail.fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-        </>}
+      <dialog
+        ref={detailRef}
+        className="object-dialog"
+        onCancel={() => setDetail(null)}
+        onClose={() => setDetail(null)}
+      >
+        {detail && (
+          <>
+            <div className="card__header">
+              <h2>{detail.title}</h2>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  detailRef.current?.close()
+                  setDetail(null)
+                }}
+              >
+                Закрыть
+              </button>
+            </div>
+            <dl className="detail-fields">
+              {detail.fields.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        )}
       </dialog>
     </div>
   )

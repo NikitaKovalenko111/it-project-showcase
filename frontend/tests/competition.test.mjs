@@ -1,118 +1,222 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { loadTs } from './load-ts.mjs'
-const memory=new Map()
-globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)}
-const {MockServer}=await import(await loadTs(new URL('../src/api/mockServer.ts',import.meta.url)))
-function setup(){memory.clear();const server=new MockServer();const login=id=>localStorage.setItem('uust_current_user',JSON.stringify(server.getUserById(id)));return {server,login}}
-test('olympiad registration is immediately accepted and has a private execution after reload',()=>{
- const {server,login}=setup();login('usr_student_2')
- const user=server.getUserById('usr_student_2'),project=server.getCaseById('demo_olympiad')
- const app=server.createApplication({caseId:project.id,caseTitle:project.title,companyId:project.companyId,studentId:user.id,studentName:user.fullName,applicantType:'individual',coverLetter:''})
- assert.equal(app.status,'accepted')
- const entries=new MockServer().getExecutions(project.id)
- assert.equal(entries.length,1);assert.equal(entries[0].studentId,user.id)
- assert.throws(()=>server.createApplication({...app}),/уже/)
- login('usr_company_1');assert.throws(()=>server.updateApplicationStatus(app.id,'rejected'),/уже/)
+const memory = new Map()
+globalThis.localStorage = {
+  getItem: (k) => memory.get(k) ?? null,
+  setItem: (k, v) => memory.set(k, v),
+}
+const { MockServer } = await import(
+  await loadTs(new URL('../src/api/mockServer.ts', import.meta.url))
+)
+function setup() {
+  memory.clear()
+  const server = new MockServer()
+  const login = (id) =>
+    localStorage.setItem('uust_current_user', JSON.stringify(server.getUserById(id)))
+  return { server, login }
+}
+test('olympiad registration is immediately accepted and has a private execution after reload', () => {
+  const { server, login } = setup()
+  login('usr_student_2')
+  const user = server.getUserById('usr_student_2'),
+    project = server.getCaseById('demo_olympiad')
+  const app = server.createApplication({
+    caseId: project.id,
+    caseTitle: project.title,
+    companyId: project.companyId,
+    studentId: user.id,
+    studentName: user.fullName,
+    applicantType: 'individual',
+    coverLetter: '',
+  })
+  assert.equal(app.status, 'accepted')
+  const entries = new MockServer().getExecutions(project.id)
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].studentId, user.id)
+  assert.throws(() => server.createApplication({ ...app }), /уже/)
+  login('usr_company_1')
+  assert.throws(() => server.updateApplicationStatus(app.id, 'rejected'), /уже/)
 })
-test('grading one team keeps other results and case lifecycle unchanged; privileges and bounds are enforced',()=>{
- const {server,login}=setup();login('usr_company_1')
- const before=structuredClone(server.getExecutions('demo_hackathon'))
- assert.equal(before.length,12)
- const entry=before.find(e=>e.status==='submitted'),peer=before.find(e=>e.id!==entry.id&&e.evaluation)
- const state=server.getCaseById('demo_hackathon').status
- server.gradeExecution(entry.id,{quality:8,architecture:9},'Проверено')
- const reloaded=new MockServer(),after=reloaded.getExecutions('demo_hackathon')
- assert.equal(after.find(e=>e.id===entry.id).evaluation.totalScore,17)
- assert.deepEqual(after.find(e=>e.id===peer.id),peer)
- assert.equal(reloaded.getCaseById('demo_hackathon').status,state)
- assert.equal(reloaded.getLeaderboard('demo_hackathon').complete,false)
- assert.throws(()=>server.gradeExecution(entry.id,{quality:11,architecture:9},''),/пределах/)
- login('usr_student_1');assert.equal(server.getExecutions('demo_hackathon').length,1)
- assert.throws(()=>server.gradeExecution(entry.id,{quality:8,architecture:9},''),/прав/)
- assert.throws(()=>server.submitExecution(entry.id,'Чужая работа',[]),/прав/)
+test('grading one team keeps other results and case lifecycle unchanged; privileges and bounds are enforced', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const before = structuredClone(server.getExecutions('demo_hackathon'))
+  assert.equal(before.length, 12)
+  const entry = before.find((e) => e.status === 'submitted'),
+    peer = before.find((e) => e.id !== entry.id && e.evaluation)
+  const state = server.getCaseById('demo_hackathon').status
+  server.gradeExecution(entry.id, { quality: 8, architecture: 9 }, 'Проверено')
+  const reloaded = new MockServer(),
+    after = reloaded.getExecutions('demo_hackathon')
+  assert.equal(after.find((e) => e.id === entry.id).evaluation.totalScore, 17)
+  assert.deepEqual(
+    after.find((e) => e.id === peer.id),
+    peer,
+  )
+  assert.equal(reloaded.getCaseById('demo_hackathon').status, state)
+  assert.equal(reloaded.getLeaderboard('demo_hackathon').complete, false)
+  assert.throws(
+    () => server.gradeExecution(entry.id, { quality: 11, architecture: 9 }, ''),
+    /пределах/,
+  )
+  login('usr_student_1')
+  assert.equal(server.getExecutions('demo_hackathon').length, 1)
+  assert.throws(() => server.gradeExecution(entry.id, { quality: 8, architecture: 9 }, ''), /прав/)
+  assert.throws(() => server.submitExecution(entry.id, 'Чужая работа', []), /прав/)
 })
-test('olympiad sums task points instead of using weighted ten-point criteria',()=>{
- const {server,login}=setup();login('usr_company_1')
- const entry=server.getExecutions('demo_olympiad').find(e=>e.status==='submitted')
- const result=server.gradeExecution(entry.id,{a:25,b:60},'')
- assert.equal(result.evaluation.totalScore,85);assert.equal(result.evaluation.maxScore,100)
- assert.throws(()=>server.gradeExecution(entry.id,{a:31,b:60},''),/пределах/)
+test('olympiad sums task points instead of using weighted ten-point criteria', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const entry = server.getExecutions('demo_olympiad').find((e) => e.status === 'submitted')
+  const result = server.gradeExecution(entry.id, { a: 25, b: 60 }, '')
+  assert.equal(result.evaluation.totalScore, 85)
+  assert.equal(result.evaluation.maxScore, 100)
+  assert.throws(() => server.gradeExecution(entry.id, { a: 31, b: 60 }, ''), /пределах/)
 })
-test('publishing standings requires all submitted works graded and closes submission and grading',()=>{
- const {server,login}=setup();login('usr_company_1')
- assert.throws(()=>server.finalizeResults('demo_olympiad'),/Сначала/)
- for(const entry of server.getExecutions('demo_olympiad').filter(e=>e.submission&&!e.evaluation))server.gradeExecution(entry.id,{a:20,b:50},'')
- assert.equal(server.getLeaderboard('demo_olympiad').complete,false)
- server.finalizeResults('demo_olympiad')
- assert.equal(server.getLeaderboard('demo_olympiad').complete,true)
- assert.equal(server.getLeaderboard('demo_olympiad').items.length,9)
- const entry=server.getExecutions('demo_olympiad')[0]
- assert.throws(()=>server.gradeExecution(entry.id,{a:20,b:50},''),/зафиксированы/)
- login('usr_student_1');assert.throws(()=>server.submitExecution(entry.id,'Другая версия',[]),/завершён/)
+test('publishing standings requires all submitted works graded and closes submission and grading', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  assert.throws(() => server.finalizeResults('demo_olympiad'), /Сначала/)
+  for (const entry of server
+    .getExecutions('demo_olympiad')
+    .filter((e) => e.submission && !e.evaluation))
+    server.gradeExecution(entry.id, { a: 20, b: 50 }, '')
+  assert.equal(server.getLeaderboard('demo_olympiad').complete, false)
+  server.finalizeResults('demo_olympiad')
+  assert.equal(server.getLeaderboard('demo_olympiad').complete, true)
+  assert.equal(server.getLeaderboard('demo_olympiad').items.length, 9)
+  const entry = server.getExecutions('demo_olympiad')[0]
+  assert.throws(() => server.gradeExecution(entry.id, { a: 20, b: 50 }, ''), /зафиксированы/)
+  login('usr_student_1')
+  assert.throws(() => server.submitExecution(entry.id, 'Другая версия', []), /завершён/)
 })
-test('stage files and reviews are isolated by execution and persist across reload',()=>{
- const {server,login}=setup();login('usr_company_1')
- server.createMilestone('demo_hackathon',{title:'Прототип',description:'Первый результат',deadline:'2027-01-01'})
- const entries=server.getExecutions('demo_hackathon'), own=entries.find(e=>e.status==='active'),peer=entries.find(e=>e.id!==own.id)
- const stage=own.milestones[0]
- login(own.studentId)
- server.updateExecutionStage(own.id,stage.id,'submit',[{name:'prototype.txt',url:'data:text/plain,own'}])
- assert.throws(()=>server.updateExecutionStage(peer.id,peer.milestones[0].id,'submit',[{name:'x',url:'x'}]),/участникам/)
- assert.throws(()=>server.updateExecutionStage(own.id,stage.id,'accepted'),/прав/)
- login('usr_company_1')
- assert.equal(new MockServer().getExecutions('demo_hackathon').find(e=>e.id===peer.id).milestones[0].attachedMaterials.length,0)
- server.updateExecutionStage(own.id,stage.id,'accepted')
- login(own.studentId)
- assert.equal(new MockServer().getExecutions('demo_hackathon')[0].milestones[0].status,'accepted')
- assert.throws(()=>server.updateExecutionStage(own.id,stage.id,'remove',[],'',0),/Принятый/)
+test('stage files and reviews are isolated by execution and persist across reload', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  server.createMilestone('demo_hackathon', {
+    title: 'Прототип',
+    description: 'Первый результат',
+    deadline: '2027-01-01',
+  })
+  const entries = server.getExecutions('demo_hackathon'),
+    own = entries.find((e) => e.status === 'active'),
+    peer = entries.find((e) => e.id !== own.id)
+  const stage = own.milestones[0]
+  login(own.studentId)
+  server.updateExecutionStage(own.id, stage.id, 'submit', [
+    { name: 'prototype.txt', url: 'data:text/plain,own' },
+  ])
+  assert.throws(
+    () =>
+      server.updateExecutionStage(peer.id, peer.milestones[0].id, 'submit', [
+        { name: 'x', url: 'x' },
+      ]),
+    /участникам/,
+  )
+  assert.throws(() => server.updateExecutionStage(own.id, stage.id, 'accepted'), /прав/)
+  login('usr_company_1')
+  assert.equal(
+    new MockServer().getExecutions('demo_hackathon').find((e) => e.id === peer.id).milestones[0]
+      .attachedMaterials.length,
+    0,
+  )
+  server.updateExecutionStage(own.id, stage.id, 'accepted')
+  login(own.studentId)
+  assert.equal(new MockServer().getExecutions('demo_hackathon')[0].milestones[0].status, 'accepted')
+  assert.throws(
+    () => server.updateExecutionStage(own.id, stage.id, 'remove', [], '', 0),
+    /Принятый/,
+  )
 })
-test('portfolio achievements exclude participation without a graded submitted work',()=>{
- const {server,login}=setup();login('usr_company_1')
- for(const e of server.getExecutions('demo_olympiad').filter(e=>e.submission&&!e.evaluation))server.gradeExecution(e.id,{a:20,b:50},'')
- server.finalizeResults('demo_olympiad')
- assert.equal(server.getStudentAchievements('usr_student_1').filter(a=>a.caseId==='demo_olympiad').length,1)
- assert.equal(server.getStudentAchievements('demo_student_11').filter(a=>a.caseId==='demo_olympiad').length,0)
+test('portfolio achievements exclude participation without a graded submitted work', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  for (const e of server
+    .getExecutions('demo_olympiad')
+    .filter((e) => e.submission && !e.evaluation))
+    server.gradeExecution(e.id, { a: 20, b: 50 }, '')
+  server.finalizeResults('demo_olympiad')
+  assert.equal(
+    server.getStudentAchievements('usr_student_1').filter((a) => a.caseId === 'demo_olympiad')
+      .length,
+    1,
+  )
+  assert.equal(
+    server.getStudentAchievements('demo_student_11').filter((a) => a.caseId === 'demo_olympiad')
+      .length,
+    0,
+  )
 })
-test('shared plan updates all teams without resetting submitted work, and blocks deleting used stages',()=>{
- const {server,login}=setup();login('usr_company_1')
- const plan=server.getSharedPlan('demo_hackathon')
- let entry=server.getExecutions('demo_hackathon').find(e=>e.status==='active')
- login(entry.studentId)
- server.updateExecutionStage(entry.id,entry.milestones[0].id,'submit',[{name:'proto.txt',url:'data:text/plain,proto'}])
- login('usr_company_1')
- server.updateExecutionStage(entry.id,entry.milestones[0].id,'accepted',[],'Принято')
- const revised=plan.map((m,i)=>({...m,title:`Новый этап ${i+1}`,deadline:'2027-06-20'})).reverse()
- server.updateSharedPlan('demo_hackathon',revised)
- const reloaded=new MockServer(),all=reloaded.getExecutions('demo_hackathon')
- assert.equal(all.length,12)
- for(const e of all){assert.equal(e.milestones.find(s=>s.id.endsWith(`::${plan[0].id}`)).deadline,'2027-06-20')}
- entry=all.find(e=>e.id===entry.id)
- const accepted=entry.milestones.find(s=>s.id.endsWith(`::${plan[0].id}`))
- assert.equal(accepted.status,'accepted');assert.equal(accepted.attachedMaterials[0].name,'proto.txt');assert.equal(accepted.feedback,'Принято')
- assert.equal(accepted.stepNumber,3)
- assert.throws(()=>reloaded.updateSharedPlan('demo_hackathon',revised.filter(r=>r.id!==plan[0].id)),/начата работа/)
- assert.equal(reloaded.getSharedPlan('demo_hackathon').length,3)
- login('usr_student_1');assert.throws(()=>server.updateSharedPlan('demo_hackathon',revised),/прав/)
+test('shared plan updates all teams without resetting submitted work, and blocks deleting used stages', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const plan = server.getSharedPlan('demo_hackathon')
+  let entry = server.getExecutions('demo_hackathon').find((e) => e.status === 'active')
+  login(entry.studentId)
+  server.updateExecutionStage(entry.id, entry.milestones[0].id, 'submit', [
+    { name: 'proto.txt', url: 'data:text/plain,proto' },
+  ])
+  login('usr_company_1')
+  server.updateExecutionStage(entry.id, entry.milestones[0].id, 'accepted', [], 'Принято')
+  const revised = plan
+    .map((m, i) => ({ ...m, title: `Новый этап ${i + 1}`, deadline: '2027-06-20' }))
+    .reverse()
+  server.updateSharedPlan('demo_hackathon', revised)
+  const reloaded = new MockServer(),
+    all = reloaded.getExecutions('demo_hackathon')
+  assert.equal(all.length, 12)
+  for (const e of all) {
+    assert.equal(e.milestones.find((s) => s.id.endsWith(`::${plan[0].id}`)).deadline, '2027-06-20')
+  }
+  entry = all.find((e) => e.id === entry.id)
+  const accepted = entry.milestones.find((s) => s.id.endsWith(`::${plan[0].id}`))
+  assert.equal(accepted.status, 'accepted')
+  assert.equal(accepted.attachedMaterials[0].name, 'proto.txt')
+  assert.equal(accepted.feedback, 'Принято')
+  assert.equal(accepted.stepNumber, 3)
+  assert.throws(
+    () =>
+      reloaded.updateSharedPlan(
+        'demo_hackathon',
+        revised.filter((r) => r.id !== plan[0].id),
+      ),
+    /начата работа/,
+  )
+  assert.equal(reloaded.getSharedPlan('demo_hackathon').length, 3)
+  login('usr_student_1')
+  assert.throws(() => server.updateSharedPlan('demo_hackathon', revised), /прав/)
 })
-test('curator can monitor every execution but cannot submit or grade participants work',()=>{
- const {server,login}=setup();login('usr_curator_1')
- const entries=server.getExecutions('demo_hackathon')
- assert.equal(entries.length,12)
- const entry=entries.find(e=>e.status==='submitted')
- assert.throws(()=>server.submitExecution(entry.id,'Not my work',[]),/прав/)
- assert.throws(()=>server.gradeExecution(entry.id,{quality:9,architecture:9},'No'),/прав/)
- assert.throws(()=>server.updateSharedPlan('demo_hackathon',server.getSharedPlan('demo_hackathon')),/прав/)
- login('usr_student_1');assert.equal(new MockServer().getExecutions('demo_hackathon').length,1)
+test('curator can monitor every execution but cannot submit or grade participants work', () => {
+  const { server, login } = setup()
+  login('usr_curator_1')
+  const entries = server.getExecutions('demo_hackathon')
+  assert.equal(entries.length, 12)
+  const entry = entries.find((e) => e.status === 'submitted')
+  assert.throws(() => server.submitExecution(entry.id, 'Not my work', []), /прав/)
+  assert.throws(
+    () => server.gradeExecution(entry.id, { quality: 9, architecture: 9 }, 'No'),
+    /прав/,
+  )
+  assert.throws(
+    () => server.updateSharedPlan('demo_hackathon', server.getSharedPlan('demo_hackathon')),
+    /прав/,
+  )
+  login('usr_student_1')
+  assert.equal(new MockServer().getExecutions('demo_hackathon').length, 1)
 })
 
-test('unused shared stages can be removed for everyone, while closed event plans are immutable',()=>{
- const {server,login}=setup();login('usr_company_1')
- const plan=server.getSharedPlan('demo_olympiad')
- server.getExecutions('demo_olympiad')
- server.updateSharedPlan('demo_olympiad',plan.slice(1))
- assert.ok(server.getExecutions('demo_olympiad').every(e=>e.milestones.length===2))
- for(const e of server.getExecutions('demo_olympiad').filter(e=>e.submission&&!e.evaluation))server.gradeExecution(e.id,{a:20,b:50},'')
- server.finalizeResults('demo_olympiad')
- assert.throws(()=>server.updateSharedPlan('demo_olympiad',plan),/завершён/)
+test('unused shared stages can be removed for everyone, while closed event plans are immutable', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const plan = server.getSharedPlan('demo_olympiad')
+  server.getExecutions('demo_olympiad')
+  server.updateSharedPlan('demo_olympiad', plan.slice(1))
+  assert.ok(server.getExecutions('demo_olympiad').every((e) => e.milestones.length === 2))
+  for (const e of server
+    .getExecutions('demo_olympiad')
+    .filter((e) => e.submission && !e.evaluation))
+    server.gradeExecution(e.id, { a: 20, b: 50 }, '')
+  server.finalizeResults('demo_olympiad')
+  assert.throws(() => server.updateSharedPlan('demo_olympiad', plan), /завершён/)
 })

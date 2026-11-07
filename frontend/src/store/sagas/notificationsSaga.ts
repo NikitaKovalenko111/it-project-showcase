@@ -6,7 +6,10 @@ import * as types from '../types'
 
 function* handleFetchNotifications(action: { type: string; payload: { userId: string } }) {
   try {
-    const notifications: SystemNotification[] = yield call(apiClient.getNotifications, action.payload.userId)
+    const notifications: SystemNotification[] = yield call(
+      apiClient.getNotifications,
+      action.payload.userId,
+    )
     yield put(actions.fetchNotificationsSuccess(notifications))
   } catch (e) {
     console.error(e)

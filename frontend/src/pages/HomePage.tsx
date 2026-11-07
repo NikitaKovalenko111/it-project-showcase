@@ -40,12 +40,20 @@ import {
 
 export const HomePage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { casesList, loading: casesLoading, error: casesError } = useAppSelector((state) => state.cases)
+  const {
+    casesList,
+    loading: casesLoading,
+    error: casesError,
+  } = useAppSelector((state) => state.cases)
   const { studentsList: authors } = useAppSelector((state) => state.students)
   const { projectsList } = useAppSelector((state) => state.studentProjects)
   const { companiesList } = useAppSelector((state) => state.companies)
   const { currentUser } = useAppSelector((state) => state.auth)
-  const { applicationsList: allApplications, loading: applicationsLoading, error: applicationsError } = useAppSelector((state) => state.applications)
+  const {
+    applicationsList: allApplications,
+    loading: applicationsLoading,
+    error: applicationsError,
+  } = useAppSelector((state) => state.applications)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
 
@@ -56,7 +64,10 @@ export const HomePage: React.FC = () => {
   const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
   const myCompanyCases = casesList.filter((c) => c.companyId === companyId)
 
-  const applicationsList = role === 'company' ? allApplications.filter((app) => app.companyId === companyId) : allApplications
+  const applicationsList =
+    role === 'company'
+      ? allApplications.filter((app) => app.companyId === companyId)
+      : allApplications
 
   /* ========================================================================= */
   /*  VIEW FOR COMPANY                                                         */
@@ -71,9 +82,7 @@ export const HomePage: React.FC = () => {
             <span>Кабинет индустриального партнера</span>
           </div>
 
-          <h1 className="home-hero__title">
-            {companyName}
-          </h1>
+          <h1 className="home-hero__title">{companyName}</h1>
 
           <p className="home-hero__subtitle">
             Управление технологическими кейсами предприятия, рассмотрение заявок от студентов,
@@ -103,7 +112,9 @@ export const HomePage: React.FC = () => {
               <Briefcase size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">{myCompanyCases.filter((project) => project.status === 'open').length}</div>
+              <div className="stat-number">
+                {myCompanyCases.filter((project) => project.status === 'open').length}
+              </div>
               <div className="stat-label">Кейсов предприятия</div>
               <div className="stat-meta">В открытом наборе</div>
             </div>
@@ -114,7 +125,9 @@ export const HomePage: React.FC = () => {
               <Users size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">{applicationsList.filter((app) => app.status === 'pending').length}</div>
+              <div className="stat-number">
+                {applicationsList.filter((app) => app.status === 'pending').length}
+              </div>
               <div className="stat-label">Заявок студентов</div>
               <div className="stat-meta">Требуют рассмотрения</div>
             </div>
@@ -125,7 +138,9 @@ export const HomePage: React.FC = () => {
               <Layers size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">{myCompanyCases.filter((project) => project.status === 'in_progress').length}</div>
+              <div className="stat-number">
+                {myCompanyCases.filter((project) => project.status === 'in_progress').length}
+              </div>
               <div className="stat-label">Проекты в разработке</div>
               <div className="stat-meta">На стадии MVP / вех</div>
             </div>
@@ -136,9 +151,14 @@ export const HomePage: React.FC = () => {
               <Award size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">{myCompanyCases.filter((project) => project.status === 'completed').length}</div>
+              <div className="stat-number">
+                {myCompanyCases.filter((project) => project.status === 'completed').length}
+              </div>
               <div className="stat-label">Завершенных проектов</div>
-              <div className="stat-meta">Принятых заявок: {applicationsList.filter((app) => app.status === 'accepted').length}</div>
+              <div className="stat-meta">
+                Принятых заявок:{' '}
+                {applicationsList.filter((app) => app.status === 'accepted').length}
+              </div>
             </div>
           </div>
         </div>
@@ -161,9 +181,15 @@ export const HomePage: React.FC = () => {
                 <div className="case-card__top-accent" />
                 <div className="card__body">
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    {c.direction&&<span className="badge badge-direction">{c.direction}</span>}
-                    <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
-                    {!isPublished(c) && <span className={`badge publication-${publicationStatus(c)}`}>{publicationLabels[publicationStatus(c)]}</span>}
+                    {c.direction && <span className="badge badge-direction">{c.direction}</span>}
+                    <span className="badge badge-complexity-medium">
+                      Уровень: {c.complexity.toLowerCase()}
+                    </span>
+                    {!isPublished(c) && (
+                      <span className={`badge publication-${publicationStatus(c)}`}>
+                        {publicationLabels[publicationStatus(c)]}
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="case-card__title">
@@ -175,11 +201,21 @@ export const HomePage: React.FC = () => {
                   <div className="case-card__meta-grid">
                     <div className="meta-item">
                       <Calendar size={13} />
-                      <span>Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong></span>
+                      <span>
+                        Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong>
+                      </span>
                     </div>
                     <div className="meta-item">
                       <Users size={13} />
-                      <span>Команда: <strong>{c.teamSize.min===c.teamSize.max?c.teamSize.min:`${c.teamSize.min}–${c.teamSize.max}`} чел.</strong></span>
+                      <span>
+                        Команда:{' '}
+                        <strong>
+                          {c.teamSize.min === c.teamSize.max
+                            ? c.teamSize.min
+                            : `${c.teamSize.min}–${c.teamSize.max}`}{' '}
+                          чел.
+                        </strong>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -226,55 +262,106 @@ export const HomePage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {applicationsError && <tr><td colSpan={5} role="alert">{applicationsError}</td></tr>}
-                {!applicationsList.some((app) => app.status === 'pending' || app.status === 'need_info') && <tr><td colSpan={5}>Новых заявок нет. Обработанные заявки доступны в разделе «Заявки студентов».</td></tr>}
-                {applicationsList.filter((app) => app.status === 'pending' || app.status === 'need_info').slice(0, 4).map((app) => (
-                  <tr key={app.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img
-                          src={app.studentAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'}
-                          alt=""
-                          style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 700, color: '#0c1938' }}><Link className="profile-link" to={`/profile/${app.studentId}`}>{app.studentName}</Link></div>
-                          <div style={{ fontSize: '11px', color: '#627282' }}>{app.studentEmail}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{app.studentInstitute}</div>
-                      <div style={{ fontSize: '11px', color: '#627282' }}>{app.studentCourse} курс</div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, maxWidth: '240px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {app.caseTitle}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="badge badge-status status-open">
-                        {app.status === 'accepted' ? 'Принят' : app.status === 'rejected' ? 'Отклонен' : 'На рассмотрении'}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button
-                          className="btn btn-success btn-sm"
-                          disabled={applicationsLoading} onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'accepted'))}
-                        >
-                          Принять
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          disabled={applicationsLoading} onClick={() => dispatch(updateApplicationStatusRequest(app.id, 'rejected'))}
-                        >
-                          Отклонить
-                        </button>
-                      </div>
+                {applicationsError && (
+                  <tr>
+                    <td colSpan={5} role="alert">
+                      {applicationsError}
                     </td>
                   </tr>
-                ))}
+                )}
+                {!applicationsList.some(
+                  (app) => app.status === 'pending' || app.status === 'need_info',
+                ) && (
+                  <tr>
+                    <td colSpan={5}>
+                      Новых заявок нет. Обработанные заявки доступны в разделе «Заявки студентов».
+                    </td>
+                  </tr>
+                )}
+                {applicationsList
+                  .filter((app) => app.status === 'pending' || app.status === 'need_info')
+                  .slice(0, 4)
+                  .map((app) => (
+                    <tr key={app.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img
+                            src={
+                              app.studentAvatar ||
+                              'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'
+                            }
+                            alt=""
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                            }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0c1938' }}>
+                              <Link className="profile-link" to={`/profile/${app.studentId}`}>
+                                {app.studentName}
+                              </Link>
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#627282' }}>
+                              {app.studentEmail}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{app.studentInstitute}</div>
+                        <div style={{ fontSize: '11px', color: '#627282' }}>
+                          {app.studentCourse} курс
+                        </div>
+                      </td>
+                      <td>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            maxWidth: '240px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {app.caseTitle}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="badge badge-status status-open">
+                          {app.status === 'accepted'
+                            ? 'Принят'
+                            : app.status === 'rejected'
+                              ? 'Отклонен'
+                              : 'На рассмотрении'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            className="btn btn-success btn-sm"
+                            disabled={applicationsLoading}
+                            onClick={() =>
+                              dispatch(updateApplicationStatusRequest(app.id, 'accepted'))
+                            }
+                          >
+                            Принять
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={applicationsLoading}
+                            onClick={() =>
+                              dispatch(updateApplicationStatusRequest(app.id, 'rejected'))
+                            }
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -297,13 +384,11 @@ export const HomePage: React.FC = () => {
             <span>Кабинет куратора кафедры •</span>
           </div>
 
-          <h1 className="home-hero__title">
-            Координация проектного обучения кафедры
-          </h1>
+          <h1 className="home-hero__title">Координация проектного обучения кафедры</h1>
 
           <p className="home-hero__subtitle">
-            Мониторинг студенческих команд группы ТОП-204Б(73), контроль прохождения этапов производственной практики
-            и взаимодействие с аккредитованными предприятиями.
+            Мониторинг студенческих команд группы ТОП-204Б(73), контроль прохождения этапов
+            производственной практики и взаимодействие с аккредитованными предприятиями.
           </p>
 
           <div className="home-hero__actions">
@@ -358,7 +443,9 @@ export const HomePage: React.FC = () => {
               <Award size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">{myCompanyCases.filter((project) => project.status === 'completed').length}</div>
+              <div className="stat-number">
+                {myCompanyCases.filter((project) => project.status === 'completed').length}
+              </div>
               <div className="stat-label">Защищенных решений</div>
               <div className="stat-meta">С зачетом практики</div>
             </div>
@@ -395,8 +482,23 @@ export const HomePage: React.FC = () => {
                   <td>Магасумов Алмаз</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ flex: 1, background: '#e2e8f0', height: '6px', borderRadius: '3px', width: '100px' }}>
-                        <div style={{ width: '57%', height: '100%', background: '#3a75b4', borderRadius: '3px' }} />
+                      <div
+                        style={{
+                          flex: 1,
+                          background: '#e2e8f0',
+                          height: '6px',
+                          borderRadius: '3px',
+                          width: '100px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '57%',
+                            height: '100%',
+                            background: '#3a75b4',
+                            borderRadius: '3px',
+                          }}
+                        />
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: 700 }}>4 из 7</span>
                     </div>
@@ -416,8 +518,23 @@ export const HomePage: React.FC = () => {
                   <td>Саитов Руслан</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ flex: 1, background: '#e2e8f0', height: '6px', borderRadius: '3px', width: '100px' }}>
-                        <div style={{ width: '42%', height: '100%', background: '#28a745', borderRadius: '3px' }} />
+                      <div
+                        style={{
+                          flex: 1,
+                          background: '#e2e8f0',
+                          height: '6px',
+                          borderRadius: '3px',
+                          width: '100px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '42%',
+                            height: '100%',
+                            background: '#28a745',
+                            borderRadius: '3px',
+                          }}
+                        />
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: 700 }}>3 из 7</span>
                     </div>
@@ -445,13 +562,29 @@ export const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       {/* Official ISU Welcome Banner matching user's Image 2 */}
-      <div style={{ background: '#ffffff', border: '1px solid #dce4ed', borderRadius: '8px', padding: '22px 24px', boxShadow: '0 1px 3px rgba(11,23,54,0.04)' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#1a2233', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+      <div
+        style={{
+          background: '#ffffff',
+          border: '1px solid #dce4ed',
+          borderRadius: '8px',
+          padding: '22px 24px',
+          boxShadow: '0 1px 3px rgba(11,23,54,0.04)',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '20px',
+            fontWeight: 800,
+            color: '#1a2233',
+            margin: '0 0 6px',
+            letterSpacing: '-0.01em',
+          }}
+        >
           Добро пожаловать в информационную систему университета!
         </h1>
         <p style={{ fontSize: '13px', color: '#5e7188', margin: 0, lineHeight: 1.55 }}>
-          Данная система является комплексным решением для обеспечения деятельности структурных подразделений
-          и платформой взаимодействия студентов с индустриальными предприятиями.
+          Данная система является комплексным решением для обеспечения деятельности структурных
+          подразделений и платформой взаимодействия студентов с индустриальными предприятиями.
         </p>
       </div>
 
@@ -495,7 +628,12 @@ export const HomePage: React.FC = () => {
             <Award size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">{casesList.reduce((sum,c)=>sum+(c.prizeFund || c.rewardAmount || 0),0).toLocaleString('ru-RU')} ₽</div>
+            <div className="stat-number">
+              {casesList
+                .reduce((sum, c) => sum + (c.prizeFund || c.rewardAmount || 0), 0)
+                .toLocaleString('ru-RU')}{' '}
+              ₽
+            </div>
             <div className="stat-label">Призовой фонд семестра</div>
             <div className="stat-meta">Гранты, премии, офферы</div>
           </div>
@@ -516,7 +654,9 @@ export const HomePage: React.FC = () => {
 
         {casesLoading && <p role="status">Загрузка актуальных кейсов…</p>}
         {casesError && <p role="alert">{casesError}</p>}
-        {!casesLoading && !casesError && activeCases.length === 0 && <p>Открытых кейсов пока нет.</p>}
+        {!casesLoading && !casesError && activeCases.length === 0 && (
+          <p>Открытых кейсов пока нет.</p>
+        )}
         <div className="case-grid">
           {activeCases.map((c) => (
             <div key={c.id} className="case-card">
@@ -540,18 +680,30 @@ export const HomePage: React.FC = () => {
                 <p className="case-card__desc">{c.shortDescription}</p>
 
                 <div className="case-card__tags">
-                  {c.direction&&<span className="badge badge-direction">{c.direction}</span>}
-                  <span className="badge badge-complexity-medium">Уровень: {c.complexity.toLowerCase()}</span>
+                  {c.direction && <span className="badge badge-direction">{c.direction}</span>}
+                  <span className="badge badge-complexity-medium">
+                    Уровень: {c.complexity.toLowerCase()}
+                  </span>
                 </div>
 
                 <div className="case-card__meta-grid">
                   <div className="meta-item">
                     <Calendar size={13} />
-                    <span>Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong></span>
+                    <span>
+                      Дедлайн: <strong>{formatDate(c.deadlineDate)}</strong>
+                    </span>
                   </div>
                   <div className="meta-item">
                     <Users size={13} />
-                    <span>Команда: <strong>{c.teamSize.min===c.teamSize.max?c.teamSize.min:`${c.teamSize.min}–${c.teamSize.max}`} чел.</strong></span>
+                    <span>
+                      Команда:{' '}
+                      <strong>
+                        {c.teamSize.min === c.teamSize.max
+                          ? c.teamSize.min
+                          : `${c.teamSize.min}–${c.teamSize.max}`}{' '}
+                        чел.
+                      </strong>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -598,10 +750,17 @@ export const HomePage: React.FC = () => {
 
                 <div className="student-project-card__author-row">
                   <div>
-                    <div className="author-name"><User size={14} aria-hidden="true" /> {authors.find((author) => author.id === p.authorId)?.fullName || p.authorName}</div>
+                    <div className="author-name">
+                      <User size={14} aria-hidden="true" />{' '}
+                      {authors.find((author) => author.id === p.authorId)?.fullName || p.authorName}
+                    </div>
                     <div className="author-group">{p.teamName || 'Студент • ТОП-204Б(73)'}</div>
                   </div>
-                  <Link to={`/student-projects/${p.id}`} className="btn btn-secondary btn-sm" style={{ marginLeft: 'auto' }}>
+                  <Link
+                    to={`/student-projects/${p.id}`}
+                    className="btn btn-secondary btn-sm"
+                    style={{ marginLeft: 'auto' }}
+                  >
                     Смотреть
                   </Link>
                 </div>

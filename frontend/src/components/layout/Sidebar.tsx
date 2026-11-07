@@ -85,9 +85,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   }
 
   // Student ID matching user screenshot
-  const studentId = currentUser?.id === 'usr_student_1'
-    ? '257576'
-    : (currentUser?.id ? currentUser.id.replace(/\D/g, '') || '257576' : '257576')
+  const studentId =
+    currentUser?.id === 'usr_student_1'
+      ? '257576'
+      : currentUser?.id
+        ? currentUser.id.replace(/\D/g, '') || '257576'
+        : '257576'
 
   // Role-specific navigation groups
   const navGroups: NavItem[][] = useMemo(() => {
@@ -107,11 +110,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
             { to: `/profile/${userId}`, label: 'МОЁ ПОРТФОЛИО', icon: GraduationCap },
-            { to: '/favorites', label: 'ЗАЯВКИ И ИЗБРАННОЕ', icon: Bookmark, badge: favorites.length || undefined },
+            {
+              to: '/favorites',
+              label: 'ЗАЯВКИ И ИЗБРАННОЕ',
+              icon: Bookmark,
+              badge: favorites.length || undefined,
+            },
           ],
-          [
-            { to: '/companies', label: 'КОМПАНИИ-ПАРТНЁРЫ', icon: Building2 },
-          ],
+          [{ to: '/companies', label: 'КОМПАНИИ-ПАРТНЁРЫ', icon: Building2 }],
         ]
 
       /* ---------- Company ---------- */
@@ -121,10 +127,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'МОИ КЕЙСЫ', icon: Briefcase, end: true },
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
-
           ],
           [
-            { to: '/company-applications', label: 'ЗАЯВКИ СТУДЕНТОВ', icon: ClipboardList, badge: applicationsList.filter(a=>['pending','need_info','interview'].includes(a.status)).length || undefined },
+            {
+              to: '/company-applications',
+              label: 'ЗАЯВКИ СТУДЕНТОВ',
+              icon: ClipboardList,
+              badge:
+                applicationsList.filter((a) =>
+                  ['pending', 'need_info', 'interview'].includes(a.status),
+                ).length || undefined,
+            },
             { to: '/students-search', label: 'ПОИСК ТАЛАНТОВ', icon: Search },
           ],
           [
@@ -140,16 +153,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
-
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
             { to: '/students-search', label: 'СТУДЕНТЫ И ГРУППЫ', icon: Search },
             { to: '/companies', label: 'КОМПАНИИ-ПАРТНЁРЫ', icon: Building2 },
           ],
-          [
-            { to: '/analytics', label: 'УСПЕВАЕМОСТЬ И ЗАЩИТЫ', icon: BarChart3 },
-          ],
+          [{ to: '/analytics', label: 'УСПЕВАЕМОСТЬ И ЗАЩИТЫ', icon: BarChart3 }],
         ]
 
       /* ---------- Admin / University ---------- */
@@ -161,7 +171,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
-
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
@@ -174,12 +183,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
         ]
     }
-  }, [role, currentUser?.id, currentUser?.companyProfile?.companyId, favorites.length, applicationsList.filter(a=>['pending','need_info','interview'].includes(a.status)).length])
+  }, [
+    role,
+    currentUser?.id,
+    currentUser?.companyProfile?.companyId,
+    favorites.length,
+    applicationsList.filter((a) => ['pending', 'need_info', 'interview'].includes(a.status)).length,
+  ])
 
   const pillInfo = rolePillConfig[role] ?? rolePillConfig.student
 
   return (
-    <aside id="main-sidebar" aria-label="Главное меню" className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsedDesktop ? 'collapsed' : ''}`}>
+    <aside
+      id="main-sidebar"
+      aria-label="Главное меню"
+      className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsedDesktop ? 'collapsed' : ''}`}
+    >
       {/* Official UUST ISU Header matching photos */}
       <div className="sidebar__uust-brand">
         <div className="uust-crest">
@@ -188,7 +207,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
         <div className="uust-brand-text">
           <span className="brand-title">Витрина IT-проектов</span>
         </div>
-        <button className="sidebar__close" onClick={onClose} aria-label="Закрыть меню"><X size={20} /></button>
+        <button className="sidebar__close" onClick={onClose} aria-label="Закрыть меню">
+          <X size={20} />
+        </button>
       </div>
 
       {/* UUST Student / User Card from Photo */}
@@ -209,10 +230,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           {currentUser?.fullName || 'Магасумов Алмаз Ильшатович'}
         </div>
 
-
-        <div className="profile-email">
-          Email:{currentUser?.email || '257576@stud.uust.ru'}
-        </div>
+        <div className="profile-email">Email:{currentUser?.email || '257576@stud.uust.ru'}</div>
 
         {/* Interactive Online Status Pill */}
         <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -223,10 +241,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             type="button"
             title="Нажмите, чтобы изменить статус"
           >
-            <span
-              className="dot"
-              style={{ backgroundColor: statusConfig[onlineStatus].color }}
-            />
+            <span className="dot" style={{ backgroundColor: statusConfig[onlineStatus].color }} />
             <span>{statusConfig[onlineStatus].label}</span>
             <ChevronDown size={12} className="chevron" />
           </button>
@@ -285,35 +300,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
         {/* Role pill */}
         <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
-          {role==='student'?['Студент',currentUser?.studentProfile?.institute,currentUser?.studentProfile?.group].filter(Boolean).join(' • '):pillInfo.text}
+          {role === 'student'
+            ? [
+                'Студент',
+                currentUser?.studentProfile?.institute,
+                currentUser?.studentProfile?.group,
+              ]
+                .filter(Boolean)
+                .join(' • ')
+            : pillInfo.text}
         </div>
       </div>
 
       {/* UUST Navigation in ISU Style */}
       <nav className="sidebar__nav-isu">
-        {[...navGroups, [{to:'/feedback',label:'ОБРАТНАЯ СВЯЗЬ',icon:MessageSquare}]].map((group, groupIdx) => (
-          <React.Fragment key={groupIdx}>
-            {groupIdx > 0 && <div className="sidebar__nav-divider" />}
-            {group.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={`${item.to}-${item.label}`}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
-                  onClick={onClose}
-                >
-                  <span className="nav-icon"><Icon size={15} /></span>
-                  <span>{item.label}</span>
-                  {item.badge != null && item.badge > 0 && (
-                    <span className="nav-badge-isu">{item.badge}</span>
-                  )}
-                </NavLink>
-              )
-            })}
-          </React.Fragment>
-        ))}
+        {[...navGroups, [{ to: '/feedback', label: 'ОБРАТНАЯ СВЯЗЬ', icon: MessageSquare }]].map(
+          (group, groupIdx) => (
+            <React.Fragment key={groupIdx}>
+              {groupIdx > 0 && <div className="sidebar__nav-divider" />}
+              {group.map((item) => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={`${item.to}-${item.label}`}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
+                    onClick={onClose}
+                  >
+                    <span className="nav-icon">
+                      <Icon size={15} />
+                    </span>
+                    <span>{item.label}</span>
+                    {item.badge != null && item.badge > 0 && (
+                      <span className="nav-badge-isu">{item.badge}</span>
+                    )}
+                  </NavLink>
+                )
+              })}
+            </React.Fragment>
+          ),
+        )}
       </nav>
 
       <div className="sidebar__footer-isu">

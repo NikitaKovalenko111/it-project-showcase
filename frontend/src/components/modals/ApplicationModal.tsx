@@ -3,7 +3,11 @@ import { apiRuntime } from '../../api/runtime'
 import { apiClient } from '../../api/client'
 import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createApplicationSuccess, fetchCaseByIdRequest, fetchCasesRequest } from '../../store/actions'
+import {
+  createApplicationSuccess,
+  fetchCaseByIdRequest,
+  fetchCasesRequest,
+} from '../../store/actions'
 import { CaseProject, StudentProfile } from '../../types/models'
 import { CheckCircle2, FileText, Send, ShieldAlert, X } from 'lucide-react'
 
@@ -13,27 +17,54 @@ interface ApplicationModalProps {
   onClose: () => void
 }
 
-export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, isOpen, onClose }) => {
+export const ApplicationModal: React.FC<ApplicationModalProps> = ({
+  caseItem,
+  isOpen,
+  onClose,
+}) => {
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.auth)
   const { teamsList } = useAppSelector((state) => state.students)
 
-  const registration=['olympiad','hackathon'].includes(caseItem.kind || '')
-  const instantRegistration=registration
-  const [awaitingConsent,setAwaitingConsent]=useState(false)
+  const registration = ['olympiad', 'hackathon'].includes(caseItem.kind || '')
+  const instantRegistration = registration
+  const [awaitingConsent, setAwaitingConsent] = useState(false)
   const studentProfile = currentUser?.studentProfile
-  const userTeams = teamsList.filter((t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id))
-
-  const teamFits=(size:number)=>size>=caseItem.teamSize.min&&size<=caseItem.teamSize.max
-  const teamSizeText=caseItem.teamSize.min===caseItem.teamSize.max?String(caseItem.teamSize.min):`${caseItem.teamSize.min}–${caseItem.teamSize.max}`
-  const [applicantType, setApplicantType] = useState<'individual' | 'team'>(caseItem.participationFormat === 'team' ? 'team' : 'individual')
-  const [selectedTeamId, setSelectedTeamId] = useState(userTeams.find(team=>teamFits(team.members.length))?.id || '')
-  const [coverLetter, setCoverLetter] = useState(
-    'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.'
+  const userTeams = teamsList.filter(
+    (t) => t.leaderId === currentUser?.id && (!t.caseId || t.caseId === caseItem.id),
   )
-  const [savedResume,setSavedResume]=useState<StudentProfile['resume']>()
-  const [attachSavedResume,setAttachSavedResume]=useState(false)
-  useEffect(()=>{let active=true;if(isOpen&&!registration&&currentUser?.role==='student')apiClient.getResume().then(f=>{if(active)setSavedResume(f)}).catch(e=>{if(active)setSubmitError(e.message)});return()=>{active=false}},[isOpen,currentUser?.id,registration])
+
+  const teamFits = (size: number) => size >= caseItem.teamSize.min && size <= caseItem.teamSize.max
+  const teamSizeText =
+    caseItem.teamSize.min === caseItem.teamSize.max
+      ? String(caseItem.teamSize.min)
+      : `${caseItem.teamSize.min}–${caseItem.teamSize.max}`
+  const [applicantType, setApplicantType] = useState<'individual' | 'team'>(
+    caseItem.participationFormat === 'team' ? 'team' : 'individual',
+  )
+  const [selectedTeamId, setSelectedTeamId] = useState(
+    userTeams.find((team) => teamFits(team.members.length))?.id || '',
+  )
+  const [coverLetter, setCoverLetter] = useState(
+    'Здравствуйте! Наша команда ознакомилась с техническим заданием проекта. Имеем релевантный опыт в технологиях стека и готовы качественно реализовать поставленную задачу.',
+  )
+  const [savedResume, setSavedResume] = useState<StudentProfile['resume']>()
+  const [attachSavedResume, setAttachSavedResume] = useState(false)
+  useEffect(() => {
+    let active = true
+    if (isOpen && !registration && currentUser?.role === 'student')
+      apiClient
+        .getResume()
+        .then((f) => {
+          if (active) setSavedResume(f)
+        })
+        .catch((e) => {
+          if (active) setSubmitError(e.message)
+        })
+    return () => {
+      active = false
+    }
+  }, [isOpen, currentUser?.id, registration])
   const [resume, setResume] = useState<File | null>(null)
   const [githubUrl, setGithubUrl] = useState(studentProfile?.githubUrl || '')
   const [ipRightsAgreed, setIpRightsAgreed] = useState(false)
@@ -41,8 +72,9 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
   const [submittedSuccess, setSubmittedSuccess] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const selectedTeam = userTeams.find(t=>t.id===selectedTeamId)
-  const invalidTeam = applicantType==='team' && (!selectedTeam || !teamFits(selectedTeam.members.length))
+  const selectedTeam = userTeams.find((t) => t.id === selectedTeamId)
+  const invalidTeam =
+    applicantType === 'team' && (!selectedTeam || !teamFits(selectedTeam.members.length))
 
   if (!isOpen) return null
 
@@ -73,7 +105,13 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
     setSubmitError('')
     try {
       if (invalidTeam) throw new Error(`Выберите команду подходящего размера: ${teamSizeText} чел.`)
-      const resumeFile = registration ? undefined : resume ? await uploadFile(resume) : attachSavedResume ? savedResume : undefined
+      const resumeFile = registration
+        ? undefined
+        : resume
+          ? await uploadFile(resume)
+          : attachSavedResume
+            ? savedResume
+            : undefined
       const application = await apiClient.createApplication({
         caseId: caseItem.id,
         registration,
@@ -101,16 +139,31 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
       dispatch(fetchCasesRequest())
       setAwaitingConsent(!!application.consentPending)
       setSubmittedSuccess(true)
-    } catch (cause) { setSubmitError(cause instanceof Error ? cause.message : 'Не удалось отправить заявку') }
-    finally { setIsSubmitting(false) }
+    } catch (cause) {
+      setSubmitError(cause instanceof Error ? cause.message : 'Не удалось отправить заявку')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-dialog modal-dialog--lg" role="dialog" aria-modal="true" aria-labelledby="application-title" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-dialog modal-dialog--lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="application-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-dialog__header">
           <div>
-            <h3 id="application-title">{instantRegistration ? 'Регистрация на мероприятие' : registration ? 'Заявка на участие' : 'Подача заявки на выполнение кейса'}</h3>
+            <h3 id="application-title">
+              {instantRegistration
+                ? 'Регистрация на мероприятие'
+                : registration
+                  ? 'Заявка на участие'
+                  : 'Подача заявки на выполнение кейса'}
+            </h3>
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
               Кейс: <strong>{caseItem.title}</strong> ({caseItem.companyName})
             </p>
@@ -125,33 +178,73 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
             <CheckCircle2 size={48} color="#16805b" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ margin: '0 0 8px', color: '#16805b' }}>Заявка успешно отправлена!</h3>
             <p style={{ color: '#64748b', fontSize: '13px' }}>
-              {awaitingConsent ? 'Остальные участники должны подтвердить условия в разделе «Заявки и избранное».' : instantRegistration ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.' : 'Представитель компании получил заявку и рассмотрит её.'}
+              {awaitingConsent
+                ? 'Остальные участники должны подтвердить условия в разделе «Заявки и избранное».'
+                : instantRegistration
+                  ? 'Вы зарегистрированы. Работа доступна в активных проектах — одобрение организатора не требуется.'
+                  : 'Представитель компании получил заявку и рассмотрит её.'}
             </p>
-            <button className="btn btn-primary" onClick={() => { setSubmittedSuccess(false); onClose() }}>Готово</button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setSubmittedSuccess(false)
+                onClose()
+              }}
+            >
+              Готово
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="modal-dialog__body">
-              {submitError && <p className="form-error application-error" role="alert">{submitError}</p>}
+              {submitError && (
+                <p className="form-error application-error" role="alert">
+                  {submitError}
+                </p>
+              )}
               {/* Participation format */}
               <div className="form-group">
                 <label>Формат участия в проекте:</label>
                 <div className="participation-options">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500 }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
                     <input
                       type="radio"
                       name="applicantType"
-                      disabled={caseItem.participationFormat === 'team'} checked={applicantType === 'individual'}
-                      onChange={() => {setApplicantType('individual');setSubmitError('')}}
+                      disabled={caseItem.participationFormat === 'team'}
+                      checked={applicantType === 'individual'}
+                      onChange={() => {
+                        setApplicantType('individual')
+                        setSubmitError('')
+                      }}
                     />
                     Индивидуально (Студент: {currentUser?.fullName})
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500 }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
                     <input
                       type="radio"
                       name="applicantType"
-                      disabled={caseItem.participationFormat === 'individual'} checked={applicantType === 'team'}
-                      onChange={() => {setApplicantType('team');setSubmitError('')}}
+                      disabled={caseItem.participationFormat === 'individual'}
+                      checked={applicantType === 'team'}
+                      onChange={() => {
+                        setApplicantType('team')
+                        setSubmitError('')
+                      }}
                     />
                     В составе команды
                   </label>
@@ -166,101 +259,166 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({ caseItem, is
                     className="select"
                     aria-describedby="application-team-size"
                     value={selectedTeamId}
-                    onChange={(e) => {setSelectedTeamId(e.target.value);setSubmitError('')}}
+                    onChange={(e) => {
+                      setSelectedTeamId(e.target.value)
+                      setSubmitError('')
+                    }}
                     required
                   >
                     <option value="">Выберите команду</option>
                     {userTeams.length > 0 ? (
                       userTeams.map((team) => (
-                        <option key={team.id} value={team.id} disabled={!teamFits(team.members.length)}>
-                          {team.name} ({team.members.length} чел.){!teamFits(team.members.length) && ' · не подходит по размеру'}
+                        <option
+                          key={team.id}
+                          value={team.id}
+                          disabled={!teamFits(team.members.length)}
+                        >
+                          {team.name} ({team.members.length} чел.)
+                          {!teamFits(team.members.length) && ' · не подходит по размеру'}
                         </option>
                       ))
                     ) : (
-                      <option value="" disabled>Сначала создайте команду</option>
+                      <option value="" disabled>
+                        Сначала создайте команду
+                      </option>
                     )}
                   </select>
-                  <p id="application-team-size" className="form-hint">Размер команды — {teamSizeText} чел.{!userTeams.some(team=>teamFits(team.members.length))&&' Подходящих команд пока нет.'}</p>
+                  <p id="application-team-size" className="form-hint">
+                    Размер команды — {teamSizeText} чел.
+                    {!userTeams.some((team) => teamFits(team.members.length)) &&
+                      ' Подходящих команд пока нет.'}
+                  </p>
                 </div>
               )}
 
-              {!registration && <>
-              {/* Cover Letter */}
-              <div className="form-group">
-                <label>Сопроводительный текст / Мотивационное письмо:*</label>
-                <textarea
-                  className="textarea"
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  placeholder="Опишите, почему вы хотите принять участие и какой у вас опыт в данном стеке..."
-                  required
-                />
-              </div>
+              {!registration && (
+                <>
+                  {/* Cover Letter */}
+                  <div className="form-group">
+                    <label>Сопроводительный текст / Мотивационное письмо:*</label>
+                    <textarea
+                      className="textarea"
+                      value={coverLetter}
+                      onChange={(e) => setCoverLetter(e.target.value)}
+                      placeholder="Опишите, почему вы хотите принять участие и какой у вас опыт в данном стеке..."
+                      required
+                    />
+                  </div>
 
-              {/* Links */}
-              <div className="application-links">
-                <div className="form-group">
-                  <label htmlFor="application-resume">Резюме (CV), до 2 МБ</label><input id="application-resume" type="file" className="input" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="application-github">Ссылка на GitHub / GitLab:*</label>
-                  <input
-                    id="application-github" type="url"
-                    className="input"
-                    value={githubUrl}
-                    onChange={(e) => setGithubUrl(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+                  {/* Links */}
+                  <div className="application-links">
+                    <div className="form-group">
+                      <label htmlFor="application-resume">Резюме (CV), до 2 МБ</label>
+                      <input
+                        id="application-resume"
+                        type="file"
+                        className="input"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => setResume(e.target.files?.[0] || null)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="application-github">Ссылка на GitHub / GitLab:*</label>
+                      <input
+                        id="application-github"
+                        type="url"
+                        className="input"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              {savedResume&&!resume&&<label className="form-hint"><input type="checkbox" checked={attachSavedResume} onChange={event=>setAttachSavedResume(event.target.checked)}/> Приложить резюме из профиля ({savedResume.name})</label>}
-              {/* IP Rights Notice */}
-              <div
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  padding: '14px',
-                  marginTop: '16px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <ShieldAlert size={16} color="#1b5e91" />
-                  <strong style={{ fontSize: '12px', color: '#0f2b48' }}>
-                    Права на результаты интеллектуальной деятельности (РИД):
-                  </strong>
-                </div>
-                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#475569' }}>
-                  {getIpRightsText(caseItem.ipRights)} Передача исключительных прав не осуществляется автоматически фактом регистрации в Системе.
+                  {savedResume && !resume && (
+                    <label className="form-hint">
+                      <input
+                        type="checkbox"
+                        checked={attachSavedResume}
+                        onChange={(event) => setAttachSavedResume(event.target.checked)}
+                      />{' '}
+                      Приложить резюме из профиля ({savedResume.name})
+                    </label>
+                  )}
+                  {/* IP Rights Notice */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '14px',
+                      marginTop: '16px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <ShieldAlert size={16} color="#1b5e91" />
+                      <strong style={{ fontSize: '12px', color: '#0f2b48' }}>
+                        Права на результаты интеллектуальной деятельности (РИД):
+                      </strong>
+                    </div>
+                    <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#475569' }}>
+                      {getIpRightsText(caseItem.ipRights)} Передача исключительных прав не
+                      осуществляется автоматически фактом регистрации в Системе.
+                    </p>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#1e293b',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={ipRightsAgreed}
+                        onChange={(e) => setIpRightsAgreed(e.target.checked)}
+                        required
+                      />
+                      Я ознакомлен и согласен с условиями прав на результаты интеллектуальной
+                      деятельности
+                    </label>
+                  </div>
+                </>
+              )}
+              {registration && (
+                <p>
+                  {instantRegistration
+                    ? 'После подтверждения регистрация появится в активных проектах. Для команды требуется согласие всех участников.'
+                    : 'Мероприятие появится в активных проектах после одобрения заявки организатором.'}
                 </p>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>
-                  <input
-                    type="checkbox"
-                    checked={ipRightsAgreed}
-                    onChange={(e) => setIpRightsAgreed(e.target.checked)}
-                    required
-                  />
-                  Я ознакомлен и согласен с условиями прав на результаты интеллектуальной деятельности
-                </label>
-              </div>
-              </>}
-              {registration && <p>{instantRegistration?'После подтверждения регистрация появится в активных проектах. Для команды требуется согласие всех участников.':'Мероприятие появится в активных проектах после одобрения заявки организатором.'}</p>}
+              )}
             </div>
 
             <div className="modal-dialog__footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Отмена
               </button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting || invalidTeam || (!registration && !ipRightsAgreed)}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting || invalidTeam || (!registration && !ipRightsAgreed)}
+              >
                 <Send size={15} />
-                {isSubmitting ? 'Отправка...' : instantRegistration ? 'Зарегистрироваться' : 'Отправить заявку'}
+                {isSubmitting
+                  ? 'Отправка...'
+                  : instantRegistration
+                    ? 'Зарегистрироваться'
+                    : 'Отправить заявку'}
               </button>
             </div>
           </form>
         )}
       </div>
-
     </div>
   )
 }

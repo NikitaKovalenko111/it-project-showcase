@@ -20,7 +20,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Магасумов Алмаз Ильшатович',
     email: '257576@stud.uust.ru',
     role: 'student',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80',
     phone: '+7 (917) 456-78-90',
     createdAt: '2025-09-01T10:00:00Z',
     studentProfile: {
@@ -31,7 +32,12 @@ export const INITIAL_USERS: User[] = [
       course: 2,
       group: 'ТОП-204Б(73)',
       bio: 'Студент 2 курса ИИМР УУНиТ. Разработка frontend/fullstack веб-приложений, алгоритмы, проектная деятельность.',
-      interests: ['Веб-разработка', 'Проектная деятельность', 'Машинное обучение', 'Информационные системы'],
+      interests: [
+        'Веб-разработка',
+        'Проектная деятельность',
+        'Машинное обучение',
+        'Информационные системы',
+      ],
       skills: ['React', 'TypeScript', 'Redux', 'Python', 'FastAPI', 'PostgreSQL', 'Docker', 'Git'],
       techStack: ['React', 'TypeScript', 'Redux', 'Python', 'PostgreSQL'],
       githubUrl: 'https://github.com/almaz-magasumov',
@@ -48,7 +54,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Роман Семёнов',
     email: 'semenov@bashnefteavtomatika.ru',
     role: 'company',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     phone: '+7 (347) 279-88-11',
     createdAt: '2025-08-15T09:00:00Z',
     companyProfile: {
@@ -63,7 +70,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Елена Ахметова',
     email: 'akhmetova.ea@uust.ru',
     role: 'curator',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     phone: '+7 (347) 229-96-00',
     createdAt: '2025-08-01T08:00:00Z',
   },
@@ -73,7 +81,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Наиль Хисамов',
     email: 'admin.showcase@uust.ru',
     role: 'admin',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     phone: '+7 (347) 229-97-00',
     createdAt: '2025-07-01T08:00:00Z',
   },
@@ -83,7 +92,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Мария Васильева',
     email: 'vasilieva.m@uust.ru',
     role: 'student',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     phone: '+7 (927) 333-22-11',
     createdAt: '2025-09-02T11:00:00Z',
     studentProfile: {
@@ -111,7 +121,8 @@ export const INITIAL_USERS: User[] = [
     fullName: 'Артур Каримов',
     email: 'karimov.artur@uust.ru',
     role: 'student',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    avatar:
+      'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
     phone: '+7 (937) 888-77-66',
     createdAt: '2025-09-03T12:00:00Z',
     studentProfile: {
@@ -140,7 +151,8 @@ export const INITIAL_COMPANIES: Company[] = [
     name: 'ООО «БашНефтеАвтоматика»',
     shortName: 'БашНефтеАвтоматика',
     logo: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&auto=format&fit=crop&q=80',
-    description: 'Ведущий системный интегратор и разработчик решений для промышленной автоматизации, мониторинга трубопроводов и предиктивной аналитики оборудования в ТЭК Республики Башкортостан.',
+    description:
+      'Ведущий системный интегратор и разработчик решений для промышленной автоматизации, мониторинга трубопроводов и предиктивной аналитики оборудования в ТЭК Республики Башкортостан.',
     industry: 'Промышленная автоматизация и ТЭК',
     website: 'https://bashnefteavtomatika.ru',
     email: 'contact@bashnefteavtomatika.ru',
@@ -158,7 +170,8 @@ export const INITIAL_COMPANIES: Company[] = [
     name: 'ИТ-Холдинг «УфаСофт Инновации»',
     shortName: 'УфаСофт',
     logo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80',
-    description: 'Разработка корпоративных порталов, систем электронного документооборота и мобильных приложений для государственного и банковского сектора.',
+    description:
+      'Разработка корпоративных порталов, систем электронного документооборота и мобильных приложений для государственного и банковского сектора.',
     industry: 'FinTech & GovTech',
     website: 'https://ufasoft-tech.ru',
     email: 'hr@ufasoft-tech.ru',
@@ -176,7 +189,8 @@ export const INITIAL_COMPANIES: Company[] = [
     name: 'ООО «КиберЛаб Башкортостан»',
     shortName: 'КиберЛаб',
     logo: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=100&auto=format&fit=crop&q=80',
-    description: 'Лаборатория кибербезопасности, пентестинга и мониторинга инцидентов информационной безопасности.',
+    description:
+      'Лаборатория кибербезопасности, пентестинга и мониторинга инцидентов информационной безопасности.',
     industry: 'Информационная безопасность',
     website: 'https://cyberlab-rb.ru',
     email: 'security@cyberlab-rb.ru',
@@ -194,7 +208,8 @@ export const INITIAL_COMPANIES: Company[] = [
     name: 'АО «Уфа-Роботикс»',
     shortName: 'Уфа-Роботикс',
     logo: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&auto=format&fit=crop&q=80',
-    description: 'Разработка беспилотных логистических тележек, манипуляторов и систем машинного зрения для сборочных цехов.',
+    description:
+      'Разработка беспилотных логистических тележек, манипуляторов и систем машинного зрения для сборочных цехов.',
     industry: 'Робототехника и сенсорика',
     website: 'https://ufa-robotics.org',
     email: 'lab@ufa-robotics.org',
@@ -215,8 +230,10 @@ export const INITIAL_CASES: CaseProject[] = [
     title: 'Предиктивная модель вибромониторинга компрессорных агрегатов НПЗ',
     companyId: 'comp_1',
     companyName: 'ООО «БашНефтеАвтоматика»',
-    companyLogo: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&auto=format&fit=crop&q=80',
-    shortDescription: 'Разработка веб-сервиса и нейросетевого модуля обнаружения скрытых аномалий в телеметрии вибрационных датчиков промышленных компрессоров до наступления аварийной остановки.',
+    companyLogo:
+      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&auto=format&fit=crop&q=80',
+    shortDescription:
+      'Разработка веб-сервиса и нейросетевого модуля обнаружения скрытых аномалий в телеметрии вибрационных датчиков промышленных компрессоров до наступления аварийной остановки.',
     fullDescription: `
 ### Цель проекта
 Создать систему раннего обнаружения предаварийных состояний роторного оборудования на основе обработки потоков временных рядов (виброускорение, виброскорость, температура подшипников).
@@ -236,19 +253,48 @@ export const INITIAL_CASES: CaseProject[] = [
     complexity: 'Высокий',
     participationFormat: 'team',
     teamSize: { min: 2, max: 4 },
-    requiredCompetencies: ['Python', 'Data Science', 'Machine Learning', 'FastAPI', 'React', 'Docker'],
-    recommendedTech: ['Python 3.11', 'PyTorch', 'FastAPI', 'React', 'TypeScript', 'Docker', 'PostgreSQL'],
+    requiredCompetencies: [
+      'Python',
+      'Data Science',
+      'Machine Learning',
+      'FastAPI',
+      'React',
+      'Docker',
+    ],
+    recommendedTech: [
+      'Python 3.11',
+      'PyTorch',
+      'FastAPI',
+      'React',
+      'TypeScript',
+      'Docker',
+      'PostgreSQL',
+    ],
     deadlineDate: '2026-11-20',
     duration: '2.5 месяца',
     workFormat: 'дистанционный',
-    resultRequirements: 'Рабочий репозиторий с исходным кодом, Dockerfile, Swagger-документация, отчет об оценке качества модели и демонстрационный стенд.',
-    evaluationOrder: 'Экспертная комиссия инженеров-диагностов компании и куратора кафедры УУНиТ. Защита в формате демонстрации.',
+    resultRequirements:
+      'Рабочий репозиторий с исходным кодом, Dockerfile, Swagger-документация, отчет об оценке качества модели и демонстрационный стенд.',
+    evaluationOrder:
+      'Экспертная комиссия инженеров-диагностов компании и куратора кафедры УУНиТ. Защита в формате демонстрации.',
     rewardType: 'contest',
     prizeFund: 150000,
     prizePlaces: [
-      { place: 1, reward: '80 000 руб. + оффер на оплачиваемую стажировку', criteria: 'Точность детекции > 90%, полное соответствие ТЗ, чистый код' },
-      { place: 2, reward: '45 000 руб. + стажировка в R&D', criteria: 'Точность детекции > 85%, рабочий веб-интерфейс' },
-      { place: 3, reward: '25 000 руб. + памятные подарки', criteria: 'Корректный baseline и хорошая визуализация' },
+      {
+        place: 1,
+        reward: '80 000 руб. + оффер на оплачиваемую стажировку',
+        criteria: 'Точность детекции > 90%, полное соответствие ТЗ, чистый код',
+      },
+      {
+        place: 2,
+        reward: '45 000 руб. + стажировка в R&D',
+        criteria: 'Точность детекции > 85%, рабочий веб-интерфейс',
+      },
+      {
+        place: 3,
+        reward: '25 000 руб. + памятные подарки',
+        criteria: 'Корректный baseline и хорошая визуализация',
+      },
     ],
     paymentStatus: 'confirmed',
     status: 'in_progress',
@@ -268,8 +314,10 @@ export const INITIAL_CASES: CaseProject[] = [
     title: 'Мобильное приложение цифрового кампуса УУНиТ с расписанием и навигацией',
     companyId: 'comp_2',
     companyName: 'ИТ-Холдинг «УфаСофт Инновации»',
-    companyLogo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80',
-    shortDescription: 'Создание кроссплатформенного приложения для студентов и преподавателей: интерактивная карта корпусов межвузовского кампуса в Уфе, офлайн-расписание, пуш-уведомления об изменениях пар.',
+    companyLogo:
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80',
+    shortDescription:
+      'Создание кроссплатформенного приложения для студентов и преподавателей: интерактивная карта корпусов межвузовского кампуса в Уфе, офлайн-расписание, пуш-уведомления об изменениях пар.',
     fullDescription: `
 ### Описание задачи
 Студентам и гостям нового Межвузовского студенческого кампуса Евразийского НОЦ в Уфе требуется удобный навигатор по аудиториям, лабораториям и коворкингам, синхронизированный с учебным расписанием УУНиТ.
@@ -289,11 +337,14 @@ export const INITIAL_CASES: CaseProject[] = [
     deadlineDate: '2026-12-05',
     duration: '3 месяца',
     workFormat: 'смешанный',
-    resultRequirements: 'Исходный код на GitHub, APK файл сборки для Android / ссылка на TestFlight, Figma-прототип.',
-    evaluationOrder: 'Тестирование фокус-группой студентов и ректоратом УУНиТ. Оценка UX/UI и скорости работы.',
+    resultRequirements:
+      'Исходный код на GitHub, APK файл сборки для Android / ссылка на TestFlight, Figma-прототип.',
+    evaluationOrder:
+      'Тестирование фокус-группой студентов и ректоратом УУНиТ. Оценка UX/UI и скорости работы.',
     rewardType: 'monetary',
     rewardAmount: 90000,
-    rewardDescription: 'Денежное вознаграждение 90 000 руб. по договору ГПХ при успешной сдаче MVP.',
+    rewardDescription:
+      'Денежное вознаграждение 90 000 руб. по договору ГПХ при успешной сдаче MVP.',
     paymentStatus: 'pending',
     status: 'open',
     isConfidential: false,
@@ -308,8 +359,10 @@ export const INITIAL_CASES: CaseProject[] = [
     title: 'Автоматизированный сканер уязвимостей веб-приложений на базе OWASP Top-10',
     companyId: 'comp_3',
     companyName: 'ООО «КиберЛаб Башкортостан»',
-    companyLogo: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=100&auto=format&fit=crop&q=80',
-    shortDescription: 'Разработка модульного CLI и веб-инструмента для автоматического выявления SQL Injection, XSS, SSRF и ошибок конфигурации безопасности.',
+    companyLogo:
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=100&auto=format&fit=crop&q=80',
+    shortDescription:
+      'Разработка модульного CLI и веб-инструмента для автоматического выявления SQL Injection, XSS, SSRF и ошибок конфигурации безопасности.',
     fullDescription: `
 ### Конфиденциальный проект (Требуется NDA)
 Данный кейс содержит алгоритмы сканирования корпоративных периметров и требует подписания соглашения о неразглашении конфиденциальной информации (NDA).
@@ -329,10 +382,12 @@ export const INITIAL_CASES: CaseProject[] = [
     deadlineDate: '2026-11-30',
     duration: '2 месяца',
     workFormat: 'дистанционный',
-    resultRequirements: 'Исходный код CLI-утилиты, набор unit/integration тестов, отчет о проверке тестового стенда DVWA.',
+    resultRequirements:
+      'Исходный код CLI-утилиты, набор unit/integration тестов, отчет о проверке тестового стенда DVWA.',
     evaluationOrder: 'Проверка пентестерами КиберЛаб на закрытом полигоне.',
     rewardType: 'other',
-    rewardDescription: 'Оплачиваемая стажировка в отделе информационной безопасности КиберЛаб + сертификат участника + фирменный мерч.',
+    rewardDescription:
+      'Оплачиваемая стажировка в отделе информационной безопасности КиберЛаб + сертификат участника + фирменный мерч.',
     paymentStatus: 'not_provided',
     status: 'open',
     isConfidential: true,
@@ -347,8 +402,10 @@ export const INITIAL_CASES: CaseProject[] = [
     title: 'Система оптического распознавания дефектов лакокрасочных покрытий в реальном времени',
     companyId: 'comp_4',
     companyName: 'АО «Уфа-Роботикс»',
-    companyLogo: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&auto=format&fit=crop&q=80',
-    shortDescription: 'CV-модуль на базе YOLOv8/v11 для детекции царапин, сколов и шагрени на металлических деталях конвейера со скоростью не менее 30 FPS.',
+    companyLogo:
+      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&auto=format&fit=crop&q=80',
+    shortDescription:
+      'CV-модуль на базе YOLOv8/v11 для детекции царапин, сколов и шагрени на металлических деталях конвейера со скоростью не менее 30 FPS.',
     fullDescription: `
 ### Постановка задачи
 В процессе роботизированной покраски требуется мгновенный контроль качества деталей.
@@ -367,12 +424,17 @@ export const INITIAL_CASES: CaseProject[] = [
     deadlineDate: '2026-12-15',
     duration: '3 месяца',
     workFormat: 'очный',
-    resultRequirements: 'Модель с FPS >= 30 на видеокарте Nvidia GTX 1660 / RTX 3060, скрипты инференса, видеодемонстрация детекции на тестовом видеопотоке.',
+    resultRequirements:
+      'Модель с FPS >= 30 на видеокарте Nvidia GTX 1660 / RTX 3060, скрипты инференса, видеодемонстрация детекции на тестовом видеопотоке.',
     evaluationOrder: 'Испытания на стенде лаборатории сенсорики Уфа-Роботикс.',
     rewardType: 'contest',
     prizeFund: 120000,
     prizePlaces: [
-      { place: 1, reward: '70 000 руб. + приглашение в штат инженером-разработчиком', criteria: 'FPS > 35, mAP@0.5 > 0.82' },
+      {
+        place: 1,
+        reward: '70 000 руб. + приглашение в штат инженером-разработчиком',
+        criteria: 'FPS > 35, mAP@0.5 > 0.82',
+      },
       { place: 2, reward: '35 000 руб.', criteria: 'FPS > 25, mAP@0.5 > 0.75' },
       { place: 3, reward: '15 000 руб.', criteria: 'Рабочий прототип' },
     ],
@@ -390,8 +452,10 @@ export const INITIAL_CASES: CaseProject[] = [
     title: 'Разработка открытой дизайн-системы и UI-kit для образовательных сервисов УУНиТ',
     companyId: 'comp_2',
     companyName: 'ИТ-Холдинг «УфаСофт Инновации»',
-    companyLogo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80',
-    shortDescription: 'Образовательный проект: создание доступного UI-kit (Figma + React компоненты с поддержкой доступности WCAG 2.1 AA и темной темы).',
+    companyLogo:
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80',
+    shortDescription:
+      'Образовательный проект: создание доступного UI-kit (Figma + React компоненты с поддержкой доступности WCAG 2.1 AA и темной темы).',
     fullDescription: `
 ### Образовательный кейс
 Цель: получить практический опыт проектирования компонентных дизайн-систем корпоративного уровня в связке с ведущими UI/UX экспертами УфаСофт.
@@ -411,10 +475,13 @@ export const INITIAL_CASES: CaseProject[] = [
     deadlineDate: '2026-11-10',
     duration: '1.5 месяца',
     workFormat: 'дистанционный',
-    resultRequirements: 'Ссылка на опубликованный Storybook, npm-пакет или GitHub-репозиторий с компонентами, Figma-файл.',
-    evaluationOrder: 'Ревью ведущего фронтенд-архитектора и шеф-дизайнера компании. Включение проекта в персональное портфолио с подтверждением компании.',
+    resultRequirements:
+      'Ссылка на опубликованный Storybook, npm-пакет или GitHub-репозиторий с компонентами, Figma-файл.',
+    evaluationOrder:
+      'Ревью ведущего фронтенд-архитектора и шеф-дизайнера компании. Включение проекта в персональное портфолио с подтверждением компании.',
     rewardType: 'educational',
-    rewardDescription: 'Официальный сертификат УУНиТ и УфаСофт, рекомендательное письмо от техдиректора, приоритет при отборе на летнюю оплачиваемую стажировку.',
+    rewardDescription:
+      'Официальный сертификат УУНиТ и УфаСофт, рекомендательное письмо от техдиректора, приоритет при отборе на летнюю оплачиваемую стажировку.',
     paymentStatus: 'not_provided',
     status: 'open',
     isConfidential: false,
@@ -433,14 +500,16 @@ export const INITIAL_MILESTONES: ProjectMilestone[] = [
     stepNumber: 1,
     title: 'Анализ задачи',
     deadline: '2026-09-25',
-    description: 'Исследование структуры предоставленного датасета, формулирование гипотез, выбор метрик качества и архитектуры нейросети.',
+    description:
+      'Исследование структуры предоставленного датасета, формулирование гипотез, выбор метрик качества и архитектуры нейросети.',
     status: 'accepted',
     attachedMaterials: [
       { name: 'EDA_Report_Compressors.pdf', url: 'https://example.com/eda.pdf', size: '2.4 MB' },
       { name: 'metrics_proposal.docx', url: 'https://example.com/metrics.docx', size: '140 KB' },
     ],
     submittedAt: '2026-09-24',
-    feedback: 'Отличный разведочный анализ. Гипотезы подтверждены, можно переходить к проектированию архитектуры.',
+    feedback:
+      'Отличный разведочный анализ. Гипотезы подтверждены, можно переходить к проектированию архитектуры.',
   },
   {
     id: 'ms_2',
@@ -448,14 +517,16 @@ export const INITIAL_MILESTONES: ProjectMilestone[] = [
     stepNumber: 2,
     title: 'Проектирование',
     deadline: '2026-10-08',
-    description: 'Разработка архитектуры сервиса: схема взаимодействия компонентов, контракты REST API, диаграмма классов и структура БД.',
+    description:
+      'Разработка архитектуры сервиса: схема взаимодействия компонентов, контракты REST API, диаграмма классов и структура БД.',
     status: 'accepted',
     attachedMaterials: [
       { name: 'architecture_diagram.png', url: 'https://example.com/arch.png', size: '820 KB' },
       { name: 'openapi_spec.yaml', url: 'https://example.com/spec.yaml', size: '45 KB' },
     ],
     submittedAt: '2026-10-07',
-    feedback: 'Схема API согласована. Предусмотрите буферизацию через Redis при всплесках телеметрии.',
+    feedback:
+      'Схема API согласована. Предусмотрите буферизацию через Redis при всплесках телеметрии.',
   },
   {
     id: 'ms_3',
@@ -514,7 +585,8 @@ export const INITIAL_SUBMISSIONS: ProjectSubmission[] = [
     id: 'sub_1',
     caseId: 'case_1',
     authorName: 'NeuralKoders (Иван Петров, Артур Каримов)',
-    description: 'Реализован рабочий прототип сервиса вибромониторинга: модель автоэнкодера с точностью F1=0.91, веб-дашборд с отрисовкой временных рядов в реальном времени и Docker-окружение.',
+    description:
+      'Реализован рабочий прототип сервиса вибромониторинга: модель автоэнкодера с точностью F1=0.91, веб-дашборд с отрисовкой временных рядов в реальном времени и Docker-окружение.',
     repoUrl: 'https://github.com/ivan-petrov-uust/vibration-predictor-uust',
     presentationUrl: 'https://docs.google.com/presentation/d/vibration-uust-demo',
     videoUrl: 'https://rutube.ru/video/vibration-demo-uust',
@@ -522,7 +594,8 @@ export const INITIAL_SUBMISSIONS: ProjectSubmission[] = [
       'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&auto=format&fit=crop&q=80',
     ],
-    documentationUrl: 'https://github.com/ivan-petrov-uust/vibration-predictor-uust/blob/main/README.md',
+    documentationUrl:
+      'https://github.com/ivan-petrov-uust/vibration-predictor-uust/blob/main/README.md',
     demoUrl: 'https://vibration-demo.uust.space',
     attachedFiles: [
       { name: 'Test_Dataset_Results.xlsx', url: 'https://example.com/results.xlsx' },
@@ -540,20 +613,21 @@ export const INITIAL_EVALUATIONS: ProjectEvaluation[] = [
     companyName: 'ООО «БашНефтеАвтоматика»',
     evaluatorName: 'Роман Семёнов (Директор R&D)',
     scores: {
-      solutionCompleteness: 10,     // 1. Полнота решения
-      implementationQuality: 9,     // 2. Качество реализации
-      codeQuality: 10,              // 3. Качество программного кода
-      architecture: 9,              // 4. Архитектура
-      specCompliance: 10,           // 5. Соответствие ТЗ
-      usability: 9,                 // 6. Удобство использования
-      originality: 9,               // 7. Оригинальность
-      documentationQuality: 9,      // 8. Качество документации
-      deadlineCompliance: 10,       // 9. Соблюдение сроков
-      teamwork: 10,                 // 10. Командная работа
+      solutionCompleteness: 10, // 1. Полнота решения
+      implementationQuality: 9, // 2. Качество реализации
+      codeQuality: 10, // 3. Качество программного кода
+      architecture: 9, // 4. Архитектура
+      specCompliance: 10, // 5. Соответствие ТЗ
+      usability: 9, // 6. Удобство использования
+      originality: 9, // 7. Оригинальность
+      documentationQuality: 9, // 8. Качество документации
+      deadlineCompliance: 10, // 9. Соблюдение сроков
+      teamwork: 10, // 10. Командная работа
     },
     totalScore: 95,
     maxScore: 100,
-    feedback: 'Команда показала исключительную инженерную зрелость! Решение полностью готово к опытно-промышленным испытаниям на агрегатах НПЗ. Рекомендуем команду к присуждению 1-го места в конкурсе.',
+    feedback:
+      'Команда показала исключительную инженерную зрелость! Решение полностью готово к опытно-промышленным испытаниям на агрегатах НПЗ. Рекомендуем команду к присуждению 1-го места в конкурсе.',
     winnerPlace: 1,
     nomination: 'Лучшая промышленная применимость',
     evaluatedAt: '2026-10-15T12:00:00Z',
@@ -564,14 +638,18 @@ export const INITIAL_STUDENT_PROJECTS: StudentProject[] = [
   {
     id: 'sp_1',
     title: 'Умная система мониторинга микроклимата учебных лабораторий УУНиТ',
-    coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
+    coverImage:
+      'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
     authorId: 'usr_student_3',
     authorName: 'Артур Каримов',
     teamName: 'IoT Lab УУНиТ',
     category: 'курсовой',
-    shortDescription: 'Аппаратно-программный комплекс датчиков CO2, температуры и влажности с отображением на интерактивной карте аудиторий.',
-    fullDescription: 'Система построена на микроконтроллерах ESP32, опрашивающих датчики NDIR CO2 и передающих данные по MQTT в локальный брокер. Реализован веб-интерфейс на React с предупреждениями о духоте и рекомендациями по проветриванию.',
-    problemSolved: 'Повышение концентрации внимания студентов и соблюдение СанПиН микроклимата в лекционных залах.',
+    shortDescription:
+      'Аппаратно-программный комплекс датчиков CO2, температуры и влажности с отображением на интерактивной карте аудиторий.',
+    fullDescription:
+      'Система построена на микроконтроллерах ESP32, опрашивающих датчики NDIR CO2 и передающих данные по MQTT в локальный брокер. Реализован веб-интерфейс на React с предупреждениями о духоте и рекомендациями по проветриванию.',
+    problemSolved:
+      'Повышение концентрации внимания студентов и соблюдение СанПиН микроклимата в лекционных залах.',
     technologies: ['C++', 'ESP32', 'FreeRTOS', 'MQTT', 'React', 'Node.js', 'Grafana'],
     direction: 'IoT',
     createdAt: '2026-05-18',
@@ -588,13 +666,17 @@ export const INITIAL_STUDENT_PROJECTS: StudentProject[] = [
   {
     id: 'sp_2',
     title: 'Автоматизированный генератор тестов для Python-кода с использованием LLM',
-    coverImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80',
+    coverImage:
+      'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80',
     authorId: 'usr_student_1',
     authorName: 'Иван Петров',
     category: 'pet-проект',
-    shortDescription: 'VS Code расширение и CLI-утилита, генерирующая pytest-тесты с покрытием граничных условий на основе анализа AST.',
-    fullDescription: 'Инструмент парсит AST дерева Python-функций, строит граф потока управления и формирует запросы к локальной или облачной модели, генерируя модульные тесты с автоматической верификацией покрытия coverage.py.',
-    problemSolved: 'Сокращение времени разработчиков на написание рутинных unit-тестов с 35% до 5%.',
+    shortDescription:
+      'VS Code расширение и CLI-утилита, генерирующая pytest-тесты с покрытием граничных условий на основе анализа AST.',
+    fullDescription:
+      'Инструмент парсит AST дерева Python-функций, строит граф потока управления и формирует запросы к локальной или облачной модели, генерируя модульные тесты с автоматической верификацией покрытия coverage.py.',
+    problemSolved:
+      'Сокращение времени разработчиков на написание рутинных unit-тестов с 35% до 5%.',
     technologies: ['Python', 'AST', 'TypeScript', 'VS Code API', 'pytest', 'Ollama'],
     direction: 'Искусственный интеллект',
     createdAt: '2026-06-20',
@@ -610,14 +692,18 @@ export const INITIAL_STUDENT_PROJECTS: StudentProject[] = [
   {
     id: 'sp_3',
     title: 'Платформа менторинга и взаимного обучения студентов УУНиТ PeerStudy',
-    coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80',
+    coverImage:
+      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80',
     authorId: 'usr_student_2',
     authorName: 'Мария Васильева',
     teamName: 'PeerDesign Team',
     category: 'стартап',
-    shortDescription: 'Сервис мэтчинга студентов старших и младших курсов для подготовки к сессиям, лабораторным и хакатонам.',
-    fullDescription: 'Веб-платформа с системой бронирования слотов консультаций, рейтингом менторов и геймификацией за помощь сокурсникам.',
-    problemSolved: 'Снижение отсева первокурсников по сложным фундаментальным предметам (мат. анализ, алгоритмы).',
+    shortDescription:
+      'Сервис мэтчинга студентов старших и младших курсов для подготовки к сессиям, лабораторным и хакатонам.',
+    fullDescription:
+      'Веб-платформа с системой бронирования слотов консультаций, рейтингом менторов и геймификацией за помощь сокурсникам.',
+    problemSolved:
+      'Снижение отсева первокурсников по сложным фундаментальным предметам (мат. анализ, алгоритмы).',
     technologies: ['React', 'TypeScript', 'Tailwind', 'Node.js', 'PostgreSQL', 'WebRTC'],
     direction: 'Fullstack',
     createdAt: '2026-04-12',
@@ -646,10 +732,12 @@ export const INITIAL_APPLICATIONS: CaseApplication[] = [
     studentPhone: '+7 (917) 456-78-90',
     studentCourse: 3,
     studentInstitute: 'ИИМР УУНиТ',
-    studentAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    studentAvatar:
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     teamId: 'team_alpha',
     teamName: 'NeuralKoders',
-    coverLetter: 'Здравствуйте! Наша команда специализируется на временных рядах и алгоритмах обнаружения аномалий. Ранее мы победили на региональном хакатоне по предиктивному анализу оборудования. Готовы выполнить проект качественно и в срок.',
+    coverLetter:
+      'Здравствуйте! Наша команда специализируется на временных рядах и алгоритмах обнаружения аномалий. Ранее мы победили на региональном хакатоне по предиктивному анализу оборудования. Готовы выполнить проект качественно и в срок.',
     resumeUrl: 'https://petrov-dev.uust.space/resume.pdf',
     portfolioUrl: 'https://petrov-dev.uust.space',
     githubUrl: 'https://github.com/ivan-petrov-uust',
@@ -670,8 +758,10 @@ export const INITIAL_APPLICATIONS: CaseApplication[] = [
     studentPhone: '+7 (927) 333-22-11',
     studentCourse: 4,
     studentInstitute: 'ИИМР УУНиТ',
-    studentAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    coverLetter: 'Добрый день! Я подготовила макеты дизайн-системы кампуса в Figma и уже разрабатывала мобильный клиент PeerStudy. Хочу реализовать мобильный навигатор кампуса в качестве темы своей выпускной работы.',
+    studentAvatar:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    coverLetter:
+      'Добрый день! Я подготовила макеты дизайн-системы кампуса в Figma и уже разрабатывала мобильный клиент PeerStudy. Хочу реализовать мобильный навигатор кампуса в качестве темы своей выпускной работы.',
     resumeUrl: 'https://behance.net/masha-design',
     portfolioUrl: 'https://behance.net/masha-design',
     githubUrl: 'https://github.com/masha-vasilieva',
@@ -696,7 +786,8 @@ export const INITIAL_TEAMS: ProjectTeam[] = [
         name: 'Иван Петров',
         role: 'Team Lead / ML Engineer',
         competencies: ['Python', 'PyTorch', 'Data Science', 'FastAPI'],
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         email: 'petrov.ivan@uust.ru',
       },
       {
@@ -704,7 +795,8 @@ export const INITIAL_TEAMS: ProjectTeam[] = [
         name: 'Артур Каримов',
         role: 'Backend / IoT Engineer',
         competencies: ['Go', 'Docker', 'PostgreSQL', 'Kafka'],
-        avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+        avatar:
+          'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
         email: 'karimov.artur@uust.ru',
       },
       {
@@ -712,7 +804,8 @@ export const INITIAL_TEAMS: ProjectTeam[] = [
         name: 'Мария Васильева',
         role: 'Frontend / UI Engineer',
         competencies: ['React', 'TypeScript', 'SCSS', 'Figma'],
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+        avatar:
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
         email: 'vasilieva.m@uust.ru',
       },
     ],
@@ -726,8 +819,10 @@ export const INITIAL_COMMENTS: ProjectComment[] = [
     authorId: 'usr_curator_1',
     authorName: 'Елена Ахметова',
     authorRole: 'curator',
-    authorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    content: 'Коллеги, напоминаю о необходимости прикрепить отчет по спектральному анализу (FFT) к контрольной точке №2.',
+    authorAvatar:
+      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    content:
+      'Коллеги, напоминаю о необходимости прикрепить отчет по спектральному анализу (FFT) к контрольной точке №2.',
     createdAt: '2026-10-06T11:00:00Z',
   },
   {
@@ -736,8 +831,10 @@ export const INITIAL_COMMENTS: ProjectComment[] = [
     authorId: 'usr_student_1',
     authorName: 'Иван Петров',
     authorRole: 'student',
-    authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    content: 'Елена Александровна, отчет загружен в материалы контрольной точки! Также мы добавили интерактивный график в веб-интерфейс.',
+    authorAvatar:
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    content:
+      'Елена Александровна, отчет загружен в материалы контрольной точки! Также мы добавили интерактивный график в веб-интерфейс.',
     createdAt: '2026-10-07T09:30:00Z',
   },
   {
@@ -746,8 +843,10 @@ export const INITIAL_COMMENTS: ProjectComment[] = [
     authorId: 'usr_company_1',
     authorName: 'Роман Семёнов',
     authorRole: 'company',
-    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    content: 'Отличная динамика! Предлагаю на следующей неделе провести промежуточный созвон с нашими инженерами по диагностике.',
+    authorAvatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    content:
+      'Отличная динамика! Предлагаю на следующей неделе провести промежуточный созвон с нашими инженерами по диагностике.',
     createdAt: '2026-10-08T14:15:00Z',
   },
 ]
@@ -758,7 +857,8 @@ export const INITIAL_NOTIFICATIONS: SystemNotification[] = [
     userId: 'usr_student_1',
     type: 'prize_awarded',
     title: 'Победа в кейсе!',
-    message: 'ООО «БашНефтеАвтоматика» присудила команде NeuralKoders 1 место в кейсе предиктивного вибромониторинга!',
+    message:
+      'ООО «БашНефтеАвтоматика» присудила команде NeuralKoders 1 место в кейсе предиктивного вибромониторинга!',
     read: false,
     link: '/cases/case_1/workspace',
     createdAt: '2026-10-15T12:05:00Z',
@@ -768,7 +868,8 @@ export const INITIAL_NOTIFICATIONS: SystemNotification[] = [
     userId: 'usr_student_1',
     type: 'review_received',
     title: 'Новый отзыв компании',
-    message: 'Компания выставила 95/100 баллов и опубликовала подтверждение проекта в вашем портфолио.',
+    message:
+      'Компания выставила 95/100 баллов и опубликовала подтверждение проекта в вашем портфолио.',
     read: false,
     link: '/profile/usr_student_1',
     createdAt: '2026-10-15T12:02:00Z',
@@ -778,7 +879,8 @@ export const INITIAL_NOTIFICATIONS: SystemNotification[] = [
     userId: 'usr_student_1',
     type: 'new_case',
     title: 'Новый подходящий кейс',
-    message: 'Опубликован кейс «Система оптического распознавания дефектов», подходящий под ваш стек (PyTorch, Python).',
+    message:
+      'Опубликован кейс «Система оптического распознавания дефектов», подходящий под ваш стек (PyTorch, Python).',
     read: true,
     link: '/cases/case_4',
     createdAt: '2026-09-25T10:00:00Z',

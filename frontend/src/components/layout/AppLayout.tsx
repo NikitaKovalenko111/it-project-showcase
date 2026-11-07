@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { fetchCasesRequest, fetchCompaniesRequest, fetchApplicationsRequest, fetchStudentProjectsRequest, fetchStudentsRequest, fetchTeamsRequest } from '../../store/actions'
+import {
+  fetchCasesRequest,
+  fetchCompaniesRequest,
+  fetchApplicationsRequest,
+  fetchStudentProjectsRequest,
+  fetchStudentsRequest,
+  fetchTeamsRequest,
+} from '../../store/actions'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
@@ -15,7 +22,9 @@ export const AppLayout: React.FC = () => {
   const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false)
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.innerWidth <= 1024)
 
-  useEffect(() => { setMobileOpen(false) }, [pathname])
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     const onResize = () => {
@@ -34,13 +43,25 @@ export const AppLayout: React.FC = () => {
     const sidebar = document.getElementById('main-sidebar')
     sidebar?.querySelector<HTMLButtonElement>('.sidebar__close')?.focus()
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setMobileOpen(false); return }
+      if (event.key === 'Escape') {
+        setMobileOpen(false)
+        return
+      }
       if (event.key !== 'Tab') return
-      const controls = Array.from(sidebar?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input, select, textarea, [tabindex="0"]') || [])
-        .filter((element) => element.getClientRects().length > 0)
-      const first = controls[0], last = controls[controls.length - 1]
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      const controls = Array.from(
+        sidebar?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), a[href], input, select, textarea, [tabindex="0"]',
+        ) || [],
+      ).filter((element) => element.getClientRects().length > 0)
+      const first = controls[0],
+        last = controls[controls.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => {
@@ -52,7 +73,8 @@ export const AppLayout: React.FC = () => {
 
   useEffect(() => {
     if (!currentUser) return
-    if (previousUser.current && previousUser.current !== currentUser.id) navigate('/', { replace: true })
+    if (previousUser.current && previousUser.current !== currentUser.id)
+      navigate('/', { replace: true })
     previousUser.current = currentUser.id
     setMobileOpen(false)
     dispatch(fetchCompaniesRequest())
@@ -64,7 +86,10 @@ export const AppLayout: React.FC = () => {
 
   useEffect(() => {
     if (currentUser && pathname !== '/cases') dispatch(fetchCasesRequest())
-    if (currentUser && ['/', '/analytics', '/company-applications', '/favorites'].includes(pathname)) {
+    if (
+      currentUser &&
+      ['/', '/analytics', '/company-applications', '/favorites'].includes(pathname)
+    ) {
       dispatch(fetchApplicationsRequest())
     }
     if (currentUser && (pathname === '/' || pathname.startsWith('/profile/'))) {
@@ -80,7 +105,8 @@ export const AppLayout: React.FC = () => {
     }
   }
 
-  if (!currentUser) return loading ? <p role="status">Загрузка профиля...</p> : <Navigate to="/login" replace />
+  if (!currentUser)
+    return loading ? <p role="status">Загрузка профиля...</p> : <Navigate to="/login" replace />
   return (
     <div className="app-shell">
       <Sidebar
@@ -94,9 +120,14 @@ export const AppLayout: React.FC = () => {
       />
 
       <div className={`workspace-wrapper ${isCollapsedDesktop ? 'sidebar-collapsed' : ''}`}>
-        <Topbar onToggleSidebar={handleToggleSidebar} sidebarExpanded={isMobileViewport ? mobileOpen : !isCollapsedDesktop} />
+        <Topbar
+          onToggleSidebar={handleToggleSidebar}
+          sidebarExpanded={isMobileViewport ? mobileOpen : !isCollapsedDesktop}
+        />
         <main className="main-content">
-          <React.Fragment key={currentUser.id}><Outlet /></React.Fragment>
+          <React.Fragment key={currentUser.id}>
+            <Outlet />
+          </React.Fragment>
         </main>
       </div>
     </div>

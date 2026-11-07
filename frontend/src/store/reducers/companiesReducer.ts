@@ -32,9 +32,13 @@ export const companiesReducer = (state = initialState, action: any): CompaniesSt
       return {
         ...state,
         loading: false,
-        companiesList: state.companiesList.map((c) => (c.id === action.payload.company.id ? action.payload.company : c)),
+        companiesList: state.companiesList.map((c) =>
+          c.id === action.payload.company.id ? action.payload.company : c,
+        ),
         activeCompany:
-          state.activeCompany?.id === action.payload.company.id ? action.payload.company : state.activeCompany,
+          state.activeCompany?.id === action.payload.company.id
+            ? action.payload.company
+            : state.activeCompany,
       }
 
     case types.FETCH_COMPANIES_FAILURE:

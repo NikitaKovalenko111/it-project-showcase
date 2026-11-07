@@ -52,17 +52,29 @@ export const studentProjectsReducer = (state = initialState, action: any): Stude
       }
 
     case types.LIKE_STUDENT_PROJECT_REQUEST:
-      return {...state,error:null,pendingLikes:[...new Set([...state.pendingLikes,action.payload.id])]}
+      return {
+        ...state,
+        error: null,
+        pendingLikes: [...new Set([...state.pendingLikes, action.payload.id])],
+      }
     case types.LIKE_STUDENT_PROJECT_FAILURE:
-      return {...state,pendingLikes:state.pendingLikes.filter(id=>id!==action.payload.id),error:action.payload.error}
+      return {
+        ...state,
+        pendingLikes: state.pendingLikes.filter((id) => id !== action.payload.id),
+        error: action.payload.error,
+      }
     case types.UPDATE_STUDENT_PROJECT_SUCCESS:
     case types.LIKE_STUDENT_PROJECT_SUCCESS:
       return {
         ...state,
-        pendingLikes:state.pendingLikes.filter(id=>id!==action.payload.project.id),
-        projectsList: state.projectsList.map((p) => (p.id === action.payload.project.id ? action.payload.project : p)),
+        pendingLikes: state.pendingLikes.filter((id) => id !== action.payload.project.id),
+        projectsList: state.projectsList.map((p) =>
+          p.id === action.payload.project.id ? action.payload.project : p,
+        ),
         activeProject:
-          state.activeProject?.id === action.payload.project.id ? action.payload.project : state.activeProject,
+          state.activeProject?.id === action.payload.project.id
+            ? action.payload.project
+            : state.activeProject,
       }
 
     case types.SET_STUDENT_PROJECT_FILTERS:

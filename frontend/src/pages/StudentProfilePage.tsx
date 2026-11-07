@@ -1,4 +1,4 @@
-import {ResumeUpload} from '../components/ResumeUpload'
+import { ResumeUpload } from '../components/ResumeUpload'
 import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
 import type { User as ProfileUser } from '../types/models'
@@ -46,7 +46,7 @@ const demoProfileLinks = new Set([
   'https://behance.net/masha-design',
   'https://github.com/artur-karimov',
 ])
-const editableProfileLink = (url?: string) => url && !demoProfileLinks.has(url) ? url : ''
+const editableProfileLink = (url?: string) => (url && !demoProfileLinks.has(url) ? url : '')
 
 export const StudentProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -59,10 +59,29 @@ export const StudentProfilePage: React.FC = () => {
 
   // Resolve only the requested student; never substitute another person's profile.
   const targetId = id === 'me' ? currentUser?.id : id
-  const [remoteProfile,setRemoteProfile]=useState<ProfileUser>()
-  const [profileError,setProfileError]=useState('')
-  useEffect(()=>{if(apiRuntime.mode!=='live'||!targetId)return;let active=true;setProfileError('');apiClient.getStudentById(targetId).then(u=>{if(active)setRemoteProfile(u)}).catch(e=>{if(active)setProfileError(e.message)});return()=>{active=false}},[targetId])
-  const targetUser = (remoteProfile?.id===targetId?remoteProfile:undefined) || [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find((u) => u.id === targetId)
+  const [remoteProfile, setRemoteProfile] = useState<ProfileUser>()
+  const [profileError, setProfileError] = useState('')
+  useEffect(() => {
+    if (apiRuntime.mode !== 'live' || !targetId) return
+    let active = true
+    setProfileError('')
+    apiClient
+      .getStudentById(targetId)
+      .then((u) => {
+        if (active) setRemoteProfile(u)
+      })
+      .catch((e) => {
+        if (active) setProfileError(e.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [targetId])
+  const targetUser =
+    (remoteProfile?.id === targetId ? remoteProfile : undefined) ||
+    [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find(
+      (u) => u.id === targetId,
+    )
   const isOwnProfile = currentUser?.id === targetUser?.id
   const student = targetUser?.studentProfile
 
@@ -70,8 +89,19 @@ export const StudentProfilePage: React.FC = () => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
 
   // Edit fields
-  const [educationLevel, setEducationLevel] = useState<EducationLevel | ''>(student?.educationLevel || '')
-  const [identity,setIdentity]=useState({fullName:'',email:'',phone:'',institute:'',fieldOfStudy:'',educationalProgram:'',course:1,group:''})
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | ''>(
+    student?.educationLevel || '',
+  )
+  const [identity, setIdentity] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    institute: '',
+    fieldOfStudy: '',
+    educationalProgram: '',
+    course: 1,
+    group: '',
+  })
   const [bio, setBio] = useState(student?.bio || '')
   const [skills, setSkills] = useState(student?.skills.join(', ') || '')
   const [techStack, setTechStack] = useState(student?.techStack.join(', ') || '')
@@ -84,14 +114,26 @@ export const StudentProfilePage: React.FC = () => {
 
     const updatedUser = {
       ...targetUser,
-      fullName:identity.fullName,email:identity.email,
+      fullName: identity.fullName,
+      email: identity.email,
       studentProfile: {
         ...targetUser.studentProfile!,
-        phone:identity.phone,institute:identity.institute,fieldOfStudy:identity.fieldOfStudy,educationalProgram:identity.educationalProgram,course:identity.course,group:identity.group,
+        phone: identity.phone,
+        institute: identity.institute,
+        fieldOfStudy: identity.fieldOfStudy,
+        educationalProgram: identity.educationalProgram,
+        course: identity.course,
+        group: identity.group,
         bio,
         educationLevel: educationLevel || undefined,
-        skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
-        techStack: techStack.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: skills
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        techStack: techStack
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
         githubUrl: githubUrl.trim(),
         portfolioUrl: portfolioUrl.trim(),
       },
@@ -102,8 +144,16 @@ export const StudentProfilePage: React.FC = () => {
 
   useEffect(() => {
     setIsEditing(false)
-    setIdentity({fullName:targetUser?.fullName || '',email:targetUser?.email || '',phone:student?.phone || '',institute:student?.institute || '',
-      fieldOfStudy:student?.fieldOfStudy || '',educationalProgram:student?.educationalProgram || '',course:student?.course || 1,group:student?.group || ''})
+    setIdentity({
+      fullName: targetUser?.fullName || '',
+      email: targetUser?.email || '',
+      phone: student?.phone || '',
+      institute: student?.institute || '',
+      fieldOfStudy: student?.fieldOfStudy || '',
+      educationalProgram: student?.educationalProgram || '',
+      course: student?.course || 1,
+      group: student?.group || '',
+    })
     setEducationLevel(student?.educationLevel || '')
     setBio(student?.bio || '')
     setSkills(student?.skills.join(', ') || '')
@@ -112,24 +162,52 @@ export const StudentProfilePage: React.FC = () => {
     setPortfolioUrl(editableProfileLink(student?.portfolioUrl))
   }, [targetId, student])
 
-  const [achievements,setAchievements]=useState<{caseId:string;score:number;maxScore:number}[]>([])
-  const [achievementError,setAchievementError]=useState('')
-  const completedKey=casesList.filter(c=>c.status==='completed').map(c=>c.id).join(',')
-  useEffect(()=>{let active=true;setAchievements([]);setAchievementError('');if(targetId)communityApi.getStudentAchievements(targetId).then(items=>{if(active)setAchievements(items)}).catch(e=>{if(active)setAchievementError(e.message)});return()=>{active=false}},[targetId,completedKey])
-  if (!targetUser?.studentProfile) return <div className="card" style={{ padding: 24 }}>{profileError || 'Профиль студента не найден или загружается.'}</div>
+  const [achievements, setAchievements] = useState<
+    { caseId: string; score: number; maxScore: number }[]
+  >([])
+  const [achievementError, setAchievementError] = useState('')
+  const completedKey = casesList
+    .filter((c) => c.status === 'completed')
+    .map((c) => c.id)
+    .join(',')
+  useEffect(() => {
+    let active = true
+    setAchievements([])
+    setAchievementError('')
+    if (targetId)
+      communityApi
+        .getStudentAchievements(targetId)
+        .then((items) => {
+          if (active) setAchievements(items)
+        })
+        .catch((e) => {
+          if (active) setAchievementError(e.message)
+        })
+    return () => {
+      active = false
+    }
+  }, [targetId, completedKey])
+  if (!targetUser?.studentProfile)
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        {profileError || 'Профиль студента не найден или загружается.'}
+      </div>
+    )
 
   // Verified cases where student participated and received review
-  const verifiedCases = casesList.filter(
-    (c) => achievements.some(a=>a.caseId===c.id)
-  )
+  const verifiedCases = casesList.filter((c) => achievements.some((a) => a.caseId === c.id))
 
   // Student's own projects
   const ownProjects = projectsList.filter((p) => p.authorId === targetUser.id)
 
   return (
     <div>
-      {error && <p role="alert">{error}</p>}{achievementError && <p role="alert">{achievementError}</p>}
-      <div className="page-actions page-actions--top"><AdminUserActions key={targetUser.id} user={targetUser}/>{!isOwnProfile&&<ReportButton targetType="user" targetId={targetUser.id}/>}</div>
+      {error && <p role="alert">{error}</p>}
+      {achievementError && <p role="alert">{achievementError}</p>}
+      <div className="page-actions page-actions--top">
+        <AdminUserActions key={targetUser.id} user={targetUser} />
+        {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
+      </div>
       {/* Profile Header Banner */}
       <div
         className="card"
@@ -141,7 +219,16 @@ export const StudentProfilePage: React.FC = () => {
           marginBottom: '24px',
         }}
       >
-        <div className="profile-banner-body" style={{ padding: '32px 36px', display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+        <div
+          className="profile-banner-body"
+          style={{
+            padding: '32px 36px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '28px',
+            flexWrap: 'wrap',
+          }}
+        >
           <img
             src={
               targetUser.avatar ||
@@ -159,7 +246,9 @@ export const StudentProfilePage: React.FC = () => {
           />
 
           <div style={{ flex: 1, minWidth: 'min(280px, 100%)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}
+            >
               <span
                 style={{
                   background: 'rgba(38, 158, 184, 0.25)',
@@ -174,17 +263,29 @@ export const StudentProfilePage: React.FC = () => {
               >
                 Подтверждённое портфолио
               </span>
-              <span style={{ fontSize: '12px', color: '#93c5fd' }}>Курс {student?.course || 3}</span>
+              <span style={{ fontSize: '12px', color: '#93c5fd' }}>
+                Курс {student?.course || 3}
+              </span>
             </div>
 
             <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 6px', color: '#fff' }}>
               {targetUser.fullName}
             </h1>
 
-            <div style={{ fontSize: '13px', color: '#b0c6dd', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div
+              style={{
+                fontSize: '13px',
+                color: '#b0c6dd',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              }}
+            >
               <div>{student?.institute || 'Институт информатики, математики и робототехники'}</div>
               <div>
-                Направление: <strong>{student?.fieldOfStudy || '09.03.04 Программная инженерия'}</strong> (Группа {student?.group || 'ПИ-301Б'})
+                Направление:{' '}
+                <strong>{student?.fieldOfStudy || '09.03.04 Программная инженерия'}</strong> (Группа{' '}
+                {student?.group || 'ПИ-301Б'})
               </div>
             </div>
           </div>
@@ -199,7 +300,16 @@ export const StudentProfilePage: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#f59e0b', marginBottom: '2px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                color: '#f59e0b',
+                marginBottom: '2px',
+              }}
+            >
               <Star size={18} fill="#f59e0b" />
               <strong style={{ fontSize: '24px', color: '#fff' }}>{student?.rating ?? 0}</strong>
             </div>
@@ -212,11 +322,9 @@ export const StudentProfilePage: React.FC = () => {
           {/* Actions */}
           <div>
             {isOwnProfile ? (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                <Edit3 size={14} /> {isEditing ? 'Отменить редактирование' : 'Редактировать профиль'}
+              <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
+                <Edit3 size={14} />{' '}
+                {isEditing ? 'Отменить редактирование' : 'Редактировать профиль'}
               </button>
             ) : currentUser?.role === 'company' ? (
               <button className="btn btn-primary btn-sm" onClick={() => setInviteModalOpen(true)}>
@@ -235,18 +343,99 @@ export const StudentProfilePage: React.FC = () => {
           </div>
           <form onSubmit={handleSaveProfile}>
             <div className="card__body">
-              <ResumeUpload key={targetUser.id}/>
+              <ResumeUpload key={targetUser.id} />
               <div className="responsive-grid">
-                <label>Фамилия и имя<input className="input" required value={identity.fullName} onChange={e=>setIdentity({...identity,fullName:e.target.value})}/></label>
-                <label>Email<input className="input" type="email" required value={identity.email} onChange={e=>setIdentity({...identity,email:e.target.value})}/></label>
-                <label>Телефон<input className="input" type="tel" value={identity.phone} onChange={e=>setIdentity({...identity,phone:e.target.value})}/></label>
-                <label>Институт<input className="input" required value={identity.institute} onChange={e=>setIdentity({...identity,institute:e.target.value})}/></label>
-                <label>Направление<input className="input" required value={identity.fieldOfStudy} onChange={e=>setIdentity({...identity,fieldOfStudy:e.target.value})}/></label>
-                <label>Образовательная программа<input className="input" value={identity.educationalProgram} onChange={e=>setIdentity({...identity,educationalProgram:e.target.value})}/></label>
-                <label>Курс<input className="input" required type="number" min="1" max="8" value={identity.course} onChange={e=>setIdentity({...identity,course:+e.target.value})}/></label>
-                <label>Группа<input className="input" required value={identity.group} onChange={e=>setIdentity({...identity,group:e.target.value})}/></label>
+                <label>
+                  Фамилия и имя
+                  <input
+                    className="input"
+                    required
+                    value={identity.fullName}
+                    onChange={(e) => setIdentity({ ...identity, fullName: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    className="input"
+                    type="email"
+                    required
+                    value={identity.email}
+                    onChange={(e) => setIdentity({ ...identity, email: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Телефон
+                  <input
+                    className="input"
+                    type="tel"
+                    value={identity.phone}
+                    onChange={(e) => setIdentity({ ...identity, phone: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Институт
+                  <input
+                    className="input"
+                    required
+                    value={identity.institute}
+                    onChange={(e) => setIdentity({ ...identity, institute: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Направление
+                  <input
+                    className="input"
+                    required
+                    value={identity.fieldOfStudy}
+                    onChange={(e) => setIdentity({ ...identity, fieldOfStudy: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Образовательная программа
+                  <input
+                    className="input"
+                    value={identity.educationalProgram}
+                    onChange={(e) =>
+                      setIdentity({ ...identity, educationalProgram: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Курс
+                  <input
+                    className="input"
+                    required
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={identity.course}
+                    onChange={(e) => setIdentity({ ...identity, course: +e.target.value })}
+                  />
+                </label>
+                <label>
+                  Группа
+                  <input
+                    className="input"
+                    required
+                    value={identity.group}
+                    onChange={(e) => setIdentity({ ...identity, group: e.target.value })}
+                  />
+                </label>
               </div>
-              <label>Уровень обучения<select className="select" value={educationLevel} onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}><option value="">Не указан</option>{['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => <option key={level}>{level}</option>)}</select></label>
+              <label>
+                Уровень обучения
+                <select
+                  className="select"
+                  value={educationLevel}
+                  onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}
+                >
+                  <option value="">Не указан</option>
+                  {['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => (
+                    <option key={level}>{level}</option>
+                  ))}
+                </select>
+              </label>
               <div className="form-group">
                 <label>О себе (краткое описание):</label>
                 <textarea
@@ -257,7 +446,10 @@ export const StudentProfilePage: React.FC = () => {
                 />
               </div>
 
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div
+                className="responsive-grid"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+              >
                 <div className="form-group">
                   <label>Компетенции (через запятую):</label>
                   <input
@@ -278,13 +470,17 @@ export const StudentProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div
+                className="responsive-grid"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+              >
                 <div className="form-group">
                   <label>Ссылка на GitHub:</label>
                   <input
                     type="url"
                     className="input"
-                    pattern="https?://.*" value={githubUrl}
+                    pattern="https?://.*"
+                    value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
                   />
                 </div>
@@ -293,7 +489,8 @@ export const StudentProfilePage: React.FC = () => {
                   <input
                     type="url"
                     className="input"
-                    pattern="https?://.*" value={portfolioUrl}
+                    pattern="https?://.*"
+                    value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                   />
                 </div>
@@ -309,7 +506,10 @@ export const StudentProfilePage: React.FC = () => {
       )}
 
       {/* Grid: Left - Verified Projects & Own Projects, Right - Competencies & Contacts */}
-      <div className="responsive-detail-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div
+        className="responsive-detail-grid"
+        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}
+      >
         {/* Left Column */}
         <div>
           {/* SECTION 1: VERIFIED CASES BY COMPANIES */}
@@ -317,75 +517,110 @@ export const StudentProfilePage: React.FC = () => {
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ShieldCheck size={20} color="#16805b" />
-                <h3 style={{ margin: 0, fontSize: '16px' }}>
-                  Выполненные кейсы компаний
-                </h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Выполненные кейсы компаний</h3>
               </div>
               <span className="badge badge-verified">
                 Подтверждённых кейсов: {verifiedCases.length}
               </span>
             </div>
 
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               {verifiedCases.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
                   Пока нет подтвержденных кейсов
                 </div>
               ) : (
-                <PaginatedGrid className="paginated-stack">{verifiedCases.map((c) => (
-                  <div
-                    key={c.id}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '18px 20px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img
-                          src={c.companyLogo}
-                          alt=""
-                          style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
-                        />
-                        <strong style={{ fontSize: '13px', color: '#1e293b' }}>{c.companyName}</strong>
-                      </div>
-
-                      <span
+                <PaginatedGrid className="paginated-stack">
+                  {verifiedCases.map((c) => (
+                    <div
+                      key={c.id}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '18px 20px',
+                      }}
+                    >
+                      <div
                         style={{
-                          background: '#ecfdf5',
-                          color: '#065f46',
-                          border: '1px solid #a7f3d0',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          padding: '3px 8px',
-                          borderRadius: '6px',
-                          display: 'inline-flex',
+                          display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          justifyContent: 'space-between',
+                          marginBottom: '8px',
                         }}
                       >
-                        <CheckCircle2 size={13} color="#10b981" /> Отметка: Проект подтверждён компанией
-                      </span>
-                    </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img
+                            src={c.companyLogo}
+                            alt=""
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                            }}
+                          />
+                          <strong style={{ fontSize: '13px', color: '#1e293b' }}>
+                            {c.companyName}
+                          </strong>
+                        </div>
 
-                    <Link to={`/cases/${c.id}`}>
-                      <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f2b48' }}>{c.title}</h4>
-                    </Link>
+                        <span
+                          style={{
+                            background: '#ecfdf5',
+                            color: '#065f46',
+                            border: '1px solid #a7f3d0',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <CheckCircle2 size={13} color="#10b981" /> Отметка: Проект подтверждён
+                          компанией
+                        </span>
+                      </div>
 
-                    <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
-                      {c.shortDescription}
-                    </p>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b' }}>
-                      <span>Направление: {c.direction}</span>
-                      <Link to={`/cases/${c.id}/workspace`} className="btn btn-secondary btn-sm">
-                        Смотреть результаты решения →
+                      <Link to={`/cases/${c.id}`}>
+                        <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f2b48' }}>
+                          {c.title}
+                        </h4>
                       </Link>
+
+                      <p
+                        style={{
+                          margin: '0 0 12px',
+                          fontSize: '12px',
+                          color: '#475569',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {c.shortDescription}
+                      </p>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '11px',
+                          color: '#64748b',
+                        }}
+                      >
+                        <span>Направление: {c.direction}</span>
+                        <Link to={`/cases/${c.id}/workspace`} className="btn btn-secondary btn-sm">
+                          Смотреть результаты решения →
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                ))}</PaginatedGrid>
+                  ))}
+                </PaginatedGrid>
               )}
             </div>
           </div>
@@ -395,44 +630,63 @@ export const StudentProfilePage: React.FC = () => {
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FolderGit2 size={20} color="#1b5e91" />
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Собственные проекты студента ({ownProjects.length})</h3>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                  Собственные проекты студента ({ownProjects.length})
+                </h3>
               </div>
             </div>
 
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
               {ownProjects.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
                   Нет опубликованных студенческих проектов
                 </div>
               ) : (
-                <PaginatedGrid className="paginated-stack">{ownProjects.map((p) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      display: 'flex',
-                      gap: '16px',
-                      padding: '14px',
-                      background: '#f8fafc',
-                      borderRadius: '8px',
-                      border: '1px solid #e2e8f0',
-                    }}
-                  >
-                    <img
-                      src={p.coverImage}
-                      alt=""
-                      style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <span className="badge badge-direction" style={{ fontSize: '10px', marginBottom: '4px' }}>
-                        {p.category}
-                      </span>
-                      <Link to={`/student-projects/${p.id}`}>
-                        <h4 style={{ margin: '0 0 4px', fontSize: '14px', color: '#0f2b48' }}>{p.title}</h4>
-                      </Link>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{p.shortDescription}</p>
+                <PaginatedGrid className="paginated-stack">
+                  {ownProjects.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: 'flex',
+                        gap: '16px',
+                        padding: '14px',
+                        background: '#f8fafc',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0',
+                      }}
+                    >
+                      <img
+                        src={p.coverImage}
+                        alt=""
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: '8px',
+                          objectFit: 'cover',
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <span
+                          className="badge badge-direction"
+                          style={{ fontSize: '10px', marginBottom: '4px' }}
+                        >
+                          {p.category}
+                        </span>
+                        <Link to={`/student-projects/${p.id}`}>
+                          <h4 style={{ margin: '0 0 4px', fontSize: '14px', color: '#0f2b48' }}>
+                            {p.title}
+                          </h4>
+                        </Link>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                          {p.shortDescription}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}</PaginatedGrid>
+                  ))}
+                </PaginatedGrid>
               )}
             </div>
           </div>
@@ -446,12 +700,22 @@ export const StudentProfilePage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '15px' }}>О себе и интересы</h3>
             </div>
             <div className="card__body">
-              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+              <p
+                style={{ margin: '0 0 16px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}
+              >
                 {student?.bio || 'Студент кафедры программной инженерии.'}
               </p>
 
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
                   Профессиональные интересы:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -482,7 +746,15 @@ export const StudentProfilePage: React.FC = () => {
             </div>
             <div className="card__body">
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
                   Ключевые компетенции:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -505,7 +777,15 @@ export const StudentProfilePage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
                   Технологический стек:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -536,37 +816,59 @@ export const StudentProfilePage: React.FC = () => {
             <div className="card__header">
               <h3 style={{ margin: 0, fontSize: '15px' }}>Контакты и профили</h3>
             </div>
-            <div className="card__body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {editableProfileLink(student?.githubUrl) && /^https?:\/\//i.test(student.githubUrl) && (
-                <a
-                  href={student.githubUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-secondary btn-sm"
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  <Github size={15} /> GitHub профиль
-                </a>
-              )}
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+            >
+              {editableProfileLink(student?.githubUrl) &&
+                /^https?:\/\//i.test(student.githubUrl) && (
+                  <a
+                    href={student.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Github size={15} /> GitHub профиль
+                  </a>
+                )}
 
-              {editableProfileLink(student?.portfolioUrl) && /^https?:\/\//i.test(student.portfolioUrl) && (
-                <a
-                  href={student.portfolioUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-secondary btn-sm"
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  <Globe size={15} /> Внешнее веб-портфолио
-                </a>
-              )}
+              {editableProfileLink(student?.portfolioUrl) &&
+                /^https?:\/\//i.test(student.portfolioUrl) && (
+                  <a
+                    href={student.portfolioUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Globe size={15} /> Внешнее веб-портфолио
+                  </a>
+                )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#475569', marginTop: '4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#475569',
+                  marginTop: '4px',
+                }}
+              >
                 <Mail size={14} color="#64748b" /> {targetUser.email}
               </div>
 
               {targetUser.phone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#475569' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    color: '#475569',
+                  }}
+                >
                   <Phone size={14} color="#64748b" /> {targetUser.phone}
                 </div>
               )}
@@ -574,8 +876,6 @@ export const StudentProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-
 
       {/* Modal for inviting student */}
       <InviteStudentModal

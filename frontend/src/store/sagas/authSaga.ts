@@ -39,7 +39,9 @@ function* handleFetchCurrentUser() {
     yield put(actions.fetchCurrentUserSuccess(user))
     yield put(actions.fetchNotificationsRequest(user.id))
   } catch (error: any) {
-    yield put(actions.fetchCurrentUserFailure(error.message || 'Не удалось получить текущего пользователя'))
+    yield put(
+      actions.fetchCurrentUserFailure(error.message || 'Не удалось получить текущего пользователя'),
+    )
   }
 }
 
@@ -58,7 +60,10 @@ function* handleUpdateUserProfile(action: { type: string; payload: { user: User 
     const updated: User = yield call(apiClient.updateUser, action.payload.user)
     yield put(actions.updateUserProfileSuccess(updated))
   } catch (error: any) {
-    yield put({ type: types.UPDATE_USER_PROFILE_FAILURE, payload: { error: error.message || 'Не удалось обновить профиль' } })
+    yield put({
+      type: types.UPDATE_USER_PROFILE_FAILURE,
+      payload: { error: error.message || 'Не удалось обновить профиль' },
+    })
   }
 }
 
@@ -67,7 +72,7 @@ function* handleFetchAllUsers() {
     const users: User[] = yield call(apiClient.getUsers)
     yield put(actions.fetchAllUsersSuccess(users))
   } catch (error: any) {
-    yield put({type:types.FETCH_ALL_USERS_FAILURE,payload:{error:error.message}})
+    yield put({ type: types.FETCH_ALL_USERS_FAILURE, payload: { error: error.message } })
   }
 }
 
@@ -80,9 +85,16 @@ function* handleToggleUserBlock(action: { type: string; payload: { userId: strin
   }
 }
 
-function* handleChangeUserRole(action: { type: string; payload: { userId: string; role: User['role'] } }) {
+function* handleChangeUserRole(action: {
+  type: string
+  payload: { userId: string; role: User['role'] }
+}) {
   try {
-    const user: User = yield call(apiClient.changeUserRole, action.payload.userId, action.payload.role)
+    const user: User = yield call(
+      apiClient.changeUserRole,
+      action.payload.userId,
+      action.payload.role,
+    )
     yield put(actions.changeUserRoleSuccess(user))
   } catch (e) {
     console.error(e)

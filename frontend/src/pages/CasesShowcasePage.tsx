@@ -2,7 +2,12 @@ import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { ScrollToolbar } from '../components/ScrollToolbar'
-import { publicationLabels, publicationStatus, isPublished, matchesSearch } from '../utils/publication'
+import {
+  publicationLabels,
+  publicationStatus,
+  isPublished,
+  matchesSearch,
+} from '../utils/publication'
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -42,14 +47,16 @@ export const CasesShowcasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  useEffect(()=>{sessionStorage.setItem('cases-return-url',location.pathname+location.search)},[location.pathname,location.search])
+  useEffect(() => {
+    sessionStorage.setItem('cases-return-url', location.pathname + location.search)
+  }, [location.pathname, location.search])
   const { casesList, favorites, filters, loading, error } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [eventFormat,setEventFormat]=useState('all')
-  const live=apiRuntime.mode==='live'
-  const requestFilters=live?undefined:filters
+  const [eventFormat, setEventFormat] = useState('all')
+  const live = apiRuntime.mode === 'live'
+  const requestFilters = live ? undefined : filters
   const [activeTab, setActiveTab] = useState<'cases' | 'recruiting'>('cases')
 
   useEffect(() => {
@@ -61,20 +68,36 @@ export const CasesShowcasePage: React.FC = () => {
   }, [dispatch])
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
-  const cases=visibleCasesFor(currentUser,casesList)
-  const directions=[...new Set(cases.map(item=>item.direction).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'))
-  const filteredCases=cases.filter(item=>
-    (eventFormat==='all'||(item.kind || 'case')===eventFormat)
-    && (!live || (
-      matchesSearch(filters.search,item.title,item.companyName,item.shortDescription,item.requiredCompetencies,item.recommendedTech)
-      && (filters.direction==='all'||item.direction===filters.direction)
-      && (filters.complexity==='all'||item.complexity===filters.complexity)
-      && (filters.workFormat==='all'||item.workFormat===filters.workFormat)
-      && (filters.rewardType==='all'||item.rewardType===filters.rewardType)
-      && (!filters.hasReward||!!item.prizeFund||!!item.rewardAmount||!!item.rewardDescription)
-    )))
+  const cases = visibleCasesFor(currentUser, casesList)
+  const directions = [...new Set(cases.map((item) => item.direction).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b, 'ru'),
+  )
+  const filteredCases = cases.filter(
+    (item) =>
+      (eventFormat === 'all' || (item.kind || 'case') === eventFormat) &&
+      (!live ||
+        (matchesSearch(
+          filters.search,
+          item.title,
+          item.companyName,
+          item.shortDescription,
+          item.requiredCompetencies,
+          item.recommendedTech,
+        ) &&
+          (filters.direction === 'all' || item.direction === filters.direction) &&
+          (filters.complexity === 'all' || item.complexity === filters.complexity) &&
+          (filters.workFormat === 'all' || item.workFormat === filters.workFormat) &&
+          (filters.rewardType === 'all' || item.rewardType === filters.rewardType) &&
+          (!filters.hasReward ||
+            !!item.prizeFund ||
+            !!item.rewardAmount ||
+            !!item.rewardDescription))),
+  )
   const visibleCases = selectShowcaseCases(filteredCases, {
-    period: 'all', technology: 'all', recruiting: activeTab === 'recruiting', sort,
+    period: 'all',
+    technology: 'all',
+    recruiting: activeTab === 'recruiting',
+    sort,
   })
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +107,6 @@ export const CasesShowcasePage: React.FC = () => {
   const handleFilterChange = (key: string, value: any) => {
     dispatch(setCaseFilters({ [key]: value }))
   }
-
 
   const handleResetFilters = () => {
     setActiveTab('cases')
@@ -99,7 +121,9 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const canCreateCase =
-    currentUser?.role === 'company' || currentUser?.role === 'admin' || currentUser?.role === 'university'
+    currentUser?.role === 'company' ||
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'university'
 
   const getRewardBadge = (c: any) => {
     if (c.rewardType === 'contest') {
@@ -117,9 +141,17 @@ export const CasesShowcasePage: React.FC = () => {
       )
     }
     if (c.rewardType === 'educational') {
-      return <span className="badge badge-reward-educational"><GraduationCap size={14} aria-hidden="true" /> Зачет практики + Сертификат</span>
+      return (
+        <span className="badge badge-reward-educational">
+          <GraduationCap size={14} aria-hidden="true" /> Зачет практики + Сертификат
+        </span>
+      )
     }
-    return <span className="badge badge-reward-other"><Briefcase size={14} aria-hidden="true" /> Стажировка / Оффер</span>
+    return (
+      <span className="badge badge-reward-other">
+        <Briefcase size={14} aria-hidden="true" /> Стажировка / Оффер
+      </span>
+    )
   }
 
   const getComplexityClass = (complexity: string) => {
@@ -128,14 +160,32 @@ export const CasesShowcasePage: React.FC = () => {
     return 'badge-complexity-high'
   }
 
-
   return (
     <div>
       {/* Top Banner & Title in Clean University Style */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '18px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0c1938', margin: 0, letterSpacing: '-0.02em' }}>
-            {currentUser?.role === 'company' ? 'Мои ИТ-кейсы' : 'Витрина ИТ-проектов и кейсов предприятий'}
+          <h1
+            style={{
+              fontSize: '22px',
+              fontWeight: 800,
+              color: '#0c1938',
+              margin: 0,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {currentUser?.role === 'company'
+              ? 'Мои ИТ-кейсы'
+              : 'Витрина ИТ-проектов и кейсов предприятий'}
           </h1>
           <p style={{ fontSize: '12.5px', color: '#5e7188', margin: '4px 0 0' }}>
             Автоматизированная система проектного обучения
@@ -150,137 +200,173 @@ export const CasesShowcasePage: React.FC = () => {
 
       {/* UUST Schedule-Style Filter Container (Authorial Upgrade of ISU widget) */}
       <ScrollToolbar>
-      <div className="uust-container">
-        <div className="uust-tabs-row">
-          <button
-            className={`uust-tab ${activeTab === 'cases' ? 'active' : ''}`}
-            onClick={() => setActiveTab('cases')}
-          >
-            <Briefcase size={14} /> Все кейсы
-          </button>
-          <button
-            className={`uust-tab ${activeTab === 'recruiting' ? 'active' : ''}`}
-            onClick={() => setActiveTab('recruiting')}
-          >
-            <Building2 size={14} /> Открыт набор
-          </button>
-          {currentUser?.role !== 'company' && <button className="uust-tab" onClick={() => navigate('/student-projects')}>
-            <FolderGit2 size={14} /> По проектам студентов
-          </button>}
-        </div>
+        <div className="uust-container">
+          <div className="uust-tabs-row">
+            <button
+              className={`uust-tab ${activeTab === 'cases' ? 'active' : ''}`}
+              onClick={() => setActiveTab('cases')}
+            >
+              <Briefcase size={14} /> Все кейсы
+            </button>
+            <button
+              className={`uust-tab ${activeTab === 'recruiting' ? 'active' : ''}`}
+              onClick={() => setActiveTab('recruiting')}
+            >
+              <Building2 size={14} /> Открыт набор
+            </button>
+            {currentUser?.role !== 'company' && (
+              <button className="uust-tab" onClick={() => navigate('/student-projects')}>
+                <FolderGit2 size={14} /> По проектам студентов
+              </button>
+            )}
+          </div>
 
-        <div className="uust-box">
-          {/* Row 1: Search input */}
-          <div className="uust-filter-row">
-            <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
-              <Search
-                size={16}
-                style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94a3b8',
-                }}
-              />
-              <input
-                type="text"
-                className="uust-input"
-                style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
-                aria-label="Поиск кейсов"
-                value={filters.search}
-                onChange={handleSearchChange}
-                placeholder="Поиск по названию задачи, компании или стеку (React, Python, Computer Vision, Go)..."
-              />
+          <div className="uust-box">
+            {/* Row 1: Search input */}
+            <div className="uust-filter-row">
+              <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
+                <Search
+                  size={16}
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#94a3b8',
+                  }}
+                />
+                <input
+                  type="text"
+                  className="uust-input"
+                  style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
+                  aria-label="Поиск кейсов"
+                  value={filters.search}
+                  onChange={handleSearchChange}
+                  placeholder="Поиск по названию задачи, компании или стеку (React, Python, Computer Vision, Go)..."
+                />
+              </div>
+              <label className="catalog-sort">
+                Сортировать
+                <select
+                  className="uust-select"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as ShowcaseSort)}
+                >
+                  <option value="newest">Сначала новые</option>
+                  <option value="deadline">Ближайший дедлайн</option>
+                  {!live && <option value="popular">По заявкам</option>}
+                </select>
+              </label>
             </div>
-            <label className="catalog-sort">Сортировать<select className="uust-select" value={sort} onChange={e => setSort(e.target.value as ShowcaseSort)}><option value="newest">Сначала новые</option><option value="deadline">Ближайший дедлайн</option>{!live&&<option value="popular">По заявкам</option>}</select></label>
-          </div>
 
-          {/* Row 2: Clean dropdowns like on photo */}
-          <div className="uust-filter-row">
-            <select
-              className="uust-select"
-              style={{ flex: 1, minWidth: 'min(200px, 100%)' }}
-              aria-label="Направление разработки"
-              value={filters.direction}
-              onChange={(e) => handleFilterChange('direction', e.target.value)}
-            >
-              <option value="all">Все направления разработки</option>
-              {(live?directions:['Искусственный интеллект','Компьютерное зрение','Мобильная разработка','Frontend','Backend','Информационная безопасность','IoT','Программирование','Математика']).map(direction=><option key={direction}>{direction}</option>)}
-            </select>
+            {/* Row 2: Clean dropdowns like on photo */}
+            <div className="uust-filter-row">
+              <select
+                className="uust-select"
+                style={{ flex: 1, minWidth: 'min(200px, 100%)' }}
+                aria-label="Направление разработки"
+                value={filters.direction}
+                onChange={(e) => handleFilterChange('direction', e.target.value)}
+              >
+                <option value="all">Все направления разработки</option>
+                {(live
+                  ? directions
+                  : [
+                      'Искусственный интеллект',
+                      'Компьютерное зрение',
+                      'Мобильная разработка',
+                      'Frontend',
+                      'Backend',
+                      'Информационная безопасность',
+                      'IoT',
+                      'Программирование',
+                      'Математика',
+                    ]
+                ).map((direction) => (
+                  <option key={direction}>{direction}</option>
+                ))}
+              </select>
 
-            <select
-              className="uust-select"
-              style={{ width: '210px', flexShrink: 0 }}
-              aria-label="Уровень сложности"
-              value={filters.complexity}
-              onChange={(e) => handleFilterChange('complexity', e.target.value)}
-            >
-              <option value="all">Уровень: любой</option>
-              <option value="Начальный">Начальный</option>
-              <option value="Средний">Средний</option>
-              <option value="Высокий">Высокий</option>
-            </select>
+              <select
+                className="uust-select"
+                style={{ width: '210px', flexShrink: 0 }}
+                aria-label="Уровень сложности"
+                value={filters.complexity}
+                onChange={(e) => handleFilterChange('complexity', e.target.value)}
+              >
+                <option value="all">Уровень: любой</option>
+                <option value="Начальный">Начальный</option>
+                <option value="Средний">Средний</option>
+                <option value="Высокий">Высокий</option>
+              </select>
 
-            <select
-              className="uust-select"
-              style={{ flex: 1, minWidth: 'min(180px, 100%)' }}
-              value={filters.rewardType}
-              onChange={(e) => handleFilterChange('rewardType', e.target.value)}
-            >
-              <option value="all">Форма: Все формы</option>
-              <option value="contest">Конкурсный грант / Призовой</option>
-              <option value="monetary">Оплата за результат</option>
-              <option value="educational">Зачет практики / ВКР</option>
-              <option value="other">Стажировка и оффер</option>
-            </select>
+              <select
+                className="uust-select"
+                style={{ flex: 1, minWidth: 'min(180px, 100%)' }}
+                value={filters.rewardType}
+                onChange={(e) => handleFilterChange('rewardType', e.target.value)}
+              >
+                <option value="all">Форма: Все формы</option>
+                <option value="contest">Конкурсный грант / Призовой</option>
+                <option value="monetary">Оплата за результат</option>
+                <option value="educational">Зачет практики / ВКР</option>
+                <option value="other">Стажировка и оффер</option>
+              </select>
 
-            <select
-              className="uust-select"
-              style={{ flex: 1, minWidth: 'min(150px, 100%)' }}
-              value={filters.workFormat}
-              onChange={(e) => handleFilterChange('workFormat', e.target.value)}
-            >
-              <option value="all">Формат: Все</option>
-              <option value="дистанционный">Дистанционный</option>
-              <option value="смешанный">Смешанный</option>
-              <option value="очный">Очный (в лаборатории)</option>
-            </select>
-          </div>
+              <select
+                className="uust-select"
+                style={{ flex: 1, minWidth: 'min(150px, 100%)' }}
+                value={filters.workFormat}
+                onChange={(e) => handleFilterChange('workFormat', e.target.value)}
+              >
+                <option value="all">Формат: Все</option>
+                <option value="дистанционный">Дистанционный</option>
+                <option value="смешанный">Смешанный</option>
+                <option value="очный">Очный (в лаборатории)</option>
+              </select>
+            </div>
 
-          {/* Row 3: Semester pills matching the screenshot */}
-          <div className="uust-pills-row">
-            <select aria-label="Тип события" className="uust-select" value={eventFormat} onChange={e=>setEventFormat(e.target.value)}>
-              <option value="all">Все события</option><option value="case">Кейсы</option><option value="hackathon">Хакатоны</option><option value="olympiad">Олимпиады</option>
-            </select>
-            <button
-              className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
-              onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
-              style={{ marginLeft: 'auto' }}
-            >
-              <RussianRuble size={14} aria-hidden="true" /> Только с оплатой / призом
-            </button>
+            {/* Row 3: Semester pills matching the screenshot */}
+            <div className="uust-pills-row">
+              <select
+                aria-label="Тип события"
+                className="uust-select"
+                value={eventFormat}
+                onChange={(e) => setEventFormat(e.target.value)}
+              >
+                <option value="all">Все события</option>
+                <option value="case">Кейсы</option>
+                <option value="hackathon">Хакатоны</option>
+                <option value="olympiad">Олимпиады</option>
+              </select>
+              <button
+                className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
+                onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
+                style={{ marginLeft: 'auto' }}
+              >
+                <RussianRuble size={14} aria-hidden="true" /> Только с оплатой / призом
+              </button>
 
-            <button
-              onClick={handleResetFilters}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#e04646',
-                fontSize: '11px',
-                cursor: 'pointer',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <RotateCcw size={12} />
-              Сброс
-            </button>
+              <button
+                onClick={handleResetFilters}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#e04646',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <RotateCcw size={12} />
+                Сброс
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       </ScrollToolbar>
 
       {/* Section Subheader matching photo "Группа ТОП-204Б(73) Неделя 7" */}
@@ -294,7 +380,12 @@ export const CasesShowcasePage: React.FC = () => {
         <div className="card" role="alert" style={{ padding: 24 }}>
           <h3>Не удалось загрузить кейсы</h3>
           <p>{error}</p>
-          <button className="btn btn-primary btn-sm" onClick={() => dispatch(fetchCasesRequest(requestFilters))}>Повторить загрузку</button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => dispatch(fetchCasesRequest(requestFilters))}
+          >
+            Повторить загрузку
+          </button>
         </div>
       ) : visibleCases.length === 0 ? (
         <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -303,7 +394,11 @@ export const CasesShowcasePage: React.FC = () => {
           <p style={{ color: '#64748b', fontSize: '13px', margin: '0 0 16px' }}>
             По заданным фильтрам проектов не найдено. Попробуйте сбросить фильтры.
           </p>
-          <button className="btn btn-secondary btn-sm" onClick={handleResetFilters} style={{ margin: '0 auto' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleResetFilters}
+            style={{ margin: '0 auto' }}
+          >
             Сбросить фильтры
           </button>
         </div>
@@ -319,23 +414,28 @@ export const CasesShowcasePage: React.FC = () => {
                     item.rewardType === 'contest'
                       ? 'case-card__top-accent--contest'
                       : item.direction.includes('Интеллект') || item.direction.includes('зрение')
-                      ? 'case-card__top-accent--ai'
-                      : ''
+                        ? 'case-card__top-accent--ai'
+                        : ''
                   }`}
                 />
 
-                {currentUser?.role === 'student' && <button
-                  className={`case-card__fav-btn ${isFav ? 'favorited' : ''}`}
-                  onClick={(e) => handleToggleFav(e, item.id)}
-                  aria-pressed={isFav}
-                  title={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
-                >
-                  <Bookmark size={15} fill={isFav ? '#e04646' : 'none'} />
-                </button>}
+                {currentUser?.role === 'student' && (
+                  <button
+                    className={`case-card__fav-btn ${isFav ? 'favorited' : ''}`}
+                    onClick={(e) => handleToggleFav(e, item.id)}
+                    aria-pressed={isFav}
+                    title={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
+                  >
+                    <Bookmark size={15} fill={isFav ? '#e04646' : 'none'} />
+                  </button>
+                )}
 
                 <div className="card__body">
                   <div className="case-card__company">
-                    <img src={item.companyLogo || 'https://via.placeholder.com/36'} alt={item.companyName} />
+                    <img
+                      src={item.companyLogo || 'https://via.placeholder.com/36'}
+                      alt={item.companyName}
+                    />
                     <div>
                       <div className="company-title">{item.companyName}</div>
                       <div className="company-sub">Индустриальный партнёр</div>
@@ -350,12 +450,32 @@ export const CasesShowcasePage: React.FC = () => {
                   </h3>
 
                   <p className="case-card__desc">{item.shortDescription}</p>
-                  {!isPublished(item) && <p className={`badge publication-${publicationStatus(item)}`}>{publicationLabels[publicationStatus(item)]}</p>}
-                  {item.moderationComment && <p className="moderation-comment">{item.moderationComment}</p>}
+                  {!isPublished(item) && (
+                    <p className={`badge publication-${publicationStatus(item)}`}>
+                      {publicationLabels[publicationStatus(item)]}
+                    </p>
+                  )}
+                  {item.moderationComment && (
+                    <p className="moderation-comment">{item.moderationComment}</p>
+                  )}
 
-                  <div className="case-card__tags"><span className="badge badge-direction">{({case:'Проект',hackathon:'Хакатон',olympiad:'Олимпиада',internship:'Стажировка'})[item.kind || 'case']}</span>
-                    {item.direction&&<span className="badge badge-direction">{item.direction}</span>}
-                    <span className={`badge ${getComplexityClass(item.complexity)}`}>Уровень: {item.complexity.toLowerCase()}</span>
+                  <div className="case-card__tags">
+                    <span className="badge badge-direction">
+                      {
+                        {
+                          case: 'Проект',
+                          hackathon: 'Хакатон',
+                          olympiad: 'Олимпиада',
+                          internship: 'Стажировка',
+                        }[item.kind || 'case']
+                      }
+                    </span>
+                    {item.direction && (
+                      <span className="badge badge-direction">{item.direction}</span>
+                    )}
+                    <span className={`badge ${getComplexityClass(item.complexity)}`}>
+                      Уровень: {item.complexity.toLowerCase()}
+                    </span>
                     {item.isConfidential && (
                       <span className="badge badge-confidential">
                         <FileLock2 size={12} /> Конфиденциальность (NDA)

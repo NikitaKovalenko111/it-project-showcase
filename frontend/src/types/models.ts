@@ -4,7 +4,7 @@ export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' 
 export type EducationLevel = 'Бакалавриат' | 'Специалитет' | 'Магистратура' | 'Аспирантура'
 
 export interface StudentProfile {
-  resume?: {name:string;url:string;file_id?:string;size?:string}
+  resume?: { name: string; url: string; file_id?: string; size?: string }
   files?: { name: string; url: string; file_id?: string; size?: string }[]
   educationLevel?: EducationLevel
   curatorId?: string
@@ -18,7 +18,7 @@ export interface StudentProfile {
   interests: string[]
   skills: string[]
   techStack: string[]
-  links?: {kind:string;url:string}[]
+  links?: { kind: string; url: string }[]
   githubUrl: string
   gitlabUrl?: string
   portfolioUrl?: string
@@ -108,17 +108,17 @@ export type PaymentStatus = 'not_provided' | 'pending' | 'confirmed' | 'paid'
 
 export type CaseStatus =
   | 'draft'
-  | 'open'        // Открыт для заявок
+  | 'open' // Открыт для заявок
   | 'application' // Заявка
-  | 'selection'   // Отбор
-  | 'accepted'    // Принята
+  | 'selection' // Отбор
+  | 'accepted' // Принята
   | 'in_progress' // Выполняется
-  | 'submitted'   // Представлен результат
-  | 'review'      // На проверке
-  | 'revision'    // Требуется доработка
-  | 'completed'   // Выполнен
-  | 'archived'    // Завершён
-  | 'moderation'  // На модерации
+  | 'submitted' // Представлен результат
+  | 'review' // На проверке
+  | 'revision' // Требуется доработка
+  | 'completed' // Выполнен
+  | 'archived' // Завершён
+  | 'moderation' // На модерации
 
 export type IPRightsType =
   | 'author'
@@ -140,7 +140,14 @@ export interface CaseProject {
   applicationDeadline?: string
   registrationsCount?: number
   olympiadTasks?: { id: string; title: string; maxScore: number }[]
-  publicationDetails?: { startDate: string; venue: string; schedule: string; position: string; workload: string; selection: string }
+  publicationDetails?: {
+    startDate: string
+    venue: string
+    schedule: string
+    position: string
+    workload: string
+    selection: string
+  }
   evaluationCriteria?: { id: string; label: string; weight: number; maxScore?: number }[]
   specificationFile?: { name: string; url: string; file_id?: string }
   coverUrl?: string
@@ -312,12 +319,12 @@ export type StudentProjectCategory =
   | 'open-source'
 
 export type StudentProjectBadge =
-  | 'seeking_company'      // Ищу компанию / партнёра
-  | 'seeking_team'         // Ищу команду
-  | 'seeking_mentor'       // Ищу наставника
-  | 'seeking_investor'     // Ищу инвестора
-  | 'open_for_internship'  // Открыт к предложениям о стажировке
-  | 'open_for_job'         // Открыт к предложениям о работе
+  | 'seeking_company' // Ищу компанию / партнёра
+  | 'seeking_team' // Ищу команду
+  | 'seeking_mentor' // Ищу наставника
+  | 'seeking_investor' // Ищу инвестора
+  | 'open_for_internship' // Открыт к предложениям о стажировке
+  | 'open_for_job' // Открыт к предложениям о работе
 
 export interface StudentProject {
   likedByMe?: boolean
@@ -377,7 +384,16 @@ export interface AuditLog {
 }
 
 export interface SystemNotification {
-  invitation?: { caseId?: string; teamId?: string; senderId: string; senderName: string; companyId?: string; reason: string; status: 'pending' | 'accepted' | 'rejected'; replies: { authorId: string; authorName: string; message: string; createdAt: string }[] }
+  invitation?: {
+    caseId?: string
+    teamId?: string
+    senderId: string
+    senderName: string
+    companyId?: string
+    reason: string
+    status: 'pending' | 'accepted' | 'rejected'
+    replies: { authorId: string; authorName: string; message: string; createdAt: string }[]
+  }
   id: string
   userId: string
   type:
@@ -425,5 +441,20 @@ export interface TeamRequest {
   status: 'pending' | 'accepted' | 'rejected'
   createdAt: string
 }
-export interface TeamSeeker { id: string; caseId?: string; studentId: string; message: string; techStack: string[] }
-export interface ContentReport { id: string; authorId: string; targetType: 'case' | 'project' | 'comment' | 'user' | 'company'; targetId: string; reason: string; message: string; status: 'pending' | 'resolved'; createdAt: string }
+export interface TeamSeeker {
+  id: string
+  caseId?: string
+  studentId: string
+  message: string
+  techStack: string[]
+}
+export interface ContentReport {
+  id: string
+  authorId: string
+  targetType: 'case' | 'project' | 'comment' | 'user' | 'company'
+  targetId: string
+  reason: string
+  message: string
+  status: 'pending' | 'resolved'
+  createdAt: string
+}

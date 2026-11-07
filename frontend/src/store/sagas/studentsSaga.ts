@@ -23,7 +23,7 @@ function* handleInviteStudent(action: {
       action.payload.studentId,
       action.payload.caseId,
       action.payload.inviteType,
-      action.payload.message
+      action.payload.message,
     )
     yield put(actions.inviteStudentSuccess())
   } catch (e) {
