@@ -2,10 +2,6 @@
 set -eu
 umask 077
 
-# Загружаем credentials из файла, примонтированного
-# только для чтения. Он должен быть совместим с sh.
-. /run/backup.env
-
 export PGPASSWORD="${POSTGRES_PASSWORD:?}"
 
 export RCLONE_CONFIG_SRC_TYPE="s3"
