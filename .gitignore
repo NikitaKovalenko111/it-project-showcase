@@ -1,2 +1,53 @@
 .env
 backups/
+# Dependencies
+node_modules/
+
+# Build output and test coverage
+dist/
+dist-ssr/
+build/
+coverage/
+
+# TypeScript and tool caches
+*.tsbuildinfo
+.vite/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment files (keep examples in Git)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+
+# Editors and operating systems
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local integration toolchain and test artifacts
+/tmp/toolchain/
+/tmp/gopath/
+/tmp/gocache/
+/tmp/go1.25.3.zip
+/tmp/integration-accounts.json
+/tmp
+/scripts
+.env

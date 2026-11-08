@@ -1,0 +1,150 @@
+@import 'variables';
+@import 'layout';
+@import 'components';
+@import 'pages';
+@import 'responsive';
+@import 'sprint4';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: $bg-main;
+  color: $text-dark;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+}
+
+// Utility classes
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.flex-1 { flex: 1; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+@import 'revision';
+@import 'competition';
+@import 'company';
+@import 'role-workspace';
+
+// Sprint 5: spacing and alignment within the approved design.
+.comments-panel { padding: 24px; }
+.team-project { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.team-form-row { align-items: end; }
+.team-management.modal-dialog { padding: 24px; max-height: 90vh; overflow-y: auto; }
+.teams-panel .team-card { padding-top: 20px; h3 { margin-bottom: 16px; } }
+.pagination { flex-wrap: wrap; gap: 12px 28px; }
+.pagination__pages { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pagination__size { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pagination__size .select { width: auto; min-width: 68px; }
+.certificate-preview { padding: 16px; border: 0; border-radius: 12px; max-width: 96vw; max-height: 96vh; img { display: block; max-width: 90vw; max-height: 82vh; object-fit: contain; } &::backdrop { background: #000d; } }
+.publication-dialog label { display: flex; flex-direction: column; gap: 6px; }
+.company-contacts-grid .value { font-size: 13px; overflow-wrap: anywhere; }
+.company-hero__logo--placeholder { display: grid; place-items: center; }
+
+.team-search-field { display: grid; gap: 8px; margin-top: 20px; }
+.participation-options { display: flex; flex-wrap: wrap; gap: 12px 20px; }
+.application-error { margin: 0 0 16px; }
+
+.workspace-files { margin: 18px 0 24px; padding: 16px; background: #f5f8fc; border: 1px solid #dce5ef; border-radius: 12px; }
+.workspace-files h3, .report-section h3, .analytics-filter-panel h2 { margin: 0; }
+.workspace-files .select, .analytics-report-header .select { width: auto; max-width: 100%; }
+.workspace-files__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+.workspace-files__grid li { display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 12px; background: #fff; border: 1px solid #dce5ef; border-radius: 8px; }
+.workspace-files__grid svg { flex-shrink: 0; color: #476fa0; }
+.workspace-files__grid small { display: block; margin-top: 4px; color: #526681; overflow-wrap: anywhere; }
+.workspace-files__download { font-weight: 600; overflow-wrap: anywhere; }
+
+.analytics-filter-panel { padding: 16px 18px; margin-bottom: 22px; }
+.analytics-filter-panel .analytics-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); margin: 12px 0 0; padding: 0; }
+.analytics-filter-panel .feature-toolbar { justify-content: space-between; }
+.analytics-filter-panel h2 { font-size: 16px; }
+.analytics-report-header, .report-section .feature-toolbar { flex-wrap: wrap; gap: 12px; }
+.admin-role-counts, .report-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.admin-role-counts span { padding: 6px 10px; background: #f0f4fa; border-radius: 8px; }
+.report-section { margin-top: 22px; }
+.report-section > h3, .report-section > .feature-toolbar { margin-bottom: 10px; }
+.report-table-scroll { overflow-x: auto; margin: 0; }
+.report-table-scroll .data-table { table-layout: auto; width: 100%; }
+.report-table-scroll .data-table th { white-space: nowrap; }
+.report-table-scroll .data-table td { min-width: 88px; vertical-align: top; overflow-wrap: break-word; word-break: normal; }
+.analytics-table .report-table-scroll .data-table :is(th,td):first-child { min-width: 200px; }
+.report-table-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px; }
+.report-table-pager span { color: #526681; margin-right: 8px; }
+.report-table-empty { padding: 16px; margin: 0; color: #526681; }
+.report-details { margin-top: 6px; }
+.report-details summary { cursor: pointer; color: #345d8a; }
+.report-details p, .report-details small { max-width: 360px; overflow-wrap: anywhere; }
+.report-status { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #edf4fa; color: #315578; white-space: nowrap; }
+.report-status--pending { background: #fff1d7; color: #795209; }
+
+.project-info-popover { width: min(300px, calc(100vw - 24px)); }
+.project-info-popover__body { display: grid; gap: 10px; padding: 12px 14px; overflow-wrap: anywhere; }
+.project-info-popover__body small { color: #526681; }
+.project-info-popover__body div small { display: block; margin-top: 4px; }
+.project-info-popover__body ul { margin: 0; padding-left: 20px; }
+.project-info-popover__demo { border-top: 1px solid #dce5ef; padding: 8px; }
+.project-info-popover__demo summary { cursor: pointer; padding: 6px; }
+
+.w-md-editor { margin: 16px 0; }
+.wmde-markdown { background: transparent; color: inherit; font-family: inherit; }
+
+.page-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0; }
+.page-actions--top { margin-bottom: 16px; }
+.page-toolbar { flex-wrap: wrap; gap: 12px; }
+.workspace-back svg { flex-shrink: 0; transform: translateY(1px); }
+.application-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; }
+.application-links .form-group { margin: 0; min-width: 0; gap: 8px; }
+.application-links label { margin: 0; min-height: 20px; }
+.application-links .input { box-sizing: border-box; height: 48px; width: 100%; min-width: 0; }
+.application-links input[type=file] { padding: 6px 10px; line-height: 32px; }
+.application-links input[type=file]::file-selector-button { padding: 0 12px; height: 32px; line-height: 32px; }
+.publication-dialog .modal-dialog__body { display: flex; flex-direction: column; gap: 20px; }
+.publication-dialog .modal-dialog__body > * { margin: 0; }
+.publication-dialog .publication-specific { display: flex; flex-direction: column; gap: 16px; }
+.publication-dialog .publication-specific h3 { margin: 0; }
+.publication-dialog label { min-width: 0; margin: 0; gap: 8px; }
+.publication-dialog .responsive-grid { gap: 16px; align-items: start; }
+.publication-dialog fieldset { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid #dbe3ee; border-radius: 10px; }
+.publication-dialog fieldset p { margin: 0; }
+.publication-upload { padding: 16px; border: 1px dashed #b6c7db; border-radius: 10px; background: #f5f8fc; }
+.publication-upload input { width: 100%; min-width: 0; box-sizing: border-box; }
+.publication-dialog label:has(> input[type=checkbox]) { flex-direction: row; align-items: center; }
+@media(max-width:600px) { .application-links { grid-template-columns: 1fr; } }
+
+.password-field { position: relative; width: 100%; min-width: 0; }
+.password-field .input { width: 100%; box-sizing: border-box; padding-right: 48px; }
+.password-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; color: #64748b; background: transparent; cursor: pointer; }
+.password-toggle:hover { background: #edf3fa; color: #1b5e91; }
+
+.resume-upload { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 18px; margin-bottom: 20px; border: 1px solid #dbe4ef; border-radius: 10px; background: #f8fafc; }
+.resume-upload h3, .resume-upload p { margin: 0; }
+.resume-upload label { width: 100%; display: grid; gap: 8px; }
+.company-applications-page .uust-tab, .company-applications-page .uust-tab.active { padding-top: 12px; padding-bottom: 12px; margin-top: 0; font-weight: 600; transition: color .15s, box-shadow .15s; }
+.company-applications-page .uust-tab:hover { transform: none; }
+
+.feedback-form form { display: grid; gap: 18px; }
+.feedback-previews { display: flex; flex-wrap: wrap; gap: 12px; }
+.feedback-previews img { width: 160px; height: 110px; border-radius: 8px; object-fit: contain; border: 1px solid #dbe3ed; background: #f8fafc; }
