@@ -90,6 +90,16 @@ services:
       minio:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: it-project-showcase-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
 volumes:
   minio-data:
   postgres-data:
