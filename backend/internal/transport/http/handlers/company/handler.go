@@ -21,10 +21,13 @@ type Handler struct{ service *companies_service.Service }
 func Init(service *companies_service.Service) *Handler { return &Handler{service: service} }
 func (h *Handler) Start(mux *http.ServeMux, representative, admin func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
+	mux.Handle("GET /mine", representative(http.HandlerFunc(h.ListMine)))
 	mux.HandleFunc("GET /{company_id}", h.Get)
 	mux.Handle("GET /moderation", admin(http.HandlerFunc(h.ListModeration)))
 	mux.Handle("POST /", representative(http.HandlerFunc(h.Create)))
 	mux.Handle("PUT /{company_id}", representative(http.HandlerFunc(h.Update)))
+	mux.Handle("PATCH /{company_id}/legal", representative(http.HandlerFunc(h.UpdateLegal)))
+	mux.Handle("PATCH /{company_id}/programs", representative(http.HandlerFunc(h.UpdatePrograms)))
 	mux.Handle("PATCH /{company_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
 	mux.Handle("POST /{company_id}/submit-moderation", representative(http.HandlerFunc(h.Submit)))
 	mux.Handle("POST /{company_id}/member-invitations", representative(http.HandlerFunc(h.InviteMember)))
@@ -161,20 +164,25 @@ func (h *Handler) listInvitations(w http.ResponseWriter, r *http.Request, member
 	pkg.WriteJSON(w, 200, page)
 }
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	h.list(w, r, false)
+	h.list(w, r, "public")
 }
 func (h *Handler) ListModeration(w http.ResponseWriter, r *http.Request) {
-	h.list(w, r, true)
+	h.list(w, r, "moderation")
 }
-func (h *Handler) list(w http.ResponseWriter, r *http.Request, moderation bool) {
+func (h *Handler) ListMine(w http.ResponseWriter, r *http.Request) {
+	h.list(w, r, "mine")
+}
+func (h *Handler) list(w http.ResponseWriter, r *http.Request, mode string) {
 	scope := companyCursorScope
 	moderationStatus := ""
-	if moderation {
+	if mode == "moderation" {
 		moderationStatus = r.URL.Query().Get("status")
 		if moderationStatus == "" {
 			moderationStatus = "pending"
 		}
 		scope += "-moderation-" + moderationStatus
+	} else if mode == "mine" {
+		scope += "-mine"
 	}
 	query, err := pagination.ParseCursorQuery(r.URL.Query(), scope)
 	if err != nil {
@@ -186,8 +194,11 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request, moderation bool) 
 		position, id = query.Cursor.Position, query.Cursor.ID
 	}
 	var items []models.Company
-	if moderation {
+	if mode == "moderation" {
 		items, err = h.service.ListForModeration(r.Context(), moderationStatus, query.Limit+1, position, id)
+	} else if mode == "mine" {
+		user, _ := middleware.UserIDFromContext(r.Context())
+		items, err = h.service.ListMine(r.Context(), user, query.Limit+1, position, id)
 	} else {
 		items, err = h.service.List(r.Context(), query.Limit+1, position, id)
 	}
@@ -236,6 +247,42 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.WriteJSON(w, http.StatusCreated, company)
+}
+func (h *Handler) UpdateLegal(w http.ResponseWriter, r *http.Request) {
+	var details models.CompanyLegal
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&details) != nil {
+		pkg.WriteError(w, http.StatusBadRequest, "invalid_request", "Invalid request payload")
+		return
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	company, err := h.service.UpdateLegal(r.Context(), userID, r.PathValue("company_id"), details)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, company)
+}
+
+func (h *Handler) UpdatePrograms(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Internship *string `json:"internship_program"`
+		Practice   *string `json:"practice_program"`
+	}
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256<<10))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&input) != nil {
+		pkg.WriteError(w, http.StatusBadRequest, "invalid_request", "Invalid request payload")
+		return
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	company, err := h.service.UpdatePrograms(r.Context(), userID, r.PathValue("company_id"), input.Internship, input.Practice)
+	if err != nil {
+		writeCompanyError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, company)
 }
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	request, ok := decodeCompany(w, r)

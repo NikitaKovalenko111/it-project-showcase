@@ -56,7 +56,7 @@ func TestRegisterReturnsConflictForExistingUsernameOrEmail(t *testing.T) {
 
 			mock.ExpectBegin()
 			mock.ExpectQuery("INSERT INTO users").
-				WithArgs("student.one", "student@example.com", sqlmock.AnyArg()).
+				WithArgs("student.one", "student@stud.uust.ru", sqlmock.AnyArg()).
 				WillReturnError(&pgconn.PgError{
 					Code:           "23505",
 					ConstraintName: test.constraintName,
@@ -72,7 +72,7 @@ func TestRegisterReturnsConflictForExistingUsernameOrEmail(t *testing.T) {
 
 			requestBody := strings.NewReader(`{
 				"username":"student.one",
-				"email":"student@example.com",
+				"email":"student@stud.uust.ru",
 				"password":"Password123",
 				"last_name":"Иванов",
 				"first_name":"Иван",

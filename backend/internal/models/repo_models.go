@@ -3,15 +3,16 @@ package models
 import "time"
 
 type User struct {
-	UserID      string
-	Username    string
-	Email       string
-	Status      string
-	Roles       []string
-	Student     *StudentProfile
-	LastLoginAt *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	AvatarFileID *string
+	UserID       string
+	Username     string
+	Email        string
+	Status       string
+	Roles        []string
+	Student      *StudentProfile
+	LastLoginAt  *time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type UserCredentials struct {

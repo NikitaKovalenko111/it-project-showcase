@@ -30,7 +30,7 @@ var (
 	ErrInvalidName     = errors.New("invalid file name")
 	ErrCompanyAccess   = errors.New("company access denied")
 )
-var allowedTypes = map[string]string{"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "application/pdf": ".pdf", "text/plain; charset=utf-8": ".txt", "application/zip": ".zip"}
+var allowedTypes = map[string]string{"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "application/pdf": ".pdf", "text/plain; charset=utf-8": ".txt", "application/zip": ".zip", "video/mp4": ".mp4", "video/webm": ".webm"}
 var logoTypes = map[string]string{"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
 type Service struct {
@@ -50,6 +50,13 @@ func (s *Service) Upload(ctx context.Context, uploader, name string, size int64,
 func (s *Service) UploadCompanyLogo(ctx context.Context, uploader, companyID, name string, size int64, reader io.Reader) (*models.File, error) {
 	return s.upload(ctx, uploader, companyID, name, size, reader, logoTypes)
 }
+func (s *Service) UploadUserAvatar(ctx context.Context, uploader, name string, size int64, reader io.Reader) (*models.File, error) {
+	if size > 2*1024*1024 {
+		return nil, ErrTooLarge
+	}
+	return s.upload(ctx, uploader, "user-avatar", name, size, reader, logoTypes)
+}
+
 func (s *Service) UploadStudentPhoto(ctx context.Context, uploader, name string, size int64, reader io.Reader) (*models.File, error) {
 	return s.upload(ctx, uploader, "student-photo", name, size, reader, logoTypes)
 }
@@ -71,6 +78,9 @@ func (s *Service) upload(ctx context.Context, uploader, companyID, name string, 
 	}
 	header = header[:read]
 	mimeType := http.DetectContentType(header)
+	if (mimeType == "video/mp4" || mimeType == "video/webm") && size > 20*1024*1024 {
+		return nil, ErrTooLarge
+	}
 	extension, ok := types[mimeType]
 	if !ok {
 		return nil, ErrUnsupportedType
@@ -90,6 +100,11 @@ func (s *Service) upload(ctx context.Context, uploader, companyID, name string, 
 	var oldKey string
 	if companyID == "" {
 		created, err = s.repo.Create(ctx, metadata)
+	} else if companyID == "user-avatar" {
+		created, oldKey, err = s.repo.CreateUserAvatar(ctx, uploader, metadata)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = ErrNotFound
+		}
 	} else if companyID == "student-photo" {
 		created, oldKey, err = s.repo.CreateStudentPhoto(ctx, uploader, metadata)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -117,6 +132,21 @@ func (s *Service) Download(ctx context.Context, fileID, userID string, isAdmin b
 	file, err := s.repo.GetAccessible(ctx, fileID, userID, isAdmin)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadUserAvatar(ctx context.Context, userID, viewer string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(userID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetUserAvatar(ctx, userID, viewer, admin)
+	return s.open(ctx, file, err)
+}
+
+func (s *Service) DownloadStudentPhoto(ctx context.Context, studentID string) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(studentID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetStudentPhoto(ctx, studentID)
+	return s.open(ctx, file, err)
+}
 func (s *Service) DownloadCompanyLogo(ctx context.Context, companyID string) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(companyID); err != nil {
 		return nil, nil, ErrNotFound
@@ -132,6 +162,16 @@ func (s *Service) DownloadPublicCaseFile(ctx context.Context, caseID, fileID str
 		return nil, nil, ErrNotFound
 	}
 	file, err := s.repo.GetPublicCaseFile(ctx, caseID, fileID)
+	return s.open(ctx, file, err)
+}
+func (s *Service) DownloadCaseReviewFile(ctx context.Context, caseID, fileID string) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(caseID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetCaseReviewFile(ctx, caseID, fileID)
 	return s.open(ctx, file, err)
 }
 func (s *Service) DownloadProtectedCaseFile(ctx context.Context, caseID, fileID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
@@ -151,6 +191,25 @@ func (s *Service) DownloadApplicationResume(ctx context.Context, applicationID, 
 	file, err := s.repo.GetApplicationResume(ctx, applicationID, userID, isAdmin)
 	return s.open(ctx, file, err)
 }
+func (s *Service) DownloadFeedbackFile(ctx context.Context, feedbackID, fileID, userID string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(feedbackID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(fileID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetFeedbackFile(ctx, feedbackID, fileID, userID, admin)
+	return s.open(ctx, file, err)
+}
+
+func (s *Service) DownloadInternshipResume(ctx context.Context, applicationID, userID string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(applicationID); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	file, err := s.repo.GetInternshipResume(ctx, applicationID, userID, admin)
+	return s.open(ctx, file, err)
+}
+
 func (s *Service) DownloadSubmissionFile(ctx context.Context, submissionID, fileID, userID string, isAdmin bool) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(submissionID); err != nil {
 		return nil, nil, ErrNotFound
@@ -161,14 +220,14 @@ func (s *Service) DownloadSubmissionFile(ctx context.Context, submissionID, file
 	file, err := s.repo.GetSubmissionFile(ctx, submissionID, fileID, userID, isAdmin)
 	return s.open(ctx, file, err)
 }
-func (s *Service) DownloadPublicStudentProjectFile(ctx context.Context, projectID, fileID string) (*models.File, io.ReadCloser, error) {
+func (s *Service) DownloadStudentProjectFile(ctx context.Context, projectID, fileID, status string) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(projectID); err != nil {
 		return nil, nil, ErrNotFound
 	}
 	if _, err := uuid.Parse(fileID); err != nil {
 		return nil, nil, ErrNotFound
 	}
-	file, err := s.repo.GetPublicStudentProjectFile(ctx, projectID, fileID)
+	file, err := s.repo.GetStudentProjectFile(ctx, projectID, fileID, status)
 	return s.open(ctx, file, err)
 }
 func (s *Service) DownloadPublicPortfolioFile(ctx context.Context, studentID, fileID string) (*models.File, io.ReadCloser, error) {

@@ -33,7 +33,7 @@ func (s *Service) CreateComment(ctx context.Context, u, k, id, parent, body stri
 	}
 	return s.repo.CreateComment(ctx, u, k, id, p, body)
 }
-func (s *Service) ListComments(ctx context.Context, k, id, parent, sort string, limit, offset int) ([]models.Comment, int, error) {
+func (s *Service) ListComments(ctx context.Context, viewer, k, id, parent, sort string, limit, offset int) ([]models.Comment, int, error) {
 	if !validID(id) || (k != "case" && k != "student_project") || (sort != "newest" && sort != "oldest" && sort != "popular") {
 		return nil, 0, ErrInvalid
 	}
@@ -44,9 +44,9 @@ func (s *Service) ListComments(ctx context.Context, k, id, parent, sort string, 
 		}
 		p = &parent
 	}
-	return s.repo.ListComments(ctx, k, id, p, sort, limit, offset)
+	return s.repo.ListComments(ctx, viewer, k, id, p, sort, limit, offset)
 }
-func (s *Service) ListReplies(ctx context.Context, parent string, limit, offset int) ([]models.Comment, int, error) {
+func (s *Service) ListReplies(ctx context.Context, viewer, parent string, limit, offset int) ([]models.Comment, int, error) {
 	if !validID(parent) {
 		return nil, 0, ErrNotFound
 	}
@@ -57,7 +57,18 @@ func (s *Service) ListReplies(ctx context.Context, parent string, limit, offset 
 	if e != nil {
 		return nil, 0, e
 	}
-	return s.repo.ListComments(ctx, p.ResourceType, p.ResourceID, &parent, "oldest", limit, offset)
+	return s.repo.ListComments(ctx, viewer, p.ResourceType, p.ResourceID, &parent, "oldest", limit, offset)
+}
+
+func (s *Service) SetCommentLike(ctx context.Context, user, id string, like bool) (models.CommentLikeState, error) {
+	if !validID(id) {
+		return models.CommentLikeState{}, ErrNotFound
+	}
+	state, err := s.repo.SetCommentLike(ctx, user, id, like)
+	if errors.Is(err, community_repo.ErrNotFound) {
+		return state, ErrNotFound
+	}
+	return state, err
 }
 func (s *Service) CreateReply(ctx context.Context, u, parent, body string) (*models.Comment, error) {
 	if !validID(parent) {
@@ -83,7 +94,7 @@ func (s *Service) DeleteComment(ctx context.Context, u, id string, admin bool) e
 	return e
 }
 func (s *Service) CreateReport(ctx context.Context, u, k, id, reason, details string) (*models.Report, error) {
-	allowedK := map[string]bool{"case": true, "student_project": true, "comment": true, "profile": true}
+	allowedK := map[string]bool{"case": true, "student_project": true, "comment": true, "profile": true, "company": true}
 	allowedR := map[string]bool{"spam": true, "abuse": true, "fraud": true, "copyright": true, "personal_data": true, "other": true}
 	details = strings.TrimSpace(details)
 	if !allowedK[k] || !allowedR[reason] || !validID(id) || len(details) > 4000 {
@@ -92,6 +103,9 @@ func (s *Service) CreateReport(ctx context.Context, u, k, id, reason, details st
 	x, e := s.repo.CreateReport(ctx, u, k, id, reason, details)
 	if errors.Is(e, community_repo.ErrConflict) {
 		return nil, ErrConflict
+	}
+	if errors.Is(e, community_repo.ErrNotFound) {
+		return nil, ErrNotFound
 	}
 	return x, e
 }

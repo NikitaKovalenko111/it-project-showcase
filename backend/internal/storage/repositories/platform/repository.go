@@ -182,7 +182,7 @@ func (r *Repository) ListAudit(ctx context.Context, entity, action string, limit
 func scanStudent(row interface{ Scan(...any) error }) (models.StudentSearchItem, error) {
 	var x models.StudentSearchItem
 	var c, t []byte
-	e := row.Scan(&x.UserID, &x.Username, &x.FullName, &x.Institute, &x.Direction, &x.Course, &c, &t, &x.PhotoFileID, &x.Rating, &x.CreatedAt)
+	e := row.Scan(&x.UserID, &x.Username, &x.FullName, &x.Institute, &x.Direction, &x.Course, &c, &t, &x.PhotoFileID, &x.Rating, &x.CreatedAt, &x.GroupName, &x.CuratorID, &x.EducationLevel)
 	if e == nil {
 		e = json.Unmarshal(c, &x.Competencies)
 	}
@@ -192,11 +192,17 @@ func scanStudent(row interface{ Scan(...any) error }) (models.StudentSearchItem,
 	return x, e
 }
 
-const studentSelect = `SELECT u.user_id,u.username,concat_ws(' ',s.last_name,s.first_name,s.patronymic),s.institute_name,s.study_direction,s.course,s.competencies,s.technologies,s.photo_file_id,COALESCE(r.quality_score+r.completion_score+r.project_score+r.achievement_score,0),u.created_at FROM students s JOIN users u ON u.user_id=s.user_id LEFT JOIN student_ratings r ON r.student_id=s.user_id`
+const studentSelect = `SELECT u.user_id,u.username,concat_ws(' ',s.last_name,s.first_name,s.patronymic),s.institute_name,s.study_direction,s.course,s.competencies,s.technologies,s.photo_file_id,COALESCE(r.quality_score+r.completion_score+r.project_score+r.achievement_score,0),u.created_at,s.group_name,sc.curator_id,COALESCE(s.education_level,'') FROM students s JOIN users u ON u.user_id=s.user_id LEFT JOIN student_ratings r ON r.student_id=s.user_id LEFT JOIN student_curators sc ON sc.student_id=s.user_id AND sc.revoked_at IS NULL`
 
-func (r *Repository) SearchStudents(ctx context.Context, q, direction, technology string, limit int, before *time.Time, bid string) ([]models.StudentSearchItem, error) {
-	sqlq := studentSelect + ` WHERE u.status='active' AND ($1='' OR concat_ws(' ',s.last_name,s.first_name,s.patronymic) ILIKE '%'||$1||'%' OR u.username ILIKE '%'||$1||'%') AND ($2='' OR s.study_direction=$2) AND ($3='' OR s.technologies ? $3)`
-	args := []any{q, direction, technology}
+const studentSearchWhere = ` WHERE u.status='active'
+	AND EXISTS(SELECT 1 FROM user_roles ur JOIN roles role ON role.role_id=ur.role_id WHERE ur.user_id=u.user_id AND role.code='student')
+	AND ($1='' OR concat_ws(' ',s.last_name,s.first_name,s.patronymic) ILIKE '%'||$1||'%' OR u.username ILIKE '%'||$1||'%')
+	AND ($2='' OR s.study_direction=$2) AND ($3='' OR s.technologies ? $3)
+	AND ($4='' OR s.group_name=$4) AND ($5='' OR s.education_level=$5)`
+
+func (r *Repository) SearchStudents(ctx context.Context, filter models.StudentSearchFilter, limit int, before *time.Time, bid string) ([]models.StudentSearchItem, error) {
+	sqlq := studentSelect + studentSearchWhere
+	args := []any{filter.Query, filter.Direction, filter.Technology, filter.GroupName, filter.EducationLevel}
 	if before != nil {
 		args = append(args, *before, bid)
 		sqlq += fmt.Sprintf(` AND (u.created_at,u.user_id)<($%d,$%d)`, len(args)-1, len(args))
@@ -218,13 +224,13 @@ func (r *Repository) SearchStudents(ctx context.Context, q, direction, technolog
 	}
 	return out, rows.Err()
 }
-func (r *Repository) SearchStudentsByRating(ctx context.Context, q, direction, technology, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
-	where := ` WHERE u.status='active' AND ($1='' OR concat_ws(' ',s.last_name,s.first_name,s.patronymic) ILIKE '%'||$1||'%' OR u.username ILIKE '%'||$1||'%') AND ($2='' OR s.study_direction=$2) AND ($3='' OR s.technologies ? $3)`
+func (r *Repository) SearchStudentsByRating(ctx context.Context, filter models.StudentSearchFilter, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
+	args := []any{filter.Query, filter.Direction, filter.Technology, filter.GroupName, filter.EducationLevel}
 	order := "DESC"
 	if sort == "rating_asc" {
 		order = "ASC"
 	}
-	rows, e := r.db.QueryContext(ctx, studentSelect+where+` ORDER BY 10 `+order+`,u.user_id DESC LIMIT $4 OFFSET $5`, q, direction, technology, limit, offset)
+	rows, e := r.db.QueryContext(ctx, studentSelect+studentSearchWhere+` ORDER BY 10 `+order+`,u.user_id DESC LIMIT $6 OFFSET $7`, append(args, limit, offset)...)
 	if e != nil {
 		return nil, 0, e
 	}
@@ -237,8 +243,9 @@ func (r *Repository) SearchStudentsByRating(ctx context.Context, q, direction, t
 		}
 		out = append(out, x)
 	}
+	if err := rows.Err(); err != nil { return nil, 0, err }
 	var total int
-	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM students s JOIN users u ON u.user_id=s.user_id`+where, q, direction, technology).Scan(&total)
+	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM students s JOIN users u ON u.user_id=s.user_id`+studentSearchWhere, args...).Scan(&total)
 	return out, total, e
 }
 func (r *Repository) GetPortfolio(ctx context.Context, viewer, student string, admin bool) (*models.Portfolio, error) {
@@ -252,6 +259,9 @@ func (r *Repository) GetPortfolio(ctx context.Context, viewer, student string, a
 	item, e := scanStudent(r.db.QueryRowContext(ctx, studentSelect+` WHERE u.user_id=$1`, student))
 	if e != nil {
 		return nil, e
+	}
+	if !admin && student != viewer && (item.CuratorID == nil || *item.CuratorID != viewer) {
+		item.CuratorID = nil
 	}
 	p.Student = item
 	p.Visibility = visibility

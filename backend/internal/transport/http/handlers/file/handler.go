@@ -68,6 +68,21 @@ func (h *Handler) UploadStudentPhoto(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, http.StatusOK, created)
 }
+func (h *Handler) UploadUserAvatar(w http.ResponseWriter, r *http.Request) {
+	file, header, ok := h.multipartFile(w, r)
+	if !ok {
+		return
+	}
+	defer file.Close()
+	defer r.MultipartForm.RemoveAll()
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	created, err := h.service.UploadUserAvatar(r.Context(), userID, header.Filename, header.Size, file)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, created)
+}
 func (h *Handler) DownloadCompanyLogo(w http.ResponseWriter, r *http.Request) {
 	file, object, err := h.service.DownloadCompanyLogo(r.Context(), r.PathValue("company_id"))
 	if err != nil {
@@ -85,6 +100,15 @@ func (h *Handler) DownloadCaseFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer object.Close()
 	writeDownload(w, r, file, object, true)
+}
+func (h *Handler) DownloadCaseReviewFile(w http.ResponseWriter, r *http.Request) {
+	file, object, err := h.service.DownloadCaseReviewFile(r.Context(), r.PathValue("case_id"), r.PathValue("file_id"))
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, false)
 }
 func (h *Handler) DownloadProtectedCaseFile(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
@@ -122,6 +146,46 @@ func (h *Handler) DownloadApplicationResume(w http.ResponseWriter, r *http.Reque
 	defer object.Close()
 	writeDownload(w, r, file, object, false)
 }
+func (h *Handler) DownloadFeedbackFile(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	isAdmin := false
+	if claims, ok := middleware.TokenClaimsFromContext(r.Context()); ok {
+		for _, role := range claims.Roles {
+			isAdmin = isAdmin || role == "admin"
+		}
+	}
+	file, object, err := h.service.DownloadFeedbackFile(r.Context(), r.PathValue("feedback_id"), r.PathValue("file_id"), userID, isAdmin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	w.Header().Set("Cache-Control", "private, no-store")
+	switch file.MIMEType {
+	case "image/png", "image/jpeg", "image/webp", "image/gif":
+		writeDownload(w, r, file, object, true)
+	default:
+		writeDownload(w, r, file, object, false)
+	}
+}
+
+func (h *Handler) DownloadInternshipResume(w http.ResponseWriter, r *http.Request) {
+	user, _ := middleware.UserIDFromContext(r.Context())
+	isAdmin := false
+	if claims, ok := middleware.TokenClaimsFromContext(r.Context()); ok {
+		for _, role := range claims.Roles {
+			isAdmin = isAdmin || role == "admin"
+		}
+	}
+	file, object, err := h.service.DownloadInternshipResume(r.Context(), r.PathValue("application_id"), user, isAdmin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, false)
+}
+
 func (h *Handler) DownloadSubmissionFile(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	isAdmin := false
@@ -139,12 +203,44 @@ func (h *Handler) DownloadSubmissionFile(w http.ResponseWriter, r *http.Request)
 	writeDownload(w, r, file, object, false)
 }
 func (h *Handler) DownloadStudentProjectFile(w http.ResponseWriter, r *http.Request) {
-	file, object, err := h.service.DownloadPublicStudentProjectFile(r.Context(), r.PathValue("project_id"), r.PathValue("file_id"))
+	file, object, err := h.service.DownloadStudentProjectFile(r.Context(), r.PathValue("project_id"), r.PathValue("file_id"), "published")
 	if err != nil {
 		writeError(w, r, err)
 		return
 	}
 	defer object.Close()
+	w.Header().Set("Cache-Control", "no-store")
+	writeDownload(w, r, file, object, true)
+}
+func (h *Handler) DownloadStudentProjectReviewFile(w http.ResponseWriter, r *http.Request) {
+	file, object, err := h.service.DownloadStudentProjectFile(r.Context(), r.PathValue("project_id"), r.PathValue("file_id"), "moderation")
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	writeDownload(w, r, file, object, false)
+}
+
+func (h *Handler) DownloadStudentPhoto(w http.ResponseWriter, r *http.Request) {
+	file, object, err := h.service.DownloadStudentPhoto(r.Context(), r.PathValue("student_id"))
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	w.Header().Set("Cache-Control", "no-cache")
+	writeDownload(w, r, file, object, true)
+}
+func (h *Handler) DownloadUserAvatar(w http.ResponseWriter, r *http.Request) {
+	viewer, admin := eventFileActor(r)
+	file, object, err := h.service.DownloadUserAvatar(r.Context(), r.PathValue("user_id"), viewer, admin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	w.Header().Set("Cache-Control", "private, no-store")
 	writeDownload(w, r, file, object, true)
 }
 func (h *Handler) DownloadPortfolioFile(w http.ResponseWriter, r *http.Request) {
@@ -154,6 +250,7 @@ func (h *Handler) DownloadPortfolioFile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	defer object.Close()
+	w.Header().Set("Cache-Control", "private, no-store")
 	writeDownload(w, r, file, object, true)
 }
 func (h *Handler) DownloadCaseCover(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +312,9 @@ func writeDownload(w http.ResponseWriter, r *http.Request, file *models.File, re
 	disposition := "attachment"
 	if public {
 		disposition = "inline"
-		w.Header().Set("Cache-Control", "public, max-age=300")
+		if w.Header().Get("Cache-Control") == "" {
+			w.Header().Set("Cache-Control", "public, max-age=300")
+		}
 	} else {
 		w.Header().Set("Cache-Control", "private, no-store")
 	}

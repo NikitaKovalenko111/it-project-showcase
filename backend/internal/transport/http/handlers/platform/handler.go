@@ -192,19 +192,22 @@ func (h *Handler) ListAudit(w http.ResponseWriter, r *http.Request) {
 	pkg.WriteJSON(w, 200, pagination.NewPageResponse(xs, q, total))
 }
 func (h *Handler) SearchStudents(w http.ResponseWriter, r *http.Request) {
-	sort := r.URL.Query().Get("sort")
+	values := r.URL.Query()
+	sort := values.Get("sort")
+	filter := models.StudentSearchFilter{Query: values.Get("search"), Direction: values.Get("direction"), Technology: values.Get("technology"),
+		GroupName: values.Get("group_name"), EducationLevel: values.Get("education_level")}
 	if sort == "rating_asc" || sort == "rating_desc" {
 		q, e := pagination.ParsePageQuery(r.URL.Query())
 		if e != nil {
 			pagination.WriteQueryError(w, e)
 			return
 		}
-		xs, total, e := h.s.SearchStudentsByRating(r.Context(), r.URL.Query().Get("search"), r.URL.Query().Get("direction"), r.URL.Query().Get("technology"), sort, q.PageSize, q.Offset)
+		xs, total, e := h.s.SearchStudentsByRating(r.Context(), filter, sort, q.PageSize, q.Offset)
 		if e != nil {
 			h.err(w, r, e)
 			return
 		}
-		pkg.WriteJSON(w, 200, pagination.NewPageResponse(xs, q, int64(total)))
+		pkg.WriteJSON(w, 200, pagination.NewPageResponse(visibleStudentAssignments(r, xs), q, int64(total)))
 		return
 	}
 	q, e := pagination.ParseCursorQuery(r.URL.Query(), "student-search")
@@ -216,12 +219,12 @@ func (h *Handler) SearchStudents(w http.ResponseWriter, r *http.Request) {
 	if q.Cursor != nil {
 		pos, id = q.Cursor.Position, q.Cursor.ID
 	}
-	xs, e := h.s.SearchStudents(r.Context(), r.URL.Query().Get("search"), r.URL.Query().Get("direction"), r.URL.Query().Get("technology"), q.Limit+1, pos, id)
+	xs, e := h.s.SearchStudents(r.Context(), filter, q.Limit+1, pos, id)
 	if e != nil {
 		h.err(w, r, e)
 		return
 	}
-	page, e := pagination.NewCursorPage(xs, q.Limit, func(x models.StudentSearchItem) (pagination.Cursor, error) {
+	page, e := pagination.NewCursorPage(visibleStudentAssignments(r, xs), q.Limit, func(x models.StudentSearchItem) (pagination.Cursor, error) {
 		return pagination.Cursor{Scope: "student-search", Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.UserID}, nil
 	})
 	if e != nil {
@@ -229,6 +232,15 @@ func (h *Handler) SearchStudents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.WriteJSON(w, 200, page)
+}
+func visibleStudentAssignments(r *http.Request, students []models.StudentSearchItem) []models.StudentSearchItem {
+	if admin(r) { return students }
+	viewer := user(r)
+	for i := range students {
+		item := &students[i]
+		if item.UserID != viewer && (item.CuratorID == nil || *item.CuratorID != viewer) { item.CuratorID = nil }
+	}
+	return students
 }
 func (h *Handler) GetPortfolio(w http.ResponseWriter, r *http.Request) {
 	x, e := h.s.GetPortfolio(r.Context(), user(r), r.PathValue("student_id"), admin(r))

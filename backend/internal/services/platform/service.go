@@ -97,21 +97,31 @@ func (s *Service) ListAudit(ctx context.Context, entity, action string, limit in
 	}
 	return s.repo.ListAudit(ctx, entity, action, limit, offset)
 }
-func (s *Service) SearchStudents(ctx context.Context, q, d, t string, limit int, pos, id string) ([]models.StudentSearchItem, error) {
-	if utf8.RuneCountInString(q) > 100 || utf8.RuneCountInString(d) > 200 || utf8.RuneCountInString(t) > 100 {
-		return nil, ErrInvalid
-	}
+func (s *Service) SearchStudents(ctx context.Context, filter models.StudentSearchFilter, limit int, pos, id string) ([]models.StudentSearchItem, error) {
+	if err := normalizeStudentSearch(&filter); err != nil { return nil, err }
 	b, e := before(pos, id)
 	if e != nil {
 		return nil, e
 	}
-	return s.repo.SearchStudents(ctx, strings.TrimSpace(q), strings.TrimSpace(d), strings.TrimSpace(t), limit, b, id)
+	return s.repo.SearchStudents(ctx, filter, limit, b, id)
 }
-func (s *Service) SearchStudentsByRating(ctx context.Context, q, d, t, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
+func (s *Service) SearchStudentsByRating(ctx context.Context, filter models.StudentSearchFilter, sort string, limit int, offset int64) ([]models.StudentSearchItem, int, error) {
 	if sort != "rating_asc" && sort != "rating_desc" {
 		return nil, 0, ErrInvalid
 	}
-	return s.repo.SearchStudentsByRating(ctx, strings.TrimSpace(q), strings.TrimSpace(d), strings.TrimSpace(t), sort, limit, offset)
+	if err := normalizeStudentSearch(&filter); err != nil { return nil, 0, err }
+	return s.repo.SearchStudentsByRating(ctx, filter, sort, limit, offset)
+}
+
+func normalizeStudentSearch(filter *models.StudentSearchFilter) error {
+	for _, field := range []struct{ value *string; max int }{
+		{&filter.Query,100}, {&filter.Direction,200}, {&filter.Technology,100},
+		{&filter.GroupName,150}, {&filter.EducationLevel,150},
+	} {
+		*field.value = strings.TrimSpace(*field.value)
+		if utf8.RuneCountInString(*field.value)>field.max { return ErrInvalid }
+	}
+	return nil
 }
 func (s *Service) GetPortfolio(ctx context.Context, viewer, student string, admin bool) (*models.Portfolio, error) {
 	if !validID(student) {

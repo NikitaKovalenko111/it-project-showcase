@@ -36,6 +36,9 @@ type StudentSearchItem struct {
 	Username     string    `json:"username"`
 	FullName     string    `json:"full_name"`
 	Institute    string    `json:"institute"`
+	GroupName    string    `json:"group_name"`
+	EducationLevel string  `json:"education_level,omitempty"`
+	CuratorID    *string   `json:"curator_id,omitempty"`
 	Direction    string    `json:"direction"`
 	Course       int       `json:"course"`
 	Competencies []string  `json:"competencies"`
@@ -43,6 +46,9 @@ type StudentSearchItem struct {
 	PhotoFileID  *string   `json:"photo_file_id"`
 	Rating       float64   `json:"rating"`
 	CreatedAt    time.Time `json:"created_at"`
+}
+type StudentSearchFilter struct {
+	Query, Direction, Technology, GroupName, EducationLevel string
 }
 type Portfolio struct {
 	Student      StudentSearchItem `json:"student"`

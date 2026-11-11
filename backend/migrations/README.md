@@ -32,3 +32,11 @@ The server embeds these files, applies them in version order and records version
 
 `000011_sprint4_expansion.up.sql` adds tree comments and reports, team discovery and join applications, leaderboards, internships, curators, portfolio files, case covers, project visibility and tags, versioned NDA text, and locks evaluation criteria after draft.
 
+`000012_case_formats_stage_editing_curator_access.up.sql` adds the company event format (`case`, `hackathon`, `olympiad`). Stage editing and curator access are implemented in application code against the existing stage and curator relations.
+
+`000013_stage_order_and_company_reports.up.sql` enables atomic stage reordering, validates company report targets, adds unique comment likes and indexes outgoing team applications.
+
+`000014_remove_mentor_role.up.sql` removes the legacy role, closes active student assignments held without `university_staff`, and preserves assignment history.
+
+Migrations `000015` through `000019` add event registrations, feedback and deadline history, profile education level and role requests, internship applications and unique case views, and event plans with round submissions and scores.
+

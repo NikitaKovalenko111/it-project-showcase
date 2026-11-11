@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"it-project-showcase/backend/internal/models"
 	application_repo "it-project-showcase/backend/internal/storage/repositories/application"
-	"net/url"
+	"it-project-showcase/backend/pkg"
 	"regexp"
 	"strings"
 	"time"
@@ -23,6 +23,8 @@ var (
 	ErrConsentPending    = errors.New("application consent pending")
 	ErrConflict          = errors.New("application conflict")
 	ErrInvalidCursor     = errors.New("invalid cursor")
+	ErrEventCapacity     = errors.New("event capacity reached")
+	ErrWrongEntryKind    = errors.New("wrong entry route for event format")
 )
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
 
@@ -90,12 +92,20 @@ func (s *Service) GetExecution(ctx context.Context, userID, id string, isCompany
 	item, err := s.repo.GetExecution(ctx, userID, id, isCompany, isAdmin)
 	return item, mapError(err)
 }
-func validURL(value string) bool {
-	if value == "" {
-		return true
+
+func (s *Service) ListExecutions(ctx context.Context, userID string, isCompany, isAdmin bool, limit int, position, id string) ([]models.Execution, error) {
+	var before *time.Time
+	if position != "" {
+		value, err := time.Parse(time.RFC3339Nano, position)
+		if err != nil || !uuidPattern.MatchString(id) {
+			return nil, ErrInvalidCursor
+		}
+		before = &value
 	}
-	parsed, err := url.ParseRequestURI(value)
-	return err == nil && parsed.Host != "" && (parsed.Scheme == "http" || parsed.Scheme == "https")
+	return s.repo.ListExecutions(ctx, userID, isCompany, isAdmin, limit, before, id)
+}
+func validURL(value string) bool {
+	return value == "" || pkg.IsWebURL(value)
 }
 func oneOf(value string, allowed ...string) bool {
 	for _, x := range allowed {
@@ -123,6 +133,12 @@ func mapError(err error) error {
 	}
 	if errors.Is(err, application_repo.ErrConsentPending) {
 		return ErrConsentPending
+	}
+	if errors.Is(err, application_repo.ErrEventCapacity) {
+		return ErrEventCapacity
+	}
+	if errors.Is(err, application_repo.ErrWrongEntryKind) {
+		return ErrWrongEntryKind
 	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {

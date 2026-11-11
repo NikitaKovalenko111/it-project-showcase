@@ -38,6 +38,7 @@ type CaseRequest struct {
 	Summary              string                            `json:"summary"`
 	FullBrief            string                            `json:"full_brief"`
 	Type                 string                            `json:"type"`
+	EventFormat          string                            `json:"event_format"`
 	Difficulty           string                            `json:"difficulty"`
 	WorkFormat           string                            `json:"work_format"`
 	ParticipationMode    string                            `json:"participation_mode"`
@@ -66,7 +67,7 @@ type CaseRequest struct {
 func (request CaseRequest) model() models.CaseInput {
 	input := models.CaseInput{
 		CompanyID: request.CompanyID, Title: request.Title, Summary: request.Summary, FullBrief: request.FullBrief,
-		Type: request.Type, Difficulty: request.Difficulty, WorkFormat: request.WorkFormat,
+		Type: request.Type, EventFormat: request.EventFormat, Difficulty: request.Difficulty, WorkFormat: request.WorkFormat,
 		ParticipationMode: request.ParticipationMode, AdmissionMode: request.AdmissionMode, Capacity: request.Capacity,
 		TeamSizeMin: request.TeamSizeMin, TeamSizeMax: request.TeamSizeMax, CourseMin: request.CourseMin, CourseMax: request.CourseMax,
 		ApplicationDeadline: request.ApplicationDeadline, DueAt: request.DueAt, Duration: request.Duration,

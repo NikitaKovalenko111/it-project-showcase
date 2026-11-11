@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"it-project-showcase/backend/internal/models"
 	result_repo "it-project-showcase/backend/internal/storage/repositories/result"
+	"it-project-showcase/backend/pkg"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -47,11 +48,26 @@ func (s *Service) GetSubmission(ctx context.Context, u, id string, c, a bool) (*
 	x, e := s.repo.GetSubmission(ctx, u, id, c, a)
 	return x, mapErr(e, true)
 }
+
+func (s *Service) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
+	if !validID(submission) {
+		return nil, ErrNotFound
+	}
+	item, err := s.repo.ReviewDetails(ctx, user, submission, company, admin)
+	return item, mapErr(err, true)
+}
 func (s *Service) CreateSubmission(ctx context.Context, u, e string, in models.SubmissionInput) (*models.Submission, error) {
 	in.Title = strings.TrimSpace(in.Title)
 	in.Description = strings.TrimSpace(in.Description)
 	if !validID(e) || in.Title == "" || in.Description == "" || utf8.RuneCountInString(in.Title) > 200 || utf8.RuneCountInString(in.Description) > 20000 || (in.Kind != "stage" && in.Kind != "final") || (in.Kind == "stage" && !validID(in.StageID)) || len(in.Files) > 30 {
 		return nil, ErrInvalid
+	}
+	in.RepositoryURL = strings.TrimSpace(in.RepositoryURL)
+	in.DemoURL = strings.TrimSpace(in.DemoURL)
+	for _, link := range []string{in.RepositoryURL, in.DemoURL} {
+		if link != "" && !pkg.IsWebURL(link) {
+			return nil, ErrInvalid
+		}
 	}
 	for i := range in.Files {
 		if !validID(in.Files[i].FileID) || in.Files[i].Ordinal < 1 || (in.Files[i].Kind != "attachment" && in.Files[i].Kind != "screenshot" && in.Files[i].Kind != "presentation" && in.Files[i].Kind != "documentation" && in.Files[i].Kind != "source_archive") {

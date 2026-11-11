@@ -2,19 +2,29 @@ package models
 
 import "time"
 
+type CompanyLegal struct {
+	INN          string `json:"inn,omitempty"`
+	KPP          string `json:"kpp,omitempty"`
+	OGRN         string `json:"ogrn,omitempty"`
+	LegalAddress string `json:"legal_address,omitempty"`
+}
+
 type Company struct {
-	CompanyID   string    `json:"company_id"`
-	FullName    string    `json:"full_name"`
-	ShortName   string    `json:"short_name,omitempty"`
-	Industry    string    `json:"industry,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Activities  string    `json:"activities,omitempty"`
-	Website     string    `json:"website,omitempty"`
-	Contacts    string    `json:"contacts,omitempty"`
-	LogoFileID  *string   `json:"logo_file_id"`
-	Status      string    `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CompanyLegal
+	CompanyID         string    `json:"company_id"`
+	FullName          string    `json:"full_name"`
+	ShortName         string    `json:"short_name,omitempty"`
+	Industry          string    `json:"industry,omitempty"`
+	Description       string    `json:"description,omitempty"`
+	Activities        string    `json:"activities,omitempty"`
+	Website           string    `json:"website,omitempty"`
+	Contacts          string    `json:"contacts,omitempty"`
+	InternshipProgram string    `json:"internship_program,omitempty"`
+	PracticeProgram   string    `json:"practice_program,omitempty"`
+	LogoFileID        *string   `json:"logo_file_id"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 type CompanyInput struct {

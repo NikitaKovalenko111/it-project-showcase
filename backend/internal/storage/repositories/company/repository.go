@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"it-project-showcase/backend/internal/storage/audit"
 	"time"
 
 	"it-project-showcase/backend/internal/models"
@@ -18,10 +19,10 @@ var ErrInvalidTransition = errors.New("invalid company transition")
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
 func companyColumns() string {
-	return `company_id, full_name, COALESCE(short_name, ''), COALESCE(industry, ''), COALESCE(description, ''), COALESCE(activities, ''), COALESCE(website, ''), COALESCE(contacts, ''), logo_file_id, status, created_at, updated_at`
+	return `company_id, full_name, COALESCE(short_name, ''), COALESCE(industry, ''), COALESCE(description, ''), COALESCE(activities, ''), COALESCE(website, ''), COALESCE(contacts, ''), internship_program, practice_program, inn, kpp, ogrn, legal_address, logo_file_id, status, created_at, updated_at`
 }
 func (r *Repository) Submit(ctx context.Context, userID, companyID string) (*models.Company, error) {
-	company, err := scanCompany(r.db.QueryRowContext(ctx, `UPDATE companies c SET status='pending' WHERE c.company_id=$1 AND c.status IN ('draft','rejected') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING `+companyColumns(), companyID, userID))
+	company, err := r.writeCompany(ctx, `UPDATE companies c SET status='pending' WHERE c.company_id=$1 AND c.status IN ('draft','rejected') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING `+companyColumns(), companyID, userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, sql.ErrNoRows
 	}
@@ -137,13 +138,21 @@ func (r *Repository) ListStudentInvitations(ctx context.Context, userID, status 
 }
 func scanCompany(row interface{ Scan(...any) error }) (*models.Company, error) {
 	var c models.Company
-	err := row.Scan(&c.CompanyID, &c.FullName, &c.ShortName, &c.Industry, &c.Description, &c.Activities, &c.Website, &c.Contacts, &c.LogoFileID, &c.Status, &c.CreatedAt, &c.UpdatedAt)
+	err := row.Scan(&c.CompanyID, &c.FullName, &c.ShortName, &c.Industry, &c.Description, &c.Activities, &c.Website, &c.Contacts, &c.InternshipProgram, &c.PracticeProgram, &c.INN, &c.KPP, &c.OGRN, &c.LegalAddress, &c.LogoFileID, &c.Status, &c.CreatedAt, &c.UpdatedAt)
 	return &c, err
 }
 
 func (r *Repository) List(ctx context.Context, status string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
-	query := `SELECT ` + companyColumns() + ` FROM companies WHERE status = $1`
-	args := []any{status}
+	return r.list(ctx, "status=$1", status, limit, before, beforeID)
+}
+
+func (r *Repository) ListMine(ctx context.Context, user string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
+	return r.list(ctx, `EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=companies.company_id AND m.user_id=$1 AND m.status='active')`, user, limit, before, beforeID)
+}
+
+func (r *Repository) list(ctx context.Context, predicate, value string, limit int, before *time.Time, beforeID string) ([]models.Company, error) {
+	query := `SELECT ` + companyColumns() + ` FROM companies WHERE ` + predicate
+	args := []any{value}
 	if before != nil {
 		query += ` AND (created_at, company_id) < ($2, $3)`
 		args = append(args, *before, beforeID)
@@ -181,7 +190,7 @@ func (r *Repository) GetByID(ctx context.Context, companyID string) (*models.Com
 }
 
 func (r *Repository) Create(ctx context.Context, userID string, input models.CompanyInput) (*models.Company, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin company creation: %w", err)
 	}
@@ -200,8 +209,35 @@ func (r *Repository) Create(ctx context.Context, userID string, input models.Com
 	return company, nil
 }
 
+func (r *Repository) writeCompany(ctx context.Context, query string, args ...any) (*models.Company, error) {
+	tx, err := audit.Begin(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	company, err := scanCompany(tx.QueryRowContext(ctx, query, args...))
+	if err != nil {
+		return nil, err
+	}
+	return company, tx.Commit()
+}
+
+func (r *Repository) UpdatePrograms(ctx context.Context, userID, companyID string, internship, practice *string) (*models.Company, error) {
+	return r.writeCompany(ctx, `UPDATE companies c SET
+		internship_program=COALESCE($3, c.internship_program), practice_program=COALESCE($4, c.practice_program)
+		WHERE c.company_id=$1 AND EXISTS (SELECT 1 FROM company_members cm
+		WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')
+		RETURNING `+companyColumns(), companyID, userID, internship, practice)
+}
+func (r *Repository) UpdateLegal(ctx context.Context, userID, companyID string, details models.CompanyLegal) (*models.Company, error) {
+	return r.writeCompany(ctx, `UPDATE companies c SET inn=$3, kpp=$4, ogrn=$5, legal_address=$6
+ WHERE c.company_id=$1 AND EXISTS (SELECT 1 FROM company_members cm
+ WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')
+ RETURNING `+companyColumns(), companyID, userID, details.INN, details.KPP, details.OGRN, details.LegalAddress)
+}
+
 func (r *Repository) UpdateByMember(ctx context.Context, userID, companyID string, input models.CompanyInput) (*models.Company, error) {
-	company, err := scanCompany(r.db.QueryRowContext(ctx, `UPDATE companies c SET full_name=$3, short_name=NULLIF($4,''), industry=NULLIF($5,''), description=NULLIF($6,''), activities=NULLIF($7,''), website=NULLIF($8,''), contacts=NULLIF($9,''), status=CASE WHEN c.status='approved' THEN 'pending' ELSE c.status END WHERE c.company_id=$1 AND EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING `+companyColumns(), companyID, userID, input.FullName, input.ShortName, input.Industry, input.Description, input.Activities, input.Website, input.Contacts))
+	company, err := r.writeCompany(ctx, `UPDATE companies c SET full_name=$3, short_name=NULLIF($4,''), industry=NULLIF($5,''), description=NULLIF($6,''), activities=NULLIF($7,''), website=NULLIF($8,''), contacts=NULLIF($9,''), status=CASE WHEN c.status='approved' THEN 'pending' ELSE c.status END WHERE c.company_id=$1 AND EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING `+companyColumns(), companyID, userID, input.FullName, input.ShortName, input.Industry, input.Description, input.Activities, input.Website, input.Contacts)
 	if err != nil {
 		return nil, fmt.Errorf("update company: %w", err)
 	}
@@ -209,7 +245,7 @@ func (r *Repository) UpdateByMember(ctx context.Context, userID, companyID strin
 }
 
 func (r *Repository) Moderate(ctx context.Context, moderatorID, companyID, status, comment string) (*models.Company, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin company moderation: %w", err)
 	}

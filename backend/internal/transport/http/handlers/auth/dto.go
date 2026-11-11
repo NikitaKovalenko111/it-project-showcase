@@ -7,6 +7,8 @@ import (
 )
 
 type RegisterRequest struct {
+	Role                  string               `json:"role"`
+	EducationLevel        string               `json:"education_level"`
 	Username              string               `json:"username"`
 	Email                 string               `json:"email"`
 	Password              string               `json:"password"`
@@ -29,6 +31,7 @@ type RegisterRequest struct {
 
 func (r RegisterRequest) model() models.StudentRegistration {
 	return models.StudentRegistration{
+		RequestedRole: r.Role, EducationLevel: r.EducationLevel,
 		Username: r.Username, Email: r.Email, Password: r.Password,
 		LastName: r.LastName, FirstName: r.FirstName, Patronymic: r.Patronymic,
 		Institute: r.Institute, Direction: r.Direction, Program: r.Program,
@@ -60,19 +63,20 @@ type LogoutRequest struct {
 }
 
 type MeResponse struct {
-	UserID      string                 `json:"user_id"`
-	Username    string                 `json:"username"`
-	Email       string                 `json:"email"`
-	Status      string                 `json:"status"`
-	Roles       []string               `json:"roles"`
-	Student     *models.StudentProfile `json:"student,omitempty"`
-	LastLoginAt *time.Time             `json:"last_login_at,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+	AvatarFileID *string                `json:"avatar_file_id,omitempty"`
+	UserID       string                 `json:"user_id"`
+	Username     string                 `json:"username"`
+	Email        string                 `json:"email"`
+	Status       string                 `json:"status"`
+	Roles        []string               `json:"roles"`
+	Student      *models.StudentProfile `json:"student,omitempty"`
+	LastLoginAt  *time.Time             `json:"last_login_at,omitempty"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
 }
 
 func newMeResponse(user *models.User) MeResponse {
 	return MeResponse{UserID: user.UserID, Username: user.Username, Email: user.Email,
-		Status: user.Status, Roles: user.Roles, Student: user.Student,
+		Status: user.Status, Roles: user.Roles, Student: user.Student, AvatarFileID: user.AvatarFileID,
 		LastLoginAt: user.LastLoginAt, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}
 }

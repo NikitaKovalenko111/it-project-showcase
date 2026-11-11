@@ -14,7 +14,7 @@ func TestSetUserStatusRequiresExistingUser(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE users").WithArgs("user", "blocked").WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectRollback()
-	err := Init(db).SetUserStatus(context.Background(), "user", "blocked")
+	err := Init(db).SetUserStatus(context.Background(), "user", "blocked", "")
 	if !errors.Is(err, sql.ErrNoRows) {
 		t.Fatalf("error = %v", err)
 	}

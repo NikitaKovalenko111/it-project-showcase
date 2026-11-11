@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"it-project-showcase/backend/internal/storage/audit"
 	"math"
 	"strings"
 	"time"
@@ -15,8 +16,10 @@ import (
 
 var (
 	ErrAccessDenied      = errors.New("case access denied")
+	ErrDeadlineExpired   = errors.New("case deadline is in the past")
 	ErrInvalidTransition = errors.New("invalid case status transition")
 	ErrReferenceNotFound = errors.New("case reference not found")
+	ErrStagesLocked      = errors.New("case stages are locked")
 )
 
 type Repository struct{ db *sql.DB }
@@ -25,7 +28,11 @@ func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
 const caseSelectQuery = `
 SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c.full_brief,
-       c.type,COALESCE(c.difficulty,''),c.work_format,c.participation_mode,c.admission_mode,
+       c.type,c.event_format,
+       (SELECT count(*) FROM applications a WHERE a.case_id=c.case_id AND a.entry_kind='registration' AND a.status='accepted'),
+       (SELECT count(*) FROM case_views v WHERE v.case_id=c.case_id),
+       (SELECT count(*) FROM applications a WHERE a.case_id=c.case_id AND a.entry_kind='application' AND a.status NOT IN ('rejected','withdrawn')),
+       COALESCE(c.difficulty,''),c.work_format,c.participation_mode,c.admission_mode,
        c.capacity,c.team_size_min,c.team_size_max,c.course_min,c.course_max,
        c.application_deadline,c.due_at,COALESCE(c.duration,''),c.result_requirements,
        COALESCE(c.evaluation_rules,''),c.ip_terms,c.terms_version,c.nda_required,c.status,
@@ -67,7 +74,7 @@ func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 	var directions, competencies, technologies, rewards, files, criteria []byte
 	err := row.Scan(
 		&item.CaseID, &item.CompanyID, &item.CompanyName, &item.CreatedBy, &item.Title, &item.Summary,
-		&item.FullBrief, &item.Type, &item.Difficulty, &item.WorkFormat, &item.ParticipationMode,
+		&item.FullBrief, &item.Type, &item.EventFormat, &item.RegistrationsCount, &item.ViewsCount, &item.ApplicationsCount, &item.Difficulty, &item.WorkFormat, &item.ParticipationMode,
 		&item.AdmissionMode, &item.Capacity, &item.TeamSizeMin, &item.TeamSizeMax, &item.CourseMin,
 		&item.CourseMax, &item.ApplicationDeadline, &item.DueAt, &item.Duration, &item.ResultRequirements,
 		&item.EvaluationRules, &item.IPTerms, &item.TermsVersion, &item.NDARequired, &item.Status,
@@ -98,6 +105,9 @@ func (r *Repository) List(ctx context.Context, filter models.CaseListFilter, lim
 		args = append(args, value)
 		query += fmt.Sprintf(" AND "+condition, len(args))
 	}
+	if filter.ManagerID != "" {
+		add("EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$%d AND cm.status='active' AND cm.permissions ? 'manage_company')", filter.ManagerID)
+	}
 	if filter.Search != "" {
 		args = append(args, "%"+filter.Search+"%")
 		query += fmt.Sprintf(" AND (c.title ILIKE $%d OR c.summary ILIKE $%d OR company.full_name ILIKE $%d)", len(args), len(args), len(args))
@@ -119,6 +129,9 @@ func (r *Repository) List(ctx context.Context, filter models.CaseListFilter, lim
 	}
 	if filter.Type != "" {
 		add("c.type=$%d", filter.Type)
+	}
+	if filter.EventFormat != "" {
+		add("c.event_format=$%d", filter.EventFormat)
 	}
 	if filter.HasReward != nil {
 		if *filter.HasReward {
@@ -160,6 +173,13 @@ func (r *Repository) GetPublic(ctx context.Context, caseID string) (*models.Case
 	return item, nil
 }
 
+func (r *Repository) RecordView(ctx context.Context, caseID, userID string) error {
+	_, err := r.db.ExecContext(ctx, `INSERT INTO case_views(case_id,user_id) SELECT c.case_id,u.user_id
+		FROM cases c CROSS JOIN users u WHERE c.case_id=$1 AND u.user_id=$2 AND u.status='active'
+		AND c.visibility='public' AND c.status IN ('published','in_progress','completed') ON CONFLICT DO NOTHING`, caseID, userID)
+	return err
+}
+
 func (r *Repository) GetManaged(ctx context.Context, userID, caseID string, admin bool) (*models.Case, error) {
 	item, err := scanCase(r.db.QueryRowContext(ctx, caseSelect(true)+` WHERE c.case_id=$1 AND ($3 OR EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))`, caseID, userID, admin))
 	if err != nil {
@@ -169,16 +189,16 @@ func (r *Repository) GetManaged(ctx context.Context, userID, caseID string, admi
 }
 
 func (r *Repository) Create(ctx context.Context, userID string, input models.CaseInput) (*models.Case, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin case creation: %w", err)
 	}
 	defer tx.Rollback()
 	var caseID string
-	err = tx.QueryRowContext(ctx, `INSERT INTO cases (company_id,created_by,title,summary,full_brief,type,difficulty,work_format,participation_mode,admission_mode,capacity,team_size_min,team_size_max,course_min,course_max,application_deadline,due_at,duration,result_requirements,evaluation_rules,ip_terms,nda_required,visibility)
-		SELECT $1,$2,$3,$4,$5,$6,NULLIF($7,''),$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NULLIF($18,''),$19,NULLIF($20,''),$21,$22,$23
+	err = tx.QueryRowContext(ctx, `INSERT INTO cases (company_id,created_by,title,summary,full_brief,type,event_format,difficulty,work_format,participation_mode,admission_mode,capacity,team_size_min,team_size_max,course_min,course_max,application_deadline,due_at,duration,result_requirements,evaluation_rules,ip_terms,nda_required,visibility)
+		SELECT $1,$2,$3,$4,$5,$6,$7,NULLIF($8,''),$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,NULLIF($19,''),$20,NULLIF($21,''),$22,$23,$24
 		WHERE EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=$1 AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING case_id`,
-		input.CompanyID, userID, input.Title, input.Summary, input.FullBrief, input.Type, input.Difficulty, input.WorkFormat, input.ParticipationMode, input.AdmissionMode, input.Capacity, input.TeamSizeMin, input.TeamSizeMax, input.CourseMin, input.CourseMax, input.ApplicationDeadline, input.DueAt, input.Duration, input.ResultRequirements, input.EvaluationRules, input.IPTerms, input.NDARequired, input.Visibility).Scan(&caseID)
+		input.CompanyID, userID, input.Title, input.Summary, input.FullBrief, input.Type, input.EventFormat, input.Difficulty, input.WorkFormat, input.ParticipationMode, input.AdmissionMode, input.Capacity, input.TeamSizeMin, input.TeamSizeMax, input.CourseMin, input.CourseMax, input.ApplicationDeadline, input.DueAt, input.Duration, input.ResultRequirements, input.EvaluationRules, input.IPTerms, input.NDARequired, input.Visibility).Scan(&caseID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAccessDenied
 	}
@@ -198,7 +218,7 @@ func (r *Repository) Create(ctx context.Context, userID string, input models.Cas
 }
 
 func (r *Repository) Update(ctx context.Context, userID, caseID string, input models.CaseInput) (*models.Case, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin case update: %w", err)
 	}
@@ -225,7 +245,7 @@ func (r *Repository) Update(ctx context.Context, userID, caseID string, input mo
 		}
 	}
 	version++
-	_, err = tx.ExecContext(ctx, `UPDATE cases SET title=$2,summary=$3,full_brief=$4,type=$5,difficulty=NULLIF($6,''),work_format=$7,participation_mode=$8,admission_mode=$9,capacity=$10,team_size_min=$11,team_size_max=$12,course_min=$13,course_max=$14,application_deadline=$15,due_at=$16,duration=NULLIF($17,''),result_requirements=$18,evaluation_rules=NULLIF($19,''),ip_terms=$20,terms_version=$21,nda_required=$22,visibility=$23,status=CASE WHEN status='published' THEN 'revision' ELSE status END WHERE case_id=$1`, caseID, input.Title, input.Summary, input.FullBrief, input.Type, input.Difficulty, input.WorkFormat, input.ParticipationMode, input.AdmissionMode, input.Capacity, input.TeamSizeMin, input.TeamSizeMax, input.CourseMin, input.CourseMax, input.ApplicationDeadline, input.DueAt, input.Duration, input.ResultRequirements, input.EvaluationRules, input.IPTerms, version, input.NDARequired, input.Visibility)
+	_, err = tx.ExecContext(ctx, `UPDATE cases SET title=$2,summary=$3,full_brief=$4,type=$5,event_format=$6,difficulty=NULLIF($7,''),work_format=$8,participation_mode=$9,admission_mode=$10,capacity=$11,team_size_min=$12,team_size_max=$13,course_min=$14,course_max=$15,application_deadline=$16,due_at=$17,duration=NULLIF($18,''),result_requirements=$19,evaluation_rules=NULLIF($20,''),ip_terms=$21,terms_version=$22,nda_required=$23,visibility=$24,status=CASE WHEN status='published' THEN 'revision' ELSE status END WHERE case_id=$1`, caseID, input.Title, input.Summary, input.FullBrief, input.Type, input.EventFormat, input.Difficulty, input.WorkFormat, input.ParticipationMode, input.AdmissionMode, input.Capacity, input.TeamSizeMin, input.TeamSizeMax, input.CourseMin, input.CourseMax, input.ApplicationDeadline, input.DueAt, input.Duration, input.ResultRequirements, input.EvaluationRules, input.IPTerms, version, input.NDARequired, input.Visibility)
 	if err != nil {
 		return nil, fmt.Errorf("update case: %w", err)
 	}
@@ -254,7 +274,7 @@ func (r *Repository) Cancel(ctx context.Context, userID, caseID string) (*models
 }
 
 func (r *Repository) transitionByMember(ctx context.Context, userID, caseID string, allowed []string, next string) (*models.Case, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin case transition: %w", err)
 	}
@@ -277,6 +297,25 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 	if !valid {
 		return nil, ErrInvalidTransition
 	}
+	if next == "moderation" {
+		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
+		var ready bool
+		err = tx.QueryRowContext(ctx, `SELECT c.event_format='case' OR (
+			c.application_deadline IS NOT NULL AND (c.event_format<>'hackathon' OR c.due_at IS NOT NULL)
+			AND EXISTS(SELECT 1 FROM event_plans p WHERE p.case_id=c.case_id
+				AND (c.event_format<>'olympiad' OR jsonb_array_length(p.plan->'rounds')>0)
+				AND (c.work_format='remote' OR (p.plan ? 'venue_name' AND p.plan ? 'address'))
+				AND (c.work_format='onsite' OR (p.plan ? 'platform_name' AND p.plan ? 'platform_url'))))
+			FROM cases c WHERE c.case_id=$1`, caseID).Scan(&ready)
+		if err != nil {
+			return nil, err
+		}
+		if !ready {
+			return nil, ErrEventPlanRequired
+		}
+	}
 	if _, err = tx.ExecContext(ctx, `UPDATE cases SET status=$2 WHERE case_id=$1`, caseID, next); err != nil {
 		return nil, fmt.Errorf("apply case transition: %w", err)
 	}
@@ -287,7 +326,7 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 }
 
 func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision, comment string) (*models.Case, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("begin case moderation: %w", err)
 	}
@@ -302,6 +341,11 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 	}
 	if decision == "approve" && companyStatus != "approved" {
 		return nil, ErrInvalidTransition
+	}
+	if decision == "approve" {
+		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
 	}
 	newStatus := map[string]string{"approve": "published", "request_revision": "revision", "reject": "revision", "hide": "hidden"}[decision]
 	if newStatus == "" {
@@ -318,6 +362,20 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 		return nil, fmt.Errorf("commit case moderation: %w", err)
 	}
 	return r.GetManaged(ctx, moderatorID, caseID, true)
+}
+
+func checkPublicationDeadline(ctx context.Context, tx *sql.Tx, caseID string) error {
+	var expired bool
+	err := tx.QueryRowContext(ctx, `SELECT COALESCE(due_at <= CURRENT_TIMESTAMP, false)
+		OR COALESCE(application_deadline <= CURRENT_TIMESTAMP, false)
+		FROM cases WHERE case_id=$1`, caseID).Scan(&expired)
+	if err != nil {
+		return err
+	}
+	if expired {
+		return ErrDeadlineExpired
+	}
+	return nil
 }
 
 func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string, includeCriteria bool) error {
@@ -435,13 +493,16 @@ func evaluationCriteriaUnchanged(ctx context.Context, tx *sql.Tx, caseID string,
 
 func (r *Repository) ListStages(ctx context.Context, caseID string, public bool, userID string, admin bool) ([]models.CaseStage, error) {
 	var allowed bool
-	if err := r.db.QueryRowContext(ctx, `SELECT (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) FROM cases c WHERE c.case_id=$1`, caseID, public, userID, admin).Scan(&allowed); err != nil {
+	const stageAccess = `(($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public')
+		OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id
+		AND cm.user_id=NULLIF($3,'')::uuid AND cm.status='active' AND cm.permissions ? 'manage_company'))`
+	if err := r.db.QueryRowContext(ctx, `SELECT `+stageAccess+` FROM cases c WHERE c.case_id=$1`, caseID, public, userID, admin).Scan(&allowed); err != nil {
 		return nil, err
 	}
 	if !allowed {
 		return nil, ErrAccessDenied
 	}
-	query := `SELECT s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at FROM case_stages s JOIN cases c ON c.case_id=s.case_id WHERE s.case_id=$1 AND (($2 AND c.status IN ('published','in_progress','completed') AND c.visibility='public') OR $4 OR EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')) ORDER BY s.ordinal`
+	query := `SELECT s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,''),s.due_at FROM case_stages s JOIN cases c ON c.case_id=s.case_id WHERE s.case_id=$1 AND ` + stageAccess + ` ORDER BY s.ordinal`
 	rows, err := r.db.QueryContext(ctx, query, caseID, public, userID, admin)
 	if err != nil {
 		return nil, fmt.Errorf("list case stages: %w", err)
@@ -458,13 +519,24 @@ func (r *Repository) ListStages(ctx context.Context, caseID string, public bool,
 	return items, rows.Err()
 }
 func (r *Repository) DeleteStage(ctx context.Context, userID, caseID, stageID string) error {
-	res, err := r.db.ExecContext(ctx, `DELETE FROM case_stages s USING cases c WHERE s.stage_id=$2 AND s.case_id=$1 AND c.case_id=s.case_id AND c.status IN ('draft','revision') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active' AND cm.permissions ? 'manage_company')`, caseID, stageID, userID)
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
+		return fmt.Errorf("begin stage deletion: %w", err)
+	}
+	defer tx.Rollback()
+	if err = lockMutableStages(ctx, tx, userID, caseID); err != nil {
 		return err
+	}
+	res, err := tx.ExecContext(ctx, `DELETE FROM case_stages WHERE case_id=$1 AND stage_id=$2`, caseID, stageID)
+	if err != nil {
+		return fmt.Errorf("delete case stage: %w", err)
 	}
 	n, _ := res.RowsAffected()
 	if n == 0 {
 		return ErrAccessDenied
+	}
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit stage deletion: %w", err)
 	}
 	return nil
 }
@@ -475,16 +547,13 @@ func (r *Repository) CreateStage(ctx context.Context, userID, caseID string, inp
 		return nil, fmt.Errorf("begin case stage creation: %w", err)
 	}
 	defer tx.Rollback()
-	var x models.CaseStage
-	err = tx.QueryRowContext(ctx, `INSERT INTO case_stages(case_id,ordinal,title,expected_result,due_at) SELECT c.case_id,$3,$4,NULLIF($5,''),$6 FROM cases c WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING stage_id,case_id,ordinal,title,COALESCE(expected_result,''),due_at`, caseID, userID, input.Ordinal, input.Title, input.ExpectedResult, input.DueAt).Scan(&x.StageID, &x.CaseID, &x.Ordinal, &x.Title, &x.ExpectedResult, &x.DueAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrAccessDenied
+	if err = lockMutableStages(ctx, tx, userID, caseID); err != nil {
+		return nil, err
 	}
+	var x models.CaseStage
+	err = tx.QueryRowContext(ctx, `INSERT INTO case_stages(case_id,ordinal,title,expected_result,due_at) VALUES($1,$2,$3,NULLIF($4,''),$5) RETURNING stage_id,case_id,ordinal,title,COALESCE(expected_result,''),due_at`, caseID, input.Ordinal, input.Title, input.ExpectedResult, input.DueAt).Scan(&x.StageID, &x.CaseID, &x.Ordinal, &x.Title, &x.ExpectedResult, &x.DueAt)
 	if err != nil {
 		return nil, fmt.Errorf("create case stage: %w", err)
-	}
-	if _, err = tx.ExecContext(ctx, `INSERT INTO execution_stages(execution_id,stage_id) SELECT execution_id,$1 FROM executions WHERE case_id=$2 ON CONFLICT DO NOTHING`, x.StageID, caseID); err != nil {
-		return nil, fmt.Errorf("initialize execution stage: %w", err)
 	}
 	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit case stage creation: %w", err)
@@ -492,7 +561,124 @@ func (r *Repository) CreateStage(ctx context.Context, userID, caseID string, inp
 	return &x, nil
 }
 
+func (r *Repository) UpdateStage(ctx context.Context, userID, caseID, stageID string, input models.CaseStageInput) (*models.CaseStage, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin stage update: %w", err)
+	}
+	defer tx.Rollback()
+	if err = lockMutableStages(ctx, tx, userID, caseID); err != nil {
+		return nil, err
+	}
+	var x models.CaseStage
+	err = tx.QueryRowContext(ctx, `UPDATE case_stages SET ordinal=$3,title=$4,expected_result=NULLIF($5,''),due_at=$6 WHERE case_id=$1 AND stage_id=$2 RETURNING stage_id,case_id,ordinal,title,COALESCE(expected_result,''),due_at`, caseID, stageID, input.Ordinal, input.Title, input.ExpectedResult, input.DueAt).Scan(&x.StageID, &x.CaseID, &x.Ordinal, &x.Title, &x.ExpectedResult, &x.DueAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrAccessDenied
+	}
+	if err != nil {
+		return nil, fmt.Errorf("update case stage: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit stage update: %w", err)
+	}
+	return &x, nil
+}
+
+func (r *Repository) ReorderStages(ctx context.Context, userID, caseID string, stageIDs []string) ([]models.CaseStage, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin stage reorder: %w", err)
+	}
+	defer tx.Rollback()
+	if err = lockMutableStages(ctx, tx, userID, caseID); err != nil {
+		return nil, err
+	}
+	rows, err := tx.QueryContext(ctx, `SELECT stage_id FROM case_stages WHERE case_id=$1 FOR UPDATE`, caseID)
+	if err != nil {
+		return nil, fmt.Errorf("lock case stages: %w", err)
+	}
+	existing := map[string]struct{}{}
+	for rows.Next() {
+		var stageID string
+		if err = rows.Scan(&stageID); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		existing[stageID] = struct{}{}
+	}
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(existing) != len(stageIDs) {
+		return nil, ErrReferenceNotFound
+	}
+	for _, stageID := range stageIDs {
+		if _, ok := existing[stageID]; !ok {
+			return nil, ErrReferenceNotFound
+		}
+	}
+	order, err := json.Marshal(stageIDs)
+	if err != nil {
+		return nil, err
+	}
+	rows, err = tx.QueryContext(ctx, `WITH updated AS (
+		UPDATE case_stages s SET ordinal=input.ordinal
+		FROM jsonb_array_elements_text($2::jsonb) WITH ORDINALITY AS input(stage_id, ordinal)
+		WHERE s.case_id=$1 AND s.stage_id=input.stage_id::uuid
+		RETURNING s.stage_id,s.case_id,s.ordinal,s.title,COALESCE(s.expected_result,'') AS expected_result,s.due_at
+	) SELECT stage_id,case_id,ordinal,title,expected_result,due_at FROM updated ORDER BY ordinal`, caseID, string(order))
+	if err != nil {
+		return nil, fmt.Errorf("reorder case stages: %w", err)
+	}
+	items := make([]models.CaseStage, 0, len(stageIDs))
+	for rows.Next() {
+		var item models.CaseStage
+		if err = rows.Scan(&item.StageID, &item.CaseID, &item.Ordinal, &item.Title, &item.ExpectedResult, &item.DueAt); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit stage reorder: %w", err)
+	}
+	return items, nil
+}
+
+func lockMutableStages(ctx context.Context, tx *sql.Tx, userID, caseID string) error {
+	var status string
+	var allowed, hasExecutions bool
+	err := tx.QueryRowContext(ctx, `SELECT c.status,EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') FROM cases c WHERE c.case_id=$1 FOR UPDATE`, caseID, userID).Scan(&status, &allowed)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrAccessDenied
+	}
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return ErrAccessDenied
+	}
+	if err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM executions WHERE case_id=$1)`, caseID).Scan(&hasExecutions); err != nil {
+		return err
+	}
+	if hasExecutions {
+		return ErrStagesLocked
+	}
+	if status != "draft" && status != "revision" {
+		return ErrAccessDenied
+	}
+	return nil
+}
+
 func insertRevision(ctx context.Context, tx *sql.Tx, caseID, userID string, version int, input models.CaseInput) error {
+	if input.Rewards == nil {
+		input.Rewards = []models.CaseRewardInput{}
+	}
 	brief, err := json.Marshal(input)
 	if err != nil {
 		return fmt.Errorf("encode case revision: %w", err)

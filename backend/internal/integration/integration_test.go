@@ -90,6 +90,29 @@ func TestSprint4DatabaseInvariants(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO case_stages(case_id,ordinal,title) VALUES($1,1,'First'),($1,2,'Second')`, caseID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE case_stages SET ordinal=3-ordinal WHERE case_id=$1`, caseID); err != nil {
+		t.Fatalf("swap stage ordinals in one statement: %v", err)
+	}
+	var first string
+	if err = tx.QueryRowContext(ctx, `SELECT title FROM case_stages WHERE case_id=$1 AND ordinal=1`, caseID).Scan(&first); err != nil || first != "Second" {
+		t.Fatalf("first stage = %q, err = %v", first, err)
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO reports(reporter_id,resource_type,resource_id,reason) VALUES($1,'company',$2,'spam')`, userID, companyID); err != nil {
+		t.Fatalf("report approved company: %v", err)
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO comment_likes(comment_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING`, rootID, userID); err != nil {
+		t.Fatal(err)
+	}
+	duplicate, err := tx.ExecContext(ctx, `INSERT INTO comment_likes(comment_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING`, rootID, userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n, err := duplicate.RowsAffected(); err != nil || n != 0 {
+		t.Fatalf("duplicate comment like inserted %d rows, err = %v", n, err)
+	}
 	err = tx.QueryRowContext(ctx, `INSERT INTO evaluation_criteria(case_id,name,max_score,ordinal) VALUES($1,'Quality',25,1) RETURNING criterion_id`, caseID).Scan(&criterionID)
 	if err != nil {
 		t.Fatal(err)
