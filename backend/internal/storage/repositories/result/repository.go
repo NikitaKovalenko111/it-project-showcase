@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"it-project-showcase/backend/internal/models"
+	"it-project-showcase/backend/internal/storage/audit"
 	"time"
 )
 
@@ -18,6 +19,33 @@ var (
 type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
+
+func (r *Repository) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
+	var rawFiles, rawEvaluators []byte
+	err := r.db.QueryRowContext(ctx, `SELECT
+		COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'original_name',f.original_name,'mime_type',f.mime_type,'size_bytes',f.size_bytes)
+		ORDER BY sf.ordinal,f.file_id) FROM submission_files sf JOIN files f ON f.file_id=sf.file_id AND f.status='active' WHERE sf.submission_id=s.submission_id),'[]'::jsonb),
+		COALESCE((SELECT jsonb_agg(jsonb_build_object('evaluation_id',v.evaluation_id,'name',COALESCE(NULLIF(concat_ws(' ',p.last_name,p.first_name),''),u.username))
+		ORDER BY v.created_at,v.evaluation_id) FROM evaluations v JOIN users u ON u.user_id=v.evaluator_id LEFT JOIN students p ON p.user_id=u.user_id
+		WHERE v.submission_id=s.submission_id AND v.status='published'),'[]'::jsonb)
+		FROM submissions s JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id
+		WHERE s.submission_id=$1 AND ($4 OR ($3 AND EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id
+			AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, submission, user, company, admin).Scan(&rawFiles, &rawEvaluators)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	if err != nil {
+		return nil, err
+	}
+	var item models.ResultReviewDetails
+	if err = json.Unmarshal(rawFiles, &item.Files); err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(rawEvaluators, &item.Evaluators); err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
 func (r *Repository) authorize(ctx context.Context, u, e string, c, a bool) error {
 	var ok bool
 	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=x.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) FROM executions x WHERE x.execution_id=$1`, e, u, c, a).Scan(&ok)
@@ -27,7 +55,7 @@ func (r *Repository) authorize(ctx context.Context, u, e string, c, a bool) erro
 	return err
 }
 
-const subSelect = `SELECT s.submission_id,s.execution_id,s.stage_id,s.version_no,s.kind,s.title,s.description,s.repository_url,s.demo_url,s.status,s.submitted_by,s.submitted_at,s.reviewed_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal) ORDER BY f.ordinal,f.file_id) FROM submission_files f WHERE f.submission_id=s.submission_id),'[]'::jsonb) FROM submissions s`
+const subSelect = `SELECT s.submission_id,s.execution_id,s.stage_id,s.version_no,s.kind,s.title,s.description,s.repository_url,s.demo_url,s.status,s.submitted_by,s.submitted_at,s.reviewed_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal,'original_name',m.original_name,'mime_type',m.mime_type,'size_bytes',m.size_bytes) ORDER BY f.ordinal,f.file_id) FROM submission_files f JOIN files m ON m.file_id=f.file_id AND m.status='active' WHERE f.submission_id=s.submission_id),'[]'::jsonb) FROM submissions s`
 
 func scanSub(row interface{ Scan(...any) error }) (*models.Submission, error) {
 	var x models.Submission
@@ -79,17 +107,28 @@ func (r *Repository) GetSubmission(ctx context.Context, u, id string, c, a bool)
 	return x, err
 }
 func (r *Repository) CreateSubmission(ctx context.Context, u, e string, in models.SubmissionInput) (*models.Submission, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
+	var caseID string
+	err = tx.QueryRowContext(ctx, `SELECT c.case_id FROM cases c JOIN executions e ON e.case_id=c.case_id
+		WHERE e.execution_id=$1 AND EXISTS(SELECT 1 FROM execution_members m
+			WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL)
+		FOR UPDATE OF c`, e, u).Scan(&caseID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	if err != nil {
+		return nil, err
+	}
 	var id string
 	var stage any
 	if in.StageID != "" {
 		stage = in.StageID
 	}
-	err = tx.QueryRowContext(ctx, `INSERT INTO submissions(execution_id,stage_id,version_no,kind,title,description,repository_url,demo_url,submitted_by) SELECT x.execution_id,$3,COALESCE((SELECT max(version_no)+1 FROM submissions WHERE execution_id=x.execution_id),1),$4,$5,$6,NULLIF($7,''),NULLIF($8,''),$2 FROM executions x WHERE x.execution_id=$1 AND x.status IN ('in_progress','revision','done') AND EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) RETURNING submission_id`, e, u, stage, in.Kind, in.Title, in.Description, in.RepositoryURL, in.DemoURL).Scan(&id)
+	err = tx.QueryRowContext(ctx, `INSERT INTO submissions(execution_id,stage_id,version_no,kind,title,description,repository_url,demo_url,submitted_by) SELECT x.execution_id,$3,COALESCE((SELECT max(version_no)+1 FROM submissions WHERE execution_id=x.execution_id),1),$4,$5,$6,NULLIF($7,''),NULLIF($8,''),$2 FROM executions x WHERE x.execution_id=$1 AND (x.status IN ('in_progress','revision','done') OR ($4='final' AND x.status='submitted')) AND NOT EXISTS(SELECT 1 FROM case_placements p WHERE p.case_id=x.case_id) AND NOT EXISTS(SELECT 1 FROM submissions old JOIN evaluations v ON v.submission_id=old.submission_id WHERE old.execution_id=x.execution_id AND old.kind=$4 AND old.stage_id IS NOT DISTINCT FROM $3 AND old.status<>'superseded' AND v.status='published') AND EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) RETURNING submission_id`, e, u, stage, in.Kind, in.Title, in.Description, in.RepositoryURL, in.DemoURL).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
@@ -97,7 +136,7 @@ func (r *Repository) CreateSubmission(ctx context.Context, u, e string, in model
 		return nil, err
 	}
 	for _, f := range in.Files {
-		res, er := tx.ExecContext(ctx, `INSERT INTO submission_files(submission_id,file_id,kind,ordinal) SELECT $1,file_id,$3,$4 FROM files WHERE file_id=$2 AND uploaded_by=$5 AND status='active'`, id, f.FileID, f.Kind, f.Ordinal, u)
+		res, er := tx.ExecContext(ctx, `INSERT INTO submission_files(submission_id,file_id,kind,ordinal) SELECT $1,file_id,$3,$4 FROM files WHERE file_id=$2 AND status='active' AND (uploaded_by=$5 OR EXISTS(SELECT 1 FROM submission_files sf JOIN submissions s ON s.submission_id=sf.submission_id WHERE sf.file_id=$2 AND s.execution_id=$6 AND s.kind=$7 AND s.stage_id IS NOT DISTINCT FROM $8))`, id, f.FileID, f.Kind, f.Ordinal, u, e, in.Kind, stage)
 		if er != nil {
 			return nil, er
 		}
@@ -106,7 +145,7 @@ func (r *Repository) CreateSubmission(ctx context.Context, u, e string, in model
 			return nil, ErrForbidden
 		}
 	}
-	_, err = tx.ExecContext(ctx, `UPDATE submissions SET status='superseded' WHERE execution_id=$1 AND submission_id<>$2 AND kind=$3 AND status IN ('submitted','revision')`, e, id, in.Kind)
+	_, err = tx.ExecContext(ctx, `UPDATE submissions SET status='superseded' WHERE execution_id=$1 AND submission_id<>$2 AND kind=$3 AND stage_id IS NOT DISTINCT FROM $4 AND status IN ('submitted','revision')`, e, id, in.Kind, stage)
 	if err == nil && in.Kind == "final" {
 		_, err = tx.ExecContext(ctx, `UPDATE executions SET status='submitted' WHERE execution_id=$1`, e)
 	}
@@ -162,17 +201,36 @@ func (r *Repository) GetEvaluation(ctx context.Context, u, id string, c, a bool)
 	return x, err
 }
 func (r *Repository) CreateEvaluation(ctx context.Context, u, sid string, in models.EvaluationInput) (*models.Evaluation, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	var id string
-	err = tx.QueryRowContext(ctx, `INSERT INTO evaluations(submission_id,evaluator_id,status,feedback,published_at) SELECT s.submission_id,$2,'published',NULLIF($3,''),CURRENT_TIMESTAMP FROM submissions s JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id WHERE s.submission_id=$1 AND s.status IN ('submitted','revision') AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') RETURNING evaluation_id`, sid, u, in.Feedback).Scan(&id)
+	var caseID string
+	err = tx.QueryRowContext(ctx, `SELECT c.case_id FROM cases c JOIN executions e ON e.case_id=c.case_id
+		JOIN submissions s ON s.execution_id=e.execution_id WHERE s.submission_id=$1
+		AND EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id AND m.user_id=$2
+			AND m.status='active' AND m.permissions ? 'manage_company')
+		FOR UPDATE OF c`, sid, u).Scan(&caseID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
 	if err != nil {
+		return nil, err
+	}
+	var id string
+	err = tx.QueryRowContext(ctx, `INSERT INTO evaluations(submission_id,evaluator_id,status,feedback,published_at) SELECT s.submission_id,$2,'published',NULLIF($3,''),CURRENT_TIMESTAMP FROM submissions s JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id WHERE s.submission_id=$1 AND (s.status IN ('submitted','revision') OR (s.status='accepted' AND EXISTS(
+		SELECT 1 FROM evaluations old WHERE old.submission_id=s.submission_id AND old.evaluator_id=$2)))
+		AND NOT EXISTS(SELECT 1 FROM case_placements p WHERE p.case_id=c.case_id) AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')
+		ON CONFLICT(submission_id,evaluator_id) DO UPDATE SET status='published',feedback=EXCLUDED.feedback,published_at=EXCLUDED.published_at
+		RETURNING evaluation_id`, sid, u, in.Feedback).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	if err != nil {
+		return nil, err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM criterion_scores WHERE evaluation_id=$1`, id); err != nil {
 		return nil, err
 	}
 	for _, s := range in.Scores {
@@ -210,7 +268,7 @@ func (r *Repository) AddReview(ctx context.Context, u, sid, decision, body strin
 		if decision == "request_revision" {
 			st = "revision"
 		}
-		_, err = r.db.ExecContext(ctx, `UPDATE submissions SET status=$2,reviewed_at=CURRENT_TIMESTAMP WHERE submission_id=$1`, sid, st)
+		_, err = audit.Exec(ctx, r.db, `UPDATE submissions SET status=$2,reviewed_at=CURRENT_TIMESTAMP WHERE submission_id=$1`, sid, st)
 	}
 	return &x, err
 }

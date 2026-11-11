@@ -33,10 +33,27 @@ func (capture *stringCapture) Match(value driver.Value) bool {
 
 func validRegistration() models.StudentRegistration {
 	return models.StudentRegistration{
-		Username: "student.one", Email: "student@example.com", Password: testPassword,
+		Username: "student.one", Email: "student@stud.uust.ru", Password: testPassword,
 		LastName: "Иванов", FirstName: "Иван", Institute: "ИРИТ-РТФ",
 		Direction: "Программная инженерия", Course: 2, GroupName: "РИ-220901",
 		ConsentVersion: "1.0", Technologies: []string{"Go"},
+	}
+}
+
+func TestStudentRegistrationRequiresUniversityEmail(t *testing.T) {
+	input := validRegistration()
+	input.Email = "student@gmail.com"
+	err := ValidateRegisterRequest(input)
+	var invalid *ValidationError
+	if !errors.As(err, &invalid) || invalid.Field != "email" || invalid.Code != "student_domain_required" {
+		t.Fatalf("validation error = %v", err)
+	}
+	if err := ValidateStudentProfile(input); err != nil {
+		t.Fatalf("existing profile email should remain editable: %v", err)
+	}
+	input.RequestedRole = "company_representative"
+	if err := ValidateRegisterRequest(input); err != nil {
+		t.Fatalf("company role request should accept corporate email: %v", err)
 	}
 }
 
@@ -46,7 +63,7 @@ func TestRegisterUserCreatesProfileRoleAndConsent(t *testing.T) {
 	passwordHash := &stringCapture{}
 	mock.ExpectBegin()
 	mock.ExpectQuery("INSERT INTO users").
-		WithArgs("student.one", "student@example.com", passwordHash).
+		WithArgs("student.one", "student@stud.uust.ru", passwordHash).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(testUserID))
 	mock.ExpectExec("INSERT INTO students").WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectExec("INSERT INTO user_roles").WithArgs(testUserID).WillReturnResult(sqlmock.NewResult(0, 1))

@@ -52,6 +52,10 @@ func (s *Service) Invite(ctx context.Context, userID, teamID, studentID, roleID 
 	item, err := s.repo.Invite(ctx, userID, teamID, studentID, role)
 	return item, mapError(err)
 }
+func (s *Service) ListMine(ctx context.Context, userID string, limit int, offset int64) ([]models.Team, int64, error) {
+	return s.repo.ListMine(ctx, userID, limit, offset)
+}
+
 func (s *Service) ListInvitations(ctx context.Context, userID, status string, limit int, position, id string) ([]models.TeamInvitation, error) {
 	status = strings.TrimSpace(status)
 	if status == "" {

@@ -46,10 +46,24 @@ func (h *Handler) StartApplications(mux *http.ServeMux) {
 	mux.HandleFunc("/", shared.NotFound)
 }
 func (h *Handler) StartExecutions(mux *http.ServeMux) {
+	mux.HandleFunc("GET /{$}", h.ListExecutions)
 	mux.HandleFunc("GET /{execution_id}", h.GetExecution)
 	mux.HandleFunc("/", shared.NotFound)
 }
+func (h *Handler) StartRegistrations(mux *http.ServeMux) {
+	mux.HandleFunc("POST /{$}", h.Register)
+	mux.HandleFunc("/", shared.NotFound)
+}
+
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+	h.create(w, r, false)
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	h.create(w, r, true)
+}
+
+func (h *Handler) create(w http.ResponseWriter, r *http.Request, registration bool) {
 	if !hasRole(r, "student") {
 		pkg.WriteError(w, http.StatusForbidden, "permission_denied", "Permission denied")
 		return
@@ -59,7 +73,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID, _ := middleware.UserIDFromContext(r.Context())
-	item, err := h.service.Create(r.Context(), userID, models.ApplicationInput{CaseID: req.CaseID, ApplicantType: req.ApplicantType, TeamID: req.TeamID, CoverLetter: req.CoverLetter, ResumeFileID: req.ResumeFileID, PortfolioURL: req.PortfolioURL, GithubURL: req.GithubURL})
+	item, err := h.service.Create(r.Context(), userID, models.ApplicationInput{Registration: registration, CaseID: req.CaseID, ApplicantType: req.ApplicantType, TeamID: req.TeamID, CoverLetter: req.CoverLetter, ResumeFileID: req.ResumeFileID, PortfolioURL: req.PortfolioURL, GithubURL: req.GithubURL})
 	if err != nil {
 		writeError(w, r, err)
 		return
@@ -146,6 +160,44 @@ func (h *Handler) SetStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, http.StatusOK, item)
 }
+func (h *Handler) ListExecutions(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	for key := range values {
+		if key != "limit" && key != "cursor" {
+			pkg.WriteError(w, http.StatusBadRequest, "invalid_query", "Query parameters are invalid")
+			return
+		}
+	}
+	const scope = "executions"
+	query, err := pagination.ParseCursorQuery(values, scope)
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	position, id := "", ""
+	if query.Cursor != nil {
+		position, id = query.Cursor.Position, query.Cursor.ID
+	}
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	items, err := h.service.ListExecutions(r.Context(), userID, hasRole(r, "company_representative"), hasRole(r, "admin"), query.Limit+1, position, id)
+	if err != nil {
+		if errors.Is(err, applications_service.ErrInvalidCursor) {
+			pkg.WriteError(w, http.StatusBadRequest, "invalid_cursor", "Query parameter cursor is invalid")
+			return
+		}
+		writeError(w, r, err)
+		return
+	}
+	page, err := pagination.NewCursorPage(items, query.Limit, func(item models.Execution) (pagination.Cursor, error) {
+		return pagination.Cursor{Scope: scope, Position: item.CreatedAt.UTC().Format(time.RFC3339Nano), ID: item.ExecutionID}, nil
+	})
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, page)
+}
+
 func (h *Handler) GetExecution(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r.Context())
 	item, err := h.service.GetExecution(r.Context(), userID, r.PathValue("execution_id"), hasRole(r, "company_representative"), hasRole(r, "admin"))
@@ -222,6 +274,10 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.WriteError(w, http.StatusConflict, "invalid_application_transition", "Application status transition is not allowed")
 	case errors.Is(err, applications_service.ErrCaseUnavailable):
 		pkg.WriteError(w, http.StatusConflict, "case_not_accepting_applications", "Case is not accepting applications")
+	case errors.Is(err, applications_service.ErrEventCapacity):
+		pkg.WriteError(w, http.StatusConflict, "event_capacity_reached", "All event places are taken")
+	case errors.Is(err, applications_service.ErrWrongEntryKind):
+		pkg.WriteError(w, http.StatusConflict, "wrong_event_entry_kind", "Use the entry route for this event format")
 	case errors.Is(err, applications_service.ErrConsentPending):
 		pkg.WriteError(w, http.StatusConflict, "application_consent_pending", "Every team member must accept the current case revision")
 	case errors.Is(err, applications_service.ErrConflict):

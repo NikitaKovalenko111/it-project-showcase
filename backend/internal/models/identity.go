@@ -1,6 +1,8 @@
 package models
 
 type StudentRegistration struct {
+	RequestedRole         string
+	EducationLevel        string
 	Username              string
 	Email                 string
 	Password              string
@@ -33,6 +35,7 @@ type StudentProfile struct {
 	Institute             string        `json:"institute"`
 	Direction             string        `json:"direction"`
 	Program               string        `json:"program,omitempty"`
+	EducationLevel        string        `json:"education_level,omitempty"`
 	Course                int           `json:"course"`
 	GroupName             string        `json:"group_name"`
 	Phone                 string        `json:"phone,omitempty"`
@@ -42,4 +45,19 @@ type StudentProfile struct {
 	Technologies          []string      `json:"technologies"`
 	Links                 []StudentLink `json:"links"`
 	PhotoFileID           *string       `json:"photo_file_id"`
+}
+
+type StudentProfileUpdate struct {
+	StudentProfile
+	Email string `json:"email"`
+}
+
+type UserListItem struct {
+	UserID            string   `json:"user_id"`
+	Username          string   `json:"username"`
+	Email             string   `json:"email"`
+	Status            string   `json:"status"`
+	Roles             []string `json:"roles"`
+	RequestedRole     *string  `json:"requested_role"`
+	RoleRequestStatus *string  `json:"role_request_status"`
 }

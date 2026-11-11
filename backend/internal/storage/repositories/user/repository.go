@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"it-project-showcase/backend/internal/storage/audit"
 	"time"
 
 	"it-project-showcase/backend/internal/models"
@@ -84,6 +85,11 @@ func (r *UsersRepo) RegisterStudent(ctx context.Context, input models.StudentReg
 	if err != nil {
 		return "", fmt.Errorf("create student profile: %w", err)
 	}
+	if input.EducationLevel != "" {
+		if _, err = tx.ExecContext(ctx, `UPDATE students SET education_level=$2 WHERE user_id=$1`, userID, input.EducationLevel); err != nil {
+			return "", err
+		}
+	}
 
 	result, err := tx.ExecContext(ctx, `
 		INSERT INTO user_roles (user_id, role_id)
@@ -152,23 +158,23 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 
 	err := r.db.QueryRowContext(ctx, `
 		SELECT
-			u.user_id, u.username, u.email, u.status, u.last_login_at, u.created_at, u.updated_at,
+			u.user_id, u.username, u.email, u.status, u.last_login_at, u.created_at, u.updated_at, u.avatar_file_id,
 			COALESCE(s.last_name, ''), COALESCE(s.first_name, ''), COALESCE(s.patronymic, ''),
 			COALESCE(s.institute_name, ''), COALESCE(s.study_direction, ''), COALESCE(s.program_name, ''),
 			COALESCE(s.course, 0), COALESCE(s.group_name, ''), COALESCE(s.phone, ''), COALESCE(s.bio, ''),
 			COALESCE(s.professional_interests, '[]'::jsonb),
 			COALESCE(s.competencies, '[]'::jsonb),
 			COALESCE(s.technologies, '[]'::jsonb),
-			COALESCE(s.links, '[]'::jsonb), s.photo_file_id
+			COALESCE(s.links, '[]'::jsonb), s.photo_file_id, COALESCE(s.education_level,'')
 		FROM users u
 		LEFT JOIN students s ON s.user_id = u.user_id
 		WHERE u.user_id = $1
 	`, userID).Scan(
-		&user.UserID, &user.Username, &user.Email, &user.Status, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt,
+		&user.UserID, &user.Username, &user.Email, &user.Status, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt, &user.AvatarFileID,
 		&profile.LastName, &profile.FirstName, &profile.Patronymic,
 		&profile.Institute, &profile.Direction, &profile.Program,
 		&profile.Course, &profile.GroupName, &profile.Phone, &profile.Bio,
-		&interests, &competencies, &technologies, &links, &profile.PhotoFileID,
+		&interests, &competencies, &technologies, &links, &profile.PhotoFileID, &profile.EducationLevel,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("select user by id: %w", err)
@@ -253,13 +259,18 @@ func (r *UsersRepo) RecordSuccessfulLogin(ctx context.Context, userID string) er
 	return nil
 }
 
-func (r *UsersRepo) SetUserStatus(ctx context.Context, userID, status string) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+func (r *UsersRepo) SetUserStatus(ctx context.Context, userID, status, reason string) error {
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return fmt.Errorf("begin user status update: %w", err)
 	}
 	defer tx.Rollback()
 
+	if reason != "" {
+		if _, err := tx.ExecContext(ctx, `SELECT set_config('showcase.audit_reason', $1, true)`, reason); err != nil {
+			return err
+		}
+	}
 	result, err := tx.ExecContext(ctx, `UPDATE users SET status = $2 WHERE user_id = $1`, userID, status)
 	if err != nil {
 		return fmt.Errorf("update user status: %w", err)

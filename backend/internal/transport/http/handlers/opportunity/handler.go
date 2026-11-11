@@ -7,8 +7,10 @@ import (
 	"it-project-showcase/backend/internal/middleware"
 	"it-project-showcase/backend/internal/models"
 	opportunities_service "it-project-showcase/backend/internal/services/opportunities"
+	"it-project-showcase/backend/internal/transport/http/pagination"
 	"it-project-showcase/backend/pkg"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
@@ -143,6 +145,20 @@ func (h *Handler) ApplyTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 201, x)
 }
+func (h *Handler) ListMyTeamApplications(w http.ResponseWriter, r *http.Request) {
+	query, err := pagination.ParsePageQuery(r.URL.Query())
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	items, total, err := h.service.ListMyTeamApplications(r.Context(), user(r), query.PageSize, query.Offset)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, pagination.NewPageResponse(items, query, int64(total)))
+}
+
 func (h *Handler) ListTeamApplications(w http.ResponseWriter, r *http.Request) {
 	x, e := h.service.ListTeamApplications(r.Context(), user(r), r.PathValue("team_id"))
 	if e != nil {
@@ -188,12 +204,28 @@ func (h *Handler) ListTeamProfiles(w http.ResponseWriter, r *http.Request) {
 	page(w, x, t, l, o)
 }
 func (h *Handler) ListInternships(w http.ResponseWriter, r *http.Request) {
+	h.listInternships(w, r, "published", "")
+}
+
+func (h *Handler) ListInternshipModeration(w http.ResponseWriter, r *http.Request) {
+	status := "moderation"
+	if admin(r) {
+		status = "admin_review"
+	}
+	h.listInternships(w, r, status, "")
+}
+
+func (h *Handler) ListMyInternships(w http.ResponseWriter, r *http.Request) {
+	h.listInternships(w, r, "", user(r))
+}
+
+func (h *Handler) listInternships(w http.ResponseWriter, r *http.Request, status, owner string) {
 	l, o, ok := paging(r)
 	if !ok {
 		badQuery(w)
 		return
 	}
-	x, t, e := h.service.ListInternships(r.Context(), l, o)
+	x, t, e := h.service.ListInternships(r.Context(), status, owner, l, o)
 	if e != nil {
 		writeError(w, e)
 		return
@@ -220,12 +252,27 @@ func (h *Handler) CreateInternship(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 201, x)
 }
+func (h *Handler) UpdateInternship(w http.ResponseWriter, r *http.Request) {
+	var input models.InternshipInput
+	if !decode(w, r, &input) {
+		return
+	}
+	item, err := h.service.UpdateInternship(r.Context(), user(r), r.PathValue("program_id"), input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
 func (h *Handler) UpdateInternshipStatus(w http.ResponseWriter, r *http.Request) {
 	var q statusRequest
 	if !decode(w, r, &q) {
 		return
 	}
-	x, e := h.service.UpdateInternshipStatus(r.Context(), user(r), r.PathValue("program_id"), q.Status, q.Comment, admin(r))
+	claims, _ := middleware.TokenClaimsFromContext(r.Context())
+	review := admin(r) || (slices.Contains(claims.Roles, "university_staff") && (q.Status == "published" || q.Status == "revision"))
+	x, e := h.service.UpdateInternshipStatus(r.Context(), user(r), r.PathValue("program_id"), q.Status, q.Comment, review)
 	if e != nil {
 		writeError(w, e)
 		return
@@ -233,13 +280,21 @@ func (h *Handler) UpdateInternshipStatus(w http.ResponseWriter, r *http.Request)
 	pkg.WriteJSON(w, 200, x)
 }
 func (h *Handler) Leaderboard(w http.ResponseWriter, r *http.Request) {
-	x, e := h.service.Leaderboard(r.Context(), r.PathValue("case_id"))
+	x, e := h.service.Leaderboard(r.Context(), r.PathValue("case_id"), user(r), admin(r))
 	if e != nil {
 		writeError(w, e)
 		return
 	}
 	pkg.WriteJSON(w, 200, map[string]any{"items": x})
 }
+func (h *Handler) WithdrawPlacements(w http.ResponseWriter, r *http.Request) {
+	if err := h.service.WithdrawPlacements(r.Context(), user(r), r.PathValue("case_id")); err != nil {
+		writeError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *Handler) SetPlacements(w http.ResponseWriter, r *http.Request) {
 	var q placementsRequest
 	if !decode(w, r, &q) {
@@ -271,6 +326,15 @@ func (h *Handler) SetCurator(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 200, x)
 }
+func (h *Handler) AssignSelfCurator(w http.ResponseWriter, r *http.Request) {
+	item, err := h.service.AssignSelfCurator(r.Context(), user(r), r.PathValue("student_id"))
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
 func (h *Handler) RevokeCurator(w http.ResponseWriter, r *http.Request) {
 	if e := h.service.RevokeCurator(r.Context(), r.PathValue("student_id")); e != nil {
 		writeError(w, e)
@@ -383,6 +447,10 @@ func writeError(w http.ResponseWriter, e error) {
 		pkg.WriteError(w, 403, "permission_denied", "Permission denied")
 	case errors.Is(e, opportunities_service.ErrNotFound):
 		pkg.WriteError(w, 404, "resource_not_found", "Resource not found")
+	case errors.Is(e, opportunities_service.ErrCuratorAssigned):
+		pkg.WriteError(w, 409, "student_curator_already_assigned", "Student already has an active curator")
+	case errors.Is(e, opportunities_service.ErrInternshipFull):
+		pkg.WriteError(w, 409, "internship_capacity_reached", "All internship places are taken")
 	case errors.Is(e, opportunities_service.ErrConflict):
 		pkg.WriteError(w, 409, "resource_conflict", "Resource conflict")
 	default:

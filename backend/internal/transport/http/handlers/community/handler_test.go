@@ -34,10 +34,10 @@ func TestListCaseCommentsThroughHandlerServiceAndRepository(t *testing.T) {
 	defer db.Close()
 	caseID := "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1"
 	now := time.Now().UTC()
-	rows := sqlmock.NewRows([]string{"comment_id", "resource_type", "resource_id", "parent_comment_id", "author_id", "author_name", "body", "status", "reply_count", "created_at", "updated_at", "deleted_at"}).
-		AddRow("6c76ce4e-b384-4f29-b462-eb9b8d5e8ba2", "case", caseID, nil, "7c76ce4e-b384-4f29-b462-eb9b8d5e8ba3", "Test Student", "Hello", "active", 2, now, now, nil)
+	rows := sqlmock.NewRows([]string{"comment_id", "resource_type", "resource_id", "parent_comment_id", "author_id", "author_name", "author_photo_file_id", "body", "status", "reply_count", "likes_count", "liked_by_me", "created_at", "updated_at", "deleted_at"}).
+		AddRow("6c76ce4e-b384-4f29-b462-eb9b8d5e8ba2", "case", caseID, nil, "7c76ce4e-b384-4f29-b462-eb9b8d5e8ba3", "Test Student", nil, "Hello", "active", 2, 3, false, now, now, nil)
 	mock.ExpectQuery(`(?s)SELECT c\.comment_id.*FROM showcase\.comments c.*ORDER BY c\.created_at DESC,c\.comment_id DESC`).
-		WithArgs("case", caseID, nil, 20, 0).WillReturnRows(rows)
+		WithArgs("", "case", caseID, nil, 20, 0).WillReturnRows(rows)
 	mock.ExpectQuery(`SELECT count\(\*\) FROM showcase\.comments`).WithArgs("case", caseID, nil).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	handler := Init(community_service.Init(community_repo.Init(db)))
@@ -47,6 +47,9 @@ func TestListCaseCommentsThroughHandlerServiceAndRepository(t *testing.T) {
 	handler.ListCaseComments(recorder, request)
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	if !strings.Contains(recorder.Body.String(), `"likes_count":3`) || !strings.Contains(recorder.Body.String(), `"liked_by_me":false`) {
+		t.Fatalf("missing like state: %s", recorder.Body.String())
 	}
 	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)

@@ -73,3 +73,7 @@ type CaseStageInput struct {
 	ExpectedResult string     `json:"expected_result"`
 	DueAt          *time.Time `json:"due_at"`
 }
+
+type CaseStageOrderInput struct {
+	StageIDs []string `json:"stage_ids"`
+}

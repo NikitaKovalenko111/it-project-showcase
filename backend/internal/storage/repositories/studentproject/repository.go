@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"it-project-showcase/backend/internal/models"
+	"it-project-showcase/backend/internal/storage/audit"
 	"time"
 )
 
@@ -45,8 +46,16 @@ func scan(row interface{ Scan(...any) error }) (*models.StudentProject, error) {
 	}
 	return &x, err
 }
-func (r *Repository) List(ctx context.Context, user, search, category, direction string, limit int, before *time.Time, bid string) ([]models.StudentProject, error) {
+func (r *Repository) List(ctx context.Context, user, search, category, direction, scope string, limit int, before *time.Time, bid string) ([]models.StudentProject, error) {
 	q := selectProject + ` WHERE p.status='published' AND p.visibility='public'`
+	switch scope {
+	case "student-projects-mine":
+		q = selectProject + ` WHERE p.owner_id=NULLIF($1,'')::uuid`
+	case "student-projects-review":
+		q = selectProject + ` WHERE p.visibility='public' AND p.status='moderation'`
+	case "student-projects-moderation":
+		q = selectProject + ` WHERE p.visibility='public' AND p.status<>'draft'`
+	}
 	args := []any{user}
 	if search != "" {
 		args = append(args, "%"+search+"%")
@@ -82,10 +91,18 @@ func (r *Repository) List(ctx context.Context, user, search, category, direction
 	return out, rows.Err()
 }
 func (r *Repository) Get(ctx context.Context, user, id string, admin bool) (*models.StudentProject, error) {
-	return scan(r.db.QueryRowContext(ctx, selectProject+` WHERE p.project_id=$2 AND ((p.status='published' AND p.visibility='public') OR p.owner_id=NULLIF($1,'')::uuid OR $3)`, user, id, admin))
+	return scan(r.db.QueryRowContext(ctx, selectProject+` WHERE p.project_id=$2 AND ((p.status='published' AND p.visibility='public') OR p.owner_id=NULLIF($1,'')::uuid OR ($3 AND p.visibility='public' AND p.status<>'draft'))`, user, id, admin))
 }
+func encodeTags(tags []string) []byte {
+	if tags == nil {
+		return []byte("[]")
+	}
+	encoded, _ := json.Marshal(tags)
+	return encoded
+}
+
 func (r *Repository) Create(ctx context.Context, user string, in models.StudentProjectInput) (*models.StudentProject, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +112,7 @@ func (r *Repository) Create(ctx context.Context, user string, in models.StudentP
 	if in.CoverFileID != "" {
 		cover = in.CoverFileID
 	}
-	tags, _ := json.Marshal(in.Tags)
+	tags := encodeTags(in.Tags)
 	err = tx.QueryRowContext(ctx, `INSERT INTO student_projects(owner_id,title,category,short_description,full_description,problem_solved,github_url,product_url,cover_file_id,visibility,tags) SELECT s.user_id,$2,$3,$4,$5,NULLIF($6,''),NULLIF($7,''),NULLIF($8,''),$9,COALESCE(NULLIF($10,''),'public'),$11 FROM students s WHERE s.user_id=$1 AND ($9::uuid IS NULL OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=$9 AND f.uploaded_by=$1 AND f.status='active')) RETURNING project_id`, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, cover, in.Visibility, tags).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
@@ -158,12 +175,12 @@ func (r *Repository) replaceRelations(ctx context.Context, tx *sql.Tx, id, user 
 	return nil
 }
 func (r *Repository) Update(ctx context.Context, user, id string, in models.StudentProjectInput) (*models.StudentProject, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	tags, _ := json.Marshal(in.Tags)
+	tags := encodeTags(in.Tags)
 	res, err := tx.ExecContext(ctx, `UPDATE student_projects SET title=$3,category=$4,short_description=$5,full_description=$6,problem_solved=NULLIF($7,''),github_url=NULLIF($8,''),product_url=NULLIF($9,''),cover_file_id=NULLIF($10,'')::uuid,visibility=COALESCE(NULLIF($11,''),'public'),tags=$12,status=CASE WHEN status='revision' THEN 'draft' ELSE status END WHERE project_id=$1 AND owner_id=$2 AND status IN ('draft','revision') AND ($10='' OR EXISTS(SELECT 1 FROM files f WHERE f.file_id=NULLIF($10,'')::uuid AND f.uploaded_by=$2 AND f.status='active'))`, id, user, in.Title, in.Category, in.ShortDescription, in.FullDescription, in.ProblemSolved, in.GithubURL, in.ProductURL, in.CoverFileID, in.Visibility, tags)
 	if err != nil {
 		return nil, err
@@ -186,7 +203,7 @@ func (r *Repository) Update(ctx context.Context, user, id string, in models.Stud
 	return r.Get(ctx, user, id, false)
 }
 func (r *Repository) Submit(ctx context.Context, user, id string) (*models.StudentProject, error) {
-	res, err := r.db.ExecContext(ctx, `UPDATE student_projects SET status='moderation',moderation_comment=NULL WHERE project_id=$1 AND owner_id=$2 AND status IN ('draft','revision')`, id, user)
+	res, err := audit.Exec(ctx, r.db, `UPDATE student_projects SET status='moderation',moderation_comment=NULL WHERE project_id=$1 AND owner_id=$2 AND status IN ('draft','revision') AND visibility='public'`, id, user)
 	if err != nil {
 		return nil, err
 	}
@@ -196,14 +213,38 @@ func (r *Repository) Submit(ctx context.Context, user, id string) (*models.Stude
 	}
 	return r.Get(ctx, user, id, false)
 }
+func (r *Repository) UpdateVisibility(ctx context.Context, user, id, visibility string) (*models.StudentProject, error) {
+	result, err := audit.Exec(ctx, r.db, `UPDATE student_projects
+		SET visibility=$3,
+			status=CASE WHEN $3='private' THEN 'draft' WHEN status IN ('draft','revision') THEN 'moderation' ELSE status END,
+			moderation_comment=NULL
+		WHERE project_id=$1 AND owner_id=$2 AND status<>'hidden'
+		AND (visibility<>$3 OR ($3='public' AND status IN ('draft','revision')))`, id, user, visibility)
+	if err != nil {
+		return nil, err
+	}
+	count, _ := result.RowsAffected()
+	if count == 0 {
+		project, err := r.Get(ctx, user, id, false)
+		if err != nil {
+			return nil, err
+		}
+		if project.OwnerID != user || project.Visibility != visibility || project.Status == "hidden" {
+			return nil, ErrForbidden
+		}
+		return project, nil
+	}
+	return r.Get(ctx, user, id, false)
+}
+
 func (r *Repository) Moderate(ctx context.Context, moderator, id, status, comment string) (*models.StudentProject, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 	var old string
-	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 FOR UPDATE`, id).Scan(&old)
+	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 AND visibility='public' AND status<>'draft' FOR UPDATE`, id).Scan(&old)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +265,7 @@ func (r *Repository) Moderate(ctx context.Context, moderator, id, status, commen
 }
 func (r *Repository) Like(ctx context.Context, user, id string, like bool) (int, error) {
 	var exists bool
-	if err := r.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM student_projects WHERE project_id=$1 AND status='published')`, id).Scan(&exists); err != nil {
+	if err := r.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM student_projects WHERE project_id=$1 AND status='published' AND visibility='public')`, id).Scan(&exists); err != nil {
 		return 0, err
 	}
 	if !exists {
@@ -232,7 +273,7 @@ func (r *Repository) Like(ctx context.Context, user, id string, like bool) (int,
 	}
 	var err error
 	if like {
-		_, err = r.db.ExecContext(ctx, `INSERT INTO student_project_likes(project_id,user_id) SELECT project_id,$2 FROM student_projects WHERE project_id=$1 AND status='published' ON CONFLICT DO NOTHING`, id, user)
+		_, err = r.db.ExecContext(ctx, `INSERT INTO student_project_likes(project_id,user_id) SELECT project_id,$2 FROM student_projects WHERE project_id=$1 AND status='published' AND visibility='public' ON CONFLICT DO NOTHING`, id, user)
 	} else {
 		_, err = r.db.ExecContext(ctx, `DELETE FROM student_project_likes WHERE project_id=$1 AND user_id=$2`, id, user)
 	}

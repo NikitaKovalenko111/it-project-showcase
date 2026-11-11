@@ -48,7 +48,17 @@ func (h *Handler) StartSubmissions(m *http.ServeMux) {
 	m.HandleFunc("GET /{submission_id}/evaluations", h.listEvaluations)
 	m.HandleFunc("POST /{submission_id}/evaluations", h.createEvaluation)
 	m.HandleFunc("GET /{submission_id}/reviews", h.listReviews)
+	m.HandleFunc("GET /{submission_id}/review-details", h.reviewDetails)
 	m.HandleFunc("POST /{submission_id}/reviews", h.addReview)
+}
+func (h *Handler) reviewDetails(w http.ResponseWriter, r *http.Request) {
+	company, admin := roles(r)
+	item, err := h.s.ReviewDetails(r.Context(), user(r), r.PathValue("submission_id"), company, admin)
+	if err != nil {
+		h.err(w, r, err, "submission")
+		return
+	}
+	pkg.WriteJSON(w, 200, item)
 }
 func (h *Handler) StartEvaluations(m *http.ServeMux) {
 	m.HandleFunc("GET /{evaluation_id}", h.getEvaluation)

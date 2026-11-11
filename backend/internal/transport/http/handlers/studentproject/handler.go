@@ -39,7 +39,24 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	q, e := pagination.ParseCursorQuery(r.URL.Query(), "student-projects")
+	h.list(w, r, "student-projects")
+}
+
+func (h *Handler) ListMine(w http.ResponseWriter, r *http.Request) {
+	h.list(w, r, "student-projects-mine")
+}
+
+func (h *Handler) ListModeration(w http.ResponseWriter, r *http.Request) {
+	if admin(r) {
+		h.list(w, r, "student-projects-moderation")
+		return
+	}
+	h.list(w, r, "student-projects-review")
+}
+
+func (h *Handler) list(w http.ResponseWriter, r *http.Request, scope string) {
+	w.Header().Set("Cache-Control", "private, no-store")
+	q, e := pagination.ParseCursorQuery(r.URL.Query(), scope)
 	if e != nil {
 		pagination.WriteQueryError(w, e)
 		return
@@ -48,13 +65,13 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	if q.Cursor != nil {
 		pos, id = q.Cursor.Position, q.Cursor.ID
 	}
-	xs, e := h.s.List(r.Context(), user(r), r.URL.Query().Get("search"), r.URL.Query().Get("category"), r.URL.Query().Get("direction_id"), q.Limit+1, pos, id)
+	xs, e := h.s.List(r.Context(), user(r), r.URL.Query().Get("search"), r.URL.Query().Get("category"), r.URL.Query().Get("direction_id"), scope, q.Limit+1, pos, id)
 	if e != nil {
 		h.err(w, r, e)
 		return
 	}
 	page, e := pagination.NewCursorPage(xs, q.Limit, func(x models.StudentProject) (pagination.Cursor, error) {
-		return pagination.Cursor{Scope: "student-projects", Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.ProjectID}, nil
+		return pagination.Cursor{Scope: scope, Position: x.CreatedAt.UTC().Format(time.RFC3339Nano), ID: x.ProjectID}, nil
 	})
 	if e != nil {
 		h.err(w, r, e)
@@ -62,7 +79,21 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 200, page)
 }
+func (h *Handler) GetReview(w http.ResponseWriter, r *http.Request) {
+	project, err := h.s.Get(r.Context(), user(r), r.PathValue("project_id"), true)
+	if err != nil {
+		h.err(w, r, err)
+		return
+	}
+	if project.Status != "moderation" || project.Visibility != "public" {
+		h.err(w, r, studentprojects_service.ErrNotFound)
+		return
+	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	pkg.WriteJSON(w, 200, project)
+}
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "private, no-store")
 	x, e := h.s.Get(r.Context(), user(r), r.PathValue("project_id"), admin(r))
 	if e != nil {
 		h.err(w, r, e)
@@ -102,12 +133,31 @@ func (h *Handler) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, 200, x)
 }
+func (h *Handler) UpdateVisibility(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Visibility string `json:"visibility"`
+	}
+	if !decode(w, r, &input) {
+		return
+	}
+	x, e := h.s.UpdateVisibility(r.Context(), user(r), r.PathValue("project_id"), input.Visibility)
+	if e != nil {
+		h.err(w, r, e)
+		return
+	}
+	pkg.WriteJSON(w, 200, x)
+}
+
 func (h *Handler) Moderate(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		Status  string `json:"status"`
 		Comment string `json:"comment"`
 	}
 	if !decode(w, r, &in) {
+		return
+	}
+	if in.Status == "hidden" && !admin(r) {
+		pkg.WriteError(w, http.StatusForbidden, "permission_denied", "Permission denied")
 		return
 	}
 	x, e := h.s.Moderate(r.Context(), user(r), r.PathValue("project_id"), in.Status, in.Comment)

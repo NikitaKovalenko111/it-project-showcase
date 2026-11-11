@@ -7,7 +7,7 @@ import (
 )
 
 func TestSetStatusRejectsUnknownStatusBeforeRepository(t *testing.T) {
-	err := Init(nil).SetStatus(context.Background(), "user", "unknown")
+	err := Init(nil).SetStatus(context.Background(), "user", "unknown", "")
 	if !errors.Is(err, ErrInvalidStatus) {
 		t.Fatalf("error = %v", err)
 	}

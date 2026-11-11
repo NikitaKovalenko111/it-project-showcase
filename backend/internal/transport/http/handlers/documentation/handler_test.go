@@ -37,4 +37,7 @@ func TestUIReferencesVersionedSpec(t *testing.T) {
 	if !strings.Contains(recorder.Body.String(), `nonce="`+nonceMatch[1]+`"`) {
 		t.Fatal("Swagger initializer nonce does not match CSP")
 	}
+	if !strings.Contains(recorder.Body.String(), "Authorization: Bearer &lt;access_token&gt;") {
+		t.Fatal("Swagger UI does not explain the required Authorization header")
+	}
 }

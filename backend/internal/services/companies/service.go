@@ -130,6 +130,14 @@ func (s *Service) ListForModeration(ctx context.Context, status string, limit in
 	return s.list(ctx, status, limit, position, id)
 }
 func (s *Service) list(ctx context.Context, status string, limit int, position, id string) ([]models.Company, error) {
+	return s.listScope(ctx, status, "", limit, position, id)
+}
+
+func (s *Service) ListMine(ctx context.Context, userID string, limit int, position, id string) ([]models.Company, error) {
+	return s.listScope(ctx, "", userID, limit, position, id)
+}
+
+func (s *Service) listScope(ctx context.Context, status, owner string, limit int, position, id string) ([]models.Company, error) {
 	var before *time.Time
 	if position != "" {
 		value, err := time.Parse(time.RFC3339Nano, position)
@@ -137,6 +145,9 @@ func (s *Service) list(ctx context.Context, status string, limit int, position, 
 			return nil, ErrInvalidCursor
 		}
 		before = &value
+	}
+	if owner != "" {
+		return s.repo.ListMine(ctx, owner, limit, before, id)
 	}
 	return s.repo.List(ctx, status, limit, before, id)
 }
@@ -153,6 +164,18 @@ func (s *Service) Create(ctx context.Context, userID string, input models.Compan
 		return nil, err
 	}
 	company, err := s.repo.Create(ctx, userID, input)
+	return company, mapRepositoryError(err)
+}
+func (s *Service) UpdatePrograms(ctx context.Context, userID, companyID string, internship, practice *string) (*models.Company, error) {
+	if !uuidPattern.MatchString(companyID) || (internship == nil && practice == nil) ||
+		(internship != nil && utf8.RuneCountInString(*internship) > 15000) ||
+		(practice != nil && utf8.RuneCountInString(*practice) > 15000) {
+		return nil, ErrInvalidInput
+	}
+	company, err := s.repo.UpdatePrograms(ctx, userID, companyID, internship, practice)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
 	return company, mapRepositoryError(err)
 }
 func (s *Service) Update(ctx context.Context, userID, companyID string, input models.CompanyInput) (*models.Company, error) {
@@ -182,6 +205,30 @@ func (s *Service) Moderate(ctx context.Context, moderatorID, companyID, status, 
 	}
 	company, err := s.repo.Moderate(ctx, moderatorID, companyID, status, comment)
 	return company, mapRepositoryError(err)
+}
+
+func (s *Service) UpdateLegal(ctx context.Context, userID, companyID string, details models.CompanyLegal) (*models.Company, error) {
+	if !uuidPattern.MatchString(companyID) {
+		return nil, ErrNotFound
+	}
+	details.INN = strings.TrimSpace(details.INN)
+	details.KPP = strings.TrimSpace(details.KPP)
+	details.OGRN = strings.TrimSpace(details.OGRN)
+	details.LegalAddress = strings.TrimSpace(details.LegalAddress)
+	if !legalNumber(details.INN, 10, 12) || !legalNumber(details.KPP, 9, 9) ||
+		!legalNumber(details.OGRN, 13, 15) || utf8.RuneCountInString(details.LegalAddress) > 500 {
+		return nil, ErrInvalidInput
+	}
+	item, err := s.repo.UpdateLegal(ctx, userID, companyID, details)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrForbidden
+	}
+	return item, mapRepositoryError(err)
+}
+
+func legalNumber(value string, short, long int) bool {
+	return value == "" || ((len(value) == short || len(value) == long) &&
+		strings.IndexFunc(value, func(r rune) bool { return r < '0' || r > '9' }) == -1)
 }
 
 func normalize(input models.CompanyInput) models.CompanyInput {

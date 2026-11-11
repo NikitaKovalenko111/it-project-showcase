@@ -48,6 +48,10 @@ type Case struct {
 	Summary              string                `json:"summary"`
 	FullBrief            string                `json:"full_brief"`
 	Type                 string                `json:"type"`
+	EventFormat          string                `json:"event_format"`
+	RegistrationsCount   int                   `json:"registrations_count"`
+	ViewsCount           int                   `json:"views_count"`
+	ApplicationsCount    int                   `json:"applications_count"`
 	Difficulty           string                `json:"difficulty,omitempty"`
 	WorkFormat           string                `json:"work_format"`
 	ParticipationMode    string                `json:"participation_mode"`
@@ -110,6 +114,7 @@ type CaseInput struct {
 	Summary             string                     `json:"summary"`
 	FullBrief           string                     `json:"full_brief"`
 	Type                string                     `json:"type"`
+	EventFormat         string                     `json:"event_format"`
 	Difficulty          string                     `json:"difficulty,omitempty"`
 	WorkFormat          string                     `json:"work_format"`
 	ParticipationMode   string                     `json:"participation_mode"`
@@ -136,6 +141,7 @@ type CaseInput struct {
 }
 
 type CaseListFilter struct {
+	ManagerID         string
 	Search            string
 	CompanyID         string
 	DirectionID       string
@@ -143,7 +149,21 @@ type CaseListFilter struct {
 	ParticipationMode string
 	WorkFormat        string
 	Type              string
+	EventFormat       string
 	HasReward         *bool
 	Statuses          []string
 	IncludeRestricted bool
+}
+
+type CasePlanStage struct {
+	StageID        string     `json:"stage_id"`
+	Title          string     `json:"title"`
+	ExpectedResult string     `json:"expected_result"`
+	DueAt          *time.Time `json:"due_at"`
+}
+
+type CasePlanUpdate struct {
+	Previous []CasePlanStage `json:"previous"`
+	Stages   []CasePlanStage `json:"stages"`
+	Reason   string          `json:"reason"`
 }

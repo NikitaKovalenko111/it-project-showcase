@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	ErrInvalid   = errors.New("invalid opportunity request")
-	ErrForbidden = errors.New("opportunity access denied")
-	ErrNotFound  = errors.New("opportunity not found")
-	ErrConflict  = errors.New("opportunity conflict")
+	ErrInvalid         = errors.New("invalid opportunity request")
+	ErrForbidden       = errors.New("opportunity access denied")
+	ErrNotFound        = errors.New("opportunity not found")
+	ErrConflict        = errors.New("opportunity conflict")
+	ErrCuratorAssigned = errors.New("student already has an active curator")
 )
 
 type Service struct{ repo *opportunity_repo.Repository }
@@ -28,6 +29,8 @@ func mapped(e error) error {
 		return ErrNotFound
 	case errors.Is(e, opportunity_repo.ErrConflict):
 		return ErrConflict
+	case errors.Is(e, opportunity_repo.ErrCuratorAssigned):
+		return ErrCuratorAssigned
 	}
 	return e
 }
@@ -49,6 +52,10 @@ func (s *Service) ApplyTeam(ctx context.Context, u, team, role, resume, letter s
 	x, e := s.repo.ApplyTeam(ctx, u, team, role, resume, strings.TrimSpace(letter))
 	return x, mapped(e)
 }
+func (s *Service) ListMyTeamApplications(ctx context.Context, user string, limit int, offset int64) ([]models.TeamJoinApplication, int, error) {
+	return s.repo.ListMyTeamApplications(ctx, user, limit, offset)
+}
+
 func (s *Service) ListTeamApplications(ctx context.Context, u, team string) ([]models.TeamJoinApplication, error) {
 	if !id(team) {
 		return nil, ErrInvalid
@@ -73,15 +80,45 @@ func (s *Service) UpsertTeamProfile(ctx context.Context, u, headline, desc, resu
 func (s *Service) ListTeamProfiles(ctx context.Context, l, o int) ([]models.TeamSearchProfile, int, error) {
 	return s.repo.ListTeamProfiles(ctx, l, o)
 }
-func (s *Service) CreateInternship(ctx context.Context, u string, in models.InternshipInput) (*models.InternshipProgram, error) {
+func validateInternship(in *models.InternshipInput) error {
+	if in.Kind != "" && in.Kind != "internship" && in.Kind != "practice" {
+		return ErrInvalid
+	}
+	if in.Capacity != nil && (*in.Capacity < 1 || *in.Capacity > 10000) {
+		return ErrInvalid
+	}
 	in.Title = strings.TrimSpace(in.Title)
 	in.Summary = strings.TrimSpace(in.Summary)
 	in.ContentMarkdown = strings.TrimSpace(in.ContentMarkdown)
 	if !id(in.CompanyID) || in.Title == "" || len(in.Title) > 200 || in.Summary == "" || len(in.Summary) > 1000 || in.ContentMarkdown == "" || len(in.ContentMarkdown) > 50000 {
+		return ErrInvalid
+	}
+	return nil
+}
+
+func (s *Service) CreateInternship(ctx context.Context, u string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	if in.Kind == "" {
+		in.Kind = "internship"
+	}
+	if in.Capacity == nil {
 		return nil, ErrInvalid
+	}
+	if err := validateInternship(&in); err != nil {
+		return nil, err
 	}
 	x, e := s.repo.CreateInternship(ctx, u, in)
 	return x, mapped(e)
+}
+
+func (s *Service) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	if !id(programID) {
+		return nil, ErrNotFound
+	}
+	if err := validateInternship(&in); err != nil {
+		return nil, err
+	}
+	item, err := s.repo.UpdateInternship(ctx, user, programID, in)
+	return item, mapped(err)
 }
 func (s *Service) GetInternship(ctx context.Context, idv, user string, admin bool) (*models.InternshipProgram, error) {
 	if !id(idv) {
@@ -90,12 +127,13 @@ func (s *Service) GetInternship(ctx context.Context, idv, user string, admin boo
 	x, e := s.repo.GetInternship(ctx, idv, admin, user)
 	return x, mapped(e)
 }
-func (s *Service) ListInternships(ctx context.Context, l, o int) ([]models.InternshipProgram, int, error) {
-	return s.repo.ListInternships(ctx, l, o)
+func (s *Service) ListInternships(ctx context.Context, status, owner string, l, o int) ([]models.InternshipProgram, int, error) {
+	return s.repo.ListInternships(ctx, status, owner, l, o)
 }
 func (s *Service) UpdateInternshipStatus(ctx context.Context, u, idv, status, comment string, admin bool) (*models.InternshipProgram, error) {
 	allowed := map[string]bool{"moderation": true, "published": true, "revision": true, "closed": true, "hidden": true}
-	if !id(idv) || !allowed[status] || len(comment) > 4000 {
+	comment = strings.TrimSpace(comment)
+	if !id(idv) || !allowed[status] || len(comment) > 4000 || ((status == "revision" || status == "hidden") && comment == "") {
 		return nil, ErrInvalid
 	}
 	if !admin && (status != "moderation" && status != "closed") {
@@ -104,12 +142,19 @@ func (s *Service) UpdateInternshipStatus(ctx context.Context, u, idv, status, co
 	x, e := s.repo.UpdateInternshipStatus(ctx, u, idv, status, strings.TrimSpace(comment), admin)
 	return x, mapped(e)
 }
-func (s *Service) Leaderboard(ctx context.Context, c string) ([]models.LeaderboardEntry, error) {
+func (s *Service) Leaderboard(ctx context.Context, c, user string, admin bool) ([]models.LeaderboardEntry, error) {
 	if !id(c) {
 		return nil, ErrNotFound
 	}
-	return s.repo.Leaderboard(ctx, c)
+	return s.repo.Leaderboard(ctx, c, user, admin)
 }
+func (s *Service) WithdrawPlacements(ctx context.Context, u, c string) error {
+	if !id(c) {
+		return ErrNotFound
+	}
+	return mapped(s.repo.WithdrawPlacements(ctx, u, c))
+}
+
 func (s *Service) SetPlacements(ctx context.Context, u, c string, items []models.PlacementInput) error {
 	if !id(c) || len(items) == 0 || len(items) > 100 {
 		return ErrInvalid
@@ -135,6 +180,14 @@ func (s *Service) SetCurator(ctx context.Context, a, student, curator string) (*
 	x, e := s.repo.SetCurator(ctx, a, student, curator)
 	return x, mapped(e)
 }
+func (s *Service) AssignSelfCurator(ctx context.Context, curator, student string) (*models.CuratorAssignment, error) {
+	if !id(student) {
+		return nil, ErrNotFound
+	}
+	item, err := s.repo.AssignSelfCurator(ctx, curator, student)
+	return item, mapped(err)
+}
+
 func (s *Service) GetCurator(ctx context.Context, student string) (*models.CuratorAssignment, error) {
 	if !id(student) {
 		return nil, ErrNotFound

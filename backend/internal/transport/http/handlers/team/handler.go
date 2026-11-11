@@ -35,8 +35,23 @@ type responseRequest struct {
 func (h *Handler) StartTeams(mux *http.ServeMux, student func(http.Handler) http.Handler) {
 	mux.Handle("POST /", student(http.HandlerFunc(h.Create)))
 	mux.Handle("GET /{team_id}", student(http.HandlerFunc(h.Get)))
+	mux.Handle("GET /mine", student(http.HandlerFunc(h.ListMine)))
 	mux.Handle("POST /{team_id}/invitations", student(http.HandlerFunc(h.Invite)))
 	mux.HandleFunc("/", shared.NotFound)
+}
+func (h *Handler) ListMine(w http.ResponseWriter, r *http.Request) {
+	query, err := pagination.ParsePageQuery(r.URL.Query())
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	user, _ := middleware.UserIDFromContext(r.Context())
+	items, total, err := h.service.ListMine(r.Context(), user, query.PageSize, query.Offset)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, 200, pagination.NewPageResponse(items, query, total))
 }
 func (h *Handler) StartInvitations(mux *http.ServeMux) {
 	mux.HandleFunc("GET /", h.ListInvitations)

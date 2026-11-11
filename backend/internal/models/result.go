@@ -2,10 +2,30 @@ package models
 
 import "time"
 
+type ResultFileMetadata struct {
+	FileID       string `json:"file_id"`
+	OriginalName string `json:"original_name"`
+	MIMEType     string `json:"mime_type"`
+	SizeBytes    int64  `json:"size_bytes"`
+}
+
+type EvaluatorInfo struct {
+	EvaluationID string `json:"evaluation_id"`
+	Name         string `json:"name"`
+}
+
+type ResultReviewDetails struct {
+	Files      []ResultFileMetadata `json:"files"`
+	Evaluators []EvaluatorInfo      `json:"evaluators"`
+}
+
 type SubmissionFile struct {
-	FileID  string `json:"file_id"`
-	Kind    string `json:"kind"`
-	Ordinal int    `json:"ordinal"`
+	OriginalName string `json:"original_name,omitempty"`
+	MIMEType     string `json:"mime_type,omitempty"`
+	SizeBytes    int64  `json:"size_bytes,omitempty"`
+	FileID       string `json:"file_id"`
+	Kind         string `json:"kind"`
+	Ordinal      int    `json:"ordinal"`
 }
 type Submission struct {
 	SubmissionID  string           `json:"submission_id"`

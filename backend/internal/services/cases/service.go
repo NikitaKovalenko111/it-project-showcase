@@ -21,8 +21,11 @@ var (
 	ErrInvalidInput      = errors.New("invalid case input")
 	ErrInvalidFilter     = errors.New("invalid case filter")
 	ErrInvalidCursor     = errors.New("invalid case cursor")
+	ErrDeadlineExpired   = case_repo.ErrDeadlineExpired
 	ErrInvalidTransition = errors.New("invalid case status transition")
 	ErrReferenceNotFound = errors.New("case reference not found")
+	ErrStagesLocked      = errors.New("case stages are locked by existing executions")
+	ErrEventPlanRequired = errors.New("event plan and deadlines are required")
 )
 
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -63,12 +66,32 @@ func (s *Service) ListForModeration(ctx context.Context, filter models.CaseListF
 	return s.repo.List(ctx, filter, limit, before, id)
 }
 
+func (s *Service) ListMine(ctx context.Context, userID string, filter models.CaseListFilter, limit int, position, id string) ([]models.Case, error) {
+	filter.ManagerID, filter.IncludeRestricted = userID, true
+	filter.Statuses = []string{"draft", "moderation", "revision", "published", "in_progress", "completed", "cancelled", "hidden"}
+	if err := validateFilter(filter); err != nil {
+		return nil, err
+	}
+	before, err := parseCursor(position, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.List(ctx, filter, limit, before, id)
+}
+
 func (s *Service) Get(ctx context.Context, caseID string) (*models.Case, error) {
 	if !uuidPattern.MatchString(caseID) {
 		return nil, ErrNotFound
 	}
 	item, err := s.repo.GetPublic(ctx, caseID)
 	return item, mapRepositoryError(err)
+}
+
+func (s *Service) RecordView(ctx context.Context, caseID, userID string) error {
+	if !uuidPattern.MatchString(caseID) {
+		return ErrNotFound
+	}
+	return mapRepositoryError(s.repo.RecordView(ctx, caseID, userID))
 }
 
 func (s *Service) GetManaged(ctx context.Context, userID, caseID string, admin bool) (*models.Case, error) {
@@ -84,11 +107,37 @@ func (s *Service) GetManaged(ctx context.Context, userID, caseID string, admin b
 
 func (s *Service) Create(ctx context.Context, userID string, input models.CaseInput) (*models.Case, error) {
 	input = normalize(input)
+	if input.DueAt != nil && !input.DueAt.After(time.Now()) {
+		return nil, ErrDeadlineExpired
+	}
+	if input.Capacity == nil || input.TeamSizeMin == nil || input.TeamSizeMax == nil {
+		return nil, ErrInvalidInput
+	}
 	if err := validate(input); err != nil {
 		return nil, err
 	}
 	item, err := s.repo.Create(ctx, userID, input)
 	return item, mapRepositoryError(err)
+}
+
+func (s *Service) ChangeDeadline(ctx context.Context, actor, caseID, stageID, roundID string, dueAt time.Time, reason string) error {
+	reason = strings.TrimSpace(reason)
+	if !uuidPattern.MatchString(caseID) || (stageID != "" && !uuidPattern.MatchString(stageID)) ||
+		(roundID != "" && !uuidPattern.MatchString(roundID)) {
+		return ErrNotFound
+	}
+	if !dueAt.After(time.Now()) || reason == "" || utf8.RuneCountInString(reason) > 1000 {
+		return ErrInvalidInput
+	}
+	return mapEventError(s.repo.ChangeDeadline(ctx, actor, caseID, stageID, strings.ToLower(roundID), dueAt, reason))
+}
+
+func (s *Service) ListDeadlineChanges(ctx context.Context, user, caseID string, admin bool, limit int, offset int64) ([]models.CaseDeadlineChange, int64, error) {
+	if !uuidPattern.MatchString(caseID) {
+		return nil, 0, ErrNotFound
+	}
+	items, total, err := s.repo.ListDeadlineChanges(ctx, user, caseID, admin, limit, offset)
+	return items, total, mapRepositoryError(err)
 }
 
 func (s *Service) Update(ctx context.Context, userID, caseID string, input models.CaseInput) (*models.Case, error) {
@@ -163,6 +212,9 @@ func validateFilter(filter models.CaseListFilter) error {
 	if filter.Type != "" && !oneOf(filter.Type, "educational", "contest", "paid", "other_reward") {
 		return ErrInvalidFilter
 	}
+	if filter.EventFormat != "" && !oneOf(filter.EventFormat, "case", "hackathon", "olympiad") {
+		return ErrInvalidFilter
+	}
 	return nil
 }
 
@@ -172,6 +224,10 @@ func normalize(input models.CaseInput) models.CaseInput {
 	input.Summary = strings.TrimSpace(input.Summary)
 	input.FullBrief = strings.TrimSpace(input.FullBrief)
 	input.Type = strings.TrimSpace(input.Type)
+	input.EventFormat = strings.TrimSpace(input.EventFormat)
+	if input.EventFormat == "" {
+		input.EventFormat = "case"
+	}
 	input.Difficulty = strings.TrimSpace(input.Difficulty)
 	input.WorkFormat = strings.TrimSpace(input.WorkFormat)
 	input.ParticipationMode = strings.TrimSpace(input.ParticipationMode)
@@ -217,11 +273,17 @@ func validate(input models.CaseInput) error {
 	if utf8.RuneCountInString(input.Title) > 300 || utf8.RuneCountInString(input.Summary) > 1000 || utf8.RuneCountInString(input.FullBrief) > 30000 || utf8.RuneCountInString(input.ResultRequirements) > 10000 || utf8.RuneCountInString(input.EvaluationRules) > 10000 || utf8.RuneCountInString(input.IPTerms) > 10000 || utf8.RuneCountInString(input.Duration) > 200 {
 		return ErrInvalidInput
 	}
-	if !oneOf(input.Type, "educational", "contest", "paid", "other_reward") || (input.Difficulty != "" && !oneOf(input.Difficulty, "beginner", "intermediate", "advanced")) || !oneOf(input.WorkFormat, "remote", "onsite", "hybrid") || !oneOf(input.ParticipationMode, "individual", "team", "both") || !oneOf(input.AdmissionMode, "open", "selection", "test", "invitation") || !oneOf(input.Visibility, "public", "restricted") {
+	if !oneOf(input.Type, "educational", "contest", "paid", "other_reward") || !oneOf(input.EventFormat, "case", "hackathon", "olympiad") || (input.Difficulty != "" && !oneOf(input.Difficulty, "beginner", "intermediate", "advanced")) || !oneOf(input.WorkFormat, "remote", "onsite", "hybrid") || !oneOf(input.ParticipationMode, "individual", "team", "both") || !oneOf(input.AdmissionMode, "open", "selection", "test", "invitation") || !oneOf(input.Visibility, "public", "restricted") {
 		return ErrInvalidInput
 	}
 	if !validRange(input.TeamSizeMin, input.TeamSizeMax, 1, 100) || !validRange(input.CourseMin, input.CourseMax, 1, 8) || (input.Capacity != nil && (*input.Capacity < 1 || *input.Capacity > 10000)) {
 		return ErrInvalidInput
+	}
+	if input.TeamSizeMin != nil && input.TeamSizeMax != nil {
+		individual := *input.TeamSizeMin == 1 && *input.TeamSizeMax == 1
+		if individual != (input.ParticipationMode == "individual") {
+			return ErrInvalidInput
+		}
 	}
 	if input.ApplicationDeadline != nil && input.DueAt != nil && input.ApplicationDeadline.After(*input.DueAt) {
 		return ErrInvalidInput
@@ -321,6 +383,12 @@ func mapRepositoryError(err error) error {
 	if errors.Is(err, case_repo.ErrReferenceNotFound) {
 		return ErrReferenceNotFound
 	}
+	if errors.Is(err, case_repo.ErrStagesLocked) {
+		return ErrStagesLocked
+	}
+	if errors.Is(err, case_repo.ErrEventPlanRequired) {
+		return ErrEventPlanRequired
+	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && (pgErr.Code == "23503" || pgErr.Code == "23514" || pgErr.Code == "23505") {
 		return ErrInvalidInput
@@ -348,4 +416,63 @@ func (s *Service) CreateStage(ctx context.Context, userID, caseID string, input 
 	}
 	x, err := s.repo.CreateStage(ctx, userID, caseID, input)
 	return x, mapRepositoryError(err)
+}
+
+func (s *Service) UpdateStage(ctx context.Context, userID, caseID, stageID string, input models.CaseStageInput) (*models.CaseStage, error) {
+	input.Title = strings.TrimSpace(input.Title)
+	input.ExpectedResult = strings.TrimSpace(input.ExpectedResult)
+	if !uuidPattern.MatchString(caseID) || !uuidPattern.MatchString(stageID) || input.Ordinal < 1 || input.Title == "" || utf8.RuneCountInString(input.Title) > 300 || utf8.RuneCountInString(input.ExpectedResult) > 3000 {
+		return nil, ErrInvalidInput
+	}
+	x, err := s.repo.UpdateStage(ctx, userID, caseID, stageID, input)
+	return x, mapRepositoryError(err)
+}
+
+func (s *Service) ReorderStages(ctx context.Context, userID, caseID string, stageIDs []string) ([]models.CaseStage, error) {
+	if !uuidPattern.MatchString(caseID) || len(stageIDs) == 0 || len(stageIDs) > 100 {
+		return nil, ErrInvalidInput
+	}
+	seen := make(map[string]struct{}, len(stageIDs))
+	for i, stageID := range stageIDs {
+		if !uuidPattern.MatchString(stageID) {
+			return nil, ErrInvalidInput
+		}
+		stageID = strings.ToLower(stageID)
+		if _, exists := seen[stageID]; exists {
+			return nil, ErrInvalidInput
+		}
+		seen[stageID] = struct{}{}
+		stageIDs[i] = stageID
+	}
+	x, err := s.repo.ReorderStages(ctx, userID, caseID, stageIDs)
+	return x, mapRepositoryError(err)
+}
+
+func (s *Service) SavePlan(ctx context.Context, userID, caseID string, input models.CasePlanUpdate) ([]models.CaseStage, error) {
+	input.Reason = strings.TrimSpace(input.Reason)
+	if !uuidPattern.MatchString(caseID) || input.Stages == nil || input.Previous == nil ||
+		len(input.Stages) > 100 || len(input.Previous) > 100 || utf8.RuneCountInString(input.Reason) > 1000 {
+		return nil, ErrInvalidInput
+	}
+	seen := make(map[string]struct{})
+	for i := range input.Stages {
+		stage := &input.Stages[i]
+		stage.StageID = strings.ToLower(stage.StageID)
+		stage.Title = strings.TrimSpace(stage.Title)
+		stage.ExpectedResult = strings.TrimSpace(stage.ExpectedResult)
+		if stage.DueAt != nil {
+			dueAt := stage.DueAt.Truncate(time.Microsecond)
+			stage.DueAt = &dueAt
+		}
+		if stage.Title == "" || utf8.RuneCountInString(stage.Title) > 300 ||
+			utf8.RuneCountInString(stage.ExpectedResult) > 3000 ||
+			(stage.StageID != "" && !uniqueUUID(seen, stage.StageID)) {
+			return nil, ErrInvalidInput
+		}
+	}
+	stages, err := s.repo.SavePlan(ctx, userID, caseID, input)
+	if errors.Is(err, case_repo.ErrPlanChanged) || errors.Is(err, case_repo.ErrPlanDeadline) {
+		return nil, err
+	}
+	return stages, mapRepositoryError(err)
 }

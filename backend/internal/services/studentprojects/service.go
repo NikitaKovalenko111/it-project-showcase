@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"it-project-showcase/backend/internal/models"
 	studentproject_repo "it-project-showcase/backend/internal/storage/repositories/studentproject"
+	"it-project-showcase/backend/pkg"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -28,8 +29,13 @@ func Init(r *studentproject_repo.Repository) *Service { return &Service{r} }
 func validID(x string) bool                           { _, e := uuid.Parse(x); return e == nil }
 func validate(in models.StudentProjectInput) error {
 	in.Title = strings.TrimSpace(in.Title)
-	if in.Title == "" || in.ShortDescription == "" || in.FullDescription == "" || utf8.RuneCountInString(in.Title) > 200 || utf8.RuneCountInString(in.ShortDescription) > 1000 || utf8.RuneCountInString(in.FullDescription) > 30000 || len(in.DirectionIDs) > 20 || len(in.TechnologyIDs) > 50 || len(in.Members) > 30 || len(in.Assets) > 50 {
+	if in.Title == "" || strings.TrimSpace(in.ShortDescription) == "" || strings.TrimSpace(in.FullDescription) == "" || utf8.RuneCountInString(in.Title) > 200 || utf8.RuneCountInString(in.ShortDescription) > 1000 || utf8.RuneCountInString(in.FullDescription) > 30000 || len(in.DirectionIDs) > 20 || len(in.TechnologyIDs) > 50 || len(in.Members) > 30 || len(in.Assets) > 50 {
 		return ErrInvalid
+	}
+	for _, link := range []string{in.GithubURL, in.ProductURL} {
+		if link != "" && !pkg.IsWebURL(link) {
+			return ErrInvalid
+		}
 	}
 	switch in.Category {
 	case "coursework", "pet_project", "startup", "research", "hackathon", "other":
@@ -80,7 +86,7 @@ func validate(in models.StudentProjectInput) error {
 	}
 	return nil
 }
-func (s *Service) List(ctx context.Context, u, search, cat, dir string, limit int, pos, id string) ([]models.StudentProject, error) {
+func (s *Service) List(ctx context.Context, u, search, cat, dir, scope string, limit int, pos, id string) ([]models.StudentProject, error) {
 	var before *time.Time
 	if pos != "" {
 		x, e := time.Parse(time.RFC3339Nano, pos)
@@ -89,7 +95,7 @@ func (s *Service) List(ctx context.Context, u, search, cat, dir string, limit in
 		}
 		before = &x
 	}
-	return s.repo.List(ctx, u, strings.TrimSpace(search), cat, dir, limit, before, id)
+	return s.repo.List(ctx, u, strings.TrimSpace(search), cat, dir, scope, limit, before, id)
 }
 func (s *Service) Get(ctx context.Context, u, id string, a bool) (*models.StudentProject, error) {
 	if !validID(id) {
@@ -122,6 +128,14 @@ func (s *Service) Submit(ctx context.Context, u, id string) (*models.StudentProj
 	x, e := s.repo.Submit(ctx, u, id)
 	return x, mapErr(e, false)
 }
+func (s *Service) UpdateVisibility(ctx context.Context, user, id, visibility string) (*models.StudentProject, error) {
+	if !validID(id) || (visibility != "private" && visibility != "public") {
+		return nil, ErrInvalid
+	}
+	x, e := s.repo.UpdateVisibility(ctx, user, id, visibility)
+	return x, mapErr(e, false)
+}
+
 func (s *Service) Moderate(ctx context.Context, u, id, status, comment string) (*models.StudentProject, error) {
 	if !validID(id) || (status != "published" && status != "revision" && status != "hidden") {
 		return nil, ErrInvalid
