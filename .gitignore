@@ -1,3 +1,5 @@
+.env
+backups/
 # Dependencies
 node_modules/
 
