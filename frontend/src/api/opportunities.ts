@@ -1,9 +1,9 @@
+import { buildPrograms, buildProgramApplications } from './fixtures/programs'
 import { axiosInstance } from './http'
 import { apiRuntime } from './runtime'
 import { collectNumbered } from './backend'
 import { mockServer } from './mockServer'
 import type { User } from '../types/models'
-import { buildPrograms, buildProgramApplications } from './fixtures/programs'
 
 export type OpportunityKind = 'internship' | 'practice'
 export type Opportunity = {
@@ -43,8 +43,7 @@ function save<T>(key: string, data: T) {
   localStorage.setItem('showcase_curated_v1_' + key, JSON.stringify(data))
 }
 const programs = () => read('opportunities', seed)
-const applications = () =>
-  read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
+const applications = () => read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
 function actor() {
   const session = JSON.parse(localStorage.getItem('uust_current_user') || 'null') as User | null
   const user = session && mockServer.getUserById(session.id)

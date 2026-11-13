@@ -1,3 +1,7 @@
+import { matchesSearch } from '../utils/publication'
+import { IdentityImage } from '../components/IdentityImage'
+import { formatDate } from '../utils/date'
+import { apiRuntime } from '../api/runtime'
 import { FileDownload } from '../components/FileDownload'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import React, { useState, useEffect } from 'react'
@@ -38,26 +42,29 @@ export const CompanyApplicationsPage: React.FC = () => {
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const projects = useAppSelector((s) => s.cases.casesList)
-  const selectionApplications = allApplications.filter(
-    (a) => !['olympiad', 'hackathon'].includes(projects.find((p) => p.id === a.caseId)?.kind || ''),
+  const kindOf = (caseId: string) =>
+    projects.find((project) => project.id === caseId)?.kind || 'case'
+  const [taskKind, setTaskKind] = useState('all')
+  const accessibleApplications = allApplications.filter(
+    (app) =>
+      (taskKind === 'all' || kindOf(app.caseId) === taskKind) &&
+      (apiRuntime.mode !== 'mock' ||
+        currentUser?.role !== 'company' ||
+        app.companyId === currentUser.companyProfile?.companyId),
   )
-  const applicationsList =
-    currentUser?.role === 'company'
-      ? selectionApplications.filter(
-          (app) => app.companyId === currentUser.companyProfile?.companyId,
-        )
-      : selectionApplications
+  const applicationsList = caseFilter
+    ? accessibleApplications.filter((app) => app.caseId === caseFilter)
+    : accessibleApplications
 
   const [statusFilter, setStatusFilter] = useState<'all' | ApplicationStatus>('all')
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredApps = applicationsList.filter((app) => {
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter
-    const matchesSearch =
-      app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.caseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.studentInstitute.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesStatus && matchesSearch && (!caseFilter || app.caseId === caseFilter)
+    return (
+      matchesStatus &&
+      matchesSearch(searchTerm, app.studentName, app.caseTitle, app.studentInstitute, app.teamName)
+    )
   })
 
   const handleUpdateStatus = (appId: string, status: ApplicationStatus) => {
@@ -68,17 +75,14 @@ export const CompanyApplicationsPage: React.FC = () => {
     <div className="company-applications-page">
       <div className="page-header">
         <div className="page-header__content">
-          <h1>Входящие заявки студентов на кейсы</h1>
-          <p>
-            Отбор исполнителей на кейсы и стажировки. Регистрации на олимпиады и хакатоны находятся
-            в списках участников этих мероприятий.
-          </p>
+          <h1>Входящие заявки и регистрации</h1>
+          <p>Отбирайте исполнителей для кейсов и просматривайте регистрации на мероприятия.</p>
         </div>
       </div>
 
       {/* UUST Schedule-style filter container */}
       <div className="uust-container">
-        <div className="uust-tabs-row">
+        <div className="uust-tabs-row application-status-tabs">
           <button
             className={`uust-tab ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
@@ -132,9 +136,23 @@ export const CompanyApplicationsPage: React.FC = () => {
                 style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Поиск по ФИО студента, институту или названию кейса..."
+                placeholder="Студент или название кейса"
               />
             </div>
+            <label className="catalog-sort">
+              Тип задания
+              <select
+                className="uust-select"
+                value={taskKind}
+                onChange={(event) => setTaskKind(event.target.value)}
+              >
+                <option value="all">Все форматы</option>
+                <option value="case">Кейсы</option>
+                <option value="hackathon">Хакатоны</option>
+                <option value="olympiad">Олимпиады</option>
+                {apiRuntime.mode !== 'live' && <option value="internship">Стажировки</option>}
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -151,9 +169,9 @@ export const CompanyApplicationsPage: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {
-            <PaginatedGrid className="paginated-stack">
+            <PaginatedGrid className="paginated-stack" paginationKey="incomingApplications">
               {filteredApps.map((app) => (
-                <div key={app.id} className="card" style={{ padding: '20px' }}>
+                <div key={app.id} className="card application-card">
                   <div
                     style={{
                       display: 'flex',
@@ -168,19 +186,10 @@ export const CompanyApplicationsPage: React.FC = () => {
                       className="candidate-identity"
                       style={{ display: 'flex', gap: '14px', alignItems: 'center' }}
                     >
-                      <img
-                        src={
-                          app.studentAvatar ||
-                          'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'
-                        }
-                        alt=""
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: '8px',
-                          objectFit: 'cover',
-                          border: '1px solid #dce4ed',
-                        }}
+                      <IdentityImage
+                        src={app.studentAvatar}
+                        name={app.studentName}
+                        className="candidate-avatar"
                       />
                       <div>
                         <h3
@@ -208,15 +217,16 @@ export const CompanyApplicationsPage: React.FC = () => {
                             alignItems: 'center',
                           }}
                         >
-                          <span>{app.studentInstitute}</span>
-                          <span>•</span>
-                          <span>{app.studentCourse} курс</span>
-                          <span>•</span>
-                          <span>
-                            {app.applicantType === 'individual'
+                          {[
+                            app.studentInstitute,
+                            app.studentGroup,
+                            app.studentCourse > 0 ? `${app.studentCourse} курс` : '',
+                            app.applicantType === 'individual'
                               ? 'Индивидуально'
-                              : `Команда ${app.teamName || ''}`}
-                          </span>
+                              : app.teamName || 'Команда',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
                         </div>
                       </div>
                     </div>
@@ -243,17 +253,21 @@ export const CompanyApplicationsPage: React.FC = () => {
                         ) : (
                           <Clock size={13} />
                         )}
-                        {app.status === 'accepted'
-                          ? app.applicantType === 'team'
-                            ? 'Команда принята'
-                            : 'Заявка принята'
-                          : app.status === 'rejected'
-                            ? 'Заявка отклонена'
-                            : app.status === 'interview'
-                              ? 'Назначено собеседование'
-                              : app.status === 'need_info'
-                                ? 'Запрошены уточнения'
-                                : 'На рассмотрении'}
+                        {app.consentPending
+                          ? 'Ожидаются согласия команды'
+                          : app.status === 'withdrawn'
+                            ? 'Заявка отозвана'
+                            : app.status === 'accepted'
+                              ? app.applicantType === 'team'
+                                ? 'Команда принята'
+                                : 'Заявка принята'
+                              : app.status === 'rejected'
+                                ? 'Заявка отклонена'
+                                : app.status === 'interview'
+                                  ? 'Назначено собеседование'
+                                  : app.status === 'need_info'
+                                    ? 'Запрошены уточнения'
+                                    : 'На рассмотрении'}
                       </span>
                     </div>
                   </div>
@@ -276,7 +290,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                         marginBottom: '4px',
                       }}
                     >
-                      Кейс предприятия:
+                      Публикация:
                     </div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e4b85' }}>
                       <Link to={`/cases/${app.caseId}`}>{app.caseTitle}</Link>
@@ -303,27 +317,32 @@ export const CompanyApplicationsPage: React.FC = () => {
                       gap: '12px',
                     }}
                   >
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px' }}>
-                      <span
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          color: '#627282',
-                        }}
-                      >
-                        <Mail size={13} /> {app.studentEmail}
-                      </span>
-                      <span
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          color: '#627282',
-                        }}
-                      >
-                        <Phone size={13} /> {app.studentPhone}
-                      </span>
+                    <div className="application-contacts">
+                      {app.studentEmail && (
+                        <span
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#627282',
+                          }}
+                        >
+                          <Mail size={13} /> {app.studentEmail}
+                        </span>
+                      )}
+                      {app.studentPhone && (
+                        <span
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#627282',
+                          }}
+                        >
+                          <Phone size={13} /> {app.studentPhone}
+                        </span>
+                      )}
+                      <small>Подано {formatDate(app.createdAt)}</small>
                       {app.resumeUrl && (
                         <FileDownload file={{ name: 'Резюме', url: app.resumeUrl }} />
                       )}
@@ -362,15 +381,17 @@ export const CompanyApplicationsPage: React.FC = () => {
                     </div>
 
                     <div className="action-row">
-                      {['pending', 'interview'].includes(app.status) && (
-                        <button
-                          disabled={loading}
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleUpdateStatus(app.id, 'need_info')}
-                        >
-                          Запросить уточнения
-                        </button>
-                      )}
+                      {!app.isRegistration &&
+                        !app.consentPending &&
+                        ['pending', 'interview'].includes(app.status) && (
+                          <button
+                            disabled={loading}
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleUpdateStatus(app.id, 'need_info')}
+                          >
+                            Запросить уточнения
+                          </button>
+                        )}
                       {app.status === 'accepted' && (
                         <Link
                           className="btn btn-primary btn-sm"
@@ -379,33 +400,39 @@ export const CompanyApplicationsPage: React.FC = () => {
                           К проекту команды
                         </Link>
                       )}
-                      {['pending', 'interview', 'need_info'].includes(app.status) && (
-                        <button
-                          disabled={loading}
-                          className="btn btn-success btn-sm"
-                          onClick={() => handleUpdateStatus(app.id, 'accepted')}
-                        >
-                          <CheckCircle2 size={13} /> Принять в команду
-                        </button>
-                      )}
-                      {['pending', 'need_info'].includes(app.status) && (
-                        <button
-                          disabled={loading}
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleUpdateStatus(app.id, 'interview')}
-                        >
-                          Назначить интервью
-                        </button>
-                      )}
-                      {['pending', 'interview', 'need_info'].includes(app.status) && (
-                        <button
-                          disabled={loading}
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleUpdateStatus(app.id, 'rejected')}
-                        >
-                          <XCircle size={13} /> Отклонить
-                        </button>
-                      )}
+                      {!app.isRegistration &&
+                        !app.consentPending &&
+                        ['pending', 'interview'].includes(app.status) && (
+                          <button
+                            disabled={loading}
+                            className="btn btn-success btn-sm"
+                            onClick={() => handleUpdateStatus(app.id, 'accepted')}
+                          >
+                            <CheckCircle2 size={13} /> Принять в команду
+                          </button>
+                        )}
+                      {!app.isRegistration &&
+                        !app.consentPending &&
+                        ['pending', 'need_info'].includes(app.status) && (
+                          <button
+                            disabled={loading}
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleUpdateStatus(app.id, 'interview')}
+                          >
+                            Назначить интервью
+                          </button>
+                        )}
+                      {!app.isRegistration &&
+                        !app.consentPending &&
+                        ['pending', 'interview', 'need_info'].includes(app.status) && (
+                          <button
+                            disabled={loading}
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleUpdateStatus(app.id, 'rejected')}
+                          >
+                            <XCircle size={13} /> Отклонить
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>

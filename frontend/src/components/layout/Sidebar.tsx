@@ -1,5 +1,6 @@
+import { IdentityImage } from '../IdentityImage'
 import React, { useState, useMemo, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { logoutRequest } from '../../store/actions'
 import {
@@ -40,7 +41,7 @@ type OnlineStatus = 'online' | 'busy' | 'offline'
 
 const statusConfig: Record<OnlineStatus, { label: string; color: string }> = {
   online: { label: 'В сети', color: '#28a745' },
-  busy: { label: 'На паре', color: '#e68a19' },
+  busy: { label: 'Занят', color: '#e68a19' },
   offline: { label: 'Не в сети', color: '#94a3b8' },
 }
 
@@ -86,6 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
   // Role-specific navigation groups
   const navGroups: NavItem[][] = useMemo(() => {
+    const opportunities = [{ to: '/internships', label: 'СТАЖИРОВКИ И ПРАКТИКИ', icon: Briefcase }]
     const userId = currentUser?.id || 'me'
     const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
 
@@ -96,6 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
             { to: '/teams', label: 'КОМАНДЫ', icon: GraduationCap },
           ],
@@ -118,6 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'МОИ КЕЙСЫ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -144,6 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -162,6 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -171,7 +177,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
           [
             { to: '/analytics', label: 'АНАЛИТИКА И ОТЧЁТЫ', icon: BarChart3 },
-            { to: '/moderation', label: 'ПАНЕЛЬ АДМИНИСТРАТОРА', icon: ShieldCheck },
+            ...(role === 'admin'
+              ? [{ to: '/moderation', label: 'ПАНЕЛЬ АДМИНИСТРАТОРА', icon: ShieldCheck }]
+              : []),
           ],
         ]
     }
@@ -206,23 +214,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
       {/* UUST Student / User Card from Photo */}
       <div className="sidebar__profile-isu">
-        <div className="avatar-wrapper">
-          <img
-            src={
-              currentUser?.avatar ||
-              (role === 'company'
-                ? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80'
-                : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80')
-            }
-            alt={currentUser?.fullName || 'Пользователь'}
-          />
-        </div>
+        {currentUser && (
+          <Link
+            className="avatar-wrapper"
+            to={role === 'student' ? '/profile/me' : '/account'}
+            aria-label="Мой профиль"
+            title="Мой профиль"
+          >
+            <IdentityImage
+              src={currentUser.avatar}
+              name={currentUser.fullName}
+              className="sidebar-avatar"
+            />
+          </Link>
+        )}
 
         <div className="profile-name" title={currentUser?.fullName}>
           {currentUser?.fullName || 'Пользователь'}
         </div>
 
-        <div className="profile-email">Email:{currentUser?.email || 'Не указан'}</div>
+        <div className="profile-email">Email: {currentUser?.email || 'Не указан'}</div>
 
         {/* Interactive Online Status Pill */}
         <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -306,33 +317,40 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
       {/* UUST Navigation in ISU Style */}
       <nav className="sidebar__nav-isu">
-        {[...navGroups, [{ to: '/feedback', label: 'ОБРАТНАЯ СВЯЗЬ', icon: MessageSquare }]].map(
-          (group, groupIdx) => (
-            <React.Fragment key={groupIdx}>
-              {groupIdx > 0 && <div className="sidebar__nav-divider" />}
-              {group.map((item) => {
-                const Icon = item.icon
-                return (
-                  <NavLink
-                    key={`${item.to}-${item.label}`}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
-                    onClick={onClose}
-                  >
-                    <span className="nav-icon">
-                      <Icon size={15} />
-                    </span>
-                    <span>{item.label}</span>
-                    {item.badge != null && item.badge > 0 && (
-                      <span className="nav-badge-isu">{item.badge}</span>
-                    )}
-                  </NavLink>
-                )
-              })}
-            </React.Fragment>
-          ),
-        )}
+        {[
+          ...navGroups,
+          [
+            {
+              to: '/feedback',
+              label: role === 'admin' ? 'ЖАЛОБЫ И ОБРАЩЕНИЯ' : 'ОБРАТНАЯ СВЯЗЬ',
+              icon: MessageSquare,
+            },
+          ],
+        ].map((group, groupIdx) => (
+          <React.Fragment key={groupIdx}>
+            {groupIdx > 0 && <div className="sidebar__nav-divider" />}
+            {group.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={`${item.to}-${item.label}`}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
+                  onClick={onClose}
+                >
+                  <span className="nav-icon">
+                    <Icon size={15} />
+                  </span>
+                  <span>{item.label}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <span className="nav-badge-isu">{item.badge}</span>
+                  )}
+                </NavLink>
+              )
+            })}
+          </React.Fragment>
+        ))}
       </nav>
 
       <div className="sidebar__footer-isu">

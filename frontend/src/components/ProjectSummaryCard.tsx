@@ -1,3 +1,4 @@
+import { complexityBadge } from '../utils/publication'
 import { formatDate } from '../utils/date'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -15,7 +16,9 @@ export const ProjectSummaryCard: React.FC<{
   workspace?: boolean
   onRemove?: () => void
   applicationStatus?: string
-}> = ({ project, workspace, onRemove, applicationStatus }) => (
+  teamName?: string
+  extraAction?: React.ReactNode
+}> = ({ project, workspace, onRemove, applicationStatus, teamName, extraAction }) => (
   <article className="card card-hover case-card project-summary-card">
     {onRemove && (
       <button
@@ -48,7 +51,7 @@ export const ProjectSummaryCard: React.FC<{
           <span className="badge badge-direction">Заявка: {applicationStatus}</span>
         )}
         {project.direction && <span className="badge badge-direction">{project.direction}</span>}
-        <span className="badge badge-complexity-medium">
+        <span className={`badge ${complexityBadge(project.complexity)}`}>
           Уровень: {project.complexity.toLowerCase()}
         </span>
         <span className={`badge publication-${publicationStatus(project)}`}>
@@ -69,15 +72,19 @@ export const ProjectSummaryCard: React.FC<{
           <span>
             Команда:{' '}
             <strong>
-              {project.assignedTeamName ||
+              {teamName ||
+                project.assignedTeamName ||
                 project.assignedStudentName ||
-                `${project.teamSize.min}–${project.teamSize.max} чел.`}
+                (project.teamSize.min === project.teamSize.max
+                  ? `${project.teamSize.min} чел.`
+                  : `${project.teamSize.min}–${project.teamSize.max} чел.`)}
             </strong>
           </span>
         </div>
       </div>
     </div>
     <div className="card__footer">
+      {extraAction}
       <span className="project-summary-card__count">
         Заявок: <strong>{project.applicationsCount}</strong>
       </span>

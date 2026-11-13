@@ -20,8 +20,13 @@ export function fromUser(d: any): User {
   }
   return {
     id: d.user_id,
+    requestedRole: d.requested_role || undefined,
+    roleRequestStatus: d.role_request_status || undefined,
     username: d.username,
     email: d.email,
+    avatar: s?.photo_file_id
+      ? `/api/v1/students/${d.user_id}/photo?v=${s.photo_file_id}`
+      : undefined,
     fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
     role:
       (['admin', 'company_representative', 'company', 'curator', 'university', 'student'].find(
@@ -37,6 +42,7 @@ export function fromUser(d: any): User {
             fieldOfStudy: s.direction || '',
             educationalProgram: s.program || '',
             course: s.course,
+            curatorId: s.curator_id || undefined,
             group: s.group_name || '',
             bio: s.bio || '',
             interests: s.professional_interests || [],
@@ -56,7 +62,7 @@ export function fromUser(d: any): User {
             gitlabUrl: s.links?.find((l: any) => l.kind === 'gitlab')?.url,
             portfolioUrl: s.links?.find((l: any) => l.kind === 'portfolio')?.url,
             phone: s.phone || '',
-            rating: 0,
+            rating: s.rating || 0,
             verifiedProjectsCount: 0,
             winsCount: 0,
           },
@@ -70,6 +76,12 @@ export function fromCompany(d: any): Company {
     name: d.full_name,
     shortName: d.short_name || d.full_name,
     description: d.description || '',
+    internshipProgram: d.internship_program || '',
+    practiceProgram: d.practice_program || '',
+    inn: d.inn,
+    kpp: d.kpp,
+    ogrn: d.ogrn,
+    legalAddress: d.legal_address,
     industry: d.industry || '',
     website: d.website || '',
     logo: d.logo_file_id ? `/api/v1/companies/${d.company_id}/logo` : '',
@@ -126,7 +138,10 @@ export function fromCase(d: any): CaseProject {
         d.difficulty
       ] || 'Средний',
     participationFormat: d.participation_mode,
-    teamSize: { min: d.team_size_min || 1, max: d.team_size_max || 1 },
+    teamSize: {
+      min: d.team_size_min ?? 1,
+      max: d.team_size_max ?? (d.participation_mode === 'individual' ? 1 : 100),
+    },
     maxTeams: d.capacity,
     requiredCompetencies: (d.required_competencies || []).map((v: any) => v.name),
     recommendedTech: (d.technologies || []).map((v: any) => v.name),
@@ -267,8 +282,10 @@ export const fromApplication = (d: any): CaseApplication => ({
   studentName: d.student_name || '',
   studentEmail: '',
   studentPhone: '',
-  studentCourse: 0,
-  studentInstitute: '',
+  studentCourse: d.student_course || 0,
+  studentInstitute: d.student_institute || '',
+  studentGroup: d.student_group || '',
+  studentAvatar: d.student_avatar,
   teamId: d.team_id || undefined,
   teamName: d.team_name,
   applicantType: d.team_id ? 'team' : 'individual',
@@ -278,6 +295,7 @@ export const fromApplication = (d: any): CaseApplication => ({
   githubUrl: d.github_url || '',
   previousProjects: [],
   consentPending: d.status === 'consent_pending',
+  canConsent: d.can_consent,
   isRegistration: d.entry_kind === 'registration',
   status:
     (
@@ -311,6 +329,9 @@ export const fromComment = (d: any): ProjectComment => ({
   caseId: d.resource_id,
   authorId: d.author_id,
   authorName: d.author_name || '',
+  authorAvatar: d.author_photo_file_id
+    ? `/api/v1/students/${d.author_id}/photo?v=${d.author_photo_file_id}`
+    : undefined,
   authorRole: 'student',
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
   parentId: d.parent_comment_id || undefined,
@@ -343,14 +364,21 @@ export const fromStudent = (d: any): User =>
     created_at: d.created_at,
     student: {
       first_name: d.full_name,
+      photo_file_id: d.photo_file_id,
       institute: d.institute,
+      group_name: d.group_name,
+      curator_id: d.curator_id,
+      rating: d.rating,
       direction: d.direction,
       course: d.course,
       competencies: d.competencies,
       technologies: d.technologies,
     },
   })
-export const fromProject = (d: any): StudentProject => ({
+export const fromProject = (
+  d: any,
+  catalog?: import('./studentProjectCatalog').ProjectCatalog,
+): StudentProject => ({
   id: d.project_id,
   authorId: d.owner_id,
   authorName: d.owner_name || '',
@@ -369,16 +397,42 @@ export const fromProject = (d: any): StudentProject => ({
   shortDescription: d.short_description,
   fullDescription: d.full_description,
   problemSolved: d.problem_solved || '',
-  coverImage: d.cover_file_id
-    ? `/api/v1/student-projects/${d.project_id}/files/${d.cover_file_id}`
-    : '',
-  technologies: d.tags || [],
-  direction: '' as any,
+  coverImage:
+    d.cover_file_id && d.status === 'published' && d.visibility === 'public'
+      ? `/api/v1/student-projects/${d.project_id}/files/${d.cover_file_id}`
+      : '',
+  technologies: [
+    ...new Set<string>([
+      ...(catalog?.technologies
+        .filter((item) => d.technology_ids?.includes(item.id))
+        .map((item) => item.name) || []),
+      ...(d.tags || []),
+    ]),
+  ],
+  direction: (catalog?.directions.find((item) => d.direction_ids?.includes(item.id))?.name ||
+    '') as StudentProject['direction'],
   createdAt: d.created_at,
   status: 'в разработке',
   githubUrl: d.github_url,
   productUrl: d.product_url,
-  screenshots: [],
+  screenshots:
+    d.status === 'published' && d.visibility === 'public'
+      ? (d.assets || [])
+          .filter((asset: { kind: string }) => asset.kind === 'screenshot')
+          .map(
+            (asset: { file_id: string }) =>
+              `/api/v1/student-projects/${d.project_id}/files/${asset.file_id}`,
+          )
+      : [],
+  server: {
+    status: d.status,
+    directionIds: d.direction_ids || [],
+    technologyIds: d.technology_ids || [],
+    coverFileId: d.cover_file_id || undefined,
+    tags: d.tags || [],
+    assets: d.assets || [],
+    members: d.members || [],
+  },
   badges: [],
   isModerated: d.status === 'published',
   moderationStatus:

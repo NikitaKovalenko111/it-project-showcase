@@ -1,4 +1,5 @@
 import { showcaseSeed } from './showcaseSeed'
+import { TEAM_NAME_MAX_LENGTH } from '../utils/validation'
 import { Execution } from '../types/execution'
 import { competitionSeed } from './competitionSeed'
 import { openRegistration } from '../utils/competition'
@@ -41,6 +42,7 @@ import {
   canModerate,
   isPublished,
   publicationLabels,
+  matchesSearch,
   visibleStudentProjectsFor,
 } from '../utils/publication'
 
@@ -312,7 +314,10 @@ export class MockServer {
                     title: template.title,
                     description: template.description,
                     deadline: template.deadline,
-                    status: 'pending',
+                    status:
+                      e.id.startsWith('demo_') && project.kind !== 'olympiad' && e.submission
+                        ? 'accepted'
+                        : 'pending',
                     attachedMaterials: [],
                   },
             )
@@ -474,6 +479,7 @@ export class MockServer {
     id: string,
     description: string,
     files: { name: string; url: string }[],
+    demoUrl?: string,
   ): Execution {
     const user = this.actor(),
       entry = this.executions.find((e) => e.id === id)
@@ -491,6 +497,7 @@ export class MockServer {
       authorName: user.fullName,
       description,
       repoUrl: '',
+      demoUrl,
       screenshots: [],
       attachedFiles: files,
       submittedAt: new Date().toISOString(),
@@ -578,6 +585,12 @@ export class MockServer {
     if (!submitted.length || submitted.some((e) => !e.evaluation))
       throw new Error('Сначала оцените все сданные работы')
     project.status = 'completed'
+    save('cases', this.cases)
+  }
+  withdrawResults(caseId: string): void {
+    const project = this.requireCaseManager(caseId)
+    if (project.status !== 'completed') return
+    project.status = 'in_progress'
     save('cases', this.cases)
   }
   getStudentAchievements(studentId: string) {
@@ -940,15 +953,17 @@ export class MockServer {
     return updated
   }
 
-  toggleUserBlock(userId: string): User {
+  toggleUserBlock(userId: string, reason = ''): User {
     this.requireAdmin()
+    if (this.sessionUser()?.id === userId) throw new Error('Нельзя заблокировать свой аккаунт.')
     const user = this.users.find((u) => u.id === userId)
+    const admin = this.sessionUser()!
     if (user) {
       user.isBlocked = !user.isBlocked
       save('users', this.users)
       this.logAudit({
-        userId: 'usr_admin_1',
-        userName: 'Наиль Хисамов',
+        userId: admin.id,
+        userName: admin.fullName,
         userRole: 'admin',
         actionType: 'user_blocked',
         objectType: 'User',
@@ -956,7 +971,7 @@ export class MockServer {
         objectName: user.fullName,
         previousValue: user.isBlocked ? 'Разблокирован' : 'Заблокирован',
         newValue: user.isBlocked ? 'Заблокирован' : 'Разблокирован',
-        details: `Статус пользователя изменен`,
+        details: reason.trim() || 'Статус пользователя изменён',
       })
     }
     return user!
@@ -964,6 +979,7 @@ export class MockServer {
 
   changeUserRole(userId: string, newRole: User['role']): User {
     this.requireAdmin()
+    if (this.sessionUser()?.id === userId) throw new Error('Нельзя изменить свою роль.')
     const user = this.users.find((u) => u.id === userId)
     if (user) {
       const prev = user.role
@@ -994,6 +1010,9 @@ export class MockServer {
     phone?: string
     group?: string
     institute?: string
+    direction?: string
+    course?: number
+    technologies?: string[]
     companyName?: string
   }): User {
     const existing = this.users.find(
@@ -1012,29 +1031,25 @@ export class MockServer {
       fullName: data.fullName,
       email: data.email,
       role: data.role,
-      phone: data.phone || '+7 (900) 000-00-00',
+      phone: data.phone || '',
       createdAt: new Date().toISOString(),
-      avatar:
-        data.role === 'student'
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     }
 
     if (data.role === 'student') {
       newUser.studentProfile = {
         university: 'Уфимский университет науки и технологий (УУНиТ)',
         institute: data.institute || 'Институт информатики, математики и робототехники',
-        fieldOfStudy: '09.03.04 Программная инженерия',
-        educationalProgram: 'Разработка программно-информационных систем',
-        course: 1,
-        group: data.group || 'ПИ-101',
-        bio: 'Студент УУНиТ. Изучаю современные информационные технологии и разработку ПО.',
-        interests: ['Веб-разработка', 'Алгоритмы', 'Информационные системы'],
-        skills: ['React', 'TypeScript', 'Git', 'Python'],
-        techStack: ['React', 'TypeScript'],
-        githubUrl: 'https://github.com/uust-student',
+        fieldOfStudy: data.direction || '',
+        educationalProgram: '',
+        course: data.course || 1,
+        group: data.group || '',
+        bio: '',
+        interests: [],
+        skills: [],
+        techStack: data.technologies || [],
+        githubUrl: '',
         phone: data.phone || '',
-        rating: 85,
+        rating: 0,
         verifiedProjectsCount: 0,
         winsCount: 0,
       }
@@ -1049,7 +1064,7 @@ export class MockServer {
         id: companyId,
         name: data.companyName || 'ООО «ИТ Партнер»',
         shortName: data.companyName || 'ИТ Партнер',
-        logo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120',
+        logo: '',
         industry: 'Информационные технологии',
         description: 'Партнёрская ИТ-компания университета',
         website: 'https://uust.ru',
@@ -1150,15 +1165,16 @@ export class MockServer {
     if (!filters) return result
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      result = result.filter(
-        (c) =>
-          c.title.toLowerCase().includes(s) ||
-          c.shortDescription.toLowerCase().includes(s) ||
-          c.companyName.toLowerCase().includes(s) ||
-          [...c.requiredCompetencies, ...c.recommendedTech].some((tech) =>
-            tech.toLowerCase().includes(s),
-          ),
+      result = result.filter((c) =>
+        matchesSearch(
+          filters.search!,
+          c.title,
+          c.companyName,
+          c.shortDescription,
+          c.requiredCompetencies,
+          c.recommendedTech,
+          c.direction,
+        ),
       )
     }
     if (filters.direction && filters.direction !== 'all') {
@@ -1711,13 +1727,15 @@ export class MockServer {
     filters ||= {}
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(s) ||
-          p.shortDescription.toLowerCase().includes(s) ||
-          p.authorName.toLowerCase().includes(s) ||
-          p.technologies.some((t) => t.toLowerCase().includes(s)),
+      list = list.filter((p) =>
+        matchesSearch(
+          filters.search!,
+          p.title,
+          p.shortDescription,
+          p.authorName,
+          p.technologies,
+          p.direction,
+        ),
       )
     }
     if (filters.category && filters.category !== 'all') {
@@ -1856,9 +1874,12 @@ export class MockServer {
   }
 
   createTeam(data: Omit<ProjectTeam, 'id' | 'createdAt'>): ProjectTeam {
+    const name = data.name.trim()
+    if (!name || name.length > TEAM_NAME_MAX_LENGTH)
+      throw new Error(`Название команды должно содержать от 1 до ${TEAM_NAME_MAX_LENGTH} символов.`)
+    data = { ...data, name }
     const user = this.actor()
     if (user.role !== 'student') throw new Error('Создать команду может студент')
-    if (!data.name.trim()) throw new Error('Укажите название команды')
     const newTeam: ProjectTeam = {
       ...data,
       leaderId: user.id,
@@ -1894,7 +1915,16 @@ export class MockServer {
     save('comments', this.comments)
   }
   getComments(caseId: string): ProjectComment[] {
-    return this.comments.filter((c) => c.caseId === caseId)
+    return this.comments
+      .filter((c) => c.caseId === caseId)
+      .map((comment) => {
+        const author = this.users.find((user) => user.id === comment.authorId)
+        return {
+          ...comment,
+          authorName: author?.fullName || comment.authorName,
+          authorAvatar: author ? author.avatar : comment.authorAvatar,
+        }
+      })
   }
 
   addComment(data: Omit<ProjectComment, 'id' | 'createdAt'>): ProjectComment {
@@ -1988,13 +2018,15 @@ export class MockServer {
     filters ||= {}
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      list = list.filter(
-        (u) =>
-          u.fullName.toLowerCase().includes(s) ||
-          u.studentProfile?.fieldOfStudy.toLowerCase().includes(s) ||
-          u.studentProfile?.skills.some((sk) => sk.toLowerCase().includes(s)) ||
-          u.studentProfile?.techStack.some((ts) => ts.toLowerCase().includes(s)),
+      list = list.filter((u) =>
+        matchesSearch(
+          filters.search!,
+          u.fullName,
+          u.studentProfile?.group,
+          u.studentProfile?.fieldOfStudy,
+          u.studentProfile?.skills,
+          u.studentProfile?.techStack,
+        ),
       )
     }
     if (filters.institute && filters.institute !== 'all') {

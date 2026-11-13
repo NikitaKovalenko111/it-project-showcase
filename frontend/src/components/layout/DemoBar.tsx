@@ -42,7 +42,7 @@ export const DemoBar: React.FC = () => {
           onClick={() => handleSelectRole('usr_student_1')}
           title="Студент-разработчик (Алексей Миронов, ПИ-201)"
         >
-          <GraduationCap size={14} aria-hidden="true" /> Студент (Иван)
+          <GraduationCap size={14} aria-hidden="true" /> Студент
         </button>
 
         <button

@@ -1,3 +1,4 @@
+import { IdentityImage } from './IdentityImage'
 import { useConfirm } from './ConfirmProvider'
 import { Heart, SlidersHorizontal } from 'lucide-react'
 import { PaginatedGrid } from './PaginatedGrid'
@@ -14,6 +15,7 @@ import { ReportButton } from './ReportButton'
 export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
   const confirm = useConfirm()
   const user = useAppSelector((s) => s.auth.currentUser)
+  const users = useAppSelector((s) => s.auth.allUsers)
   const [comments, setComments] = useState<ProjectComment[]>([]),
     [sort, setSort] = useState('newest'),
     [text, setText] = useState(''),
@@ -57,6 +59,7 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
             authorId: user.id,
             authorName: user.fullName,
             authorRole: user.role,
+            authorAvatar: user.avatar,
             content: text.trim(),
             parentId: parentId || undefined,
           })
@@ -82,11 +85,17 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
           </button>
         </p>
       )}
+      <IdentityImage
+        src={user.avatar}
+        name={user.fullName}
+        className="comment-avatar comment-compose-avatar"
+      />
       <label>
         <span className="sr-only">Ваш комментарий</span>
         <textarea
           placeholder="Введите комментарий"
           rows={1}
+          data-min-rows="1"
           className="textarea"
           value={text}
           maxLength={4000}
@@ -100,19 +109,27 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
     </form>
   )
   const renderComment = (comment: ProjectComment, depth = 0): React.ReactNode => (
-    <article
-      className="feature-row comment-item"
-      key={comment.id}
-      style={{ marginLeft: depth ? 12 : 0 }}
-    >
-      <div className="feature-toolbar">
-        <Link to={`/profile/${comment.authorId}`}>
-          {comment.authorAvatar && (
-            <img className="comment-avatar" src={comment.authorAvatar} alt="" />
-          )}
+    <article className="comment-item" key={comment.id}>
+      <div className="comment-header">
+        <Link className="comment-author" to={`/profile/${comment.authorId}`}>
+          <IdentityImage
+            src={
+              comment.authorId === user?.id
+                ? user.avatar
+                : users.find((author) => author.id === comment.authorId)?.avatar ||
+                  comment.authorAvatar
+            }
+            name={comment.authorName || 'Участник'}
+            className="comment-avatar"
+          />
           {comment.authorName}
         </Link>
-        <time>{new Date(comment.createdAt).toLocaleString('ru-RU')}</time>
+        <time>
+          {new Date(comment.createdAt).toLocaleString('ru-RU', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })}
+        </time>
       </div>
       <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{comment.content}</p>
       <div className="action-row">
@@ -172,7 +189,7 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
             Удалить
           </button>
         )}
-        <ReportButton targetType="comment" targetId={comment.id} />
+        <ReportButton targetType="comment" targetId={comment.id} compact />
       </div>
       {parentId === comment.id && commentForm}
       {comments.some((c) => c.parentId === comment.id) && (

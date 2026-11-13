@@ -4,7 +4,7 @@ export type ModerationStatus = 'pending' | 'approved' | 'rejected' | 'revision' 
 export type EducationLevel = 'Бакалавриат' | 'Специалитет' | 'Магистратура' | 'Аспирантура'
 
 export interface StudentProfile {
-  resume?: { name: string; url: string; file_id?: string; size?: string }
+  resume?: { name: string; url: string; file_id?: string; size?: string; public?: boolean }
   files?: { name: string; url: string; file_id?: string; size?: string }[]
   educationLevel?: EducationLevel
   curatorId?: string
@@ -35,6 +35,8 @@ export interface CompanyProfile {
 }
 
 export interface User {
+  requestedRole?: string
+  roleRequestStatus?: 'pending' | 'approved' | 'rejected'
   id: string
   username: string
   fullName: string
@@ -52,6 +54,10 @@ export interface Company {
   isBlocked?: boolean
   internshipProgram?: string
   practiceProgram?: string
+  inn?: string
+  kpp?: string
+  ogrn?: string
+  legalAddress?: string
   id: string
   name: string
   shortName: string
@@ -137,6 +143,7 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  managedByViewer?: boolean
   applicationDeadline?: string
   registrationsCount?: number
   olympiadTasks?: { id: string; title: string; maxScore: number }[]
@@ -200,7 +207,13 @@ export interface CaseProject {
   isModerated: boolean
 }
 
-export type ApplicationStatus = 'pending' | 'interview' | 'accepted' | 'rejected' | 'need_info'
+export type ApplicationStatus =
+  | 'pending'
+  | 'interview'
+  | 'accepted'
+  | 'rejected'
+  | 'need_info'
+  | 'withdrawn'
 
 export interface CaseApplication {
   id: string
@@ -214,6 +227,7 @@ export interface CaseApplication {
   studentPhone: string
   studentCourse: number
   studentInstitute: string
+  studentGroup?: string
   studentAvatar?: string
   teamId?: string
   teamName?: string
@@ -224,6 +238,7 @@ export interface CaseApplication {
   previousProjects: string[]
   status: ApplicationStatus
   consentPending?: boolean
+  canConsent?: boolean
   isRegistration?: boolean
   companyNotes?: string
   createdAt: string
@@ -287,7 +302,14 @@ export interface ProjectSubmission {
   screenshots: string[]
   documentationUrl?: string
   demoUrl?: string
-  attachedFiles: { name: string; url: string }[]
+  attachedFiles: {
+    name: string
+    url: string
+    file_id?: string
+    mimeType?: string
+    size?: string
+    kind?: string
+  }[]
   submittedAt: string
   acceptedAt?: string
 }
@@ -327,6 +349,15 @@ export type StudentProjectBadge =
   | 'open_for_job' // Открыт к предложениям о работе
 
 export interface StudentProject {
+  server?: {
+    status: string
+    directionIds: string[]
+    technologyIds: string[]
+    coverFileId?: string
+    tags: string[]
+    assets: { file_id: string; kind: string; ordinal: number }[]
+    members: { student_id: string; role_name: string }[]
+  }
   likedByMe?: boolean
   visibility?: 'private' | 'public'
   moderationStatus?: ModerationStatus

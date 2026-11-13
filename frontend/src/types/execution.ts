@@ -8,6 +8,7 @@ export interface Execution {
   name: string
   members: TeamMember[]
   status: 'active' | 'submitted' | 'evaluated'
+  canSubmitResult?: boolean
   submission?: ProjectSubmission
   evaluation?: ProjectEvaluation
   milestones?: ProjectMilestone[]

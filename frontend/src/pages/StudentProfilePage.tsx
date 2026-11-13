@@ -1,4 +1,8 @@
+import { ProfileAvatarUpload } from '../components/ProfileAvatarUpload'
+import { IdentityImage } from '../components/IdentityImage'
+import { isOptionalWebUrl, isPhoneValid } from '../utils/validation'
 import { ResumeUpload } from '../components/ResumeUpload'
+import { FileDownload } from '../components/FileDownload'
 import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
 import type { User as ProfileUser } from '../types/models'
@@ -10,7 +14,7 @@ import { EducationLevel } from '../types/models'
 import { TeamsPanel } from '../components/TeamsPanel'
 import { ReportButton } from '../components/ReportButton'
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Navigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { updateUserProfileRequest } from '../store/actions'
 import { InviteStudentModal } from '../components/modals/InviteStudentModal'
@@ -38,15 +42,7 @@ import {
   Users,
 } from 'lucide-react'
 
-// Seed URLs are examples, not published student contacts.
-const demoProfileLinks = new Set([
-  'https://github.com/almaz-magasumov',
-  'https://uust.ru/portfolio/257576',
-  'https://github.com/masha-vasilieva',
-  'https://behance.net/masha-design',
-  'https://github.com/artur-karimov',
-])
-const editableProfileLink = (url?: string) => (url && !demoProfileLinks.has(url) ? url : '')
+const editableProfileLink = (url?: string) => url || ''
 
 export const StudentProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -62,7 +58,7 @@ export const StudentProfilePage: React.FC = () => {
   const [remoteProfile, setRemoteProfile] = useState<ProfileUser>()
   const [profileError, setProfileError] = useState('')
   useEffect(() => {
-    if (apiRuntime.mode !== 'live' || !targetId) return
+    if (apiRuntime.mode !== 'live' || !targetId || targetId === currentUser?.id) return
     let active = true
     setProfileError('')
     apiClient
@@ -76,16 +72,18 @@ export const StudentProfilePage: React.FC = () => {
     return () => {
       active = false
     }
-  }, [targetId])
+  }, [targetId, currentUser?.id])
   const targetUser =
+    (currentUser?.id === targetId ? currentUser : undefined) ||
     (remoteProfile?.id === targetId ? remoteProfile : undefined) ||
     [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find(
       (u) => u.id === targetId,
     )
-  const isOwnProfile = currentUser?.id === targetUser?.id
+  const isOwnProfile = !!currentUser && currentUser.id === targetUser?.id
   const student = targetUser?.studentProfile
 
   const [isEditing, setIsEditing] = useState(false)
+  const [editError, setEditError] = useState('')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
 
   // Edit fields
@@ -111,14 +109,39 @@ export const StudentProfilePage: React.FC = () => {
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
     if (!targetUser) return
+    const form = e.currentTarget as HTMLFormElement
+    setEditError('')
+    if (!form.checkValidity()) {
+      const field = form.querySelector<HTMLInputElement>(':invalid')
+      setEditError(
+        `Проверьте поле «${field?.labels?.[0]?.textContent?.trim() || 'Обязательное поле'}».`,
+      )
+      field?.focus()
+      return
+    }
+    if (
+      identity.fullName.trim().split(/\s+/).length < 2 ||
+      [identity.institute, identity.group, identity.fieldOfStudy].some((value) => !value.trim())
+    ) {
+      setEditError('Укажите фамилию и имя, институт, направление и группу.')
+      return
+    }
+    if (!isPhoneValid(identity.phone)) {
+      setEditError('Укажите телефон из 7–15 цифр.')
+      return
+    }
+    if (![githubUrl, portfolioUrl].every(isOptionalWebUrl)) {
+      setEditError('Укажите ссылки с http:// или https://.')
+      return
+    }
 
     const updatedUser = {
       ...targetUser,
-      fullName: identity.fullName,
-      email: identity.email,
+      fullName: identity.fullName.trim(),
+      email: identity.email.trim(),
       studentProfile: {
         ...targetUser.studentProfile!,
-        phone: identity.phone,
+        phone: identity.phone.trim(),
         institute: identity.institute,
         fieldOfStudy: identity.fieldOfStudy,
         educationalProgram: identity.educationalProgram,
@@ -187,6 +210,18 @@ export const StudentProfilePage: React.FC = () => {
       active = false
     }
   }, [targetId, completedKey])
+  if (targetId === currentUser?.id && currentUser?.role !== 'student') {
+    return (
+      <Navigate
+        replace
+        to={
+          currentUser?.role === 'company' && currentUser.companyProfile?.companyId
+            ? `/company/${currentUser.companyProfile.companyId}`
+            : '/account'
+        }
+      />
+    )
+  }
   if (!targetUser?.studentProfile)
     return (
       <div className="card" style={{ padding: 24 }}>
@@ -202,7 +237,6 @@ export const StudentProfilePage: React.FC = () => {
 
   return (
     <div>
-      {error && <p role="alert">{error}</p>}
       {achievementError && <p role="alert">{achievementError}</p>}
       <div className="page-actions page-actions--top">
         <AdminUserActions key={targetUser.id} user={targetUser} />
@@ -229,40 +263,36 @@ export const StudentProfilePage: React.FC = () => {
             flexWrap: 'wrap',
           }}
         >
-          <img
-            src={
-              targetUser.avatar ||
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-            }
-            alt={targetUser.fullName}
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: '4px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
-            }}
-          />
+          {isOwnProfile && currentUser ? (
+            <ProfileAvatarUpload user={currentUser} />
+          ) : (
+            <IdentityImage
+              src={targetUser.avatar}
+              name={targetUser.fullName}
+              className="profile-avatar"
+            />
+          )}
 
           <div style={{ flex: 1, minWidth: 'min(280px, 100%)' }}>
             <div
               style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}
             >
-              <span
-                style={{
-                  background: 'rgba(38, 158, 184, 0.25)',
-                  border: '1px solid #38a5e1',
-                  color: '#7ce7fb',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Подтверждённое портфолио
-              </span>
+              {achievements.length > 0 && (
+                <span
+                  style={{
+                    background: 'rgba(38, 158, 184, 0.25)',
+                    border: '1px solid #38a5e1',
+                    color: '#7ce7fb',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Подтверждённое портфолио
+                </span>
+              )}
               <span style={{ fontSize: '12px', color: '#93c5fd' }}>
                 Курс {student?.course || 3}
               </span>
@@ -285,7 +315,7 @@ export const StudentProfilePage: React.FC = () => {
               <div>
                 Направление:{' '}
                 <strong>{student?.fieldOfStudy || '09.03.04 Программная инженерия'}</strong> (Группа{' '}
-                {student?.group || 'ПИ-301Б'})
+                {student?.group || 'Группа не указана'})
               </div>
             </div>
           </div>
@@ -315,7 +345,7 @@ export const StudentProfilePage: React.FC = () => {
             </div>
             <span style={{ fontSize: '11px', color: '#94a3b8' }}>Рейтинг студента</span>
             <div style={{ fontSize: '10px', color: '#38bdf8', marginTop: '4px' }}>
-              {student?.winsCount ?? 0} победы в конкурсах
+              Побед в конкурсах: {student?.winsCount ?? 0}
             </div>
           </div>
 
@@ -335,15 +365,27 @@ export const StudentProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {isOwnProfile ? (
+        <ResumeUpload key={`resume-${targetUser.id}`} editable={isEditing} />
+      ) : student?.resume?.public ? (
+        <section className="resume-upload">
+          <h3>Резюме (CV)</h3>
+          <FileDownload file={student.resume} />
+        </section>
+      ) : null}
       {/* Edit Form if editing */}
       {isEditing && (
         <div className="card" style={{ marginBottom: '24px' }}>
           <div className="card__header">
             <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование профиля</h3>
           </div>
-          <form onSubmit={handleSaveProfile}>
+          <form className="profile-edit-form" noValidate onSubmit={handleSaveProfile}>
+            {(editError || error) && (
+              <p className="form-error" role="alert">
+                {editError || error}
+              </p>
+            )}
             <div className="card__body">
-              <ResumeUpload key={targetUser.id} />
               <div className="responsive-grid">
                 <label>
                   Фамилия и имя
@@ -437,9 +479,11 @@ export const StudentProfilePage: React.FC = () => {
                 </select>
               </label>
               <div className="form-group">
-                <label>О себе (краткое описание):</label>
+                <label htmlFor="profile-bio">О себе (краткое описание):</label>
                 <textarea
+                  id="profile-bio"
                   className="textarea"
+                  maxLength={2000}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   style={{ minHeight: '70px' }}
@@ -451,8 +495,9 @@ export const StudentProfilePage: React.FC = () => {
                 style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
               >
                 <div className="form-group">
-                  <label>Компетенции (через запятую):</label>
+                  <label htmlFor="profile-skills">Компетенции (через запятую):</label>
                   <input
+                    id="profile-skills"
                     type="text"
                     className="input"
                     value={skills}
@@ -460,8 +505,9 @@ export const StudentProfilePage: React.FC = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Стек технологий (через запятую):</label>
+                  <label htmlFor="profile-tech">Стек технологий (через запятую):</label>
                   <input
+                    id="profile-tech"
                     type="text"
                     className="input"
                     value={techStack}
@@ -475,8 +521,9 @@ export const StudentProfilePage: React.FC = () => {
                 style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
               >
                 <div className="form-group">
-                  <label>Ссылка на GitHub:</label>
+                  <label htmlFor="profile-github">Ссылка на GitHub:</label>
                   <input
+                    id="profile-github"
                     type="url"
                     className="input"
                     pattern="https?://.*"
@@ -485,8 +532,9 @@ export const StudentProfilePage: React.FC = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Ссылка на портфолио:</label>
+                  <label htmlFor="profile-portfolio">Ссылка на портфолио:</label>
                   <input
+                    id="profile-portfolio"
                     type="url"
                     className="input"
                     pattern="https?://.*"
@@ -530,7 +578,7 @@ export const StudentProfilePage: React.FC = () => {
             >
               {verifiedCases.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                  Пока нет подтвержденных кейсов
+                  Пока нет подтверждённых кейсов
                 </div>
               ) : (
                 <PaginatedGrid className="paginated-stack">
@@ -799,7 +847,6 @@ export const StudentProfilePage: React.FC = () => {
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
-                        fontFamily: 'monospace',
                         fontWeight: 600,
                       }}
                     >
@@ -883,7 +930,11 @@ export const StudentProfilePage: React.FC = () => {
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
       />
-      <PortfolioFiles user={targetUser} editable={isOwnProfile} />
+      <PortfolioFiles
+        key={`portfolio-${targetUser.id}`}
+        user={targetUser}
+        editable={isOwnProfile}
+      />
     </div>
   )
 }

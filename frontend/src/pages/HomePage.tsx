@@ -1,6 +1,12 @@
+import { complexityBadge } from '../utils/publication'
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import { IdentityImage } from '../components/IdentityImage'
+import { caseStatusLabels } from '../utils/publication'
+import { apiRuntime } from '../api/runtime'
+import { listCuratedExecutions } from '../api/community'
 import { formatDate } from '../utils/date'
 import { isPublished, publicationLabels, publicationStatus } from '../utils/publication'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { updateApplicationStatusRequest } from '../store/actions'
@@ -45,7 +51,11 @@ export const HomePage: React.FC = () => {
     loading: casesLoading,
     error: casesError,
   } = useAppSelector((state) => state.cases)
-  const { studentsList: authors } = useAppSelector((state) => state.students)
+  const {
+    studentsList: authors,
+    loading: studentsLoading,
+    error: studentsError,
+  } = useAppSelector((state) => state.students)
   const { projectsList } = useAppSelector((state) => state.studentProjects)
   const { companiesList } = useAppSelector((state) => state.companies)
   const { currentUser } = useAppSelector((state) => state.auth)
@@ -57,11 +67,30 @@ export const HomePage: React.FC = () => {
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
 
+  const [curated, setCurated] = useState<Awaited<ReturnType<typeof listCuratedExecutions>>>()
+  const [curatedError, setCuratedError] = useState('')
+  useEffect(() => {
+    setCurated(undefined)
+    setCuratedError('')
+    if (currentUser?.role !== 'curator' || apiRuntime.mode !== 'live') return
+    let active = true
+    listCuratedExecutions()
+      .then((items) => {
+        if (active) setCurated(items)
+      })
+      .catch((e: Error) => {
+        if (active) setCuratedError(e.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [currentUser?.id, currentUser?.role])
+
   const role = currentUser?.role || 'student'
 
   // Company specific data
-  const companyName = currentUser?.companyProfile?.companyName || 'БашНефтеАвтоматика'
-  const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
+  const companyName = currentUser?.companyProfile?.companyName || 'Кабинет компании'
+  const companyId = currentUser?.companyProfile?.companyId
   const myCompanyCases = casesList.filter((c) => c.companyId === companyId)
 
   const applicationsList =
@@ -99,9 +128,11 @@ export const HomePage: React.FC = () => {
             <Link to="/students-search" className="btn btn-secondary">
               <Search size={15} /> Поиск талантов
             </Link>
-            <Link to={`/company/${companyId}`} className="btn btn-coral">
-              <Building2 size={15} /> Карточка компании
-            </Link>
+            {companyId && (
+              <Link to={`/company/${companyId}`} className="btn btn-coral">
+                <Building2 size={15} /> Карточка компании
+              </Link>
+            )}
           </div>
         </div>
 
@@ -112,11 +143,9 @@ export const HomePage: React.FC = () => {
               <Briefcase size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">
-                {myCompanyCases.filter((project) => project.status === 'open').length}
-              </div>
+              <div className="stat-number">{myCompanyCases.filter(isPublished).length}</div>
               <div className="stat-label">Кейсов предприятия</div>
-              <div className="stat-meta">В открытом наборе</div>
+              <div className="stat-meta">Опубликовано</div>
             </div>
           </div>
 
@@ -125,11 +154,11 @@ export const HomePage: React.FC = () => {
               <Users size={22} />
             </div>
             <div className="stat-card__content">
-              <div className="stat-number">
-                {applicationsList.filter((app) => app.status === 'pending').length}
-              </div>
+              <div className="stat-number">{applicationsList.length}</div>
               <div className="stat-label">Заявок студентов</div>
-              <div className="stat-meta">Требуют рассмотрения</div>
+              <div className="stat-meta">
+                На рассмотрении: {applicationsList.filter((app) => app.status === 'pending').length}
+              </div>
             </div>
           </div>
 
@@ -182,7 +211,7 @@ export const HomePage: React.FC = () => {
                 <div className="card__body">
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                     {c.direction && <span className="badge badge-direction">{c.direction}</span>}
-                    <span className="badge badge-complexity-medium">
+                    <span className={`badge ${complexityBadge(c.complexity)}`}>
                       Уровень: {c.complexity.toLowerCase()}
                     </span>
                     {!isPublished(c) && (
@@ -285,18 +314,10 @@ export const HomePage: React.FC = () => {
                     <tr key={app.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img
-                            src={
-                              app.studentAvatar ||
-                              'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'
-                            }
-                            alt=""
-                            style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '6px',
-                              objectFit: 'cover',
-                            }}
+                          <IdentityImage
+                            src={app.studentAvatar}
+                            name={app.studentName}
+                            className="candidate-avatar"
                           />
                           <div>
                             <div style={{ fontWeight: 700, color: '#0c1938' }}>
@@ -376,179 +397,160 @@ export const HomePage: React.FC = () => {
   /*  VIEW FOR CURATOR                                                         */
   /* ========================================================================= */
   if (role === 'curator') {
+    const students = authors.filter(
+      (student) =>
+        student.role === 'student' && student.studentProfile?.curatorId === currentUser?.id,
+    )
+    const groups = new Set(students.map((student) => student.studentProfile?.group).filter(Boolean))
+    const curatedCaseIds = new Set(curated?.map((item) => item.case_id))
+    const projects = casesList.filter((project) =>
+      apiRuntime.mode === 'live'
+        ? curatedCaseIds.has(project.id)
+        : project.curatorId === currentUser?.id ||
+          students.some((student) => student.id === project.assignedStudentId),
+    )
     return (
       <div className="home-page">
         <div className="home-hero">
           <div className="home-hero__badge">
-            <GraduationCap size={13} />
-            <span>Кабинет куратора кафедры •</span>
+            <GraduationCap size={13} /> Кабинет куратора кафедры
           </div>
-
           <h1 className="home-hero__title">Координация проектного обучения кафедры</h1>
-
-          <p className="home-hero__subtitle">
-            Мониторинг студенческих команд группы ТОП-204Б(73), контроль прохождения этапов
-            производственной практики и взаимодействие с аккредитованными предприятиями.
-          </p>
-
           <div className="home-hero__actions">
-            <Link to="/cases/case_1/workspace" className="btn btn-primary">
-              <Layers size={15} /> Мониторинг рабочей станции
+            <Link to="/workspace" className="btn btn-primary">
+              <Layers size={15} /> Мониторинг проектов
             </Link>
             <Link to="/students-search" className="btn btn-secondary">
               <Search size={15} /> Студенты и группы
             </Link>
-            <Link to="/analytics" className="btn btn-coral">
-              <Award size={15} /> Успеваемость и защиты
-            </Link>
           </div>
         </div>
-
-        <div className="home-stats-grid">
-          <div className="stat-card">
-            <div className="stat-card__icon stat-icon--blue">
-              <Users size={22} />
-            </div>
-            <div className="stat-card__content">
-              <div className="stat-number">48</div>
-              <div className="stat-label">Студентов на практике</div>
-              <div className="stat-meta">Группы ТОП-204Б, ПИ-301</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-card__icon stat-icon--emerald">
-              <Layers size={22} />
-            </div>
-            <div className="stat-card__content">
-              <div className="stat-number">14</div>
-              <div className="stat-label">Проектных команд</div>
-              <div className="stat-meta">В активной разработке</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-card__icon stat-icon--purple">
-              <FileCheck2 size={22} />
-            </div>
-            <div className="stat-card__content">
-              <div className="stat-number">36</div>
-              <div className="stat-label">Сданных вех</div>
-              <div className="stat-meta">ТЗ, MVP, Архитектура</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-card__icon stat-icon--amber">
-              <Award size={22} />
-            </div>
-            <div className="stat-card__content">
-              <div className="stat-number">
-                {myCompanyCases.filter((project) => project.status === 'completed').length}
+        <div className="home-stats-grid curator-stats" aria-label="Сводка куратора">
+          {[
+            {
+              label: 'Закреплённые студенты',
+              value:
+                apiRuntime.mode === 'live' || studentsError
+                  ? '—'
+                  : studentsLoading
+                    ? '…'
+                    : students.length,
+              Icon: GraduationCap,
+              tone: 'blue',
+            },
+            {
+              label: 'Учебные группы',
+              value:
+                apiRuntime.mode === 'live' || studentsError
+                  ? '—'
+                  : studentsLoading
+                    ? '…'
+                    : groups.size,
+              Icon: Users,
+              tone: 'emerald',
+            },
+            {
+              label: 'Проекты под наблюдением',
+              value:
+                curatedError || casesError
+                  ? '—'
+                  : casesLoading || (apiRuntime.mode === 'live' && !curated)
+                    ? '…'
+                    : projects.length,
+              Icon: Layers,
+              tone: 'purple',
+            },
+          ].map(({ label, value, Icon, tone }) => (
+            <div className="stat-card" key={label}>
+              <div className={`stat-card__icon stat-icon--${tone}`}>
+                <Icon size={22} />
               </div>
-              <div className="stat-label">Защищенных решений</div>
-              <div className="stat-meta">С зачетом практики</div>
+              <div className="stat-card__content">
+                <div className="stat-number">{value}</div>
+                <div className="stat-label">{label}</div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
-
-        {/* Curator Groups Overview */}
-        <div className="home-section">
+        <section className="home-section">
           <div className="home-section__header">
             <div>
-              <h2>Проектные команды на контроле куратора</h2>
-              <p>Текущий прогресс выполнения 7 контрольных точек проектного обучения</p>
+              <h2>Очереди модерации</h2>
+              <p>Публикации компаний и студенческие работы</p>
             </div>
           </div>
-
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Группа / Команда</th>
-                  <th>Кейс предприятия</th>
-                  <th>Тимлид команды</th>
-                  <th>Прогресс по вехам</th>
-                  <th>Действие</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <strong>ТОП-204Б(73) • Команда «NeuralFlow»</strong>
-                    <div style={{ fontSize: '11px', color: '#627282' }}>4 студента • ИИМР</div>
-                  </td>
-                  <td>Дефектоскопия лопаток турбин (ПАО ОДК-УМПО)</td>
-                  <td>Магасумов Алмаз</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div
-                        style={{
-                          flex: 1,
-                          background: '#e2e8f0',
-                          height: '6px',
-                          borderRadius: '3px',
-                          width: '100px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '57%',
-                            height: '100%',
-                            background: '#3a75b4',
-                            borderRadius: '3px',
-                          }}
-                        />
-                      </div>
-                      <span style={{ fontSize: '11px', fontWeight: 700 }}>4 из 7</span>
-                    </div>
-                  </td>
-                  <td>
-                    <Link to="/cases/case_1/workspace" className="btn btn-secondary btn-sm">
-                      Просмотр вех
-                    </Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>ПИ-301Б • Команда «SmartAgro»</strong>
-                    <div style={{ fontSize: '11px', color: '#627282' }}>3 студента • ИИМР</div>
-                  </td>
-                  <td>Мониторинг посевов по спутниковым снимкам</td>
-                  <td>Саитов Руслан</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div
-                        style={{
-                          flex: 1,
-                          background: '#e2e8f0',
-                          height: '6px',
-                          borderRadius: '3px',
-                          width: '100px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '42%',
-                            height: '100%',
-                            background: '#28a745',
-                            borderRadius: '3px',
-                          }}
-                        />
-                      </div>
-                      <span style={{ fontSize: '11px', fontWeight: 700 }}>3 из 7</span>
-                    </div>
-                  </td>
-                  <td>
-                    <Link to="/cases/case_1/workspace" className="btn btn-secondary btn-sm">
-                      Просмотр вех
-                    </Link>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="curator-review-links">
+            <Link className="card curator-review-link" to="/companies?review=cases">
+              <Briefcase size={20} /> Кейсы и мероприятия <ArrowRight size={16} />
+            </Link>
+            <Link className="card curator-review-link" to="/companies?review=opportunities">
+              <GraduationCap size={20} /> Стажировки и практики <ArrowRight size={16} />
+            </Link>
+            <Link className="card curator-review-link" to="/student-projects?review=student">
+              <FileCheck2 size={20} /> Проекты студентов <ArrowRight size={16} />
+            </Link>
           </div>
-        </div>
+        </section>
+        <section className="home-section">
+          <div className="home-section__header">
+            <div>
+              <h2>Проекты закреплённых студентов</h2>
+              <p>Откройте проект, чтобы посмотреть контрольные точки и комментарии.</p>
+            </div>
+            <Link to="/workspace" className="home-section__link">
+              Все проекты <ArrowRight size={15} />
+            </Link>
+          </div>
+          {curatedError || casesError ? (
+            <p role="alert">{curatedError || casesError}</p>
+          ) : casesLoading || (apiRuntime.mode === 'live' && !curated) ? (
+            <p role="status">Загрузка проектов…</p>
+          ) : !projects.length ? (
+            <p className="card empty-state">У закреплённых студентов пока нет проектов.</p>
+          ) : (
+            <PaginatedGrid className="case-grid curator-projects" paginationKey="curatorProjects">
+              {projects.map((project) => (
+                <article className="case-card" key={project.id}>
+                  <div className="case-card__top-accent" />
+                  <div className="card__body">
+                    <div className="case-card__tags">
+                      <span className="badge badge-direction">
+                        {
+                          {
+                            case: 'Кейс',
+                            hackathon: 'Хакатон',
+                            olympiad: 'Олимпиада',
+                            internship: 'Стажировка',
+                          }[project.kind || 'case']
+                        }
+                      </span>
+                      <span className="badge badge-status">
+                        {caseStatusLabels[project.status] || project.status}
+                      </span>
+                    </div>
+                    <h3 className="case-card__title">{project.title}</h3>
+                    <div className="case-card__company">
+                      <Building2 size={15} /> {project.companyName}
+                    </div>
+                    {project.deadlineDate && (
+                      <p className="curator-project-date">
+                        <Calendar size={15} /> Срок: {formatDate(project.deadlineDate)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="case-card__footer-bar">
+                    <Link
+                      className="btn btn-secondary btn-sm"
+                      to={`/cases/${project.id}/workspace`}
+                    >
+                      К мониторингу <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </PaginatedGrid>
+          )}
+        </section>
       </div>
     )
   }
@@ -556,7 +558,8 @@ export const HomePage: React.FC = () => {
   /* ========================================================================= */
   /*  VIEW FOR STUDENT (Matching Screenshots from Real ISU UUST)               */
   /* ========================================================================= */
-  const activeCases = casesList.filter((item) => item.status === 'open').slice(0, 3)
+  const publishedCases = casesList.filter(isPublished)
+  const activeCases = publishedCases.slice(0, 3)
   const featuredProjects = projectsList.filter(isPublished).slice(0, 3)
 
   return (
@@ -595,9 +598,9 @@ export const HomePage: React.FC = () => {
             <Briefcase size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">{casesList.length}</div>
+            <div className="stat-number">{publishedCases.length}</div>
             <div className="stat-label">Кейсов от предприятий</div>
-            <div className="stat-meta">Открыт прием заявок</div>
+            <div className="stat-meta">На витрине</div>
           </div>
         </div>
 
@@ -648,14 +651,14 @@ export const HomePage: React.FC = () => {
             <p>Задачи от ведущих ИТ-компаний Башкортостана для командной разработки</p>
           </div>
           <Link to="/cases" className="home-section__link">
-            Все кейсы ({casesList.length}) <ArrowRight size={14} />
+            Все кейсы ({publishedCases.length}) <ArrowRight size={14} />
           </Link>
         </div>
 
         {casesLoading && <p role="status">Загрузка актуальных кейсов…</p>}
         {casesError && <p role="alert">{casesError}</p>}
         {!casesLoading && !casesError && activeCases.length === 0 && (
-          <p>Открытых кейсов пока нет.</p>
+          <p>Опубликованных кейсов пока нет.</p>
         )}
         <div className="case-grid">
           {activeCases.map((c) => (
@@ -663,7 +666,7 @@ export const HomePage: React.FC = () => {
               <div className="case-card__top-accent" />
               <div className="card__body">
                 <div className="case-card__company">
-                  <img src={c.companyLogo || 'https://via.placeholder.com/36'} alt="" />
+                  <img src={c.companyLogo || '/demo/company.svg'} alt="" />
                   <div>
                     <div className="company-title">{c.companyName}</div>
                     <div className="company-sub">Индустриальный партнёр</div>
@@ -681,7 +684,7 @@ export const HomePage: React.FC = () => {
 
                 <div className="case-card__tags">
                   {c.direction && <span className="badge badge-direction">{c.direction}</span>}
-                  <span className="badge badge-complexity-medium">
+                  <span className={`badge ${complexityBadge(c.complexity)}`}>
                     Уровень: {c.complexity.toLowerCase()}
                   </span>
                 </div>
@@ -733,6 +736,7 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
+        {featuredProjects.length === 0 && <p>Опубликованных студенческих проектов пока нет.</p>}
         <div className="case-grid">
           {featuredProjects.map((p) => (
             <div key={p.id} className="student-project-card">
@@ -754,7 +758,7 @@ export const HomePage: React.FC = () => {
                       <User size={14} aria-hidden="true" />{' '}
                       {authors.find((author) => author.id === p.authorId)?.fullName || p.authorName}
                     </div>
-                    <div className="author-group">{p.teamName || 'Студент • ТОП-204Б(73)'}</div>
+                    <div className="author-group">{p.teamName || 'Студенческий проект'}</div>
                   </div>
                   <Link
                     to={`/student-projects/${p.id}`}

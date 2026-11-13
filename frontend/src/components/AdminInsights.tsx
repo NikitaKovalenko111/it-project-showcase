@@ -1,9 +1,12 @@
+import { auditActionLabels, auditObjectLabels } from '../utils/adminLabels'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiClient } from '../api/client'
 import { communityApi } from '../api/community'
 import type { ContentReport, User, AuditLog } from '../types/models'
 import { ReportTableView } from './ReportTableView'
+import { CatalogSearch } from './CatalogSearch'
+import { matchesSearch } from '../utils/publication'
 
 const targets = {
   case: ['Кейс', '/cases'],
@@ -27,7 +30,13 @@ const roles = {
   admin: 'Администраторы',
 }
 
-export function AdminInsights() {
+export function AdminInsights({
+  reportsOnly = false,
+  auditLogs,
+}: {
+  reportsOnly?: boolean
+  auditLogs?: AuditLog[]
+}) {
   const [users, setUsers] = useState<User[]>([])
   const [reports, setReports] = useState<ContentReport[]>([])
   const [logs, setLogs] = useState<AuditLog[]>([])
@@ -36,12 +45,14 @@ export function AdminInsights() {
   const [working, setWorking] = useState('')
   const [status, setStatus] = useState('all')
   const [target, setTarget] = useState('all')
+  const [reason, setReason] = useState('all')
+  const [search, setSearch] = useState('')
   useEffect(() => {
     let active = true
     Promise.allSettled([
-      apiClient.getUsers(),
+      reportsOnly ? Promise.resolve([]) : apiClient.getUsers(),
       communityApi.getReports(),
-      apiClient.getAuditLogs(),
+      reportsOnly || auditLogs ? Promise.resolve([]) : apiClient.getAuditLogs(),
     ]).then(([accounts, complaints, actions]) => {
       if (!active) return
       if (accounts.status === 'fulfilled') setUsers(accounts.value)
@@ -54,13 +65,22 @@ export function AdminInsights() {
     return () => {
       active = false
     }
-  }, [])
+  }, [reportsOnly, auditLogs !== undefined])
   const pending = reports.filter((report) => report.status === 'pending').length
   const visible = reports
     .filter(
       (report) =>
         (status === 'all' || report.status === status) &&
-        (target === 'all' || report.targetType === target),
+        (target === 'all' || report.targetType === target) &&
+        (reason === 'all' || report.reason === reason) &&
+        matchesSearch(
+          search,
+          report.message,
+          report.id,
+          report.targetId,
+          reasons[report.reason],
+          targets[report.targetType]?.[0],
+        ),
     )
     .sort(
       (a, b) =>
@@ -116,7 +136,6 @@ export function AdminInsights() {
   })
   return (
     <section className="card feature-panel admin-insights">
-      <h2>Администрирование платформы</h2>
       {error && (
         <p role="alert" className="form-error">
           {error}
@@ -126,83 +145,122 @@ export function AdminInsights() {
         <p role="status">Загружаем данные администрирования…</p>
       ) : (
         <>
-          <div className="kpi-grid">
-            {[
-              ['Пользователей', users.length],
-              ['Заблокировано', users.filter((u) => u.isBlocked).length],
-              ['Студентов', users.filter((u) => u.role === 'student').length],
-              ['Открытых жалоб', pending],
-            ].map(([title, value]) => (
-              <div className="kpi-card" key={title}>
-                <div className="kpi-card__value">{value}</div>
-                <div className="kpi-card__label">{title}</div>
+          {!reportsOnly && (
+            <>
+              <div className="kpi-grid">
+                {[
+                  ['Пользователей', users.length],
+                  ['Заблокировано', users.filter((u) => u.isBlocked).length],
+                  ['Студентов', users.filter((u) => u.role === 'student').length],
+                  ['Открытых жалоб', pending],
+                ].map(([title, value]) => (
+                  <div className="kpi-card" key={title}>
+                    <div className="kpi-card__value">{value}</div>
+                    <div className="kpi-card__label">{title}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="admin-role-counts" aria-label="Пользователи по ролям">
-            {Object.entries(roles).map(([role, label]) => (
-              <span key={role}>
-                {label} <strong>{users.filter((user) => user.role === role).length}</strong>
-              </span>
-            ))}
-          </div>
-          <section className="report-section">
-            <div className="feature-toolbar">
-              <h3>
-                Жалобы <span className="badge badge-direction">{reports.length}</span>
-              </h3>
-              <div className="report-filters">
-                <select
-                  className="select"
-                  aria-label="Статус жалобы"
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                >
-                  <option value="all">Все статусы</option>
-                  <option value="pending">На рассмотрении</option>
-                  <option value="resolved">Рассмотренные</option>
-                </select>
-                <select
-                  className="select"
-                  aria-label="Тип материала"
-                  value={target}
-                  onChange={(event) => setTarget(event.target.value)}
-                >
-                  <option value="all">Все материалы</option>
-                  {Object.entries(targets).map(([value, [name]]) => (
-                    <option value={value} key={value}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
+              <div className="admin-role-counts" aria-label="Пользователи по ролям">
+                {Object.entries(roles).map(([role, label]) => (
+                  <span key={role}>
+                    {label} <strong>{users.filter((user) => user.role === role).length}</strong>
+                  </span>
+                ))}
               </div>
-            </div>
-            <ReportTableView
-              key={`${status}:${target}`}
-              label="Жалобы"
-              headers={['Дата', 'Материал', 'Причина', 'Статус', 'Действие']}
-              rows={rows}
-              emptyText="Жалоб по выбранным фильтрам нет."
-            />
-          </section>
-          <section className="report-section">
-            <h3>Последние действия</h3>
-            <ReportTableView
-              label="Последние действия"
-              headers={['Время', 'Пользователь', 'Действие']}
-              rows={[...logs]
-                .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-                .map((log) => ({
-                  id: log.id,
-                  cells: [
-                    new Date(log.timestamp).toLocaleString('ru-RU'),
-                    log.userName || '—',
-                    log.details || log.actionType,
-                  ],
-                }))}
-              emptyText="Действий пока нет."
-            />
-          </section>
+            </>
+          )}
+          {reportsOnly && (
+            <section className="report-section">
+              <div className="feature-toolbar">
+                <h3>
+                  Жалобы <span className="badge badge-direction">{reports.length}</span>
+                </h3>
+                <div className="report-filters">
+                  <select
+                    className="select"
+                    aria-label="Причина жалобы"
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                  >
+                    <option value="all">Все причины</option>
+                    {Object.entries(reasons).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="select"
+                    aria-label="Статус жалобы"
+                    value={status}
+                    onChange={(event) => setStatus(event.target.value)}
+                  >
+                    <option value="all">Все статусы</option>
+                    <option value="pending">На рассмотрении</option>
+                    <option value="resolved">Рассмотренные</option>
+                  </select>
+                  <select
+                    className="select"
+                    aria-label="Тип материала"
+                    value={target}
+                    onChange={(event) => setTarget(event.target.value)}
+                  >
+                    <option value="all">Все материалы</option>
+                    {Object.entries(targets).map(([value, [name]]) => (
+                      <option value={value} key={value}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <CatalogSearch
+                value={search}
+                onChange={setSearch}
+                label="Поиск жалоб по тексту или идентификатору"
+              />
+              <ReportTableView
+                key={JSON.stringify([status, target, reason, search])}
+                label="Жалобы"
+                headers={['Дата', 'Материал', 'Причина', 'Статус', 'Действие']}
+                rows={rows}
+                emptyText="Жалоб по выбранным фильтрам нет."
+              />
+            </section>
+          )}
+          {!reportsOnly && (
+            <section className="report-section">
+              <h3>Последние действия</h3>
+              <ReportTableView
+                label="Последние действия"
+                headers={['Время', 'Пользователь', 'Действие', 'Объект']}
+                rows={[...(auditLogs || logs)]
+                  .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+                  .map((log) => ({
+                    id: log.id,
+                    cells: [
+                      new Date(log.timestamp).toLocaleString('ru-RU'),
+                      users.find((user) => user.id === log.userId)?.fullName ||
+                        log.userName ||
+                        'Не зафиксирован',
+                      auditActionLabels[log.actionType] || log.details || log.actionType,
+                      [
+                        auditObjectLabels[log.objectType] || log.objectType,
+                        log.objectName ||
+                          users.find((user) => user.id === log.objectId)?.fullName ||
+                          log.objectId,
+                        auditActionLabels[log.actionType] && log.details
+                          ? `Причина: ${log.details}`
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
+                    ],
+                  }))}
+                emptyText="Действий пока нет."
+              />
+            </section>
+          )}
         </>
       )}
     </section>

@@ -12,6 +12,7 @@ import {
   fromProject,
   fromStage,
 } from './backend'
+import { getProjectCatalog, projectCategoryCode } from './studentProjectCatalog'
 import { apiRuntime, tokenStore } from './runtime'
 import { mockServer } from './mockServer'
 import {
@@ -90,7 +91,9 @@ export const apiClient = {
               comment,
             }
       const res = await axiosInstance.patch(`/${resource}/${id}/moderation`, payload)
-      return kind === 'case' ? fromCase(res.data) : fromProject(res.data)
+      if (kind === 'case') return fromCase(res.data)
+      const catalog = await getProjectCatalog().catch(() => undefined)
+      return fromProject(res.data, catalog)
     }
     await delay(180)
     return mockServer.moderatePublication(kind, id, status, comment)
@@ -115,19 +118,12 @@ export const apiClient = {
       return user
     }
     await delay(100)
-    if (localStorage.getItem('uust_logged_out') === 'true') {
-      throw new Error('Пользователь вышел из системы')
-    }
     const stored = localStorage.getItem('uust_current_user')
-    if (stored) {
-      const user = JSON.parse(stored) as User
-      const fresh = mockServer.getUserById(user.id)
-      return fresh || user
-    }
-    // Default to student Ivan/Almaz if never logged out
-    const defaultUser = mockServer.getUserById('usr_student_1')!
-    localStorage.setItem('uust_current_user', JSON.stringify(defaultUser))
-    return defaultUser
+    if (!stored) throw new Error('Войдите в аккаунт')
+    const { id } = JSON.parse(stored) as User
+    const user = mockServer.getUserById(id)
+    if (!user || user.isBlocked) throw new Error('Аккаунт недоступен')
+    return user
   },
 
   async login(username: string, password = ''): Promise<User> {
@@ -164,6 +160,25 @@ export const apiClient = {
     return user
   },
 
+  async requestRole(data: {
+    username: string
+    email: string
+    password: string
+    role: 'company' | 'curator'
+  }): Promise<void> {
+    await axiosInstance.post('/auth/register', {
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      role: data.role === 'company' ? 'company_representative' : 'university_staff',
+      consent_version: '1',
+    })
+  },
+
+  async reviewRoleRequest(userId: string, status: 'approved' | 'rejected'): Promise<void> {
+    await axiosInstance.patch(`/users/${userId}/role-request`, { status })
+  },
+
   async register(data: any): Promise<User> {
     if (apiRuntime.mode === 'live') {
       if (data.role && data.role !== 'student')
@@ -183,6 +198,7 @@ export const apiClient = {
         course: Number(data.course || 1),
         group_name: data.group || '',
         phone: data.phone || '',
+        technologies: data.technologies || [],
         consent_version: '1',
       }
       const res = await axiosInstance.post<{ access_token?: string; refresh_token?: string }>(
@@ -226,6 +242,28 @@ export const apiClient = {
     return mockServer.getUsers()
   },
 
+  async updateAvatar(user: User, file: File): Promise<User> {
+    let avatar: string
+    if (apiRuntime.mode === 'live') {
+      if (user.role !== 'student') throw new Error('Загрузка аватара доступна студентам.')
+      const body = new FormData()
+      body.append('file', file)
+      const { data } = await axiosInstance.put('/users/me/photo', body)
+      avatar = `${apiRuntime.baseUrl || '/api/v1'}/students/${user.id}/photo?v=${data.file_id}`
+    } else {
+      avatar = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result))
+        reader.onerror = () => reject(new Error('Не удалось прочитать изображение.'))
+        reader.readAsDataURL(file)
+      })
+      mockServer.updateUser({ ...user, avatar })
+    }
+    const updated = { ...user, avatar }
+    localStorage.setItem('uust_current_user', JSON.stringify(updated))
+    return updated
+  },
+
   async getResume(): Promise<NonNullable<User['studentProfile']>['resume']> {
     const user = JSON.parse(localStorage.getItem('uust_current_user') || 'null') as User | null
     if (apiRuntime.mode === 'mock')
@@ -240,6 +278,7 @@ export const apiClient = {
           file_id: resume.file_id,
           url: `${apiRuntime.baseUrl || '/api/v1'}/files/${resume.file_id}`,
           size: `${Math.ceil(resume.size_bytes / 1024)} КБ`,
+          public: resume.visibility === 'public',
         }
       : undefined
   },
@@ -251,7 +290,7 @@ export const apiClient = {
       await axiosInstance.post('/portfolio/me/files', {
         file_id: file.file_id,
         kind: 'resume',
-        visibility: 'private',
+        visibility: file.public ? 'public' : 'private',
         is_default: true,
       })
       return
@@ -324,17 +363,16 @@ export const apiClient = {
     return updated
   },
 
-  async toggleUserBlock(userId: string): Promise<User> {
+  async setUserBlock(user: User, blocked: boolean, reason = ''): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      const user = (await apiClient.getUsers()).find((u) => u.id === userId)
-      if (!user) throw new Error('Пользователь не найден')
-      await axiosInstance.patch(`/users/${userId}/status`, {
-        status: user.isBlocked ? 'active' : 'blocked',
+      await axiosInstance.patch(`/users/${user.id}/status`, {
+        status: blocked ? 'blocked' : 'active',
       })
-      return { ...user, isBlocked: !user.isBlocked }
+      return { ...user, isBlocked: blocked }
     }
-    await delay(120)
-    return mockServer.toggleUserBlock(userId)
+    const current = mockServer.getUserById(user.id)
+    if (!current) throw new Error('Пользователь не найден')
+    return !!current.isBlocked === blocked ? current : mockServer.toggleUserBlock(user.id, reason)
   },
 
   async changeUserRole(userId: string, role: User['role']): Promise<User> {
@@ -353,17 +391,24 @@ export const apiClient = {
         search: filters?.search,
         company_id: filters?.companyId,
       })
-      if (actor?.role === 'company')
-        rows.push(
-          ...(await collectPages<any>((params) => axiosInstance.get('/cases/mine', { params }))),
+      const managed = new Set<string>()
+      if (actor?.role === 'company') {
+        const own = await collectPages<any>((params) =>
+          axiosInstance.get('/cases/mine', { params }),
         )
-      if (actor?.role === 'admin')
+        own.forEach((row) => managed.add(row.case_id))
+        rows.push(...own)
+      }
+      if (['admin', 'curator', 'university'].includes(actor?.role))
         rows.push(
           ...(await collectPages<any>((params) =>
             axiosInstance.get('/cases/moderation', { params }),
           )),
         )
-      return [...new Map(rows.map((d) => [d.case_id, d])).values()].map(fromCase)
+      return [...new Map(rows.map((d) => [d.case_id, d])).values()].map((row) => ({
+        ...fromCase(row),
+        managedByViewer: actor?.role === 'company' ? managed.has(row.case_id) : undefined,
+      }))
     }
     await delay(150)
     return mockServer.getCases(filters)
@@ -374,12 +419,22 @@ export const apiClient = {
       const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
       if (['admin', 'company'].includes(actor?.role)) {
         try {
-          return fromCase((await axiosInstance.get(`/cases/${id}/manage`)).data)
+          return {
+            ...fromCase((await axiosInstance.get(`/cases/${id}/manage`)).data),
+            managedByViewer: true,
+          }
         } catch (e) {
           if (![403, 404].includes((e as any).status)) throw e
         }
       }
-      return fromCase((await axiosInstance.get(`/cases/${id}`)).data)
+      if (['curator', 'university'].includes(actor?.role)) {
+        try {
+          return fromCase((await axiosInstance.get(`/cases/${id}/review`)).data)
+        } catch (e) {
+          if ((e as { status?: number }).status !== 404) throw e
+        }
+      }
+      return { ...fromCase((await axiosInstance.get(`/cases/${id}`)).data), managedByViewer: false }
     }
     await delay(120)
     const c = mockServer.getCaseById(id)
@@ -393,7 +448,7 @@ export const apiClient = {
   ): Promise<CaseProject> {
     if (apiRuntime.mode === 'live') {
       if (data.kind === 'internship')
-        throw new Error('Стажировки размещаются в разделе «Стажировки» на странице компании.')
+        throw new Error('Стажировки размещаются в разделе «Витрина стажировок».')
       const payload = await resolveCaseCatalogs({
         ...data,
         id: '',
@@ -493,16 +548,21 @@ export const apiClient = {
       const directory = ['company', 'admin'].includes(actor?.role)
         ? await collectPages<any>((params) => axiosInstance.get('/students/search', { params }))
         : []
-      return rows.map((d) =>
-        fromApplication({
+      const students = new Map(directory.map((student) => [student.user_id, student]))
+      return rows.map((d) => {
+        const id = d.student_id || d.submitted_by
+        const profile = students.get(id)
+        return fromApplication({
           ...d,
-          student_name:
-            directory.find((s) => s.user_id === (d.student_id || d.submitted_by))?.full_name ||
-            (actor?.id === (d.student_id || d.submitted_by)
-              ? actor.fullName
-              : d.team_name || 'Участник'),
-        }),
-      )
+          student_name: profile?.full_name || (actor?.id === id ? actor.fullName : 'Участник'),
+          student_institute: profile?.institute,
+          student_course: profile?.course,
+          student_group: profile?.group_name,
+          student_avatar: profile?.photo_file_id
+            ? `${apiRuntime.baseUrl || '/api/v1'}/students/${id}/photo?v=${profile.photo_file_id}`
+            : undefined,
+        })
+      })
     }
     await delay(150)
     return mockServer.getApplications(caseId, studentId)
@@ -528,8 +588,8 @@ export const apiClient = {
     return mockServer.createApplication(data)
   },
 
-  async consentApplication(id: string): Promise<void> {
-    await axiosInstance.post(`/applications/${id}/consents`)
+  async consentApplication(id: string): Promise<CaseApplication> {
+    return fromApplication((await axiosInstance.post(`/applications/${id}/consents`)).data)
   },
 
   async updateApplicationStatus(
@@ -651,9 +711,18 @@ export const apiClient = {
   // Student Projects Showcase
   async getStudentProjects(filters?: any): Promise<StudentProject[]> {
     if (apiRuntime.mode === 'live') {
+      const catalog = await getProjectCatalog().catch(() => undefined)
+      const direction = catalog?.directions.find((item) => item.name === filters?.direction)
       const rows = await collectPages<any>(
         (params) => axiosInstance.get('/student-projects', { params }),
-        filters,
+        {
+          search: filters?.search,
+          category:
+            filters?.category && filters.category !== 'all'
+              ? projectCategoryCode(filters.category)
+              : undefined,
+          direction_id: direction?.id,
+        },
       )
       const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
       if (actor?.role === 'student' && !filters)
@@ -662,20 +731,37 @@ export const apiClient = {
             axiosInstance.get('/student-projects/mine', { params }),
           )),
         )
-      return [...new Map(rows.map((row) => [row.project_id, row])).values()].map(fromProject)
+      return [...new Map(rows.map((row) => [row.project_id, row])).values()].map((row) =>
+        fromProject(row, catalog),
+      )
     }
     await delay(150)
     return mockServer.getStudentProjects(filters)
   },
 
+  async getStudentProjectModeration(): Promise<StudentProject[]> {
+    const catalog = await getProjectCatalog().catch(() => undefined)
+    const rows = await collectPages<any>((params) =>
+      axiosInstance.get('/student-projects/moderation', { params }),
+    )
+    return rows.map((row) => fromProject(row, catalog))
+  },
+
   async getStudentProjectById(id: string): Promise<StudentProject> {
     if (apiRuntime.mode === 'live') {
-      try {
-        return fromProject((await axiosInstance.get(`/student-projects/${id}`)).data)
-      } catch (e) {
-        if ((e as any).status !== 404) throw e
-        return fromProject((await axiosInstance.get(`/student-projects/${id}/manage`)).data)
+      const catalog = await getProjectCatalog().catch(() => undefined)
+      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+      if (['curator', 'university'].includes(actor?.role)) {
+        try {
+          return fromProject(
+            (await axiosInstance.get(`/student-projects/${id}/review`)).data,
+            catalog,
+          )
+        } catch (e) {
+          if ((e as { status?: number }).status !== 404) throw e
+        }
       }
+      return fromProject((await axiosInstance.get(`/student-projects/${id}`)).data, catalog)
     }
     await delay(120)
     const p = mockServer.getStudentProjectById(id)
@@ -683,32 +769,34 @@ export const apiClient = {
     return p
   },
 
-  async createStudentProject(data: any): Promise<StudentProject> {
+  async createStudentProject(
+    data: Parameters<typeof mockServer.createStudentProject>[0],
+  ): Promise<StudentProject> {
     if (apiRuntime.mode === 'live') {
-      const res = await axiosInstance.post('/student-projects', {
+      const catalog = await getProjectCatalog()
+      const visibility = data.visibility || 'public'
+      const { data: draft } = await axiosInstance.post('/student-projects', {
         title: data.title,
-        category:
-          (
-            {
-              курсовой: 'coursework',
-              'pet-проект': 'pet_project',
-              стартап: 'startup',
-              НИР: 'research',
-              хакатон: 'hackathon',
-            } as any
-          )[data.category] || 'other',
+        category: projectCategoryCode(data.category),
         short_description: data.shortDescription,
         full_description: data.fullDescription,
         problem_solved: data.problemSolved || '',
         github_url: data.githubUrl || '',
         product_url: data.productUrl || '',
-        visibility: data.visibility || 'public',
-        tags: data.technologies || [],
+        visibility,
+        tags: [],
+        direction_ids: catalog.directions
+          .filter((item) => item.name === data.direction)
+          .map((item) => item.id),
+        technology_ids: catalog.technologies
+          .filter((item) => data.technologies.includes(item.name))
+          .map((item) => item.id),
       })
-      await axiosInstance.post(`/student-projects/${res.data.project_id}/submit-moderation`)
-      return fromProject(
-        (await axiosInstance.get(`/student-projects/${res.data.project_id}/manage`)).data,
+      if (visibility === 'private') return fromProject(draft, catalog)
+      const result = await axiosInstance.post(
+        `/student-projects/${draft.project_id}/submit-moderation`,
       )
+      return fromProject(result.data, catalog)
     }
     await delay(220)
     return mockServer.createStudentProject(data)
@@ -716,12 +804,12 @@ export const apiClient = {
 
   async toggleStudentProjectLike(id: string): Promise<StudentProject> {
     if (apiRuntime.mode === 'live') {
-      const { data } = await axiosInstance.get(`/student-projects/${id}`)
-      await axiosInstance.request({
-        method: data.liked_by_me ? 'DELETE' : 'PUT',
+      const project = await apiClient.getStudentProjectById(id)
+      const { data } = await axiosInstance.request<{ liked: boolean; likes_count: number }>({
+        method: project.likedByMe ? 'DELETE' : 'PUT',
         url: `/student-projects/${id}/like`,
       })
-      return apiClient.getStudentProjectById(id)
+      return { ...project, likedByMe: data.liked, likesCount: data.likes_count }
     }
     await delay(100)
     return mockServer.toggleStudentProjectLike(id)
@@ -798,6 +886,15 @@ export const apiClient = {
     if (user.studentProfile) {
       user.studentProfile.bio = data.about || ''
       const files = (await axiosInstance.get(`/students/${id}/portfolio/files`)).data.items || []
+      const resume = files.find((f: any) => f.kind === 'resume' && f.is_default)
+      if (resume) {
+        user.studentProfile.resume = {
+          name: resume.original_name,
+          file_id: resume.file_id,
+          url: `${apiRuntime.baseUrl || '/api/v1'}/students/${id}/portfolio/files/${resume.file_id}`,
+          public: true,
+        }
+      }
       user.studentProfile.files = files
         .filter((f: any) => f.kind === 'certificate')
         .map((f: any) => ({
@@ -857,12 +954,17 @@ export const apiClient = {
     if (apiRuntime.mode === 'live') {
       const open = await collectNumbered<any>((params) => axiosInstance.get('/teams', { params }))
       const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
-      const mine =
-        actor?.role === 'student' ? (await axiosInstance.get('/teams/mine')).data.items || [] : []
-      return [...new Map([...open, ...mine].map((t) => [t.team_id, t])).values()].map(fromTeam)
+      const mine = actor?.role === 'student' ? await apiClient.getMyTeams() : []
+      return [...new Map([...open.map(fromTeam), ...mine].map((team) => [team.id, team])).values()]
     }
     await delay(120)
     return mockServer.getTeams()
+  },
+
+  async getMyTeams(): Promise<ProjectTeam[]> {
+    return (
+      await collectNumbered<any>((params) => axiosInstance.get('/teams/mine', { params }))
+    ).map(fromTeam)
   },
 
   async createTeam(data: any): Promise<ProjectTeam> {
@@ -962,7 +1064,7 @@ export const apiClient = {
   async getAuditLogs(): Promise<AuditLog[]> {
     if (apiRuntime.mode === 'live')
       return (
-        await collectPages<any>((params) => axiosInstance.get('/audit-logs', { params }))
+        await collectNumbered<any>((params) => axiosInstance.get('/audit-logs', { params }))
       ).map((d) => ({
         id: d.audit_id,
         timestamp: d.created_at,
@@ -972,7 +1074,12 @@ export const apiClient = {
         actionType: d.action,
         objectType: d.entity_type,
         objectId: d.entity_id || '',
-        objectName: d.entity_id || '',
+        objectName:
+          (d.new_data || d.old_data)?.title ||
+          (d.new_data || d.old_data)?.full_name ||
+          (d.new_data || d.old_data)?.username ||
+          '',
+        details: d.new_data?.status_reason,
       }))
     await delay(120)
     return mockServer.getAuditLogs()

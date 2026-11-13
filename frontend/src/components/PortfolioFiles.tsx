@@ -1,3 +1,4 @@
+import { LocalizedFileInput } from './LocalizedFileInput'
 import { useConfirm } from './ConfirmProvider'
 import { apiRuntime } from '../api/runtime'
 import { axiosInstance } from '../api/http'
@@ -7,6 +8,14 @@ import { uploadFile } from '../utils/files'
 import { apiClient } from '../api/client'
 import { useAppDispatch } from '../store'
 import { fetchStudentsRequest, fetchCurrentUserRequest } from '../store/actions'
+function CertificateImage({ url, name }: { url: string; name: string }) {
+  const [failed, setFailed] = useState(false)
+  return failed ? (
+    <span className="achievement-document">{name} · Предпросмотр недоступен</span>
+  ) : (
+    <img src={url} alt={name} loading="lazy" onError={() => setFailed(true)} />
+  )
+}
 export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ user, editable }) => {
   const confirm = useConfirm()
   const dispatch = useAppDispatch()
@@ -38,7 +47,7 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
       for (const f of current)
         if (!next.some((n) => n.file_id === f.file_id))
           await axiosInstance.delete(`/portfolio/me/files/${f.file_id}`)
-      setSavedFiles(next)
+      setSavedFiles((await apiClient.getStudentById(user.id)).studentProfile?.files || [])
       return
     }
     await apiClient.updateUser({
@@ -49,78 +58,83 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
     dispatch(fetchCurrentUserRequest())
   }
   return (
-    <section className="card feature-panel">
-      <h2>Достижения и сертификаты</h2>
-      <div className="achievement-gallery">
-        {files.map((f, i) => (
-          <div className="portfolio-file achievement-card" key={i}>
-            <a
-              href={f.url}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Открыть сертификат"
-              onClick={(e) => {
-                if (/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/')) {
-                  e.preventDefault()
-                  setPreview(f)
-                }
-              }}
-            >
-              {/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/') ? (
-                <img src={f.url} alt={f.name} loading="lazy" />
-              ) : (
-                <div className="achievement-document">Сертификат / документ</div>
-              )}
-            </a>
-            {editable && (
-              <button
-                type="button"
-                className="file-remove"
-                aria-label={`Удалить ${f.name}`}
-                disabled={busy}
-                onClick={async () => {
-                  if (!(await confirm(`Удалить файл «${f.name}»?`))) return
-                  setBusy(true)
-                  try {
-                    await save(files.filter((_, j) => j !== i))
-                  } catch (e) {
-                    setError((e as Error).message)
-                  } finally {
-                    setBusy(false)
+    <section className="card portfolio-achievements">
+      <div className="card__header">
+        <h3>Достижения и сертификаты</h3>
+      </div>
+      <div className="card__body">
+        {!files.length && <p className="empty-state">Достижений пока нет.</p>}
+        <div className="achievement-gallery">
+          {files.map((f, i) => (
+            <div className="portfolio-file achievement-card" key={f.file_id || f.url}>
+              <a
+                href={f.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Открыть сертификат"
+                onClick={(e) => {
+                  if (/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/')) {
+                    e.preventDefault()
+                    setPreview(f)
                   }
                 }}
               >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
+                {/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/') ? (
+                  <CertificateImage key={f.url} url={f.url} name={f.name} />
+                ) : (
+                  <div className="achievement-document">Сертификат / документ</div>
+                )}
+              </a>
+              {editable && (
+                <button
+                  type="button"
+                  className="file-remove"
+                  aria-label={`Удалить ${f.name}`}
+                  disabled={busy}
+                  onClick={async () => {
+                    if (!(await confirm(`Удалить файл «${f.name}»?`))) return
+                    setBusy(true)
+                    try {
+                      await save(files.filter((_, j) => j !== i))
+                    } catch (e) {
+                      setError((e as Error).message)
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {editable && (
+          <label className="portfolio-upload">
+            Добавить фотографии достижений или сертификаты
+            <LocalizedFileInput
+              className="input"
+              accept="image/*,.pdf"
+              multiple
+              disabled={busy}
+              onChange={async (e) => {
+                const selected = Array.from(e.target.files || [])
+                e.target.value = ''
+                setBusy(true)
+                setError('')
+                try {
+                  await save([...files, ...(await Promise.all(selected.map(uploadFile)))])
+                } catch (e) {
+                  setError((e as Error).message)
+                } finally {
+                  setBusy(false)
+                }
+              }}
+            />
+          </label>
+        )}
+        {error && <p role="alert">{error}</p>}
       </div>
-      {editable && (
-        <label>
-          Добавить фотографии достижений или сертификаты (до 2 МБ)
-          <input
-            type="file"
-            accept="image/*,.pdf"
-            multiple
-            disabled={busy}
-            onChange={async (e) => {
-              const selected = Array.from(e.target.files || [])
-              e.target.value = ''
-              setBusy(true)
-              setError('')
-              try {
-                await save([...files, ...(await Promise.all(selected.map(uploadFile)))])
-              } catch (e) {
-                setError((e as Error).message)
-              } finally {
-                setBusy(false)
-              }
-            }}
-          />
-        </label>
-      )}
-      {error && <p role="alert">{error}</p>}
       <dialog
         ref={dialog}
         className="certificate-preview"
@@ -134,7 +148,7 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
             <button className="btn btn-secondary" autoFocus onClick={() => setPreview(null)}>
               Закрыть ×
             </button>
-            <img src={preview.url} alt="Сертификат или достижение" />
+            <CertificateImage key={preview.url} url={preview.url} name={preview.name} />
           </>
         )}
       </dialog>

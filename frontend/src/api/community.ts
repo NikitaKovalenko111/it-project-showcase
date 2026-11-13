@@ -12,6 +12,7 @@ type CommunityMethod =
   | 'getStudentAchievements'
   | 'updateExecutionStage'
   | 'finalizeResults'
+  | 'withdrawResults'
   | 'getExecutions'
   | 'submitExecution'
   | 'gradeExecution'

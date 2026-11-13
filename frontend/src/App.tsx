@@ -1,10 +1,11 @@
+import { LiveCompanyProgram } from './components/LiveCompanyProgram'
 import { FeedbackPage } from './pages/FeedbackPage'
 import { TeamsPage } from './pages/TeamsPage'
 import { InvitationPage } from './pages/InvitationPage'
 import React, { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
-import { useAppDispatch, useAppSelector } from './store'
+import { useAppDispatch } from './store'
 import { fetchCurrentUserRequest } from './store/actions'
 
 // Pages
@@ -24,11 +25,11 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ModerationAdminPage } from './pages/ModerationAdminPage'
 import { LoginPage } from './pages/LoginPage'
 import { WorkspaceListPage } from './pages/WorkspaceListPage'
+import { AccountPage } from './pages/AccountPage'
 import { RoleGuard } from './components/layout/RoleGuard'
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { currentUser, isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
     dispatch(fetchCurrentUserRequest())
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
         <Route path="feedback" element={<FeedbackPage />} />
+        <Route path="internships" element={<LiveCompanyProgram />} />
         <Route path="cases" element={<CasesShowcasePage />} />
         <Route path="cases/:id" element={<CaseDetailPage />} />
         <Route path="cases/:id/workspace" element={<ProjectWorkspacePage />} />
@@ -71,6 +73,7 @@ export const App: React.FC = () => {
         />
 
         <Route path="students-search" element={<StudentsSearchPage />} />
+        <Route path="account" element={<AccountPage />} />
         <Route path="profile/:id" element={<StudentProfilePage />} />
         <Route
           path="favorites"

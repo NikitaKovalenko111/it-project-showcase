@@ -1,10 +1,13 @@
 import { apiRuntime } from '../api/runtime'
+import { matchesSearch } from '../utils/publication'
 import { formatDate } from '../utils/date'
 import { AdminCompanyActions } from '../components/AdminCompanyActions'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { communityApi } from '../api/community'
+import { IdentityImage } from '../components/IdentityImage'
 import { ReportButton } from '../components/ReportButton'
 import { CompanyProgram } from '../components/CompanyProgram'
+import { CompanyLegalDetails } from '../components/CompanyLegalDetails'
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -38,7 +41,7 @@ import {
 export const CompanyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
-  const { activeCompany, loading } = useAppSelector((state) => state.companies)
+  const { activeCompany, detailError } = useAppSelector((state) => state.companies)
   const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
@@ -67,7 +70,17 @@ export const CompanyDetailPage: React.FC = () => {
     }
   }, [activeCompany])
 
-  if (loading || !activeCompany) {
+  if (detailError?.id === id && detailError) {
+    return (
+      <section className="card empty-state detail-empty" role="alert">
+        <h1>{detailError.message}</h1>
+        <Link to="/companies" className="btn btn-secondary">
+          К списку компаний
+        </Link>
+      </section>
+    )
+  }
+  if (!activeCompany || activeCompany.id !== id) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
         Загрузка карточки компании...
@@ -91,9 +104,7 @@ export const CompanyDetailPage: React.FC = () => {
   const filteredCases = companyCases
     .filter(
       (c) =>
-        `${c.title} ${c.shortDescription}`
-          .toLowerCase()
-          .includes(caseSearch.trim().toLowerCase()) &&
+        matchesSearch(caseSearch, c.title, c.shortDescription) &&
         (caseDirection === 'all' || c.direction === caseDirection) &&
         (caseStatus === 'all' || c.status === caseStatus),
     )
@@ -124,7 +135,9 @@ export const CompanyDetailPage: React.FC = () => {
         </Link>
 
         <div className="page-actions">
-          <ReportButton targetType="company" targetId={activeCompany.id} />
+          {!isCompanyRepresentative && (
+            <ReportButton targetType="company" targetId={activeCompany.id} />
+          )}
           <AdminCompanyActions key={activeCompany.id} company={activeCompany} />
           {(isCompanyRepresentative || isCuratorOrAdmin) && (
             <button className="btn btn-primary btn-sm" onClick={() => setCreateCaseModalOpen(true)}>
@@ -137,13 +150,11 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
         <div className="company-hero__top">
-          {activeCompany.logo ? (
-            <img src={activeCompany.logo} alt="" className="company-hero__logo" />
-          ) : (
-            <span className="company-hero__logo company-hero__logo--placeholder" aria-hidden="true">
-              <Building2 size={32} />
-            </span>
-          )}
+          <IdentityImage
+            src={activeCompany.logo}
+            name={activeCompany.shortName || activeCompany.name}
+            className="company-hero__logo"
+          />
 
           <div className="company-hero__info">
             <div
@@ -179,7 +190,7 @@ export const CompanyDetailPage: React.FC = () => {
               <span>
                 Краткое наименование: <strong>{activeCompany.shortName}</strong>
               </span>
-              {!live && <span>• ИНН: 0274198273</span>}
+              {activeCompany.inn && <span>• ИНН: {activeCompany.inn}</span>}
             </div>
           </div>
 
@@ -242,22 +253,25 @@ export const CompanyDetailPage: React.FC = () => {
         </div>
       </div>
 
+      <CompanyLegalDetails
+        key={activeCompany.id}
+        company={activeCompany}
+        editable={isCompanyRepresentative}
+        onSaved={(company) => dispatch(fetchCompanyByIdSuccess(company))}
+      />
+
       {/* Key Metrics Row */}
       <div className="company-metrics-row">
         <div className="metric-card metric-card--blue">
           <div className="metric-value">
-            {live
-              ? publicCases.filter((c) => c.status !== 'completed').length
-              : activeCompany.activeCasesCount}
+            {publicCases.filter((c) => c.status !== 'completed').length}
           </div>
-          <div className="metric-label">Активных кейсов в семестре</div>
+          <div className="metric-label">Активных кейсов</div>
         </div>
 
         <div className="metric-card metric-card--emerald">
           <div className="metric-value">
-            {live
-              ? publicCases.filter((c) => c.status === 'completed').length
-              : activeCompany.completedProjectsCount}
+            {publicCases.filter((c) => c.status === 'completed').length}
           </div>
           <div className="metric-label">Завершённых кейсов</div>
         </div>
@@ -312,7 +326,15 @@ export const CompanyDetailPage: React.FC = () => {
                   {apiRuntime.mode === 'live' ? (
                     activeCompany.email || 'Не указаны'
                   ) : (
-                    <a href={`mailto:${activeCompany.email}`}>{activeCompany.email}</a>
+                    <a className="company-contact-email" href={`mailto:${activeCompany.email}`}>
+                      {activeCompany.email.split('@')[0]}
+                      {activeCompany.email.includes('@') && (
+                        <>
+                          @<wbr />
+                          {activeCompany.email.split('@').slice(1).join('@')}
+                        </>
+                      )}
+                    </a>
                   )}
                 </div>
               </div>
@@ -378,7 +400,7 @@ export const CompanyDetailPage: React.FC = () => {
             className={`uust-tab ${activeTab === 'cases' ? 'active' : ''}`}
             onClick={() => setActiveTab('cases')}
           >
-            <Briefcase size={14} /> Кейсы для студентов ({companyCases.length})
+            <Briefcase size={14} /> Кейсы компании ({companyCases.length})
           </button>
           <button
             className={`uust-tab ${activeTab === 'internships' ? 'active' : ''}`}

@@ -10,7 +10,11 @@ function* handleLogin(action: { type: string; payload: { username: string; passw
     yield put(actions.loginSuccess(user))
     yield put(actions.fetchNotificationsRequest(user.id))
   } catch (error: any) {
-    yield put(actions.loginFailure(error.message || 'Ошибка входа'))
+    const messages: Record<string, string> = {
+      role_approval_pending: 'Заявка на роль ещё на рассмотрении.',
+      role_request_rejected: 'Администратор отклонил заявку на роль.',
+    }
+    yield put(actions.loginFailure(messages[error.code] || error.message || 'Ошибка входа'))
   }
 }
 
@@ -76,10 +80,19 @@ function* handleFetchAllUsers() {
   }
 }
 
-function* handleToggleUserBlock(action: { type: string; payload: { userId: string } }) {
+function* handleToggleUserBlock(action: {
+  type: string
+  payload: { user: User; blocked: boolean; reason: string }
+}) {
   try {
-    const user: User = yield call(apiClient.toggleUserBlock, action.payload.userId)
+    const user: User = yield call(
+      apiClient.setUserBlock,
+      action.payload.user,
+      action.payload.blocked,
+      action.payload.reason,
+    )
     yield put(actions.toggleUserBlockSuccess(user))
+    yield put(actions.fetchAuditLogsRequest())
   } catch (e) {
     console.error(e)
   }

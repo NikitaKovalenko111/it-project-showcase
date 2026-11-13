@@ -1,7 +1,7 @@
+import { IdentityImage } from '../components/IdentityImage'
 import { PaginatedGrid } from '../components/PaginatedGrid'
-import { apiClient } from '../api/client'
-import { communityApi } from '../api/community'
-import { canModerate } from '../utils/publication'
+import { canModerate, matchesSearch } from '../utils/publication'
+import { apiRuntime } from '../api/runtime'
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -27,25 +27,16 @@ import {
 
 export const StudentsSearchPage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { studentsList, teamsList, loading } = useAppSelector((state) => state.students)
+  const { studentsList, loading, error: studentsError } = useAppSelector((state) => state.students)
   const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
-  const [curatorUsers, setCuratorUsers] = useState<User[]>([])
-  useEffect(() => {
-    if (canModerate(currentUser))
-      apiClient
-        .getUsers()
-        .then((users) => setCuratorUsers(users.filter((u) => u.role === 'curator')))
-        .catch((e) => setAssignmentError(e.message))
-  }, [currentUser?.id])
   const [search, setSearch] = useState('')
   const [institute, setInstitute] = useState('all')
   const [course, setCourse] = useState('all')
   const [groupSearch, setGroupSearch] = useState('')
   const [education, setEducation] = useState('all')
   const [onlyMine, setOnlyMine] = useState(false)
-  const [assignmentError, setAssignmentError] = useState('')
   const [skill, setSkill] = useState('')
   const [minRating, setMinRating] = useState(0)
   const [ratingOrder, setRatingOrder] = useState('desc')
@@ -62,18 +53,19 @@ export const StudentsSearchPage: React.FC = () => {
   const filteredStudents = studentsList
     .filter((s) => {
       const prof = s.studentProfile
-      if (!prof) return false
+      if (s.role !== 'student' || !prof) return false
 
-      if (search) {
-        const q = search.trim().toLowerCase()
-        const match =
-          s.fullName.toLowerCase().includes(q) ||
-          prof.group.toLowerCase().includes(q) ||
-          prof.fieldOfStudy.toLowerCase().includes(q) ||
-          prof.skills.some((sk) => sk.toLowerCase().includes(q)) ||
-          prof.techStack.some((ts) => ts.toLowerCase().includes(q))
-        if (!match) return false
-      }
+      if (
+        !matchesSearch(
+          search,
+          s.fullName,
+          prof.group,
+          prof.fieldOfStudy,
+          prof.skills,
+          prof.techStack,
+        )
+      )
+        return false
 
       if (groupSearch && !prof.group.toLowerCase().includes(groupSearch.trim().toLowerCase()))
         return false
@@ -99,6 +91,9 @@ export const StudentsSearchPage: React.FC = () => {
     )
 
   const canInvite = currentUser?.role === 'company'
+  const hasGroups = apiRuntime.mode !== 'live' || studentsList.some((s) => s.studentProfile?.group)
+  const hasEducationLevels =
+    apiRuntime.mode !== 'live' || studentsList.some((s) => s.studentProfile?.educationLevel)
   const institutes = [
     ...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean)),
   ]
@@ -129,10 +124,9 @@ export const StudentsSearchPage: React.FC = () => {
               : 'Поиск студентов и проектных команд'}
           </h1>
           <p>
-            База перспективных студентов, разработчиков и готовых кросс-функциональных команд.
             {canInvite
               ? 'Подбирайте исполнителей по компетенциям и приглашайте в свои кейсы.'
-              : 'Просматривайте группы, компетенции, рейтинг и портфолио студентов.'}
+              : 'Группы, компетенции, рейтинг и портфолио студентов.'}
           </p>
         </div>
         {currentUser?.role === 'student' && (
@@ -186,15 +180,10 @@ export const StudentsSearchPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img
+                  <IdentityImage
                     src={cand.avatar}
-                    alt=""
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
+                    name={cand.fullName}
+                    className="candidate-avatar"
                   />
                   <div>
                     <Link className="profile-link" to={`/profile/${cand.id}`}>
@@ -240,12 +229,12 @@ export const StudentsSearchPage: React.FC = () => {
         <div className="uust-box">
           <div className="uust-filter-row">
             <label className="catalog-filter">
-              ФИО, группа или компетенция
+              {hasGroups ? 'ФИО, группа или компетенция' : 'ФИО или компетенция'}
               <input
                 className="uust-input"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="ФИО, группа, React, Python…"
+                placeholder={hasGroups ? 'ФИО, группа, React, Python…' : 'ФИО, React, Python…'}
               />
             </label>
           </div>
@@ -263,7 +252,7 @@ export const StudentsSearchPage: React.FC = () => {
                 ))}
               </select>
             </label>
-            {canModerate(currentUser) && (
+            {hasGroups && canModerate(currentUser) && (
               <label className="catalog-filter">
                 Поиск по группе
                 <input
@@ -274,19 +263,21 @@ export const StudentsSearchPage: React.FC = () => {
                 />
               </label>
             )}
-            <label className="catalog-filter">
-              Уровень обучения
-              <select
-                className="uust-select"
-                value={education}
-                onChange={(e) => setEducation(e.target.value)}
-              >
-                <option value="all">Все уровни</option>
-                {['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => (
-                  <option key={level}>{level}</option>
-                ))}
-              </select>
-            </label>
+            {hasEducationLevels && (
+              <label className="catalog-filter">
+                Уровень обучения
+                <select
+                  className="uust-select"
+                  value={education}
+                  onChange={(e) => setEducation(e.target.value)}
+                >
+                  <option value="all">Все уровни</option>
+                  {['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => (
+                    <option key={level}>{level}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="catalog-filter">
               Курс
               <select
@@ -344,7 +335,7 @@ export const StudentsSearchPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {assignmentError && <p role="alert">{assignmentError}</p>}
+      {studentsError && <p role="alert">{studentsError}</p>}
       {loading && <p role="status">Загрузка студентов…</p>}
       {!loading && filteredStudents.length === 0 && (
         <p>Студенты по заданным фильтрам не найдены.</p>
@@ -366,15 +357,10 @@ export const StudentsSearchPage: React.FC = () => {
                     marginBottom: '14px',
                   }}
                 >
-                  <img
+                  <IdentityImage
                     src={stud.avatar}
-                    alt=""
-                    style={{
-                      width: '52px',
-                      height: '52px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
+                    name={stud.fullName}
+                    className="student-search-avatar"
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link to={`/profile/${stud.id}`}>
@@ -383,7 +369,13 @@ export const StudentsSearchPage: React.FC = () => {
                       </h3>
                     </Link>
                     <div style={{ fontSize: '11px', color: '#64748b' }}>
-                      Группа {prof.group} • {prof.course} курс ({prof.fieldOfStudy})
+                      {[
+                        prof.group && `Группа ${prof.group}`,
+                        prof.course > 0 && `${prof.course} курс`,
+                        prof.fieldOfStudy,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </div>
                     <div
                       style={{
