@@ -1,0 +1,65 @@
+.pagination { justify-content: flex-start; }
+.compact-search { position: fixed; top: 66px; z-index: 35; padding: 12px; border: 1px solid #dce4ed; border-radius: 12px; background: #fff; box-shadow: 0 8px 28px #172d4c26; opacity: 0; visibility: hidden; transform: translateY(-16px); transition: opacity .35s ease, transform .4s ease, visibility .4s; pointer-events: none; }
+.compact-search.is-visible { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+.team-search-selector { padding: 20px; margin: 0; }
+.team-search-selector h2 { margin: 0 0 16px; }
+.team-search-selector label,.team-message { display: grid; gap: 8px; }
+.team-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.teams-panel { padding: 20px; }
+.team-navigation { margin-bottom: 20px; }
+.teams-panel .team-management { margin: 16px 0; }
+.teams-panel .team-management h3 { margin: 0 0 12px; }
+.teams-panel .team-management form { display: grid; gap: 12px; }
+.teams-panel button { width: auto; justify-self: start; }
+.teams-layout { gap: 16px; }
+.team-search-selector + .teams-panel { border-top: 0; margin-top: -16px; border-radius: 0 0 12px 12px; }
+.compact-settings { padding: 16px 20px; margin-top: 16px; }
+.compact-settings summary { cursor: pointer; font-weight: 600; }
+.visibility-settings { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.visibility-settings label { display: grid; gap: 6px; max-width: 350px; }
+.visibility-settings > span { font-size: 12px; color: #64748b; }
+.member-list { display: flex; flex-wrap: wrap; gap: 12px; }
+.member-card { display: inline-flex; align-items: center; gap: 10px; border: 1px solid #dce4ed; border-radius: 8px; padding: 10px 12px; }
+.member-card img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.member-card small { display: block; font-size: 11px; color: #64748b; }
+.execution-applications-link { justify-self: start; }
+.execution-board { display: grid; gap: 20px; }
+.execution-board .detail-actions { margin: 0; }
+.execution-header,.execution-detail,.execution-leaderboard { padding: 24px; }
+.execution-header > .badge { align-self: start; justify-self: start; width: max-content; }
+.execution-header h1 { font-size: 24px; margin: 12px 0; }
+.execution-header p { color: #64748b; }
+.execution-filter { padding: 16px; }
+.execution-filter .uust-tabs-row { margin-bottom: 16px; }
+.execution-card { padding: 20px; display: flex; flex-direction: column; align-items: start; gap: 12px; }
+.execution-card h3,.execution-card p { margin: 0; }
+.execution-card p { color: #64748b; }
+.execution-card .btn { margin-top: auto; }
+.execution-form { max-width: 800px; display: grid; gap: 16px; margin-top: 24px; }
+.execution-form label { display: grid; gap: 8px; }
+.execution-form > button { justify-self: start; }
+.execution-form input[type=number] { max-width: 160px; }
+.execution-detail .member-list { margin-bottom: 24px; }
+.execution-detail { display: block; scroll-margin-top: 80px; }
+.execution-form h3,.execution-form p { margin: 0; }
+.execution-leaderboard table { width: 100%; border-collapse: collapse; text-align: left; }
+.execution-leaderboard :is(th,td) { padding: 12px 16px; border-bottom: 1px solid #e1e7ef; }
+.execution-leaderboard th { background: #f2f6fb; color: #4e6481; font-size: 12px; }
+.execution-rows { display: grid; gap: 8px; }
+.execution-rows .execution-card { display: grid; grid-template-columns: 85px minmax(170px,1fr) minmax(140px,1fr) 110px 150px; align-items: center; gap: 16px; padding: 14px 16px; }
+.execution-rows .execution-card h3 { font-size: 14px; }
+.execution-rows .execution-card p { font-size: 12px; }
+.execution-rows .execution-card .btn { margin: 0; }
+@media(max-width:1050px) { .execution-rows .execution-card { grid-template-columns: 1fr 1fr; } }
+.evaluation-summary { margin-top: 20px; padding: 16px; border-radius: 8px; background: #edf8f2; }
+.table-scroll { overflow-x: auto; }
+.preserve-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .compact-search { transition: none; } }
+@media(max-width:600px) { .execution-header,.execution-detail,.execution-leaderboard { padding: 16px; } .execution-header > .badge { align-self: start; justify-self: start; width: max-content; }
+.execution-header h1 { font-size: 20px; } }
+
+.execution-stages { margin: 20px 0; display: grid; gap: 12px; }
+.execution-stages h3,.execution-stages p { margin: 0; }
+.execution-stages label { display: grid; gap: 8px; }
+.execution-stages form { display: grid; gap: 12px; }
+.execution-stages form > button { justify-self: start; }

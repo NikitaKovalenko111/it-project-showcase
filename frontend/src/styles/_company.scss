@@ -1,0 +1,19 @@
+.workspace-type-filter { margin-bottom: 18px; }
+.workspace-status-filter { display: grid; gap: 6px; max-width: 280px; margin-bottom: 16px; }
+.workspace-navigation { margin-top: 0; }
+.shared-plan { padding: 24px; }
+.shared-plan h2 { margin: 0 0 10px; }
+.shared-plan p { color: #63758b; line-height: 1.6; }
+.shared-plan fieldset { min-width: 0; border: 0; padding: 0; margin-top: 20px; }
+.shared-plan legend { font-weight: 600; margin-bottom: 14px; }
+.shared-plan-list { display: grid; gap: 18px; margin-bottom: 20px; }
+.shared-plan-row { border: 1px solid #dde5ef; padding: 16px; border-radius: 10px; background: #fbfcfe; }
+.shared-plan-row > .feature-toolbar { justify-content: space-between; margin-bottom: 12px; }
+.shared-plan-row .action-row { margin: 0; }
+.shared-plan label { display: grid; gap: 8px; }
+.shared-plan-fields { display: grid; grid-template-columns: minmax(0,1fr) 200px; gap: 16px; margin-bottom: 14px; }
+.shared-plan .textarea { min-height: 72px; }
+.shared-plan fieldset > .action-row { align-items: end; margin-bottom: 20px; }
+.plan-shift .input { max-width: 130px; }
+.execution-progress { display: block; margin-top: 7px; color: #3a6d9b; font-size: 11px; }
+@media(max-width:600px) { .shared-plan { padding: 16px; } .shared-plan-fields { grid-template-columns: 1fr; } }

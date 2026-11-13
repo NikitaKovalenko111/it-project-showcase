@@ -1,0 +1,54 @@
+import { LocalizedFileInput } from './LocalizedFileInput'
+import React from 'react'
+import { FileText, Trash2 } from 'lucide-react'
+export const FilePicker: React.FC<{
+  label: string
+  files: File[]
+  onChange: (files: File[]) => void
+  accept?: string
+}> = ({ label, files, onChange, accept }) => (
+  <div className="file-picker">
+    <label>
+      {label}
+      <LocalizedFileInput
+        multiple
+        accept={accept}
+        onChange={(e) => {
+          const added = Array.from(e.target.files || [])
+          onChange([
+            ...files,
+            ...added.filter(
+              (f) =>
+                !files.some(
+                  (x) =>
+                    x.name === f.name && x.size === f.size && x.lastModified === f.lastModified,
+                ),
+            ),
+          ])
+          e.target.value = ''
+        }}
+      />
+    </label>
+    {!!files.length && (
+      <ul className="selected-files">
+        {files.map((f, i) => (
+          <li key={`${f.name}-${i}`}>
+            <FileText size={18} />
+            <span>
+              {f.name}
+              <small>{Math.ceil(f.size / 1024)} КБ</small>
+            </span>
+            <button
+              type="button"
+              className="icon-delete"
+              aria-label={`Убрать ${f.name}`}
+              onClick={() => onChange(files.filter((_, j) => j !== i))}
+            >
+              <Trash2 size={17} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+)
