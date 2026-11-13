@@ -45,7 +45,7 @@ const statusConfig: Record<OnlineStatus, { label: string; color: string }> = {
 }
 
 const rolePillConfig: Record<UserRole, { text: string; color: string }> = {
-  student: { text: 'Студент • ИИМР • ТОП-204Б', color: '#3a75b4' },
+  student: { text: 'Студент', color: '#3a75b4' },
   company: { text: 'Компания-партнёр', color: '#e68a19' },
   curator: { text: 'Куратор кафедры', color: '#28a745' },
   admin: { text: 'Администратор ИСУ', color: '#e04646' },
@@ -83,14 +83,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
     setOnlineStatus(s)
     setShowStatusMenu(false)
   }
-
-  // Student ID matching user screenshot
-  const studentId =
-    currentUser?.id === 'usr_student_1'
-      ? '257576'
-      : currentUser?.id
-        ? currentUser.id.replace(/\D/g, '') || '257576'
-        : '257576'
 
   // Role-specific navigation groups
   const navGroups: NavItem[][] = useMemo(() => {
@@ -227,10 +219,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
         </div>
 
         <div className="profile-name" title={currentUser?.fullName}>
-          {currentUser?.fullName || 'Магасумов Алмаз Ильшатович'}
+          {currentUser?.fullName || 'Пользователь'}
         </div>
 
-        <div className="profile-email">Email:{currentUser?.email || '257576@stud.uust.ru'}</div>
+        <div className="profile-email">Email:{currentUser?.email || 'Не указан'}</div>
 
         {/* Interactive Online Status Pill */}
         <div style={{ position: 'relative', display: 'inline-block' }}>

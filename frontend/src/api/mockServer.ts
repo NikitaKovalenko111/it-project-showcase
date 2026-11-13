@@ -1,3 +1,4 @@
+import { showcaseSeed } from './showcaseSeed'
 import { Execution } from '../types/execution'
 import { competitionSeed } from './competitionSeed'
 import { openRegistration } from '../utils/competition'
@@ -44,7 +45,8 @@ import {
 } from '../utils/publication'
 
 // Keys for localStorage
-const STORAGE_PREFIX = 'uust_showcase_v2_'
+export const MOCK_STORAGE_PREFIX = 'uust_showcase_curated_v1_'
+const STORAGE_PREFIX = MOCK_STORAGE_PREFIX
 const load = <T>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key)
@@ -65,6 +67,8 @@ const save = <T>(key: string, data: T): void => {
     console.error('Storage save error:', e)
   }
 }
+
+const showcase = showcaseSeed()
 
 export class MockServer {
   private notifyReviewers(kind: 'case' | 'student', title: string): void {
@@ -100,19 +104,19 @@ export class MockServer {
     if (this.sessionUser()?.role !== 'admin')
       throw new Error('Действие доступно только администратору')
   }
-  private users: User[] = load('users', INITIAL_USERS)
-  private companies: Company[] = load('companies', INITIAL_COMPANIES)
-  private cases: CaseProject[] = load('cases', INITIAL_CASES)
-  private milestones: ProjectMilestone[] = load('milestones', INITIAL_MILESTONES)
+  private users: User[] = load('users', showcase.users)
+  private companies: Company[] = load('companies', showcase.companies)
+  private cases: CaseProject[] = load('cases', showcase.cases)
+  private milestones: ProjectMilestone[] = load('milestones', showcase.milestones)
   private submissions: ProjectSubmission[] = load('submissions', INITIAL_SUBMISSIONS)
   private evaluations: ProjectEvaluation[] = load('evaluations', INITIAL_EVALUATIONS)
   private projectLikes: Record<string, string[]> = load('studentProjectLikes', {})
-  private studentProjects: StudentProject[] = load('studentProjects', INITIAL_STUDENT_PROJECTS)
+  private studentProjects: StudentProject[] = load('studentProjects', showcase.projects)
   private applications: CaseApplication[] = load('applications', INITIAL_APPLICATIONS)
   private teams: ProjectTeam[] = load('teams', INITIAL_TEAMS)
-  private comments: ProjectComment[] = load('comments', INITIAL_COMMENTS)
+  private comments: ProjectComment[] = load('comments', showcase.comments)
   private notifications: SystemNotification[] = load('notifications', INITIAL_NOTIFICATIONS)
-  private auditLogs: AuditLog[] = load('auditLogs', INITIAL_AUDIT_LOGS)
+  private auditLogs: AuditLog[] = load('auditLogs', showcase.audit)
   private favorites: string[] = load('favorites', ['case_1', 'case_2'])
   private ndaAccepted: string[] = load('ndaAccepted', [])
   private teamRequests: TeamRequest[] = load('teamRequests', [])
@@ -122,51 +126,96 @@ export class MockServer {
   private executions: Execution[] = load('executions', [])
   constructor() {
     const demo = competitionSeed()
-    this.applications.push(
-      ...demo.applications.filter((a) => !this.applications.some((x) => x.id === a.id)),
-    )
-    save('applications', this.applications)
-    this.teams.push(...demo.teams.filter((t) => !this.teams.some((x) => x.id === t.id)))
-    for (const entry of this.executions) {
-      const seed = demo.executions.find((e) => e.id === entry.id)
-      if (seed?.teamId && !entry.teamId) entry.teamId = seed.teamId
+    const pendingCase: CaseProject = {
+      ...structuredClone(INITIAL_CASES[1]),
+      id: 'demo_case_review',
+      title: 'Панель доступности городских сервисов',
+      companyId: 'comp_1',
+      companyName: this.companies[0].name,
+      companyLogo: this.companies[0].logo,
+      direction: 'Frontend',
+      shortDescription:
+        'Дежурной команде нужен единый экран состояния сервисов и история недоступности.',
+      fullDescription:
+        '## Задача\n\nПокажите текущее состояние городских сервисов, историю сбоев и фильтры по типу сервиса.\n\n## Проверка\n\nОбработайте недоступность источника, пустой журнал и восстановление связи.',
+      resultRequirements: 'Веб-панель со статусами, журналом сбоев и инструкцией запуска.',
+      requiredCompetencies: ['React', 'TypeScript', 'REST API'],
+      recommendedTech: ['React', 'TypeScript'],
+      status: 'moderation',
+      moderationStatus: 'pending',
+      isModerated: false,
+      applicationsCount: 0,
+      publishedAt: '',
     }
-    save('teams', this.teams)
-    save('executions', this.executions)
-    if (!load('demo_shared_plan_v1', false)) {
-      demo.cases.forEach((c) => {
-        if (!this.milestones.some((m) => m.caseId === c.id))
-          ['Старт и разбор задания', 'Промежуточный результат', 'Финальная сдача'].forEach(
-            (title, i) =>
-              this.milestones.push({
-                id: `${c.id}_plan_${i}`,
-                caseId: c.id,
-                stepNumber: i + 1,
-                title: c.kind === 'olympiad' ? `Тур ${i + 1}` : title,
-                description:
-                  'Общий этап для всех участников. Материалы сдавайте в своём выполнении.',
-                deadline: new Date(
-                  Date.parse(c.deadlineDate + 'T12:00:00Z') - (2 - i) * 7 * 86400000,
-                )
-                  .toISOString()
-                  .slice(0, 10),
-                status: 'pending',
-                attachedMaterials: [],
-              }),
-          )
-      })
-      save('milestones', this.milestones)
-      save('demo_shared_plan_v1', true)
-    }
-    const missing = demo.cases.filter((c) => !this.cases.some((x) => x.id === c.id))
-    if (missing.length) {
-      this.cases.push(...missing)
-      this.executions.push(...demo.executions.filter((e) => missing.some((c) => c.id === e.caseId)))
-      this.users.push(...demo.users.filter((u) => !this.users.some((x) => x.id === u.id)))
-      save('cases', this.cases)
+    for (const project of [...demo.cases, pendingCase])
+      if (!this.cases.some((item) => item.id === project.id)) this.cases.push(project)
+    for (const user of demo.users)
+      if (!this.users.some((item) => item.id === user.id)) this.users.push(user)
+    for (const team of demo.teams)
+      if (!this.teams.some((item) => item.id === team.id)) this.teams.push(team)
+    for (const application of demo.applications)
+      if (!this.applications.some((item) => item.id === application.id))
+        this.applications.push(application)
+    // Initial examples are added once; later edits remain stored in this dataset's namespace.
+    if (!load('competition_initialized', false)) {
+      this.executions.push(...demo.executions)
       save('executions', this.executions)
-      save('users', this.users)
+      save('competition_initialized', true)
     }
+    if (!load('shared_plan_initialized', false)) {
+      for (const project of demo.cases) {
+        const descriptions =
+          project.kind === 'olympiad'
+            ? [
+                'Разобрать формат ввода и ограничения задач. Проверить чтение данных на примерах.',
+                'Подготовить алгоритмы для последовательностей и графов. Описать сложность.',
+                'Проверить граничные случаи и сдать исходный код с пояснениями.',
+              ]
+            : [
+                'Согласовать пользовательский сценарий и входные данные с наставником.',
+                project.resultRequirements,
+                'Показать основной сценарий, тесты и ограничения. Приложить инструкцию запуска.',
+              ]
+        descriptions.forEach((description, index) =>
+          this.milestones.push({
+            id: project.id + '_plan_' + index,
+            caseId: project.id,
+            stepNumber: index + 1,
+            title: ['Разбор задания', 'Реализация', 'Проверка и защита'][index],
+            description,
+            deadline: ['2027-06-16', '2027-06-23', '2027-06-30'][index],
+            status: 'pending',
+            attachedMaterials: [],
+          }),
+        )
+      }
+      save('milestones', this.milestones)
+      save('shared_plan_initialized', true)
+    }
+    this.cases.forEach((project) => {
+      const apps = this.applications.filter((item) => item.caseId === project.id)
+      project.applicationsCount = apps.length
+      project.acceptedTeamsCount = apps.filter(
+        (item) => item.teamId && item.status === 'accepted',
+      ).length
+    })
+    this.companies.forEach((company) => {
+      company.activeCasesCount = this.cases.filter(
+        (project) =>
+          project.companyId === company.id &&
+          project.isModerated &&
+          !['completed', 'archived'].includes(project.status),
+      ).length
+      company.completedProjectsCount = this.cases.filter(
+        (project) =>
+          project.companyId === company.id && ['completed', 'archived'].includes(project.status),
+      ).length
+    })
+    save('cases', this.cases)
+    save('users', this.users)
+    save('teams', this.teams)
+    save('applications', this.applications)
+    save('companies', this.companies)
   }
   private syncExecutions(caseId: string): void {
     const project = this.cases.find((c) => c.id === caseId)

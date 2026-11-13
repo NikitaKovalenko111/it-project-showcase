@@ -45,7 +45,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [institute, setInstitute] = useState('Институт информатики, математики и робототехники')
   const [direction, setDirection] = useState('')
   const [course, setCourse] = useState(2)
-  const [group, setGroup] = useState('ТОП-204Б(73)')
+  const [group, setGroup] = useState('ПИ-201')
   const [skills, setSkills] = useState('React, TypeScript, Python, Git')
   const [techStack, setTechStack] = useState('React, TypeScript, PostgreSQL')
   const [consentPD, setConsentPD] = useState(false)
@@ -352,7 +352,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Магасумов Алмаз Ильшатович"
+                      placeholder="Алексей Миронов"
                       required
                     />
                   </div>
@@ -364,7 +364,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="257576@stud.uust.ru"
+                      placeholder="student@students.example"
                       required
                     />
                   </div>
@@ -419,7 +419,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={group}
                       onChange={(e) => setGroup(e.target.value)}
-                      placeholder="ТОП-204Б(73)"
+                      placeholder="ПИ-201"
                       required
                     />
                   </div>
@@ -466,7 +466,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="ООО «БашНефтеАвтоматика»"
+                      placeholder="ООО «ПромКонтур»"
                       required
                     />
                   </div>

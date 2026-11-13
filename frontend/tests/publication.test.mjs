@@ -28,7 +28,7 @@ const setup = () => {
     auditLogs: 'AUDIT_LOGS',
   }
   for (const [key, seed] of Object.entries(tables))
-    memory.set(`uust_showcase_v2_${key}`, JSON.stringify(seeds[`INITIAL_${seed}`]))
+    memory.set(`uust_showcase_curated_v1_${key}`, JSON.stringify(seeds[`INITIAL_${seed}`]))
   const server = new MockServer()
   const login = (id) =>
     localStorage.setItem('uust_current_user', JSON.stringify(server.getUserById(id)))
