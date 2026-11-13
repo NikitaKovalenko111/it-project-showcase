@@ -1,3 +1,4 @@
+import { createId } from './id'
 // Keep binary attachments out of localStorage so large files do not exhaust its small quota.
 type StoredFile = { id: string; blob: Blob; urls: string[] }
 const database = () =>
@@ -23,7 +24,7 @@ export async function storeMockFile(file: File): Promise<string> {
   let db: IDBDatabase | undefined
   try {
     db = await database()
-    await write(db, [{ id: crypto.randomUUID(), blob: file, urls: [url] }])
+    await write(db, [{ id: createId(), blob: file, urls: [url] }])
     return url
   } catch {
     URL.revokeObjectURL(url)

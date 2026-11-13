@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { buildPrograms, buildProgramApplications } from './fixtures/programs'
 import { axiosInstance } from './http'
 import { apiRuntime } from './runtime'
@@ -43,7 +44,8 @@ function save<T>(key: string, data: T) {
   localStorage.setItem('showcase_curated_v1_' + key, JSON.stringify(data))
 }
 const programs = () => read('opportunities', seed)
-const applications = () => read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
+const applications = () =>
+  read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
 function actor() {
   const session = JSON.parse(localStorage.getItem('uust_current_user') || 'null') as User | null
   const user = session && mockServer.getUserById(session.id)
@@ -97,7 +99,7 @@ export const opportunityApi = {
       throw new Error('Укажите название и описание программы.')
     const item: Opportunity = {
       ...previous,
-      program_id: previous?.program_id || crypto.randomUUID(),
+      program_id: previous?.program_id || createId(),
       kind: previous?.kind || payload.kind,
       company_id: companyId,
       company_name: company.name,
@@ -189,7 +191,7 @@ export const opportunityApi = {
       throw new Error('У вас уже есть заявка на эту программу.')
     save('opportunity_applications', [
       {
-        application_id: crypto.randomUUID(),
+        application_id: createId(),
         program_id: id,
         program_title: program.title,
         program_kind: program.kind,

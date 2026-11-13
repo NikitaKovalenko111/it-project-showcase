@@ -107,9 +107,6 @@ body:has(.modal-backdrop, dialog[open], .sidebar-backdrop.open) { overflow: hidd
   .milestone-actions .btn { flex: 1; }
   .discussion-compose { flex-wrap: wrap; }
   .discussion-compose .input, .discussion-compose .btn { flex: 1 1 100%; }
-  .recommended-student { flex-wrap: wrap; gap: 14px; }
-  .recommended-student > div { min-width: 0; }
-  .recommended-student > .btn { width: 100%; }
   .review-status-filter { flex-wrap: wrap; }
   .review-list .action-row .btn { flex: 1 1 100%; }
   .candidate-identity { flex-wrap: wrap; }

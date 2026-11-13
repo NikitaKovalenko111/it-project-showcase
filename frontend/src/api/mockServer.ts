@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { showcaseSeed } from './showcaseSeed'
 import { TEAM_NAME_MAX_LENGTH } from '../utils/validation'
 import { Execution } from '../types/execution'
@@ -636,7 +637,7 @@ export class MockServer {
     )
       throw new Error('Ваша жалоба уже на рассмотрении')
     const report: ContentReport = {
-      id: crypto.randomUUID(),
+      id: createId(),
       authorId: user.id,
       targetType,
       targetId,
@@ -750,7 +751,7 @@ export class MockServer {
     )
       throw new Error('Заявка уже отправлена')
     const request: TeamRequest = {
-      id: crypto.randomUUID(),
+      id: createId(),
       teamId,
       studentId,
       senderId: user.id,
@@ -761,7 +762,7 @@ export class MockServer {
     }
     this.teamRequests.push(request)
     save('teamRequests', this.teamRequests)
-    const notificationId = crypto.randomUUID()
+    const notificationId = createId()
     this.notifications.unshift({
       id: notificationId,
       userId: kind === 'invitation' ? studentId : team.leaderId,
@@ -850,7 +851,7 @@ export class MockServer {
     )
       throw new Error('Вы уже состоите в команде этого кейса')
     const seeker = {
-      id: crypto.randomUUID(),
+      id: createId(),
       caseId: caseId || undefined,
       studentId: user.id,
       message: message.trim(),
@@ -923,7 +924,7 @@ export class MockServer {
     save('notifications', this.notifications)
     const recipient = user.id === notification.userId ? invitation.senderId : notification.userId
     this.notifications.unshift({
-      id: crypto.randomUUID(),
+      id: createId(),
       userId: recipient,
       type: notification.type,
       title: 'Ответ на приглашение',
@@ -1628,7 +1629,7 @@ export class MockServer {
     const milestone: ProjectMilestone = {
       ...data,
       title: data.title.trim(),
-      id: `milestone_${crypto.randomUUID()}`,
+      id: `milestone_${createId()}`,
       caseId,
       stepNumber: this.getMilestones(caseId).length + 1,
       status: 'pending',
@@ -1894,7 +1895,7 @@ export class MockServer {
           email: user.email,
         },
       ],
-      id: `team_${crypto.randomUUID()}`,
+      id: `team_${createId()}`,
       createdAt: new Date().toISOString().split('T')[0],
     }
     this.teams.push(newTeam)
@@ -2051,7 +2052,7 @@ export class MockServer {
       throw new Error('Приглашать студентов может только компания')
     this.requireCaseManager(caseId)
     const c = this.cases.find((x) => x.id === caseId)
-    const notificationId = crypto.randomUUID()
+    const notificationId = createId()
     const sender = this.actor()
     this.notifications.unshift({
       id: notificationId,

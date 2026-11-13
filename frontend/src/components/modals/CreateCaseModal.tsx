@@ -1,3 +1,4 @@
+import { createId } from '../../utils/id'
 import { LocalizedFileInput } from '../LocalizedFileInput'
 import { Modal } from '../Modal'
 import { axiosInstance } from '../../api/http'
@@ -85,9 +86,9 @@ export const CreateCaseModal: React.FC<{
     [nda, setNda] = useState(false)
   const [criteria, setCriteria] = useState<
     { id: string; label: string; weight: number; maxScore?: number }[]
-  >([{ id: crypto.randomUUID(), label: 'Качество решения', weight: 1, maxScore: 10 }])
+  >([{ id: createId(), label: 'Качество решения', weight: 1, maxScore: 10 }])
   const [tasks, setTasks] = useState<{ id: string; title: string; maxScore: number }[]>(
-    caseItem?.olympiadTasks || [{ id: crypto.randomUUID(), title: 'Задача A', maxScore: 100 }],
+    caseItem?.olympiadTasks || [{ id: createId(), title: 'Задача A', maxScore: 100 }],
   )
   const [spec, setSpec] = useState<File | null>(null)
   const [cover, setCover] = useState<File | null>(null),
@@ -736,7 +737,7 @@ export const CreateCaseModal: React.FC<{
                 onClick={() =>
                   setCriteria((cs) => [
                     ...cs,
-                    { id: crypto.randomUUID(), label: '', weight: 1, maxScore: 10 },
+                    { id: createId(), label: '', weight: 1, maxScore: 10 },
                   ])
                 }
               >
@@ -798,7 +799,7 @@ export const CreateCaseModal: React.FC<{
                 className="btn btn-secondary btn-sm"
                 type="button"
                 onClick={() =>
-                  setTasks((ts) => [...ts, { id: crypto.randomUUID(), title: '', maxScore: 100 }])
+                  setTasks((ts) => [...ts, { id: createId(), title: '', maxScore: 100 }])
                 }
               >
                 Добавить задачу

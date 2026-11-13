@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { FileDownload } from '../components/FileDownload'
 import React, { useEffect, useState } from 'react'
 import { FilePicker } from '../components/FilePicker'
@@ -105,7 +106,7 @@ export const FeedbackPage: React.FC = () => {
                   record = data
                 } else {
                   record = {
-                    feedback_id: crypto.randomUUID(),
+                    feedback_id: createId(),
                     body: text.trim(),
                     file_ids: [],
                     mockFiles: uploads,

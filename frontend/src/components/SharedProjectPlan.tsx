@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { useConfirm } from './ConfirmProvider'
 import React, { useEffect, useState } from 'react'
 import { Trash2, ArrowUp, ArrowDown, Plus } from 'lucide-react'
@@ -226,7 +227,7 @@ export const SharedProjectPlan: React.FC<{
               onClick={() =>
                 setRows((rs) => [
                   ...rs,
-                  { id: `plan_${crypto.randomUUID()}`, title: '', description: '', deadline: '' },
+                  { id: `plan_${createId()}`, title: '', description: '', deadline: '' },
                 ])
               }
             >

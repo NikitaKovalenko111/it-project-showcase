@@ -19,8 +19,6 @@ import {
   RotateCcw,
   Search,
   Send,
-  Sparkles,
-  Star,
   Trophy,
   Users,
 } from 'lucide-react'
@@ -28,7 +26,6 @@ import {
 export const StudentsSearchPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { studentsList, loading, error: studentsError } = useAppSelector((state) => state.students)
-  const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [search, setSearch] = useState('')
@@ -98,21 +95,6 @@ export const StudentsSearchPage: React.FC = () => {
     ...new Set(studentsList.map((student) => student.studentProfile?.institute).filter(Boolean)),
   ]
 
-  // Recommended students algorithm based on matching company cases technologies
-  const companyTech = new Set(
-    casesList
-      .filter((project) => project.companyId === currentUser?.companyProfile?.companyId)
-      .flatMap((project) => project.requiredCompetencies.map((tech) => tech.toLowerCase())),
-  )
-  const recommendedCandidates = filteredStudents
-    .filter((student) =>
-      [
-        ...(student.studentProfile?.skills || []),
-        ...(student.studentProfile?.techStack || []),
-      ].some((tech) => companyTech.has(tech.toLowerCase())),
-    )
-    .slice(0, 3)
-
   return (
     <div>
       {/* Page Header */}
@@ -137,92 +119,6 @@ export const StudentsSearchPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Recommended Section */}
-      {canInvite && recommendedCandidates.length > 0 && (
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
-            border: '1px solid #bfdbfe',
-            borderRadius: '8px',
-            padding: '20px 24px',
-            marginBottom: '24px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <Sparkles size={18} color="#2563eb" />
-            <h3 style={{ margin: 0, fontSize: '15px', color: '#1e3a8a' }}>
-              Рекомендованные кандидаты под требования ИТ-кейсов
-            </h3>
-          </div>
-
-          <div
-            className="responsive-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '14px',
-            }}
-          >
-            {recommendedCandidates.map((cand) => (
-              <div
-                className="recommended-student"
-                key={cand.id}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  padding: '14px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <IdentityImage
-                    src={cand.avatar}
-                    name={cand.fullName}
-                    className="candidate-avatar"
-                  />
-                  <div>
-                    <Link className="profile-link" to={`/profile/${cand.id}`}>
-                      <strong style={{ fontSize: '13px', display: 'block' }}>
-                        {cand.fullName}
-                      </strong>
-                    </Link>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      {cand.studentProfile?.fieldOfStudy.split(' ')[1] || 'ИТ-направление'} •{' '}
-                      {cand.studentProfile?.course} курс
-                    </span>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '11px',
-                        color: '#d97706',
-                        marginTop: '2px',
-                      }}
-                    >
-                      <Star size={12} fill="#d97706" /> Рейтинг:{' '}
-                      <strong>{cand.studentProfile?.rating}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setSelectedStudentForInvite(cand)}
-                  style={{ flexShrink: 0 }}
-                >
-                  <Send size={13} /> Пригласить
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Filter Bar */}
       <div className="uust-container">
