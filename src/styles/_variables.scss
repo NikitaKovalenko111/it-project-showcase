@@ -1,0 +1,75 @@
+// UUST ISU Brand Colors
+$primary-navy: #0c1938;
+$primary-navy-dark: #071026;
+$primary-blue: #3a75b4;
+$primary-blue-hover: #295f99;
+$primary-blue-light: #5992ce;
+$primary-blue-subtle: #eaf3fb;
+
+$uust-tab-active: #2b66a5;
+$uust-tab-inactive: #578ec7;
+$uust-accent-red: #e04646;
+$uust-accent-red-hover: #c93535;
+$uust-pill-purple: #7976a4;
+
+$accent-cyan: #269eb8;
+$accent-cyan-light: #e6f6fa;
+$accent-amber: #e68a19;
+$accent-amber-light: #fff8ed;
+$accent-emerald: #28a745;
+$accent-emerald-light: #edfbf5;
+$accent-coral: #e04646;
+$accent-coral-light: #fef1ed;
+$accent-purple: #6f42c1;
+$accent-purple-light: #f4effc;
+$accent-gold: #f59e0b;
+
+$bg-main: #f4f6fa;
+$bg-surface: #ffffff;
+$bg-surface-glass: rgba(255, 255, 255, 0.96);
+$bg-subtle: #f8fafc;
+$bg-sidebar: #091533;
+
+$text-dark: #1a2233;
+$text-body: #334455;
+$text-muted: #5e7188;
+$text-light: #8da4be;
+$text-on-dark: #ffffff;
+
+$border-color: #dbe3ed;
+$border-glass: rgba(219, 227, 237, 0.8);
+$border-focus: #3a75b4;
+
+// Shadows & Glows - subtle, non-AI engineered look
+$shadow-sm: 0 1px 3px rgba(11, 23, 54, 0.05);
+$shadow-md: 0 3px 10px rgba(11, 23, 54, 0.07);
+$shadow-lg: 0 8px 20px rgba(11, 23, 54, 0.09);
+$shadow-xl: 0 12px 30px rgba(11, 23, 54, 0.12);
+$shadow-glow-blue: 0 4px 14px rgba(58, 117, 180, 0.22);
+$shadow-glow-coral: 0 4px 14px rgba(224, 70, 70, 0.25);
+$shadow-card-hover: 0 8px 24px -4px rgba(12, 25, 56, 0.1), 0 2px 6px -1px rgba(12, 25, 56, 0.04);
+
+// Modern author gradients preserving UUST palette
+$gradient-uust-hero: linear-gradient(135deg, #091533 0%, #122854 40%, #1e4b85 75%, #2a68ad 100%);
+$gradient-sidebar: linear-gradient(180deg, #08132d 0%, #0c1e45 45%, #081430 100%);
+$gradient-coral-active: linear-gradient(135deg, #e04646 0%, #ff5252 100%);
+$gradient-blue-active: linear-gradient(135deg, #2b66a5 0%, #3a75b4 100%);
+$gradient-gold-badge: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+$gradient-emerald-badge: linear-gradient(135deg, #10b981 0%, #059669 100%);
+$gradient-card-border: linear-gradient(135deg, rgba(58, 117, 180, 0.25), rgba(255, 255, 255, 0.9), rgba(224, 70, 70, 0.15));
+
+// Reduced border radius - clean, strict, realistic academic UI
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-xl: 10px;
+$radius-full: 9999px;
+
+$transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+
+// Breakpoints
+$bp-mobile: 480px;
+$bp-tablet: 768px;
+$bp-laptop: 1024px;
+$bp-desktop: 1280px;
+$bp-wide: 1536px;
