@@ -15,12 +15,12 @@ export const AdminCaseActions: React.FC<{ project: CaseProject }> = ({ project }
   return (
     <>
       <button
-        className="btn btn-secondary btn-sm"
+        className={`btn btn-sm ${hidden ? 'btn-secondary' : 'btn-danger'}`}
         disabled={busy}
         onClick={async () => {
           if (
             !(await confirm(
-              `${hidden ? 'Восстановить публикацию' : 'Скрыть кейс'} «${project.title}»?`,
+              `${hidden ? 'Восстановить публикацию' : 'Заблокировать кейс'} «${project.title}»?`,
             ))
           )
             return

@@ -1,3 +1,8 @@
+import { buildCases, buildCompanies, buildPortfolio, buildStudents } from './fixtures/builders'
+import { textAttachment } from './fixtures/builders'
+import { createId } from '../utils/id'
+import { showcaseSeed } from './showcaseSeed'
+import { TEAM_NAME_MAX_LENGTH } from '../utils/validation'
 import { Execution } from '../types/execution'
 import { competitionSeed } from './competitionSeed'
 import { openRegistration } from '../utils/competition'
@@ -40,11 +45,13 @@ import {
   canModerate,
   isPublished,
   publicationLabels,
+  matchesSearch,
   visibleStudentProjectsFor,
 } from '../utils/publication'
 
 // Keys for localStorage
-const STORAGE_PREFIX = 'uust_showcase_v2_'
+export const MOCK_STORAGE_PREFIX = 'uust_showcase_curated_v1_'
+const STORAGE_PREFIX = MOCK_STORAGE_PREFIX
 const load = <T>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key)
@@ -65,6 +72,8 @@ const save = <T>(key: string, data: T): void => {
     console.error('Storage save error:', e)
   }
 }
+
+const showcase = showcaseSeed()
 
 export class MockServer {
   private notifyReviewers(kind: 'case' | 'student', title: string): void {
@@ -100,19 +109,19 @@ export class MockServer {
     if (this.sessionUser()?.role !== 'admin')
       throw new Error('Действие доступно только администратору')
   }
-  private users: User[] = load('users', INITIAL_USERS)
-  private companies: Company[] = load('companies', INITIAL_COMPANIES)
-  private cases: CaseProject[] = load('cases', INITIAL_CASES)
-  private milestones: ProjectMilestone[] = load('milestones', INITIAL_MILESTONES)
+  private users: User[] = load('users', showcase.users)
+  private companies: Company[] = load('companies', showcase.companies)
+  private cases: CaseProject[] = load('cases', showcase.cases)
+  private milestones: ProjectMilestone[] = load('milestones', showcase.milestones)
   private submissions: ProjectSubmission[] = load('submissions', INITIAL_SUBMISSIONS)
   private evaluations: ProjectEvaluation[] = load('evaluations', INITIAL_EVALUATIONS)
   private projectLikes: Record<string, string[]> = load('studentProjectLikes', {})
-  private studentProjects: StudentProject[] = load('studentProjects', INITIAL_STUDENT_PROJECTS)
+  private studentProjects: StudentProject[] = load('studentProjects', showcase.projects)
   private applications: CaseApplication[] = load('applications', INITIAL_APPLICATIONS)
   private teams: ProjectTeam[] = load('teams', INITIAL_TEAMS)
-  private comments: ProjectComment[] = load('comments', INITIAL_COMMENTS)
+  private comments: ProjectComment[] = load('comments', showcase.comments)
   private notifications: SystemNotification[] = load('notifications', INITIAL_NOTIFICATIONS)
-  private auditLogs: AuditLog[] = load('auditLogs', INITIAL_AUDIT_LOGS)
+  private auditLogs: AuditLog[] = load('auditLogs', showcase.audit)
   private favorites: string[] = load('favorites', ['case_1', 'case_2'])
   private ndaAccepted: string[] = load('ndaAccepted', [])
   private teamRequests: TeamRequest[] = load('teamRequests', [])
@@ -122,51 +131,359 @@ export class MockServer {
   private executions: Execution[] = load('executions', [])
   constructor() {
     const demo = competitionSeed()
-    this.applications.push(
-      ...demo.applications.filter((a) => !this.applications.some((x) => x.id === a.id)),
-    )
-    save('applications', this.applications)
-    this.teams.push(...demo.teams.filter((t) => !this.teams.some((x) => x.id === t.id)))
-    for (const entry of this.executions) {
-      const seed = demo.executions.find((e) => e.id === entry.id)
-      if (seed?.teamId && !entry.teamId) entry.teamId = seed.teamId
+    const pendingCase: CaseProject = {
+      ...structuredClone(INITIAL_CASES[1]),
+      id: 'demo_case_review',
+      title: 'Панель доступности городских сервисов',
+      companyId: 'comp_1',
+      companyName: this.companies[0].name,
+      companyLogo: this.companies[0].logo,
+      direction: 'Frontend',
+      shortDescription:
+        'Дежурной команде нужен единый экран состояния сервисов и история недоступности.',
+      fullDescription:
+        '## Задача\n\nПокажите текущее состояние городских сервисов, историю сбоев и фильтры по типу сервиса.\n\n## Проверка\n\nОбработайте недоступность источника, пустой журнал и восстановление связи.',
+      resultRequirements: 'Веб-панель со статусами, журналом сбоев и инструкцией запуска.',
+      requiredCompetencies: ['React', 'TypeScript', 'REST API'],
+      recommendedTech: ['React', 'TypeScript'],
+      status: 'moderation',
+      moderationStatus: 'pending',
+      isModerated: false,
+      applicationsCount: 0,
+      publishedAt: '',
     }
-    save('teams', this.teams)
-    save('executions', this.executions)
-    if (!load('demo_shared_plan_v1', false)) {
-      demo.cases.forEach((c) => {
-        if (!this.milestones.some((m) => m.caseId === c.id))
-          ['Старт и разбор задания', 'Промежуточный результат', 'Финальная сдача'].forEach(
-            (title, i) =>
-              this.milestones.push({
-                id: `${c.id}_plan_${i}`,
-                caseId: c.id,
-                stepNumber: i + 1,
-                title: c.kind === 'olympiad' ? `Тур ${i + 1}` : title,
-                description:
-                  'Общий этап для всех участников. Материалы сдавайте в своём выполнении.',
-                deadline: new Date(
-                  Date.parse(c.deadlineDate + 'T12:00:00Z') - (2 - i) * 7 * 86400000,
-                )
-                  .toISOString()
-                  .slice(0, 10),
-                status: 'pending',
-                attachedMaterials: [],
-              }),
-          )
-      })
-      save('milestones', this.milestones)
-      save('demo_shared_plan_v1', true)
-    }
-    const missing = demo.cases.filter((c) => !this.cases.some((x) => x.id === c.id))
-    if (missing.length) {
-      this.cases.push(...missing)
-      this.executions.push(...demo.executions.filter((e) => missing.some((c) => c.id === e.caseId)))
-      this.users.push(...demo.users.filter((u) => !this.users.some((x) => x.id === u.id)))
-      save('cases', this.cases)
+    for (const project of [...demo.cases, pendingCase])
+      if (!this.cases.some((item) => item.id === project.id)) this.cases.push(project)
+    for (const user of demo.users)
+      if (!this.users.some((item) => item.id === user.id)) this.users.push(user)
+    for (const team of demo.teams)
+      if (!this.teams.some((item) => item.id === team.id)) this.teams.push(team)
+    for (const application of demo.applications)
+      if (!this.applications.some((item) => item.id === application.id))
+        this.applications.push(application)
+    // Initial examples are added once; later edits remain stored in this dataset's namespace.
+    if (!load('competition_initialized', false)) {
+      this.executions.push(...demo.executions)
       save('executions', this.executions)
-      save('users', this.users)
+      save('competition_initialized', true)
     }
+    if (!load('shared_plan_initialized', false)) {
+      for (const project of demo.cases) {
+        const descriptions =
+          project.kind === 'olympiad'
+            ? [
+                'Разобрать формат ввода и ограничения задач. Проверить чтение данных на примерах.',
+                'Подготовить алгоритмы для последовательностей и графов. Описать сложность.',
+                'Проверить граничные случаи и сдать исходный код с пояснениями.',
+              ]
+            : [
+                'Согласовать пользовательский сценарий и входные данные с наставником.',
+                project.resultRequirements,
+                'Показать основной сценарий, тесты и ограничения. Приложить инструкцию запуска.',
+              ]
+        descriptions.forEach((description, index) =>
+          this.milestones.push({
+            id: project.id + '_plan_' + index,
+            caseId: project.id,
+            stepNumber: index + 1,
+            title: ['Разбор задания', 'Реализация', 'Проверка и защита'][index],
+            description,
+            deadline: ['2027-06-16', '2027-06-23', '2027-06-30'][index],
+            status: 'pending',
+            attachedMaterials: [],
+          }),
+        )
+      }
+      save('milestones', this.milestones)
+      save('shared_plan_initialized', true)
+    }
+    // Upgrade only untouched fixture fields; retain manually edited records and uploaded files.
+    if (!load('fixture_quality_20261114', false)) {
+      for (const company of this.companies) {
+        const fixture = showcase.companies.find((item) => item.id === company.id)
+        if (!fixture) continue
+        if (!company.website) company.website = fixture.website
+        if (!company.internshipProgram) company.internshipProgram = fixture.internshipProgram
+        if (!company.practiceProgram) company.practiceProgram = fixture.practiceProgram
+        if (company.description === fixture.description.split('\n\n')[0])
+          company.description = fixture.description
+      }
+      for (const fixture of demo.executions) {
+        const entry = this.executions.find((item) => item.id === fixture.id)
+        const team = this.teams.find((item) => item.id === fixture.teamId)
+        if (
+          team &&
+          team.name === fixture.name &&
+          team.members.length === 1 &&
+          team.members[0].id === fixture.members[0].id
+        ) {
+          team.members = [team.members[0], ...fixture.members.slice(1)]
+          if (!team.description)
+            team.description = demo.teams.find((item) => item.id === team.id)?.description
+          if (entry?.members.length === 1)
+            entry.members = [entry.members[0], ...fixture.members.slice(1)]
+        }
+        if (entry?.submission && fixture.submission) {
+          const legacy = fixture.submission.description.split('\n\nПодготовка данных:')[0]
+          if (entry.submission.description === legacy) {
+            entry.submission.description = fixture.submission.description
+            if (!entry.submission.screenshots.length)
+              entry.submission.screenshots = fixture.submission.screenshots
+          }
+        }
+      }
+      save('executions', this.executions)
+      save('fixture_quality_20261114', true)
+    }
+    if (!load('fixture_details_20261114_v2', false)) {
+      const legacyCases = buildCases(false),
+        legacyCompanies = buildCompanies(false),
+        legacyProjects = buildPortfolio(false),
+        legacyUsers = buildStudents(false)
+      for (const item of this.cases) {
+        const old = legacyCases.find((row) => row.id === item.id),
+          next = showcase.cases.find((row) => row.id === item.id)
+        if (old && next && item.fullDescription === old.fullDescription)
+          item.fullDescription = next.fullDescription
+      }
+      for (const item of this.companies) {
+        const old = legacyCompanies.find((row) => row.id === item.id),
+          next = showcase.companies.find((row) => row.id === item.id)
+        if (old && next && item.description === old.description) item.description = next.description
+      }
+      for (const item of this.studentProjects) {
+        const old = legacyProjects.find((row) => row.id === item.id),
+          next = showcase.projects.find((row) => row.id === item.id)
+        if (old && next && item.fullDescription === old.fullDescription)
+          item.fullDescription = next.fullDescription
+      }
+      for (const item of this.users) {
+        const old = legacyUsers.find((row) => row.id === item.id),
+          next = showcase.users.find((row) => row.id === item.id)
+        if (
+          old &&
+          next &&
+          item.studentProfile?.bio === old.studentProfile?.bio &&
+          item.studentProfile
+        )
+          item.studentProfile.bio = next.studentProfile!.bio
+      }
+      save('studentProjects', this.studentProjects)
+      save('fixture_details_20261114_v2', true)
+    }
+    if (!load('fixture_profiles_20261114_v3', false)) {
+      const fillBlank = (
+        target: Record<string, unknown>,
+        fixture: Record<string, unknown>,
+        fields: string[],
+      ) => {
+        for (const field of fields) {
+          if (
+            target[field] === undefined ||
+            target[field] === '' ||
+            (Array.isArray(target[field]) && !target[field].length)
+          )
+            if (fixture[field] !== undefined) target[field] = structuredClone(fixture[field])
+        }
+      }
+      for (const item of this.companies) {
+        const fixture = showcase.companies.find((company) => company.id === item.id)
+        if (fixture)
+          fillBlank(
+            item as unknown as Record<string, unknown>,
+            fixture as unknown as Record<string, unknown>,
+            ['inn', 'kpp', 'ogrn', 'legalAddress', 'phone', 'documents'],
+          )
+      }
+      for (const item of this.users) {
+        const fixture = showcase.users.find((user) => user.id === item.id)
+        if (fixture?.studentProfile && item.studentProfile)
+          fillBlank(
+            item.studentProfile as unknown as Record<string, unknown>,
+            fixture.studentProfile as unknown as Record<string, unknown>,
+            ['phone', 'githubUrl', 'gitlabUrl', 'portfolioUrl', 'links', 'resume', 'files'],
+          )
+      }
+      for (const item of this.studentProjects) {
+        const fixture = showcase.projects.find((project) => project.id === item.id)
+        if (fixture)
+          fillBlank(
+            item as unknown as Record<string, unknown>,
+            fixture as unknown as Record<string, unknown>,
+            ['githubUrl', 'productUrl', 'screenshots'],
+          )
+      }
+      for (const entry of this.executions) {
+        const fixture = demo.executions.find((row) => row.id === entry.id)
+        if (entry.submission && fixture?.submission)
+          fillBlank(
+            entry.submission as unknown as Record<string, unknown>,
+            fixture.submission as unknown as Record<string, unknown>,
+            ['repoUrl', 'demoUrl', 'documentationUrl', 'presentationUrl'],
+          )
+      }
+      save('studentProjects', this.studentProjects)
+      save('executions', this.executions)
+      save('fixture_profiles_20261114_v3', true)
+    }
+    if (!load('team_catalog_annotations_v1', false)) {
+      const students = buildStudents()
+      const definitions = [
+        {
+          id: 'recruiting_interface',
+          name: 'Интерфейсная мастерская',
+          leader: 18,
+          project: 'case_2',
+          description:
+            'Разрабатываем календарь лабораторий. Ищем участника, который поможет с доступностью форм, состояниями загрузки и проверкой мобильной версии. Встречаемся по вторникам; перед первой задачей обсуждаем макеты и критерии готовности.',
+        },
+        {
+          id: 'recruiting_data',
+          name: 'Исследователи данных',
+          leader: 21,
+          project: 'case_3',
+          description:
+            'Сравниваем способы проверки учебных данных. Нужны Python, внимательность к пропускам и желание документировать эксперименты. Начинаем с небольшого набора, результаты обсуждаем с наставником раз в неделю.',
+        },
+        {
+          id: 'recruiting_quality',
+          name: 'Качество по шагам',
+          leader: 24,
+          project: 'case_4',
+          description:
+            'Готовим прототип и воспроизводимые сценарии проверки. Ищем разработчика интерфейса или тестировщика. Задачи распределяем по доступному времени, код просматриваем вместе и фиксируем личный вклад в отчёте.',
+        },
+      ]
+      for (const item of definitions) {
+        const leader = students[item.leader]
+        if (!this.teams.some((team) => team.id === item.id))
+          this.teams.push({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            leaderId: leader.id,
+            leaderName: leader.fullName,
+            recruitingCaseId: item.project,
+            createdAt: '2026-11-13',
+            members: [
+              {
+                id: leader.id,
+                name: leader.fullName,
+                role: 'Капитан',
+                competencies: leader.studentProfile!.skills,
+                email: leader.email,
+              },
+            ],
+          })
+      }
+      const requests: TeamRequest[] = [
+        {
+          id: 'seed_incoming_invitation',
+          teamId: 'recruiting_interface',
+          studentId: students[0].id,
+          senderId: students[18].id,
+          kind: 'invitation',
+          message:
+            'Приглашаем помочь с интерфейсом календаря и проверкой доступности. Можно начать с одного сценария записи в лабораторию.',
+          status: 'pending',
+          createdAt: '2026-11-13T10:00:00Z',
+        },
+        {
+          id: 'seed_incoming_application',
+          teamId: 'team_alpha',
+          studentId: students[19].id,
+          senderId: students[19].id,
+          kind: 'application',
+          message:
+            'Хочу присоединиться к проверке телеметрии. Могу подготовить набор граничных случаев и инструкцию воспроизведения.',
+          status: 'pending',
+          createdAt: '2026-11-13T11:00:00Z',
+        },
+        {
+          id: 'seed_outgoing_invitation',
+          teamId: 'team_alpha',
+          studentId: students[20].id,
+          senderId: students[0].id,
+          kind: 'invitation',
+          message:
+            'Предлагаем взять визуализацию истории показаний. Требования и учебный набор разберём на первой встрече.',
+          status: 'pending',
+          createdAt: '2026-11-13T12:00:00Z',
+        },
+        {
+          id: 'seed_outgoing_application',
+          teamId: 'recruiting_data',
+          studentId: students[0].id,
+          senderId: students[0].id,
+          kind: 'application',
+          message:
+            'Готов помочь с панелью сравнения экспериментов и формами загрузки данных. Удобен дистанционный формат.',
+          status: 'pending',
+          createdAt: '2026-11-13T13:00:00Z',
+        },
+      ]
+      for (const request of requests)
+        if (!this.teamRequests.some((row) => row.id === request.id)) this.teamRequests.push(request)
+      for (const index of [19, 20, 22]) {
+        const student = students[index]
+        if (!this.seekers.some((row) => row.studentId === student.id))
+          this.seekers.push({
+            id: 'seed_seeker_' + index,
+            studentId: student.id,
+            message:
+              'Ищу команду для учебного прототипа. Готов обсуждать требования, брать небольшие задачи и показывать результат раз в неделю.',
+            techStack: student.studentProfile!.skills,
+          })
+      }
+      save('teamRequests', this.teamRequests)
+      save('seekers', this.seekers)
+      save('team_catalog_annotations_v1', true)
+    }
+    if (!load('fixture_legal_repair_v4', false)) {
+      for (const item of this.companies) {
+        const fixture = showcase.companies.find((row) => row.id === item.id)
+        if (!fixture) continue
+        for (const key of ['inn', 'kpp', 'ogrn', 'legalAddress', 'phone'] as const)
+          if (!item[key]?.trim()) item[key] = fixture[key]
+        if (!item.documents?.length) item.documents = structuredClone(fixture.documents || [])
+      }
+      save('fixture_legal_repair_v4', true)
+    }
+    this.cases.forEach((project) => {
+      const apps = this.applications.filter((item) => item.caseId === project.id)
+      project.applicationsCount = apps.length
+      project.acceptedTeamsCount = apps.filter(
+        (item) => item.teamId && item.status === 'accepted',
+      ).length
+    })
+    this.companies.forEach((company) => {
+      company.activeCasesCount = this.cases.filter(
+        (project) =>
+          project.companyId === company.id &&
+          project.isModerated &&
+          !['completed', 'archived'].includes(project.status),
+      ).length
+      company.completedProjectsCount = this.cases.filter(
+        (project) =>
+          project.companyId === company.id && ['completed', 'archived'].includes(project.status),
+      ).length
+    })
+    save('cases', this.cases)
+    save('users', this.users)
+    save('teams', this.teams)
+    save('applications', this.applications)
+    save('companies', this.companies)
+  }
+  withdrawCaseModeration(id: string): CaseProject {
+    const project = this.requireCaseManager(id)
+    if (this.sessionUser()?.role !== 'company' || project.status !== 'moderation')
+      throw new Error('Отозвать можно только свою публикацию на модерации.')
+    project.status = 'revision'
+    project.moderationStatus = 'revision'
+    project.moderationComment = 'Публикация отозвана компанией для редактирования.'
+    project.isModerated = false
+    save('cases', this.cases)
+    return structuredClone(project)
   }
   private syncExecutions(caseId: string): void {
     const project = this.cases.find((c) => c.id === caseId)
@@ -246,6 +563,10 @@ export class MockServer {
           if (team) e.members = structuredClone(team.members)
         }
         e.milestones ||= []
+        const upgradedStages = load<string[]>('fixture_work_details_v3', [])
+        const upgradeStages =
+          e.id.startsWith('demo_') && project.kind !== 'olympiad' && !upgradedStages.includes(e.id)
+
         for (const template of this.milestones.filter((m) => m.caseId === caseId)) {
           const id = `${e.id}::${template.id}`
           const existing = e.milestones.find((m) => m.id === id)
@@ -263,7 +584,10 @@ export class MockServer {
                     title: template.title,
                     description: template.description,
                     deadline: template.deadline,
-                    status: 'pending',
+                    status:
+                      e.id.startsWith('demo_') && project.kind !== 'olympiad' && e.submission
+                        ? 'accepted'
+                        : 'pending',
                     attachedMaterials: [],
                   },
             )
@@ -273,6 +597,56 @@ export class MockServer {
             existing.deadline = template.deadline
             existing.stepNumber = template.stepNumber
           }
+        }
+        if (upgradeStages) {
+          const index = Number(e.id.split('_').slice(-1)[0])
+          for (const stage of e.milestones) {
+            const previousDefault = e.submission ? 'accepted' : 'pending'
+            if (
+              stage.status !== previousDefault ||
+              stage.attachedMaterials.length ||
+              stage.feedback
+            )
+              continue
+            const step = stage.stepNumber - 1
+            const progress =
+              index < 4
+                ? ['accepted', 'accepted', 'accepted']
+                : index < 9
+                  ? [
+                      'accepted',
+                      index % 2 ? 'accepted' : 'needs_work',
+                      index % 2 ? 'submitted' : 'pending',
+                    ]
+                  : ['in_progress', 'pending', 'pending']
+            stage.status = (progress[step] as ProjectMilestone['status']) || 'pending'
+            if (['accepted', 'submitted', 'needs_work'].includes(stage.status)) {
+              stage.attachedMaterials = [
+                textAttachment(
+                  ['Сценарии и требования.txt', 'Проверка прототипа.txt', 'Отчёт о защите.txt'][
+                    step
+                  ] || 'Отчёт.txt',
+                  e.name +
+                    ' · ' +
+                    project.title +
+                    '\n\n' +
+                    stage.description +
+                    '\n\nЛичный вклад: ' +
+                    e.members.map((member) => member.name + ' - ' + member.role).join('; ') +
+                    '\n\nПроверки: корректный ввод, пустые значения, повторное действие, восстановление после ошибки. Результаты проверяем по согласованным критериям задания.',
+                ),
+              ]
+              stage.submittedAt = '2026-11-11T10:00:00Z'
+              stage.feedback =
+                stage.status === 'accepted'
+                  ? 'Материалы проверены. Основной сценарий воспроизводится по инструкции.'
+                  : stage.status === 'needs_work'
+                    ? 'Добавьте результаты проверки восстановления после ошибки и укажите ограничения прототипа.'
+                    : undefined
+            }
+          }
+          upgradedStages.push(e.id)
+          save('fixture_work_details_v3', upgradedStages)
         }
         e.milestones.sort((a, b) => a.stepNumber - b.stepNumber)
       })
@@ -425,6 +799,7 @@ export class MockServer {
     id: string,
     description: string,
     files: { name: string; url: string }[],
+    demoUrl?: string,
   ): Execution {
     const user = this.actor(),
       entry = this.executions.find((e) => e.id === id)
@@ -442,6 +817,7 @@ export class MockServer {
       authorName: user.fullName,
       description,
       repoUrl: '',
+      demoUrl,
       screenshots: [],
       attachedFiles: files,
       submittedAt: new Date().toISOString(),
@@ -531,6 +907,12 @@ export class MockServer {
     project.status = 'completed'
     save('cases', this.cases)
   }
+  withdrawResults(caseId: string): void {
+    const project = this.requireCaseManager(caseId)
+    if (project.status !== 'completed') return
+    project.status = 'in_progress'
+    save('cases', this.cases)
+  }
   getStudentAchievements(studentId: string) {
     this.actor()
     const cases = this.cases.filter((c) => c.status === 'completed' && isPublished(c))
@@ -574,7 +956,7 @@ export class MockServer {
     )
       throw new Error('Ваша жалоба уже на рассмотрении')
     const report: ContentReport = {
-      id: crypto.randomUUID(),
+      id: createId(),
       authorId: user.id,
       targetType,
       targetId,
@@ -688,7 +1070,7 @@ export class MockServer {
     )
       throw new Error('Заявка уже отправлена')
     const request: TeamRequest = {
-      id: crypto.randomUUID(),
+      id: createId(),
       teamId,
       studentId,
       senderId: user.id,
@@ -699,7 +1081,7 @@ export class MockServer {
     }
     this.teamRequests.push(request)
     save('teamRequests', this.teamRequests)
-    const notificationId = crypto.randomUUID()
+    const notificationId = createId()
     this.notifications.unshift({
       id: notificationId,
       userId: kind === 'invitation' ? studentId : team.leaderId,
@@ -788,7 +1170,7 @@ export class MockServer {
     )
       throw new Error('Вы уже состоите в команде этого кейса')
     const seeker = {
-      id: crypto.randomUUID(),
+      id: createId(),
       caseId: caseId || undefined,
       studentId: user.id,
       message: message.trim(),
@@ -861,7 +1243,7 @@ export class MockServer {
     save('notifications', this.notifications)
     const recipient = user.id === notification.userId ? invitation.senderId : notification.userId
     this.notifications.unshift({
-      id: crypto.randomUUID(),
+      id: createId(),
       userId: recipient,
       type: notification.type,
       title: 'Ответ на приглашение',
@@ -891,15 +1273,17 @@ export class MockServer {
     return updated
   }
 
-  toggleUserBlock(userId: string): User {
+  toggleUserBlock(userId: string, reason = ''): User {
     this.requireAdmin()
+    if (this.sessionUser()?.id === userId) throw new Error('Нельзя заблокировать свой аккаунт.')
     const user = this.users.find((u) => u.id === userId)
+    const admin = this.sessionUser()!
     if (user) {
       user.isBlocked = !user.isBlocked
       save('users', this.users)
       this.logAudit({
-        userId: 'usr_admin_1',
-        userName: 'Наиль Хисамов',
+        userId: admin.id,
+        userName: admin.fullName,
         userRole: 'admin',
         actionType: 'user_blocked',
         objectType: 'User',
@@ -907,7 +1291,7 @@ export class MockServer {
         objectName: user.fullName,
         previousValue: user.isBlocked ? 'Разблокирован' : 'Заблокирован',
         newValue: user.isBlocked ? 'Заблокирован' : 'Разблокирован',
-        details: `Статус пользователя изменен`,
+        details: reason.trim() || 'Статус пользователя изменён',
       })
     }
     return user!
@@ -915,6 +1299,7 @@ export class MockServer {
 
   changeUserRole(userId: string, newRole: User['role']): User {
     this.requireAdmin()
+    if (this.sessionUser()?.id === userId) throw new Error('Нельзя изменить свою роль.')
     const user = this.users.find((u) => u.id === userId)
     if (user) {
       const prev = user.role
@@ -945,6 +1330,9 @@ export class MockServer {
     phone?: string
     group?: string
     institute?: string
+    direction?: string
+    course?: number
+    technologies?: string[]
     companyName?: string
   }): User {
     const existing = this.users.find(
@@ -963,29 +1351,25 @@ export class MockServer {
       fullName: data.fullName,
       email: data.email,
       role: data.role,
-      phone: data.phone || '+7 (900) 000-00-00',
+      phone: data.phone || '',
       createdAt: new Date().toISOString(),
-      avatar:
-        data.role === 'student'
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     }
 
     if (data.role === 'student') {
       newUser.studentProfile = {
         university: 'Уфимский университет науки и технологий (УУНиТ)',
         institute: data.institute || 'Институт информатики, математики и робототехники',
-        fieldOfStudy: '09.03.04 Программная инженерия',
-        educationalProgram: 'Разработка программно-информационных систем',
-        course: 1,
-        group: data.group || 'ПИ-101',
-        bio: 'Студент УУНиТ. Изучаю современные информационные технологии и разработку ПО.',
-        interests: ['Веб-разработка', 'Алгоритмы', 'Информационные системы'],
-        skills: ['React', 'TypeScript', 'Git', 'Python'],
-        techStack: ['React', 'TypeScript'],
-        githubUrl: 'https://github.com/uust-student',
+        fieldOfStudy: data.direction || '',
+        educationalProgram: '',
+        course: data.course || 1,
+        group: data.group || '',
+        bio: '',
+        interests: [],
+        skills: [],
+        techStack: data.technologies || [],
+        githubUrl: '',
         phone: data.phone || '',
-        rating: 85,
+        rating: 0,
         verifiedProjectsCount: 0,
         winsCount: 0,
       }
@@ -1000,7 +1384,7 @@ export class MockServer {
         id: companyId,
         name: data.companyName || 'ООО «ИТ Партнер»',
         shortName: data.companyName || 'ИТ Партнер',
-        logo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120',
+        logo: '',
         industry: 'Информационные технологии',
         description: 'Партнёрская ИТ-компания университета',
         website: 'https://uust.ru',
@@ -1101,15 +1485,16 @@ export class MockServer {
     if (!filters) return result
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      result = result.filter(
-        (c) =>
-          c.title.toLowerCase().includes(s) ||
-          c.shortDescription.toLowerCase().includes(s) ||
-          c.companyName.toLowerCase().includes(s) ||
-          [...c.requiredCompetencies, ...c.recommendedTech].some((tech) =>
-            tech.toLowerCase().includes(s),
-          ),
+      result = result.filter((c) =>
+        matchesSearch(
+          filters.search!,
+          c.title,
+          c.companyName,
+          c.shortDescription,
+          c.requiredCompetencies,
+          c.recommendedTech,
+          c.direction,
+        ),
       )
     }
     if (filters.direction && filters.direction !== 'all') {
@@ -1563,7 +1948,7 @@ export class MockServer {
     const milestone: ProjectMilestone = {
       ...data,
       title: data.title.trim(),
-      id: `milestone_${crypto.randomUUID()}`,
+      id: `milestone_${createId()}`,
       caseId,
       stepNumber: this.getMilestones(caseId).length + 1,
       status: 'pending',
@@ -1662,13 +2047,15 @@ export class MockServer {
     filters ||= {}
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(s) ||
-          p.shortDescription.toLowerCase().includes(s) ||
-          p.authorName.toLowerCase().includes(s) ||
-          p.technologies.some((t) => t.toLowerCase().includes(s)),
+      list = list.filter((p) =>
+        matchesSearch(
+          filters.search!,
+          p.title,
+          p.shortDescription,
+          p.authorName,
+          p.technologies,
+          p.direction,
+        ),
       )
     }
     if (filters.category && filters.category !== 'all') {
@@ -1807,9 +2194,12 @@ export class MockServer {
   }
 
   createTeam(data: Omit<ProjectTeam, 'id' | 'createdAt'>): ProjectTeam {
+    const name = data.name.trim()
+    if (!name || name.length > TEAM_NAME_MAX_LENGTH)
+      throw new Error(`Название команды должно содержать от 1 до ${TEAM_NAME_MAX_LENGTH} символов.`)
+    data = { ...data, name }
     const user = this.actor()
     if (user.role !== 'student') throw new Error('Создать команду может студент')
-    if (!data.name.trim()) throw new Error('Укажите название команды')
     const newTeam: ProjectTeam = {
       ...data,
       leaderId: user.id,
@@ -1824,7 +2214,7 @@ export class MockServer {
           email: user.email,
         },
       ],
-      id: `team_${crypto.randomUUID()}`,
+      id: `team_${createId()}`,
       createdAt: new Date().toISOString().split('T')[0],
     }
     this.teams.push(newTeam)
@@ -1845,7 +2235,16 @@ export class MockServer {
     save('comments', this.comments)
   }
   getComments(caseId: string): ProjectComment[] {
-    return this.comments.filter((c) => c.caseId === caseId)
+    return this.comments
+      .filter((c) => c.caseId === caseId)
+      .map((comment) => {
+        const author = this.users.find((user) => user.id === comment.authorId)
+        return {
+          ...comment,
+          authorName: author?.fullName || comment.authorName,
+          authorAvatar: author ? author.avatar : comment.authorAvatar,
+        }
+      })
   }
 
   addComment(data: Omit<ProjectComment, 'id' | 'createdAt'>): ProjectComment {
@@ -1939,13 +2338,15 @@ export class MockServer {
     filters ||= {}
 
     if (filters.search) {
-      const s = filters.search.trim().toLowerCase()
-      list = list.filter(
-        (u) =>
-          u.fullName.toLowerCase().includes(s) ||
-          u.studentProfile?.fieldOfStudy.toLowerCase().includes(s) ||
-          u.studentProfile?.skills.some((sk) => sk.toLowerCase().includes(s)) ||
-          u.studentProfile?.techStack.some((ts) => ts.toLowerCase().includes(s)),
+      list = list.filter((u) =>
+        matchesSearch(
+          filters.search!,
+          u.fullName,
+          u.studentProfile?.group,
+          u.studentProfile?.fieldOfStudy,
+          u.studentProfile?.skills,
+          u.studentProfile?.techStack,
+        ),
       )
     }
     if (filters.institute && filters.institute !== 'all') {
@@ -1970,7 +2371,7 @@ export class MockServer {
       throw new Error('Приглашать студентов может только компания')
     this.requireCaseManager(caseId)
     const c = this.cases.find((x) => x.id === caseId)
-    const notificationId = crypto.randomUUID()
+    const notificationId = createId()
     const sender = this.actor()
     this.notifications.unshift({
       id: notificationId,

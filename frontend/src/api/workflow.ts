@@ -14,11 +14,15 @@ type ExecutionReference = { execution_id: string; case_id: string }
 export function createWorkflow(http: any) {
   const items = async (path: string, params?: any) =>
     (await http.get(path, { params })).data.items || []
-  const files = (xs: any[], executionId: string, submissionId: string) =>
+  const base = (http.defaults?.baseURL || '/api/v1').replace(/\/$/, '')
+  const files = (xs: any[], submissionId: string) =>
     (xs || []).map((f) => ({
-      name: f.original_name || 'Материал решения',
+      name: f.original_name || `Файл ${f.ordinal || ''}`.trim(),
+      mimeType: f.mime_type,
+      kind: f.kind,
+      size: f.size_bytes ? `${Math.ceil(f.size_bytes / 1024)} КБ` : undefined,
       file_id: f.file_id,
-      url: `/api/v1/submissions/${submissionId}/files/${f.file_id}`,
+      url: `${base}/submissions/${submissionId}/files/${f.file_id}`,
     }))
   const submission = (d: any, caseId: string) =>
     d
@@ -29,8 +33,9 @@ export function createWorkflow(http: any) {
           authorName: '',
           description: d.description,
           repoUrl: d.repository_url || '',
+          demoUrl: d.demo_url || undefined,
           screenshots: [],
-          attachedFiles: files(d.files, d.execution_id, d.submission_id),
+          attachedFiles: files(d.files, d.submission_id),
           submittedAt: d.submitted_at,
         }
       : undefined
@@ -77,6 +82,7 @@ export function createWorkflow(http: any) {
           competencies: [],
         })),
       status: graded ? 'evaluated' : latest ? 'submitted' : 'active',
+      canSubmitResult: ['accepted', 'in_progress', 'revision', 'done'].includes(d.status),
       submission: submission(latest, d.case_id),
       evaluation: evaluation(graded, d.case_id),
       milestones: stages.map((s: any) => ({
@@ -112,6 +118,7 @@ export function createWorkflow(http: any) {
     description: string,
     attachments: any[],
     stageId?: string,
+    demoUrl?: string,
   ) => {
     const state = (await http.get(`/executions/${executionId}`)).data
     if (state.status === 'accepted')
@@ -131,9 +138,14 @@ export function createWorkflow(http: any) {
       title: stageId ? 'Результат этапа' : 'Итоговое решение',
       description,
       stage_id: stageId || '',
+      demo_url: demoUrl || '',
       files: attachments.map((f, i) => {
         if (!f.file_id) throw new Error('Загрузите файл на сервер перед отправкой')
-        return { file_id: f.file_id, kind: 'attachment', ordinal: i + 1 }
+        return {
+          file_id: f.file_id,
+          kind: f.kind === 'screenshot' ? 'screenshot' : 'attachment',
+          ordinal: i + 1,
+        }
       }),
     }
     await http.post(`/executions/${executionId}/submissions`, payload)
@@ -207,8 +219,13 @@ export function createWorkflow(http: any) {
     getCuratedExecutions,
     getSharedPlan: async (caseId: string) =>
       (await items(`/cases/${caseId}/stages`)).map((s: any) => fromStage(s, caseId)),
-    submitExecution: async (id: string, description: string, attachments: any[]) => {
-      await send(id, description, attachments)
+    submitExecution: async (
+      id: string,
+      description: string,
+      attachments: any[],
+      demoUrl?: string,
+    ) => {
+      await send(id, description, attachments, undefined, demoUrl)
       return getExecution(id)
     },
     gradeExecution: async (id: string, scores: Record<string, number>, feedback: string) => {
@@ -239,18 +256,20 @@ export function createWorkflow(http: any) {
     getLeaderboard: async (caseId: string) => {
       const rows = await items(`/cases/${caseId}/leaderboard`)
       return {
-        complete:
-          rows.length > 0 && rows.every((r: any) => Number.isInteger(r.place_no) && r.place_no > 0),
+        complete: rows.some((r: any) => Number.isInteger(r.place_no) && r.place_no > 0),
         items: rows.map((r: any) => ({
           id: r.execution_id,
           name: r.team_name || 'Участник',
           score: r.total_score,
           max: r.max_score,
+          place: r.place_no || undefined,
         })),
       }
     },
     finalizeResults: async (caseId: string) => {
       const rows = await items(`/cases/${caseId}/leaderboard`)
+      if (!rows.length || rows.some((row: any) => row.evaluation_status !== 'published'))
+        throw new Error('Оцените работы всех участников перед публикацией итогов.')
       await http.put(`/cases/${caseId}/leaderboard/placements`, {
         placements: rows.map((r: any, i: number) => ({
           execution_id: r.execution_id,

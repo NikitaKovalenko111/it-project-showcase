@@ -1,3 +1,4 @@
+import { TEAM_NAME_MAX_LENGTH } from '../../utils/validation'
 import React, { useState } from 'react'
 import { apiClient } from '../../api/client'
 import { useAppDispatch } from '../../store'
@@ -38,10 +39,10 @@ export const CreateTeamModal: React.FC<{ isOpen: boolean; onClose: () => void }>
             Название команды
             <input
               className="input"
+              maxLength={TEAM_NAME_MAX_LENGTH}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              maxLength={100}
             />
           </label>
           <label>
@@ -60,11 +61,11 @@ export const CreateTeamModal: React.FC<{ isOpen: boolean; onClose: () => void }>
           {error && <p role="alert">{error}</p>}
         </div>
         <div className="modal-dialog__footer">
-          <button className="btn btn-primary" disabled={busy || !name.trim()}>
-            Создать команду
-          </button>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={busy}>
             Отмена
+          </button>
+          <button className="btn btn-primary" disabled={busy || !name.trim()}>
+            Создать команду
           </button>
         </div>
       </form>

@@ -1,3 +1,8 @@
+import { apiClient } from '../api/client'
+import { complexityBadge } from '../utils/publication'
+import MDEditor from '@uiw/react-md-editor'
+import rehypeSanitize from 'rehype-sanitize'
+import { IdentityImage } from '../components/IdentityImage'
 import { EventPlanPanel } from '../components/EventPlanPanel'
 import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
@@ -6,6 +11,7 @@ import { AdminCaseActions } from '../components/AdminCaseActions'
 import { PublicationContext } from '../components/PublicationContext'
 import { canReceiveApplications } from '../utils/recruiting'
 import { CaseComments } from '../components/CaseComments'
+import { FileDownload } from '../components/FileDownload'
 import { TeamsPanel } from '../components/TeamsPanel'
 import { ReportButton } from '../components/ReportButton'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
@@ -51,6 +57,7 @@ import {
 
 export const CaseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const companies = useAppSelector((state) => state.companies.companiesList)
   const viewerId = useAppSelector((state) => state.auth.currentUser?.id)
   useEffect(() => {
     if (apiRuntime.mode === 'live' && id && viewerId)
@@ -58,32 +65,34 @@ export const CaseDetailPage: React.FC = () => {
   }, [id, viewerId])
   const dispatch = useAppDispatch()
 
-  const { activeCase, favorites, ndaAcceptedCases, loading, error } = useAppSelector(
-    (state) => state.cases,
-  )
+  const { activeCase, favorites, ndaAcceptedCases, error } = useAppSelector((state) => state.cases)
   const { applicationsList } = useAppSelector((state) => state.applications)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [applicationModalOpen, setApplicationModalOpen] = useState(false)
+  const [applicationNotice, setApplicationNotice] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [detailTab, setDetailTab] = useState('comments')
   const [ndaModalOpen, setNdaModalOpen] = useState(false)
   const [ndaAcceptedLocal, setNdaAcceptedLocal] = useState(false)
 
   useEffect(() => {
+    setApplicationModalOpen(false)
+    setApplicationNotice('')
     setNdaAcceptedLocal(false)
     setNdaModalOpen(false)
     if (id) {
       dispatch(fetchCaseByIdRequest(id))
-      dispatch(fetchApplicationsRequest(id))
+      if (viewerId) dispatch(fetchApplicationsRequest())
     }
-  }, [dispatch, id])
+  }, [dispatch, id, viewerId])
 
-  if (error)
+  if (error && activeCase?.id !== id)
     return (
-      <div role="alert" className="card" style={{ padding: 24 }}>
-        {error}{' '}
+      <section role="alert" className="card empty-state detail-empty">
+        <h1>{error}</h1>
         <Link
+          className="btn btn-secondary"
           to={
             sessionStorage.getItem('cases-return-url')?.startsWith('/cases?')
               ? sessionStorage.getItem('cases-return-url')!
@@ -92,10 +101,10 @@ export const CaseDetailPage: React.FC = () => {
         >
           К списку кейсов
         </Link>
-      </div>
+      </section>
     )
 
-  if (loading || !activeCase || activeCase.id !== id) {
+  if (!activeCase || activeCase.id !== id) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
         Загрузка кейса...
@@ -110,15 +119,27 @@ export const CaseDetailPage: React.FC = () => {
     ndaAcceptedLocal ||
     currentUser?.role !== 'student'
 
-  const userApplication = applicationsList.find(
-    (app) => app.caseId === activeCase.id && app.studentId === currentUser?.id,
-  )
+  const userApplications =
+    currentUser?.role === 'student'
+      ? applicationsList.filter(
+          (app) =>
+            app.caseId === activeCase.id &&
+            !['rejected', 'withdrawn'].includes(app.status) &&
+            (app.studentId === currentUser.id || (apiRuntime.mode === 'live' && app.teamId)),
+        )
+      : []
+  const userApplication =
+    userApplications.find((app) => app.status === 'accepted') || userApplications[0]
 
   const isCompanyRepresentative =
-    currentUser?.role === 'company' &&
-    currentUser?.companyProfile?.companyId === activeCase.companyId
+    currentUser?.role === 'company' && canManageCase(currentUser, activeCase)
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
+  const reviewing =
+    apiRuntime.mode === 'live' &&
+    activeCase.status === 'moderation' &&
+    ['admin', 'curator', 'university'].includes(currentUser?.role || '')
+  const reviewFiles = `${apiRuntime.baseUrl || '/api/v1'}/cases/${activeCase.id}/review/files`
 
   const instantRegistration = ['olympiad', 'hackathon'].includes(activeCase.kind || '')
   const canReviewApplications =
@@ -130,19 +151,6 @@ export const CaseDetailPage: React.FC = () => {
 
   return (
     <div>
-      {activeCase.coverUrl && isPublished(activeCase) && (
-        <img
-          src={activeCase.coverUrl}
-          alt="Обложка кейса"
-          style={{
-            width: '100%',
-            maxHeight: 280,
-            objectFit: 'cover',
-            borderRadius: 12,
-            marginBottom: 20,
-          }}
-        />
-      )}
       {/* Back button & Action header */}
       <div
         className="page-toolbar"
@@ -166,16 +174,38 @@ export const CaseDetailPage: React.FC = () => {
 
         <div className="page-actions">
           <AdminCaseActions project={activeCase} />
-          <ReportButton targetType="case" targetId={activeCase.id} />
+          {isCompanyRepresentative && activeCase.status === 'moderation' && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={async () => {
+                try {
+                  await apiClient.withdrawCaseModeration(activeCase.id)
+                  dispatch(fetchCaseByIdRequest(activeCase.id))
+                  setApplicationNotice('Публикация отозвана для редактирования.')
+                } catch (cause) {
+                  setApplicationNotice((cause as Error).message)
+                }
+              }}
+            >
+              Отозвать с модерации
+            </button>
+          )}
+          {canManageCase(currentUser, activeCase) && (
+            <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
+              Редактировать кейс
+            </button>
+          )}
+          {!isCompanyRepresentative && <ReportButton targetType="case" targetId={activeCase.id} />}
           {currentUser?.role === 'student' && (
             <button
               className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
+              style={{ height: 36, width: 36, padding: 0, flex: '0 0 36px' }}
               aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'}
               aria-pressed={isFavorite}
               onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
             >
               <Bookmark
-                size={22}
+                size={18}
                 fill={isFavorite ? '#d94326' : 'none'}
                 color={isFavorite ? '#d94326' : '#64748b'}
               />
@@ -184,9 +214,8 @@ export const CaseDetailPage: React.FC = () => {
 
           {canManageCase(currentUser, activeCase) ||
           userApplication?.status === 'accepted' ||
-          activeCase.status === 'in_progress' ||
-          activeCase.status === 'submitted' ||
-          activeCase.status === 'completed' ? (
+          (apiRuntime.mode === 'mock' &&
+            ['in_progress', 'submitted', 'completed'].includes(activeCase.status)) ? (
             <Link to={`/cases/${activeCase.id}/workspace`} className="btn btn-primary btn-sm">
               <Layers size={15} /> Участники и решения →
             </Link>
@@ -197,21 +226,47 @@ export const CaseDetailPage: React.FC = () => {
                 style={{ padding: '8px 12px', fontSize: '12px' }}
               >
                 <CheckCircle2 size={14} />{' '}
-                {instantRegistration
-                  ? userApplication.consentPending
-                    ? 'Ожидаются согласия команды'
-                    : 'Заявка отправлена'
-                  : `Заявка: ${{ pending: 'На рассмотрении', accepted: 'Принята', rejected: 'Отклонена', interview: 'Назначено интервью', need_info: 'Нужны уточнения' }[userApplication.status]}`}
+                {userApplication.consentPending ? (
+                  <Link to="/favorites?tab=applications">
+                    {userApplication.canConsent
+                      ? 'Подтвердить участие'
+                      : 'Ожидаются согласия команды'}
+                  </Link>
+                ) : instantRegistration ? (
+                  'Регистрация отправлена'
+                ) : (
+                  `Заявка: ${{ pending: 'На рассмотрении', accepted: 'Принята', rejected: 'Отклонена', withdrawn: 'Отозвана', interview: 'Назначено интервью', need_info: 'Нужны уточнения' }[userApplication.status]}`
+                )}
               </span>
-            ) : (
+            ) : canReceiveApplications(activeCase) ? (
               <button className="btn btn-primary" onClick={() => setApplicationModalOpen(true)}>
                 <Send size={15} /> {instantRegistration ? 'Зарегистрироваться' : 'Подать заявку'}
               </button>
+            ) : (
+              <span className="badge badge-status">Приём заявок закрыт</span>
             )
           ) : null}
         </div>
       </div>
 
+      {activeCase.coverUrl && isPublished(activeCase) && (
+        <img
+          src={activeCase.coverUrl}
+          alt="Обложка кейса"
+          style={{
+            width: '100%',
+            maxHeight: 280,
+            objectFit: 'cover',
+            borderRadius: 12,
+            marginBottom: 20,
+          }}
+        />
+      )}
+      {applicationNotice && (
+        <p className="form-hint" role="status">
+          {applicationNotice}
+        </p>
+      )}
       {/* Main Content Layout */}
       <div className="case-detail-layout">
         {/* Left Column: Details & ТЗ */}
@@ -222,10 +277,13 @@ export const CaseDetailPage: React.FC = () => {
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
               >
-                <img
-                  src={activeCase.companyLogo}
-                  alt={activeCase.companyName}
-                  style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover' }}
+                <IdentityImage
+                  src={
+                    activeCase.companyLogo ||
+                    companies.find((company) => company.id === activeCase.companyId)?.logo
+                  }
+                  name={activeCase.companyName}
+                  className="case-company-logo"
                 />
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#1b5e91' }}>
@@ -339,6 +397,7 @@ export const CaseDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <div
+                    data-color-mode="light"
                     style={{
                       background: '#f8fafc',
                       border: '1px solid #e2e8f0',
@@ -347,10 +406,12 @@ export const CaseDetailPage: React.FC = () => {
                       fontSize: '13px',
                       lineHeight: '1.7',
                       color: '#1e293b',
-                      whiteSpace: 'pre-line',
                     }}
                   >
-                    {activeCase.fullDescription}
+                    <MDEditor.Markdown
+                      source={activeCase.fullDescription}
+                      rehypePlugins={[rehypeSanitize]}
+                    />
                   </div>
                 )}
               </div>
@@ -414,7 +475,7 @@ export const CaseDetailPage: React.FC = () => {
 
               <details className="rights-info">
                 <summary aria-label="Права на результаты" title="Права на результаты">
-                  <Info size={18} />
+                  <Info size={17} aria-hidden="true" /> <span>Права на результаты</span>
                 </summary>
                 <p>
                   <strong>Права на результаты:</strong>{' '}
@@ -462,6 +523,7 @@ export const CaseDetailPage: React.FC = () => {
                       }}
                     >
                       <div
+                        className="case-candidate-heading"
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -469,18 +531,10 @@ export const CaseDetailPage: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img
-                            src={
-                              app.studentAvatar ||
-                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80'
-                            }
-                            alt=""
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                            }}
+                          <IdentityImage
+                            src={app.studentAvatar}
+                            name={app.studentName}
+                            className="candidate-avatar"
                           />
                           <div>
                             <strong style={{ fontSize: '14px', color: '#1e293b' }}>
@@ -705,6 +759,12 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               )}
 
+              {!['monetary', 'contest', 'educational'].includes(activeCase.rewardType) && (
+                <p>
+                  {activeCase.rewardDescription ||
+                    'Вознаграждение и условия участия уточняются у компании.'}
+                </p>
+              )}
               {activeCase.rewardType === 'educational' && (
                 <div>
                   <span className="badge badge-reward-educational" style={{ marginBottom: '8px' }}>
@@ -717,22 +777,24 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               )}
 
-              <div
-                style={{
-                  marginTop: '14px',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #f1f5f9',
-                  fontSize: '11px',
-                  color: '#64748b',
-                }}
-              >
-                Статус выплаты:{' '}
-                <strong>
-                  {activeCase.paymentStatus === 'confirmed'
-                    ? 'Подтверждена компанией'
-                    : 'Ожидается приемка'}
-                </strong>
-              </div>
+              {['monetary', 'contest'].includes(activeCase.rewardType) && (
+                <div
+                  style={{
+                    marginTop: '14px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #f1f5f9',
+                    fontSize: '11px',
+                    color: '#64748b',
+                  }}
+                >
+                  Статус выплаты:{' '}
+                  <strong>
+                    {activeCase.paymentStatus === 'confirmed'
+                      ? 'Подтверждена компанией'
+                      : 'Ожидается приемка'}
+                  </strong>
+                </div>
+              )}
             </div>
           </div>
 
@@ -745,48 +807,75 @@ export const CaseDetailPage: React.FC = () => {
               className="card__body"
               style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
             >
-              {activeCase.specificationFile && (
-                <a
-                  className="btn btn-secondary"
-                  href={activeCase.specificationFile.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Техническое задание: {activeCase.specificationFile.name}
-                </a>
+              {activeCase.specificationFile &&
+                (reviewing && activeCase.specificationFile.file_id ? (
+                  <FileDownload
+                    file={{
+                      name: `Техническое задание · ${activeCase.specificationFile.name}`,
+                      url: `${reviewFiles}/${activeCase.specificationFile.file_id}`,
+                    }}
+                  />
+                ) : (
+                  <a
+                    className="btn btn-secondary"
+                    href={activeCase.specificationFile.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Техническое задание: {activeCase.specificationFile.name}
+                  </a>
+                ))}
+              {reviewing && activeCase.coverFileId && (
+                <FileDownload
+                  file={{ name: 'Обложка кейса', url: `${reviewFiles}/${activeCase.coverFileId}` }}
+                />
               )}
-              <p>
-                <strong>Тип мероприятия</strong>
-                <br />
-                {
-                  {
-                    case: 'Кейс',
-                    hackathon: 'Хакатон',
-                    olympiad: 'Олимпиада',
-                    internship: 'Стажировка',
-                  }[activeCase.kind || 'case']
-                }
-              </p>
-              <p>
+              <div className="case-specification-row">
+                <span>Тип мероприятия</span>
                 <strong>
+                  {
+                    {
+                      case: 'Кейс',
+                      hackathon: 'Хакатон',
+                      olympiad: 'Олимпиада',
+                      internship: 'Стажировка',
+                    }[activeCase.kind || 'case']
+                  }
+                </strong>
+              </div>
+              <div className="case-specification-row">
+                <span>
                   {activeCase.participationFormat === 'team'
                     ? 'Максимум команд'
                     : activeCase.participationFormat === 'both'
                       ? 'Лимит заявок'
                       : 'Максимум участников'}
-                </strong>
-                <br /> {activeCase.maxTeams || 'Без ограничений'}
-              </p>
-              {activeCase.olympiadRules && <p>Регламент: {activeCase.olympiadRules}</p>}
-              {activeCase.internshipConditions && (
-                <p>Условия стажировки: {activeCase.internshipConditions}</p>
-              )}
-              <div className="action-row">
-                <span className="badge badge-direction">{activeCase.direction}</span>
-                <span className="badge badge-complexity-medium">
-                  Уровень: {activeCase.complexity.toLowerCase()}
                 </span>
+                <strong>{activeCase.maxTeams || 'Без ограничений'}</strong>
               </div>
+              <div className="case-specification-row">
+                <span>Направление и уровень</span>
+                <div className="action-row">
+                  {activeCase.direction && (
+                    <span className="badge badge-direction">{activeCase.direction}</span>
+                  )}
+                  <span className={`badge ${complexityBadge(activeCase.complexity)}`}>
+                    {activeCase.complexity}
+                  </span>
+                </div>
+              </div>
+              {activeCase.olympiadRules && (
+                <div className="case-specification-row">
+                  <span>Регламент</span>
+                  <strong>{activeCase.olympiadRules}</strong>
+                </div>
+              )}
+              {activeCase.internshipConditions && (
+                <div className="case-specification-row">
+                  <span>Условия стажировки</span>
+                  <strong>{activeCase.internshipConditions}</strong>
+                </div>
+              )}
               <div>
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
                   Формат работы:
@@ -800,7 +889,7 @@ export const CaseDetailPage: React.FC = () => {
                 <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
                   Длительность:
                 </span>
-                <strong style={{ fontSize: '13px' }}>{activeCase.duration}</strong>
+                <strong style={{ fontSize: '13px' }}>{activeCase.duration || 'Не указана'}</strong>
               </div>
 
               <div>
@@ -819,7 +908,7 @@ export const CaseDetailPage: React.FC = () => {
                 <strong style={{ fontSize: '13px' }}>
                   {activeCase.participationFormat === 'individual'
                     ? 'Индивидуально'
-                    : `${activeCase.teamSize.min} - ${activeCase.teamSize.max} участников`}
+                    : `${activeCase.teamSize.min === activeCase.teamSize.max ? activeCase.teamSize.min : `${activeCase.teamSize.min}–${activeCase.teamSize.max}`} чел.`}
                 </strong>
               </div>
 
@@ -835,6 +924,7 @@ export const CaseDetailPage: React.FC = () => {
                   Необходимые компетенции:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {!activeCase.requiredCompetencies.length && <span>Не указаны</span>}
                   {activeCase.requiredCompetencies.map((comp) => (
                     <span
                       key={comp}
@@ -857,7 +947,8 @@ export const CaseDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {currentUser?.role === 'student' &&
+      {apiRuntime.mode === 'mock' &&
+        currentUser?.role === 'student' &&
         isPublished(activeCase) &&
         canReceiveApplications(activeCase) &&
         activeCase.status === 'in_progress' &&
@@ -866,20 +957,14 @@ export const CaseDetailPage: React.FC = () => {
             Подать заявку своей команды
           </button>
         )}
-      <div className="action-row">
-        {canManageCase(currentUser, activeCase) && (
-          <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
-            Редактировать кейс
-          </button>
-        )}
-      </div>
 
       <PublicationContext project={activeCase} />
-      <CaseComments caseId={activeCase.id} />
       {apiRuntime.mode === 'live' && instantRegistration && isPublished(activeCase) && (
         <EventPlanPanel key={activeCase.id} project={activeCase} />
       )}
-      {currentUser?.role !== 'student' &&
+      {!reviewing && <CaseComments caseId={activeCase.id} />}
+      {!reviewing &&
+        currentUser?.role !== 'student' &&
         !['olympiad', 'hackathon'].includes(activeCase.kind || '') && (
           <TeamsPanel caseId={activeCase.id} />
         )}
@@ -893,11 +978,18 @@ export const CaseDetailPage: React.FC = () => {
         }}
       />
       {/* Modals */}
-      <ApplicationModal
-        caseItem={activeCase}
-        isOpen={applicationModalOpen}
-        onClose={() => setApplicationModalOpen(false)}
-      />
+      {applicationModalOpen && (
+        <ApplicationModal
+          key={activeCase.id}
+          caseItem={activeCase}
+          isOpen
+          onClose={() => setApplicationModalOpen(false)}
+          onSubmitted={(message) => {
+            setApplicationNotice(message)
+            setApplicationModalOpen(false)
+          }}
+        />
+      )}
 
       <NdaModal
         caseItem={activeCase}

@@ -8,7 +8,8 @@ import { useAppSelector } from '../store'
 export const ReportButton: React.FC<{
   targetType: ContentReport['targetType']
   targetId: string
-}> = ({ targetType, targetId }) => {
+  compact?: boolean
+}> = ({ targetType, targetId, compact = false }) => {
   const user = useAppSelector((s) => s.auth.currentUser)
   const [open, setOpen] = useState(false),
     [reason, setReason] = useState('Спам'),
@@ -16,22 +17,18 @@ export const ReportButton: React.FC<{
     [error, setError] = useState(''),
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false)
+  const reportLabel = 'Пожаловаться'
   if (!user) return null
   return (
     <>
-      <button className="btn btn-secondary btn-sm" onClick={() => setOpen(true)}>
-        <Flag size={14} /> Пожаловаться{' '}
-        {
-          (
-            {
-              company: 'на компанию',
-              case: 'на кейс',
-              user: 'на пользователя',
-              project: 'на проект',
-              comment: 'на комментарий',
-            } as const
-          )[targetType]
-        }
+      <button
+        className={`btn btn-secondary btn-sm report-trigger ${compact ? 'report-trigger--icon' : ''}`}
+        aria-label={reportLabel}
+        title={reportLabel}
+        onClick={() => setOpen(true)}
+      >
+        <Flag size={16} />
+        <span>{reportLabel}</span>
       </button>
       {open &&
         createPortal(

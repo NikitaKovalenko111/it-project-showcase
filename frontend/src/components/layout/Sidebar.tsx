@@ -1,5 +1,6 @@
+import { IdentityImage } from '../IdentityImage'
 import React, { useState, useMemo, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { logoutRequest } from '../../store/actions'
 import {
@@ -40,14 +41,14 @@ type OnlineStatus = 'online' | 'busy' | 'offline'
 
 const statusConfig: Record<OnlineStatus, { label: string; color: string }> = {
   online: { label: 'В сети', color: '#28a745' },
-  busy: { label: 'На паре', color: '#e68a19' },
+  busy: { label: 'Занят', color: '#e68a19' },
   offline: { label: 'Не в сети', color: '#94a3b8' },
 }
 
 const rolePillConfig: Record<UserRole, { text: string; color: string }> = {
-  student: { text: 'Студент • ИИМР • ТОП-204Б', color: '#3a75b4' },
+  student: { text: 'Студент', color: '#3a75b4' },
   company: { text: 'Компания-партнёр', color: '#e68a19' },
-  curator: { text: 'Куратор кафедры', color: '#28a745' },
+  curator: { text: 'Куратор', color: '#28a745' },
   admin: { text: 'Администратор ИСУ', color: '#e04646' },
   university: { text: 'Администратор ИСУ', color: '#e04646' },
 }
@@ -84,16 +85,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
     setShowStatusMenu(false)
   }
 
-  // Student ID matching user screenshot
-  const studentId =
-    currentUser?.id === 'usr_student_1'
-      ? '257576'
-      : currentUser?.id
-        ? currentUser.id.replace(/\D/g, '') || '257576'
-        : '257576'
-
   // Role-specific navigation groups
   const navGroups: NavItem[][] = useMemo(() => {
+    const opportunities = [{ to: '/internships', label: 'СТАЖИРОВКИ И ПРАКТИКИ', icon: Briefcase }]
     const userId = currentUser?.id || 'me'
     const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
 
@@ -104,12 +98,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
             { to: '/teams', label: 'КОМАНДЫ', icon: GraduationCap },
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
-            { to: `/profile/${userId}`, label: 'МОЁ ПОРТФОЛИО', icon: GraduationCap },
+            { to: `/profile/${userId}`, label: 'МОЙ ПРОФИЛЬ', icon: GraduationCap },
             {
               to: '/favorites',
               label: 'ЗАЯВКИ И ИЗБРАННОЕ',
@@ -126,6 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'МОИ КЕЙСЫ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -152,6 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -170,6 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           [
             { to: '/', label: 'ГЛАВНАЯ', icon: Home, end: true },
             { to: '/cases', label: 'ВИТРИНА ИТ-КЕЙСОВ', icon: Briefcase, end: true },
+            ...opportunities,
             { to: '/workspace', label: 'АКТИВНЫЕ ПРОЕКТЫ', icon: Layers },
           ],
           [
@@ -179,7 +177,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
           [
             { to: '/analytics', label: 'АНАЛИТИКА И ОТЧЁТЫ', icon: BarChart3 },
-            { to: '/moderation', label: 'ПАНЕЛЬ АДМИНИСТРАТОРА', icon: ShieldCheck },
+            ...(role === 'admin'
+              ? [{ to: '/moderation', label: 'ПАНЕЛЬ АДМИНИСТРАТОРА', icon: ShieldCheck }]
+              : []),
           ],
         ]
     }
@@ -214,133 +214,148 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
       {/* UUST Student / User Card from Photo */}
       <div className="sidebar__profile-isu">
-        <div className="avatar-wrapper">
-          <img
-            src={
-              currentUser?.avatar ||
-              (role === 'company'
-                ? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80'
-                : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80')
-            }
-            alt={currentUser?.fullName || 'Пользователь'}
-          />
-        </div>
+        {currentUser && (
+          <Link
+            className="avatar-wrapper"
+            to={role === 'student' ? '/profile/me' : '/account'}
+            aria-label="Мой профиль"
+            title="Мой профиль"
+          >
+            <IdentityImage
+              src={currentUser.avatar}
+              name={currentUser.fullName}
+              className="sidebar-avatar"
+            />
+          </Link>
+        )}
 
         <div className="profile-name" title={currentUser?.fullName}>
-          {currentUser?.fullName || 'Магасумов Алмаз Ильшатович'}
+          {currentUser?.fullName || 'Пользователь'}
         </div>
 
-        <div className="profile-email">Email:{currentUser?.email || '257576@stud.uust.ru'}</div>
+        <div className="profile-email">Email: {currentUser?.email || 'Не указан'}</div>
 
-        {/* Interactive Online Status Pill */}
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-          <button
-            className="profile-status-pill"
-            aria-expanded={showStatusMenu}
-            onClick={cycleStatus}
-            type="button"
-            title="Нажмите, чтобы изменить статус"
-          >
-            <span className="dot" style={{ backgroundColor: statusConfig[onlineStatus].color }} />
-            <span>{statusConfig[onlineStatus].label}</span>
-            <ChevronDown size={12} className="chevron" />
-          </button>
-
-          {showStatusMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                marginTop: '6px',
-                background: '#0e2048',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '6px',
-                padding: '4px',
-                zIndex: 200,
-                boxShadow: '0 6px 18px rgba(0,0,0,0.4)',
-                width: '130px',
-              }}
+        <div
+          className="profile-presence"
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
+        >
+          {/* Interactive Online Status Pill */}
+          <div className="profile-status-control">
+            <button
+              className="profile-status-pill"
+              aria-expanded={showStatusMenu}
+              onClick={cycleStatus}
+              type="button"
+              title="Нажмите, чтобы изменить статус"
             >
-              {(['online', 'busy', 'offline'] as OnlineStatus[]).map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => selectStatus(st)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    background: onlineStatus === st ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    border: 'none',
-                    color: '#fff',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '7px',
-                      height: '7px',
-                      borderRadius: '50%',
-                      backgroundColor: statusConfig[st].color,
-                    }}
-                  />
-                  <span>{statusConfig[st].label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+              <span className="dot" style={{ backgroundColor: statusConfig[onlineStatus].color }} />
+              <span>{statusConfig[onlineStatus].label}</span>
+              <ChevronDown size={12} className="chevron" />
+            </button>
 
-        {/* Role pill */}
-        <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
-          {role === 'student'
-            ? [
-                'Студент',
-                currentUser?.studentProfile?.institute,
-                currentUser?.studentProfile?.group,
-              ]
-                .filter(Boolean)
-                .join(' • ')
-            : pillInfo.text}
+            {showStatusMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginTop: '6px',
+                  background: '#0e2048',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '6px',
+                  padding: '4px',
+                  zIndex: 200,
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.4)',
+                  width: '130px',
+                }}
+              >
+                {(['online', 'busy', 'offline'] as OnlineStatus[]).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => selectStatus(st)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      background: onlineStatus === st ? 'rgba(255,255,255,0.1)' : 'transparent',
+                      border: 'none',
+                      color: '#fff',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        backgroundColor: statusConfig[st].color,
+                      }}
+                    />
+                    <span>{statusConfig[st].label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Role pill */}
+          <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
+            {role === 'student'
+              ? [
+                  'Студент',
+                  currentUser?.studentProfile?.institute,
+                  currentUser?.studentProfile?.group,
+                ]
+                  .filter(Boolean)
+                  .join(' • ')
+              : pillInfo.text}
+          </div>
         </div>
       </div>
 
       {/* UUST Navigation in ISU Style */}
       <nav className="sidebar__nav-isu">
-        {[...navGroups, [{ to: '/feedback', label: 'ОБРАТНАЯ СВЯЗЬ', icon: MessageSquare }]].map(
-          (group, groupIdx) => (
-            <React.Fragment key={groupIdx}>
-              {groupIdx > 0 && <div className="sidebar__nav-divider" />}
-              {group.map((item) => {
-                const Icon = item.icon
-                return (
-                  <NavLink
-                    key={`${item.to}-${item.label}`}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
-                    onClick={onClose}
-                  >
-                    <span className="nav-icon">
-                      <Icon size={15} />
-                    </span>
-                    <span>{item.label}</span>
-                    {item.badge != null && item.badge > 0 && (
-                      <span className="nav-badge-isu">{item.badge}</span>
-                    )}
-                  </NavLink>
-                )
-              })}
-            </React.Fragment>
-          ),
-        )}
+        {[
+          ...navGroups,
+          [
+            {
+              to: '/feedback',
+              label: role === 'admin' ? 'ЖАЛОБЫ И ОБРАЩЕНИЯ' : 'ОБРАТНАЯ СВЯЗЬ',
+              icon: MessageSquare,
+            },
+          ],
+        ].map((group, groupIdx) => (
+          <React.Fragment key={groupIdx}>
+            {groupIdx > 0 && <div className="sidebar__nav-divider" />}
+            {group.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={`${item.to}-${item.label}`}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
+                  onClick={onClose}
+                >
+                  <span className="nav-icon">
+                    <Icon size={15} />
+                  </span>
+                  <span>{item.label}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <span className="nav-badge-isu">{item.badge}</span>
+                  )}
+                </NavLink>
+              )
+            })}
+          </React.Fragment>
+        ))}
       </nav>
 
       <div className="sidebar__footer-isu">

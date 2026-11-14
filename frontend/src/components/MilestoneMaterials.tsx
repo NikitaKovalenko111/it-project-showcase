@@ -75,7 +75,7 @@ export const MilestoneMaterials: React.FC<{ milestoneId: string }> = ({ mileston
               }}
             >
               <div className="modal-dialog__body">
-                <FilePicker label="Материалы (каждый до 2 МБ)" files={files} onChange={setFiles} />
+                <FilePicker label="Материалы" files={files} onChange={setFiles} />
                 {error && <p role="alert">{error}</p>}
               </div>
               <div className="modal-dialog__footer">

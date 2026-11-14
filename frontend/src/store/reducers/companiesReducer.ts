@@ -4,6 +4,7 @@ import * as types from '../types'
 export interface CompaniesState {
   companiesList: Company[]
   activeCompany: Company | null
+  detailError: { id: string; message: string } | null
   loading: boolean
   error: string | null
 }
@@ -11,14 +12,20 @@ export interface CompaniesState {
 const initialState: CompaniesState = {
   companiesList: [],
   activeCompany: null,
+  detailError: null,
   loading: false,
   error: null,
 }
 
 export const companiesReducer = (state = initialState, action: any): CompaniesState => {
   switch (action.type) {
-    case types.FETCH_COMPANIES_REQUEST:
     case types.FETCH_COMPANY_BY_ID_REQUEST:
+      return { ...state, detailError: null, activeCompany: null }
+
+    case types.FETCH_COMPANY_BY_ID_FAILURE:
+      return { ...state, detailError: { id: action.payload.id, message: action.payload.error } }
+
+    case types.FETCH_COMPANIES_REQUEST:
     case types.VERIFY_COMPANY_REQUEST:
       return { ...state, loading: true, error: null }
 

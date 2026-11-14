@@ -1,5 +1,9 @@
+import { RichMarkdown, markdownSchema, MarkdownImage } from './RichMarkdown'
+import { MarkdownImageUpload } from './MarkdownImageUpload'
 import { apiRuntime } from '../api/runtime'
-import { LiveCompanyProgram } from './LiveCompanyProgram'
+import { axiosInstance } from '../api/http'
+import { fromCompany } from '../api/backend'
+import { Link } from 'react-router-dom'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
 import React, { useEffect, useState } from 'react'
@@ -24,8 +28,6 @@ export const CompanyProgram: React.FC<{
     setText((practice ? company.practiceProgram : company.internshipProgram) || '')
     setEditing(false)
   }, [company.id, company.internshipProgram, company.practiceProgram, practice])
-  if (apiRuntime.mode === 'live')
-    return <LiveCompanyProgram company={company} editable={editable} practice={practice} />
   return (
     <section className="feature-panel">
       <h3>{practice ? 'Практики' : 'Стажировки'}</h3>
@@ -36,14 +38,21 @@ export const CompanyProgram: React.FC<{
             setBusy(true)
             setError('')
             try {
-              dispatch(
-                fetchCompanyByIdSuccess(
-                  await communityApi.updateCompanyContent(company.id, {
-                    description: company.description,
-                    ...(practice ? { practiceProgram: text } : { internshipProgram: text }),
-                  }),
-                ),
-              )
+              const updated =
+                apiRuntime.mode === 'live'
+                  ? fromCompany(
+                      (
+                        await axiosInstance.patch(
+                          `/companies/${company.id}/programs`,
+                          practice ? { practice_program: text } : { internship_program: text },
+                        )
+                      ).data,
+                    )
+                  : await communityApi.updateCompanyContent(company.id, {
+                      description: company.description,
+                      ...(practice ? { practiceProgram: text } : { internshipProgram: text }),
+                    })
+              dispatch(fetchCompanyByIdSuccess(updated))
               setEditing(false)
             } catch (e) {
               setError((e as Error).message)
@@ -53,12 +62,16 @@ export const CompanyProgram: React.FC<{
           }}
         >
           <div data-color-mode="light">
+            <MarkdownImageUpload onInsert={(markdown) => setText((value) => value + markdown)} />
             <MDEditor
               value={text}
               onChange={(value) => setText((value || '').slice(0, 15000))}
               height={350}
               textareaProps={{ 'aria-label': 'Условия, отбор, сроки и контакты', maxLength: 15000 }}
-              previewOptions={{ rehypePlugins: [rehypeSanitize] }}
+              previewOptions={{
+                rehypePlugins: [[rehypeSanitize, markdownSchema]],
+                components: { img: MarkdownImage },
+              }}
             />
           </div>
           <div className="action-row">
@@ -72,18 +85,27 @@ export const CompanyProgram: React.FC<{
         </form>
       ) : (
         <>
-          <MDEditor.Markdown
-            rehypePlugins={[rehypeSanitize]}
-            source={
+          <RichMarkdown
+            text={
               (practice ? company.practiceProgram : company.internshipProgram) ||
               'Компания пока не опубликовала программу.'
             }
           />
-          {editable && (
-            <button className="btn btn-secondary" onClick={() => setEditing(true)}>
-              Редактировать программу
-            </button>
-          )}
+          <div className="action-row">
+            {editable && (
+              <button className="btn btn-secondary" onClick={() => setEditing(true)}>
+                Редактировать описание
+              </button>
+            )}
+            {
+              <Link
+                className="btn btn-secondary"
+                to={`/internships?company=${company.id}&kind=${practice ? 'practice' : 'internship'}&scope=all`}
+              >
+                {practice ? 'Открытые практики' : 'Открытые стажировки'}
+              </Link>
+            }
+          </div>
         </>
       )}
       {error && <p role="alert">{error}</p>}

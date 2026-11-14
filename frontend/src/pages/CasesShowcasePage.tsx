@@ -1,3 +1,5 @@
+import { ExpandableText } from '../components/ExpandableText'
+import { complexityBadge } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
@@ -9,7 +11,7 @@ import {
   matchesSearch,
 } from '../utils/publication'
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import {
   fetchCasesRequest,
@@ -26,6 +28,7 @@ import {
   Award,
   Bookmark,
   Briefcase,
+  FolderGit2,
   Building2,
   Calendar,
   CheckCircle2,
@@ -34,7 +37,6 @@ import {
   FileLock2,
   Filter,
   Flame,
-  FolderGit2,
   Plus,
   RotateCcw,
   Search,
@@ -45,7 +47,6 @@ import {
 
 export const CasesShowcasePage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const location = useLocation()
   useEffect(() => {
     sessionStorage.setItem('cases-return-url', location.pathname + location.search)
@@ -57,7 +58,7 @@ export const CasesShowcasePage: React.FC = () => {
   const [eventFormat, setEventFormat] = useState('all')
   const live = apiRuntime.mode === 'live'
   const requestFilters = live ? undefined : filters
-  const [activeTab, setActiveTab] = useState<'cases' | 'recruiting'>('cases')
+  const [recruiting, setRecruiting] = useState(false)
 
   useEffect(() => {
     dispatch(fetchCasesRequest(requestFilters))
@@ -96,7 +97,7 @@ export const CasesShowcasePage: React.FC = () => {
   const visibleCases = selectShowcaseCases(filteredCases, {
     period: 'all',
     technology: 'all',
-    recruiting: activeTab === 'recruiting',
+    recruiting,
     sort,
   })
 
@@ -109,7 +110,7 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const handleResetFilters = () => {
-    setActiveTab('cases')
+    setRecruiting(false)
     setSort('newest')
     setEventFormat('all')
     dispatch(resetCaseFilters())
@@ -154,12 +155,6 @@ export const CasesShowcasePage: React.FC = () => {
     )
   }
 
-  const getComplexityClass = (complexity: string) => {
-    if (complexity === 'Начальный') return 'badge-complexity-low'
-    if (complexity === 'Средний') return 'badge-complexity-medium'
-    return 'badge-complexity-high'
-  }
-
   return (
     <div>
       {/* Top Banner & Title in Clean University Style */}
@@ -187,13 +182,10 @@ export const CasesShowcasePage: React.FC = () => {
               ? 'Мои ИТ-кейсы'
               : 'Витрина ИТ-проектов и кейсов предприятий'}
           </h1>
-          <p style={{ fontSize: '12.5px', color: '#5e7188', margin: '4px 0 0' }}>
-            Автоматизированная система проектного обучения
-          </p>
         </div>
         {canCreateCase && (
           <button className="btn btn-primary btn-sm" onClick={() => setCreateModalOpen(true)}>
-            <Plus size={15} /> Разместить кейс предприятия
+            <Plus size={15} /> Разместить публикацию
           </button>
         )}
       </div>
@@ -201,26 +193,6 @@ export const CasesShowcasePage: React.FC = () => {
       {/* UUST Schedule-Style Filter Container (Authorial Upgrade of ISU widget) */}
       <ScrollToolbar>
         <div className="uust-container">
-          <div className="uust-tabs-row">
-            <button
-              className={`uust-tab ${activeTab === 'cases' ? 'active' : ''}`}
-              onClick={() => setActiveTab('cases')}
-            >
-              <Briefcase size={14} /> Все кейсы
-            </button>
-            <button
-              className={`uust-tab ${activeTab === 'recruiting' ? 'active' : ''}`}
-              onClick={() => setActiveTab('recruiting')}
-            >
-              <Building2 size={14} /> Открыт набор
-            </button>
-            {currentUser?.role !== 'company' && (
-              <button className="uust-tab" onClick={() => navigate('/student-projects')}>
-                <FolderGit2 size={14} /> По проектам студентов
-              </button>
-            )}
-          </div>
-
           <div className="uust-box">
             {/* Row 1: Search input */}
             <div className="uust-filter-row">
@@ -242,7 +214,7 @@ export const CasesShowcasePage: React.FC = () => {
                   aria-label="Поиск кейсов"
                   value={filters.search}
                   onChange={handleSearchChange}
-                  placeholder="Поиск по названию задачи, компании или стеку (React, Python, Computer Vision, Go)..."
+                  placeholder="Название, компания или стек"
                 />
               </div>
               <label className="catalog-sort">
@@ -339,6 +311,14 @@ export const CasesShowcasePage: React.FC = () => {
                 <option value="hackathon">Хакатоны</option>
                 <option value="olympiad">Олимпиады</option>
               </select>
+              <button
+                type="button"
+                className={`uust-pill ${recruiting ? 'active' : ''}`}
+                aria-pressed={recruiting}
+                onClick={() => setRecruiting(!recruiting)}
+              >
+                Только с открытым набором
+              </button>
               <button
                 className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
                 onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
@@ -449,7 +429,7 @@ export const CasesShowcasePage: React.FC = () => {
                     <Link to={`/cases/${item.id}`}>{item.title}</Link>
                   </h3>
 
-                  <p className="case-card__desc">{item.shortDescription}</p>
+                  <ExpandableText compact text={item.shortDescription} />
                   {!isPublished(item) && (
                     <p className={`badge publication-${publicationStatus(item)}`}>
                       {publicationLabels[publicationStatus(item)]}
@@ -473,7 +453,7 @@ export const CasesShowcasePage: React.FC = () => {
                     {item.direction && (
                       <span className="badge badge-direction">{item.direction}</span>
                     )}
-                    <span className={`badge ${getComplexityClass(item.complexity)}`}>
+                    <span className={`badge ${complexityBadge(item.complexity)}`}>
                       Уровень: {item.complexity.toLowerCase()}
                     </span>
                     {item.isConfidential && (

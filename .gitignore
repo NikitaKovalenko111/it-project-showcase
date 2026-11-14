@@ -1,5 +1,3 @@
-.env
-backups/
 # Dependencies
 node_modules/
 
@@ -8,11 +6,28 @@ dist/
 dist-ssr/
 build/
 coverage/
+htmlcov/
+.nyc_output/
 
 # TypeScript and tool caches
 *.tsbuildinfo
 .vite/
 .cache/
+.parcel-cache/
+.sass-cache/
+.rollup.cache/
+.turbo/
+.eslintcache
+.stylelintcache
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Generated browser-test reports and local test artifacts
+playwright-report/
+test-results/
+blob-report/
+/frontend/test-artifacts/
 
 # Logs
 logs/
@@ -23,7 +38,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Local environment files (keep examples in Git)
+# Local environment files; examples belong in Git
 .env
 .env.*
 !.env.example
@@ -36,18 +51,22 @@ lerna-debug.log*
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+Desktop.ini
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Local integration toolchain and test artifacts
-/tmp/toolchain/
-/tmp/gopath/
-/tmp/gocache/
-/tmp/go1.25.3.zip
-/tmp/integration-accounts.json
-/tmp
-/scripts
-.env
+# Local worktrees, tooling, manual QA screenshots and recovery archives
+/tmp/
+/scripts/
+/backups/
+
+# Temporary editor and merge files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+~$*

@@ -52,7 +52,7 @@ export const ExecutionEvaluation: React.FC<{
           }
         }}
       >
-        <div className="modal-dialog__body">
+        <div className="modal-dialog__body evaluation-body">
           <p>
             <strong>{entry.name}</strong>
           </p>
@@ -110,7 +110,7 @@ export const ExecutionEvaluation: React.FC<{
               required
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Что получилось и что можно улучшить"
+              placeholder="Ваш комментарий"
             />
           </label>
           {error && (

@@ -1,0 +1,117 @@
+
+// Intrinsic widths must stay inside the viewport and local scroll regions.
+.home-page, .home-section, .home-section > *, .card__body { min-width: 0; }
+.home-page .case-card__footer-bar > div { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.home-page .table-container { width: 100%; max-width: 100%; overflow-x: auto; }
+.home-page .data-table { min-width: 800px; }
+.home-page .data-table td { min-width: 140px; overflow-wrap: normal; word-break: normal; }
+.home-page .data-table td:first-child { min-width: 230px; }
+.home-page .data-table .btn, .badge-status { white-space: nowrap; flex-shrink: 0; overflow-wrap: normal; }
+.student-search-avatar { display: inline-grid; place-items: center; width: 52px; height: 52px; flex: none; border-radius: 50%; object-fit: cover; background: #e8eef8; color: #315578; }
+.admin-insights .kpi-grid { margin: 0; }
+.admin-insights .admin-role-counts { margin: 16px 0 0; }
+.admin-insights .report-section { margin-top: 24px; }
+.admin-insights h3 { margin-top: 0; }
+.company-legal .company-legal-grid { margin: 14px 0 0; }
+.company-legal-grid dt { margin: 0; }
+.portfolio-achievements { margin-top: 20px; }
+.profile-edit-form .responsive-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.profile-edit-form .form-group, .modal-dialog__body .form-group { display: grid; gap: 8px; margin: 0; align-content: start; }
+.profile-edit-form label, .modal-dialog__body label { margin: 0; font-weight: 600; }
+.modal-dialog__body > label { display: flex; flex-direction: column; gap: 8px; }
+.modal-dialog__body :is(label, .form-group) :is(input, select, textarea) { margin: 0; }
+.modal-dialog__body { gap: 18px; }
+.modal-dialog__body label:has(> input[type=checkbox]), .modal-dialog__body label:has(> input[type=radio]) { flex-direction: row; align-items: flex-start; }
+textarea.textarea, .modal-dialog__body textarea:not(.w-md-editor-text-input) { min-height: 128px; line-height: 24px; padding: 12px; resize: vertical; }
+textarea { box-sizing: border-box; }
+.modal-dialog[aria-labelledby="application-title"] .form-group { margin: 0; }
+.modal-dialog[aria-labelledby="application-title"] .modal-dialog__body > div { margin-block: 0; }
+.modal-dialog[aria-labelledby="application-title"] .participation-options { gap: 12px; }
+.project-like { flex: none; white-space: nowrap; overflow-wrap: normal; margin-left: 10px; }
+.student-project-links { flex-wrap: wrap; }
+.student-project-links .btn { white-space: nowrap; }
+.report-trigger--icon { width: 38px; min-width: 38px; padding: 8px; justify-content: center; }
+.report-trigger--icon span { display: none; }
+.comments-panel .comment-item > .action-row { gap: 8px; margin: 0; align-items: center; }
+.comments-panel .comment-compose textarea { border: 1px solid #ccd7e5; border-radius: 8px; width: 100%; }
+.curator-projects .case-card .card__body { flex: none; }
+.curator-projects .curator-project-date { margin: 12px 0 0; }
+.curator-projects .case-card__company { min-height: 0; }
+.curator-projects .case-card { height: auto; }
+.curator-stats .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.stage-files .portfolio-file { border: 0; background: transparent; }
+.stage-files .portfolio-file a { border: 0; padding: 4px 0; overflow-wrap: break-word; word-break: normal; }
+.team-management { background: #fff; }
+.team-management .feature-toolbar { align-items: center; }
+
+@media (max-width: 1050px) {
+  .execution-rows .execution-card { grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: start; justify-items: start; }
+  .execution-rows .execution-card h3 { font-size: 17px; overflow-wrap: break-word; word-break: normal; }
+  .execution-rows .execution-card .badge { width: auto; white-space: nowrap; }
+  .execution-rows .execution-card p { overflow-wrap: break-word; word-break: normal; }
+  .home-page .case-card__footer-bar > div { width: 100%; flex-direction: column; align-items: stretch; }
+  .home-page .case-card__footer-bar > div .btn { width: 100%; flex: auto; white-space: nowrap; }
+}
+
+@media (max-width: 768px) {
+  .execution-heading { display: flex; flex-direction: column; gap: 16px; }
+  .execution-heading > div:first-child { flex: auto; width: 100%; }
+  .execution-heading > .action-row { width: 100%; }
+  .execution-heading > .action-row .btn { flex: 1; white-space: nowrap; }
+  .execution-header h1, .execution-header p { overflow-wrap: break-word; word-break: normal; }
+  .execution-header h1 { text-wrap: pretty; }
+  .profile-edit-form .responsive-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; }
+  .uust-tabs-row, .tabs-bar, .section-tabs, .workspace-navigation {
+    flex-wrap: nowrap !important; overflow-x: auto !important; overscroll-behavior-x: contain;
+    padding-bottom: 9px; margin-bottom: 12px; scrollbar-width: thin;
+    background-image: linear-gradient(90deg, transparent, #edf2f8);
+    background-size: 18px 100%; background-position: right; background-repeat: no-repeat;
+  }
+  .uust-tabs-row::after, .tabs-bar::after, .section-tabs::after { content: '›'; position: sticky; right: 0; display: grid; align-items: center; padding: 0 7px; background: #edf2f8; color: #315578; font-size: 24px; flex: none; }
+  .uust-tabs-row .uust-tab, .tabs-bar .tab-btn, .section-tabs .tab-btn { white-space: nowrap; flex: 0 0 auto; }
+  .page-actions { display: flex; justify-content: flex-start; }
+  .page-actions > .btn:not(.report-trigger) { flex: 1 1 100%; white-space: normal; overflow-wrap: normal; }
+  .page-actions .report-trigger { flex: none; width: 44px; min-width: 44px; padding: 10px; }
+  .page-actions .report-trigger span { display: none; }
+  .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .detail-actions .btn { flex: 1 1 auto; white-space: normal; overflow-wrap: normal; }
+  .student-project-links { flex-direction: column; }
+  .student-project-links .btn { width: 100%; }
+  .badge { overflow-wrap: normal; word-break: normal; }
+  .badge[class*="complexity"] { white-space: nowrap; flex: none; }
+  .data-table { table-layout: auto; }
+  .table-container:not(.report-table-responsive) .data-table { min-width: 760px; }
+  .table-container:not(.report-table-responsive) .data-table :is(th,td) { min-width: 160px; overflow-wrap: normal; word-break: normal; }
+  .table-container:not(.report-table-responsive) .data-table :is(th,td):first-child { min-width: 230px; }
+  .table-container:not(.report-table-responsive) .data-table .btn { white-space: nowrap; overflow-wrap: normal; }
+  .report-table-responsive .data-table { display: block; min-width: 0 !important; width: 100%; }
+  .report-table-responsive .data-table thead { display: none; }
+  .report-table-responsive .data-table tbody { display: grid; gap: 12px; }
+  .report-table-responsive .data-table tr { display: grid; border: 1px solid #dce4ed; border-radius: 8px; padding: 8px; }
+  .report-table-responsive .data-table td, .analytics-table .report-table-responsive .data-table td:first-child {
+    display: grid; grid-template-columns: minmax(80px, 30%) minmax(0, 1fr); gap: 8px;
+    min-width: 0; max-width: none; width: 100%; padding: 10px 8px;
+    white-space: normal; overflow-wrap: break-word; word-break: normal;
+  }
+  .report-table-responsive .data-table td::before { content: attr(data-label); color: #63758b; font-weight: 600; }
+  .report-table-responsive .data-table td:last-child { border-bottom: 0; }
+  .report-table-responsive { border: 0; box-shadow: none; }
+  .login-page form > div:has(> .btn) { align-items: stretch; }
+  .login-page .btn { white-space: normal; overflow-wrap: normal; }
+  .project-info-popover { position: fixed; inset: 70px 12px auto; width: auto; max-width: none; box-shadow: 0 0 0 100vmax #07132b80; }
+}
+
+@media(max-width: 768px) {
+  .case-candidate-heading { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+  .case-candidate-heading > .badge { white-space: nowrap; flex: none; }
+  .case-candidate-heading + p { margin-top: 10px; }
+  .case-candidate-heading ~ .action-row { flex-wrap: wrap; }
+  .case-candidate-heading ~ .action-row .btn { flex: 1 1 100%; white-space: normal; overflow-wrap: normal; }
+}
+
+@media(max-width: 768px) {
+  .btn { overflow-wrap: normal; word-break: normal; }
+  .login-page form > div:has(> button.btn) { display: flex; align-items: stretch !important; }
+  .login-page form > div > .btn { height: auto; align-self: stretch; }
+  .modal-dialog .input, .modal-dialog .select { text-overflow: ellipsis; }
+}

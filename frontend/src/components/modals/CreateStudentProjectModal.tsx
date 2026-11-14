@@ -1,3 +1,6 @@
+import { isOptionalWebUrl } from '../../utils/validation'
+import { LiveStudentProjectEditor } from './LiveStudentProjectEditor'
+import { apiRuntime } from '../../api/runtime'
 import { apiClient } from '../../api/client'
 import React, { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
@@ -26,9 +29,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [fullDescription, setFullDescription] = useState('')
   const [problemSolved, setProblemSolved] = useState('')
   const [technologies, setTechnologies] = useState('React, TypeScript, Vite')
-  const [coverImage, setCoverImage] = useState(
-    'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80',
-  )
+  const [coverImage, setCoverImage] = useState('/demo/project.svg')
   const [githubUrl, setGithubUrl] = useState(currentUser?.studentProfile?.githubUrl || '')
   const [productUrl, setProductUrl] = useState('')
   const [badges, setBadges] = useState<StudentProjectBadge[]>([
@@ -41,6 +42,18 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
   const [error, setError] = useState('')
 
   if (!isOpen) return null
+  if (apiRuntime.mode === 'live') {
+    return (
+      <LiveStudentProjectEditor
+        onClose={onClose}
+        onSaved={(project) => {
+          dispatch(createStudentProjectSuccess(project))
+          onSubmitted?.()
+          onClose()
+        }}
+      />
+    )
+  }
 
   const availableBadges: { id: StudentProjectBadge; label: string }[] = [
     { id: 'seeking_company', label: 'Ищу компанию / партнёра' },
@@ -61,6 +74,10 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (![githubUrl, productUrl].every(isOptionalWebUrl)) {
+      setError('Укажите ссылки с http:// или https://.')
+      return
+    }
 
     setError('')
     setSaving(true)
@@ -70,7 +87,7 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
         title,
         coverImage,
         authorId: currentUser?.id || 'usr_student_1',
-        authorName: currentUser?.fullName || 'Иван Петров',
+        authorName: currentUser?.fullName || 'Автор проекта',
         category,
         direction,
         shortDescription,
@@ -81,8 +98,8 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
           .map((s) => s.trim())
           .filter(Boolean),
         status: 'в разработке',
-        githubUrl: githubUrl || undefined,
-        productUrl: productUrl || undefined,
+        githubUrl: githubUrl.trim() || undefined,
+        productUrl: productUrl.trim() || undefined,
         screenshots: [coverImage],
         badges,
       })
@@ -98,12 +115,18 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-dialog modal-dialog--lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="student-project-dialog-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FolderGit2 size={22} color="#1b5e91" />
             <div>
-              <h3>Публикация студенческого проекта</h3>
+              <h3 id="student-project-dialog-title">Публикация студенческого проекта</h3>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
                 Проект появится в открытой витрине после одобрения куратором
               </p>

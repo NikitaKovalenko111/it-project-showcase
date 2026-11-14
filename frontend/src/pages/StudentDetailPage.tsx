@@ -1,10 +1,20 @@
+import { apiClient } from '../api/client'
+import { useConfirm } from '../components/ConfirmProvider'
+import { RichMarkdown } from '../components/RichMarkdown'
+import { apiRuntime } from '../api/runtime'
+import { FileDownload } from '../components/FileDownload'
+import { LiveStudentProjectEditor } from '../components/modals/LiveStudentProjectEditor'
 import { ProjectVisibility } from '../components/ProjectVisibility'
 import { ReportButton } from '../components/ReportButton'
 import { publicationLabels, publicationStatus, isPublished } from '../utils/publication'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
-import { fetchStudentProjectByIdRequest, likeStudentProjectRequest } from '../store/actions'
+import {
+  fetchStudentProjectByIdRequest,
+  fetchStudentProjectByIdSuccess,
+  likeStudentProjectRequest,
+} from '../store/actions'
 import {
   Lightbulb,
   ArrowLeft,
@@ -19,9 +29,29 @@ import {
   User,
 } from 'lucide-react'
 
+function ProjectScreenshot({ url, label }: { url: string; label: string }) {
+  const [unavailable, setUnavailable] = useState(false)
+  if (unavailable) return <span className="screenshot-unavailable">Скриншот недоступен</span>
+  return (
+    <a href={url} target="_blank" rel="noreferrer">
+      <img
+        src={url}
+        loading="lazy"
+        alt={label}
+        onError={() => setUnavailable(true)}
+        style={{ width: 160, maxWidth: '100%' }}
+      />
+    </a>
+  )
+}
+
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
+  const confirm = useConfirm()
+  const [actionError, setActionError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState(false)
   const currentUser = useAppSelector((state) => state.auth.currentUser)
   const { studentsList: authors } = useAppSelector((state) => state.students)
   const { activeProject, loading, error, pendingLikes } = useAppSelector(
@@ -49,6 +79,27 @@ export const StudentDetailPage: React.FC = () => {
     )
   }
 
+  const owner = activeProject.authorId === currentUser?.id
+  const server = activeProject.server
+  const reviewer =
+    ['curator', 'university'].includes(currentUser?.role || '') && server?.status === 'moderation'
+  const canEdit = owner && (server?.status === 'draft' || server?.status === 'revision')
+  const protectedFiles =
+    (owner || currentUser?.role === 'admin' || reviewer) &&
+    !activeProject.coverImage &&
+    !activeProject.screenshots.length &&
+    server
+      ? [
+          ...(server.coverFileId ? [{ id: server.coverFileId, name: 'Обложка' }] : []),
+          ...server.assets
+            .filter((asset) => asset.kind === 'screenshot')
+            .map((asset, index) => ({
+              id: asset.file_id,
+              name: `Скриншот ${index + 1}`,
+            })),
+        ]
+      : []
+
   const getBadgeTitle = (b: string) => {
     switch (b) {
       case 'seeking_company':
@@ -74,20 +125,66 @@ export const StudentDetailPage: React.FC = () => {
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам
         </Link>
+        {canEdit && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setEditing(true)}
+          >
+            Редактировать проект
+          </button>
+        )}
+        {currentUser?.role === 'admin' && (
+          <button
+            className={`btn btn-sm ${publicationStatus(activeProject) === 'hidden' ? 'btn-secondary' : 'btn-danger'}`}
+            disabled={busy}
+            onClick={async () => {
+              const hidden = publicationStatus(activeProject) === 'hidden'
+              if (
+                !(await confirm(
+                  `${hidden ? 'Восстановить' : 'Заблокировать'} проект «${activeProject.title}»?`,
+                ))
+              )
+                return
+              setBusy(true)
+              setActionError('')
+              try {
+                await apiClient.moderatePublication(
+                  'student',
+                  activeProject.id,
+                  hidden ? 'approved' : 'hidden',
+                  'Решение администратора из карточки проекта',
+                )
+                dispatch(fetchStudentProjectByIdRequest(activeProject.id))
+              } catch (cause) {
+                setActionError((cause as Error).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {publicationStatus(activeProject) === 'hidden'
+              ? 'Восстановить проект'
+              : 'Заблокировать проект'}
+          </button>
+        )}
         <ReportButton targetType="project" targetId={activeProject.id} />
       </div>
 
+      {actionError && <p role="alert">{actionError}</p>}
       <div
         className="responsive-detail-grid"
         style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}
       >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
-            <img
-              src={activeProject.coverImage}
-              alt=""
-              style={{ width: '100%', height: '320px', objectFit: 'cover' }}
-            />
+            {activeProject.coverImage && (
+              <img
+                src={activeProject.coverImage}
+                alt=""
+                style={{ width: '100%', height: '320px', objectFit: 'cover' }}
+              />
+            )}
 
             <div className="card__body">
               <div
@@ -99,13 +196,17 @@ export const StudentDetailPage: React.FC = () => {
                 }}
               >
                 <span className="badge badge-direction" style={{ textTransform: 'uppercase' }}>
-                  {activeProject.category} • {activeProject.direction}
+                  {[activeProject.category, activeProject.direction].filter(Boolean).join(' • ')}
                 </span>
 
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-secondary btn-sm project-like"
                   onClick={() => dispatch(likeStudentProjectRequest(activeProject.id))}
-                  disabled={!currentUser || pendingLikes.includes(activeProject.id)}
+                  disabled={
+                    !currentUser ||
+                    pendingLikes.includes(activeProject.id) ||
+                    !isPublished(activeProject)
+                  }
                   aria-pressed={!!activeProject.likedByMe}
                   aria-label={activeProject.likedByMe ? 'Убрать лайк' : 'Поставить лайк'}
                   style={{ color: '#e11d48' }}
@@ -170,7 +271,7 @@ export const StudentDetailPage: React.FC = () => {
                 <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '8px' }}>
                   Подробное описание:
                 </h3>
-                <p
+                <div
                   style={{
                     margin: 0,
                     fontSize: '13px',
@@ -179,12 +280,37 @@ export const StudentDetailPage: React.FC = () => {
                     whiteSpace: 'pre-line',
                   }}
                 >
-                  {activeProject.fullDescription}
-                </p>
+                  <RichMarkdown text={activeProject.fullDescription} />
+                </div>
               </div>
 
+              {(activeProject.screenshots.length > 0 || protectedFiles.length > 0) && (
+                <section>
+                  <h3>Изображения проекта</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                    {activeProject.screenshots.map((url, index) => (
+                      <ProjectScreenshot key={url} url={url} label={`Скриншот ${index + 1}`} />
+                    ))}
+                    {protectedFiles.map((file) => (
+                      <FileDownload
+                        key={file.id}
+                        file={{
+                          name: file.name,
+                          url: reviewer
+                            ? `${apiRuntime.baseUrl || '/api/v1'}/student-projects/${activeProject.id}/review/files/${file.id}`
+                            : `${apiRuntime.baseUrl || '/api/v1'}/files/${file.id}`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Links */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+              <div
+                className="student-project-links"
+                style={{ display: 'flex', gap: '12px', marginTop: '20px' }}
+              >
                 {activeProject.githubUrl && (
                   <a
                     href={activeProject.githubUrl}
@@ -280,7 +406,17 @@ export const StudentDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {activeProject.authorId === currentUser?.id && (
+      {editing && canEdit && (
+        <LiveStudentProjectEditor
+          project={activeProject}
+          onClose={() => setEditing(false)}
+          onSaved={(project) => {
+            dispatch(fetchStudentProjectByIdSuccess(project))
+            setEditing(false)
+          }}
+        />
+      )}
+      {owner && !canEdit && server?.status !== 'hidden' && (
         <details className="card compact-settings">
           <summary>Настройки проекта</summary>
           <ProjectVisibility project={activeProject} />
