@@ -33,10 +33,19 @@ type CommunityMethod =
   | 'getInvitation'
   | 'respondInvitation'
 type AsyncMethods = {
-  [K in Exclude<CommunityMethod, 'updateSharedPlan'>]: (
+  [K in Exclude<CommunityMethod, 'updateSharedPlan' | 'updateExecutionStage'>]: (
     ...args: Parameters<MockServer[K]>
   ) => Promise<ReturnType<MockServer[K]>>
 } & {
+  updateExecutionStage: (
+    executionId: string,
+    stageId: string,
+    action: string,
+    attachments?: any[],
+    feedback?: string,
+    fileIndex?: number,
+    fileId?: string,
+  ) => Promise<ReturnType<MockServer['updateExecutionStage']>>
   updateSharedPlan: (
     caseId: string,
     rows: Parameters<MockServer['updateSharedPlan']>[1],

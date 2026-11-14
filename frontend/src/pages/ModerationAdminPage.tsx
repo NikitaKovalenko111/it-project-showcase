@@ -1,3 +1,4 @@
+import type { User } from '../types/models'
 import { useTablePagination } from '../components/ReportTableView'
 import { IdentityImage } from '../components/IdentityImage'
 import { useConfirmWithReason } from '../components/ConfirmProvider'
@@ -151,8 +152,33 @@ export const ModerationAdminPage: React.FC = () => {
     if (reason !== null) dispatch(toggleUserBlockRequest(user, blocked, reason))
   }
 
-  const handleChangeRole = (userId: string, role: any) => {
-    if (userId !== currentUser?.id) dispatch(changeUserRoleRequest(userId, role))
+  const handleChangeRole = async (userId: string, role: User['role']) => {
+    if (userId === currentUser?.id || roleBusy) return
+    if (!live) {
+      dispatch(changeUserRoleRequest(userId, role))
+      return
+    }
+    const reason = await confirm(
+      `Изменить роль пользователя на «${roleLabels[role]}»? Пользователю потребуется войти снова.`,
+      'Изменить роль',
+      false,
+      false,
+    )
+    if (reason === null) return
+    setRoleBusy(true)
+    setRoleError('')
+    setRoleMessage('')
+    try {
+      await apiClient.changeUserRole(userId, role)
+      dispatch(fetchAllUsersRequest())
+      dispatch(fetchAuditLogsRequest())
+      setRoleMessage('Роль изменена. Пользователю нужно войти снова.')
+    } catch (e) {
+      setRoleError((e as Error).message)
+      dispatch(fetchAllUsersRequest())
+    } finally {
+      setRoleBusy(false)
+    }
   }
 
   return (
@@ -431,12 +457,26 @@ export const ModerationAdminPage: React.FC = () => {
                                 Отклонить
                               </button>
                             </div>
-                          ) : u.roleRequestStatus === 'approved' ? (
-                            'Одобрена'
+                          ) : u.id === currentUser?.id ? (
+                            'Ваш аккаунт'
+                          ) : u.role === 'admin' ? (
+                            'Администратор'
                           ) : u.roleRequestStatus === 'rejected' ? (
-                            'Отклонена'
+                            'Заявка отклонена'
                           ) : (
-                            '—'
+                            <select
+                              aria-label={`Роль пользователя ${u.fullName}`}
+                              className="select admin-role-select"
+                              value={u.role}
+                              disabled={roleBusy}
+                              onChange={(e) =>
+                                void handleChangeRole(u.id, e.target.value as User['role'])
+                              }
+                            >
+                              <option value="student">Студент</option>
+                              <option value="company">Компания</option>
+                              <option value="curator">Куратор</option>
+                            </select>
                           )
                         ) : u.id === currentUser?.id ? (
                           'Ваш аккаунт'

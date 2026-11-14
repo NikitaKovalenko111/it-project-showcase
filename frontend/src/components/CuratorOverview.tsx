@@ -68,7 +68,7 @@ export function CuratorOverview({
     {
       icon: Award,
       color: 'amber',
-      value: apiRuntime.mode === 'live' ? '—' : entries.filter((entry) => entry.evaluation).length,
+      value: entries.filter((entry) => entry.evaluation).length,
       label: 'Оценённые решения',
     },
   ]
@@ -150,13 +150,11 @@ export function CuratorOverview({
                             </span>
                           </div>
                           <small>
-                            {apiRuntime.mode === 'live'
-                              ? 'Оценки недоступны куратору'
-                              : entry.evaluation
-                                ? 'Решение оценено'
-                                : entry.submission
-                                  ? 'Результат на проверке'
-                                  : 'В работе'}
+                            {entry.evaluation
+                              ? 'Решение оценено'
+                              : entry.submission
+                                ? 'Результат на проверке'
+                                : 'В работе'}
                           </small>
                         </td>
                         <td>
@@ -169,7 +167,7 @@ export function CuratorOverview({
                               encodeURIComponent(entry.id)
                             }
                           >
-                            Просмотр этапов
+                            Просмотр работы
                           </Link>
                         </td>
                       </tr>

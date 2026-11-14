@@ -187,3 +187,86 @@ test('submitted execution can send a new version and ignores superseded results'
   })
   assert.equal((await apiWithVersions.getExecution('e')).submission.id, 'current')
 })
+
+function stageFileFixture() {
+  const calls = []
+  const current = {
+    submission_id: 'current',
+    stage_id: 'stage',
+    kind: 'stage',
+    status: 'submitted',
+    files: [{ file_id: 'keep' }, { file_id: 'remove' }],
+  }
+  const api = createWorkflow({
+    async get(path) {
+      calls.push(['GET', path])
+      if (path === '/executions')
+        return { data: { items: [{ execution_id: 'e', case_id: 'c' }], next_cursor: null } }
+      if (path === '/executions/e')
+        return { data: { execution_id: 'e', case_id: 'c', members: [] } }
+      if (path === '/executions/e/stages') return { data: { items: [{ stage_id: 'stage' }] } }
+      if (path === '/executions/e/submissions')
+        return {
+          data: {
+            items: [
+              {
+                submission_id: 'old',
+                kind: 'stage',
+                stage_id: 'stage',
+                status: 'superseded',
+                files: [{ file_id: 'remove' }],
+              },
+              current,
+              { submission_id: 'final', kind: 'final', status: 'accepted', files: [] },
+            ],
+          },
+        }
+      if (path === '/submissions/final/evaluations')
+        return {
+          data: {
+            items: [{ evaluation_id: 'grade', status: 'published', total_score: 7, max_score: 10 }],
+          },
+        }
+      throw new Error('Unexpected route ' + path)
+    },
+    async delete(path) {
+      calls.push(['DELETE', path])
+      current.files = current.files.filter((f) => f.file_id !== 'remove')
+    },
+  })
+  return { api, calls }
+}
+
+test('curator reads assigned submissions, files and published evaluations', async () => {
+  const { api } = stageFileFixture()
+  const rows = await api.getCuratedExecutions('c')
+  assert.equal(rows[0].submission.id, 'final')
+  assert.equal(rows[0].evaluation.totalScore, 7)
+  assert.equal(rows[0].milestones[0].attachedMaterials[1].file_id, 'remove')
+})
+
+test('stage file removal uses stable file ID and current submission, not stale index', async () => {
+  const { api, calls } = stageFileFixture()
+  const row = await api.updateExecutionStage('e', 'stage', 'remove', [], '', 0, 'remove')
+  assert.deepEqual(
+    calls.filter((c) => c[0] === 'DELETE'),
+    [['DELETE', '/submissions/current/files/remove']],
+  )
+  assert.deepEqual(
+    row.milestones[0].attachedMaterials.map((f) => f.file_id),
+    ['keep'],
+  )
+})
+
+test('missing or changed file is never removed by index', async () => {
+  const { api, calls } = stageFileFixture()
+  await assert.rejects(
+    () => api.updateExecutionStage('e', 'stage', 'remove', [], '', 0),
+    /идентификатор/,
+  )
+  await assert.rejects(
+    () => api.updateExecutionStage('e', 'stage', 'remove', [], '', 0, 'missing'),
+    /изменились/,
+  )
+  assert.equal(calls.filter((c) => c[0] === 'DELETE').length, 0)
+})

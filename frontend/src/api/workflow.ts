@@ -55,13 +55,11 @@ export function createWorkflow(http: any) {
           evaluatedAt: d.created_at,
         }
       : undefined
-  const getExecution = async (id: string, curator = false): Promise<Execution> => {
+  const getExecution = async (id: string): Promise<Execution> => {
     const d = (await http.get(`/executions/${id}`)).data
     const [stages, submissions] = await Promise.all([
       items(`/executions/${id}/stages`),
-      curator
-        ? []
-        : collectPages<any>((params) => http.get(`/executions/${id}/submissions`, { params })),
+      collectPages<any>((params) => http.get(`/executions/${id}/submissions`, { params })),
     ])
     const latest = submissions.find((s) => s.kind === 'final' && s.status !== 'superseded')
     const evaluations = latest
@@ -116,7 +114,7 @@ export function createWorkflow(http: any) {
   }
   const getCuratedExecutions = async (caseId?: string) =>
     Promise.all(
-      (await listCuratedExecutions(caseId)).map((item) => getExecution(item.execution_id, true)),
+      (await listCuratedExecutions(caseId)).map((item) => getExecution(item.execution_id)),
     )
   const send = async (
     executionId: string,
@@ -238,9 +236,22 @@ export function createWorkflow(http: any) {
       action: string,
       attachments: any[] = [],
       feedback = '',
+      fileIndex = -1,
+      fileId?: string,
     ) => {
-      if (action === 'remove')
-        throw new Error('Удаление материала сданного этапа пока не поддерживается сервером')
+      if (action === 'remove') {
+        if (!fileId) throw new Error('Не найден идентификатор файла. Обновите работу.')
+        const submissions = await collectPages<any>((params) =>
+          http.get(`/executions/${id}/submissions`, { params }),
+        )
+        const current = submissions.find(
+          (s) => s.kind === 'stage' && s.stage_id === stageId && s.status !== 'superseded',
+        )
+        if (!current || !current.files?.some((file: any) => file.file_id === fileId))
+          throw new Error('Материалы этапа изменились. Обновите работу.')
+        await http.delete(`/submissions/${current.submission_id}/files/${fileId}`)
+        return getExecution(id)
+      }
       if (action === 'submit') await send(id, feedback || 'Материалы этапа', attachments, stageId)
       await http.patch(`/executions/${id}/stages/${stageId}`, {
         status: action === 'needs_work' ? 'revision' : action === 'submit' ? 'submitted' : action,

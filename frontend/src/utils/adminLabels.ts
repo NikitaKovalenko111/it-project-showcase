@@ -1,4 +1,6 @@
 export const roleLabels: Record<string, string> = {
+  company_representative: 'Компания',
+  university_staff: 'Куратор',
   student: 'Студент',
   company: 'Компания',
   curator: 'Куратор',
@@ -30,4 +32,5 @@ export const auditObjectLabels: Record<string, string> = {
   student_project: 'Студенческий проект',
   submission: 'Сданная работа',
   role_request: 'Заявка на роль',
+  user_role: 'Роль пользователя',
 }

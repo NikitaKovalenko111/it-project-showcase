@@ -58,7 +58,6 @@ export const ExecutionDetail: React.FC<{
       (user?.role === 'company' && (!entry.evaluation || entry.evaluation.evaluatorId === user.id)))
   const canSubmitResult =
     participant && !finished && !entry.evaluation && entry.canSubmitResult !== false
-  const curated = apiRuntime.mode === 'live' && user?.role === 'curator'
   const [tab, setTab] = useState('stages'),
     [grading, setGrading] = useState(false),
     [description, setDescription] = useState(entry.submission?.description || '')
@@ -119,7 +118,7 @@ export const ExecutionDetail: React.FC<{
         <nav className="tabs-bar" aria-label="Выполнение участника">
           {[
             ['stages', 'Контрольные точки', Clock],
-            ...(!curated ? [['submission', 'Результат и оценка', FileCheck2]] : []),
+            ['submission', 'Результат и оценка', FileCheck2],
             ['members', entry.teamId ? 'Проектная команда' : 'Участник', Users],
             ['discussion', 'Обсуждение и файлы', MessageSquare],
           ].map(([value, label, Icon]) => (

@@ -1,3 +1,4 @@
+import { createUserManagement } from './users'
 import {
   fromUser,
   fromCase,
@@ -377,7 +378,7 @@ export const apiClient = {
 
   async changeUserRole(userId: string, role: User['role']): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      throw new Error('Сервер пока не предоставляет смену роли пользователя')
+      return createUserManagement(axiosInstance).changeRole(userId, role)
     }
     await delay(120)
     return mockServer.changeUserRole(userId, role)

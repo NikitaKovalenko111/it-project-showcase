@@ -379,22 +379,20 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {!student && view === 'teams' && !entry && (
                 <>
                   <div className="execution-filter">
-                    {!curator && (
-                      <label className="catalog-sort">
-                        Статус работы
-                        <select
-                          className="select"
-                          value={tab}
-                          onChange={(event) => setTab(event.target.value)}
-                        >
-                          <option value="all">Все работы</option>
-                          <option value="active">В работе</option>
-                          <option value="stage_review">Этапы на проверке</option>
-                          <option value="submitted">Сданные решения</option>
-                          <option value="evaluated">Оценённые решения</option>
-                        </select>
-                      </label>
-                    )}
+                    <label className="catalog-sort">
+                      Статус работы
+                      <select
+                        className="select"
+                        value={tab}
+                        onChange={(event) => setTab(event.target.value)}
+                      >
+                        <option value="all">Все работы</option>
+                        <option value="active">В работе</option>
+                        <option value="stage_review">Этапы на проверке</option>
+                        <option value="submitted">Сданные решения</option>
+                        <option value="evaluated">Оценённые решения</option>
+                      </select>
+                    </label>
                     <label className="sr-only" htmlFor="execution-search">
                       Поиск команды или участника
                     </label>
@@ -412,17 +410,15 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                         className={`card execution-card ${curator ? 'execution-card--observer' : ''}`}
                         key={e.id}
                       >
-                        {!curator && (
-                          <span className="badge badge-direction">
-                            {e.status === 'evaluated'
-                              ? 'Оценено'
-                              : e.status === 'submitted'
-                                ? 'Сдано'
-                                : finished
-                                  ? 'Не сдано'
-                                  : 'В работе'}
-                          </span>
-                        )}
+                        <span className="badge badge-direction">
+                          {e.status === 'evaluated'
+                            ? 'Оценено'
+                            : e.status === 'submitted'
+                              ? 'Сдано'
+                              : finished
+                                ? 'Не сдано'
+                                : 'В работе'}
+                        </span>
                         <h3>{e.name}</h3>
                         <p>
                           {olympiad && !e.teamId
@@ -442,13 +438,11 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             )}
                           </small>
                         </p>
-                        {!curator && (
-                          <strong>
-                            {e.evaluation
-                              ? `${e.evaluation.totalScore} / ${e.evaluation.maxScore}`
-                              : 'Без оценки'}
-                          </strong>
-                        )}
+                        <strong>
+                          {e.evaluation
+                            ? `${e.evaluation.totalScore} / ${e.evaluation.maxScore}`
+                            : 'Без оценки'}
+                        </strong>
                         <button
                           className="btn btn-primary btn-sm"
                           onClick={() => setSelected(e.id)}

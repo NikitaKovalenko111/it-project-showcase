@@ -285,7 +285,7 @@ export interface ProjectMilestone {
   deadline: string
   description: string
   status: MilestoneStatus
-  attachedMaterials: { name: string; url: string; size?: string }[]
+  attachedMaterials: { name: string; url: string; size?: string; file_id?: string }[]
   submittedAt?: string
   feedback?: string
 }
