@@ -474,6 +474,28 @@ paths:
       summary: Текущий пользователь и серверные роли
       security: [{bearerAuth: []}]
       responses: {'200': {description: Профиль пользователя}, '401': {$ref: '#/components/responses/Unauthorized'}}
+  /users/{user_id}/role:
+    patch:
+      tags: [Users]
+      operationId: setUserRole
+      description: Модератор заменяет роль аккаунта. Пользователю нужно войти снова.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/UserID'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: {type: string, enum: [student, company_representative, university_staff]}
+      responses:
+        '204': {description: Роль изменена}
+        '403': {description: Требуется роль модератора}
+        '404': {description: Аккаунт отсутствует или удалён}
+        '409': {description: Защищённый аккаунт или отсутствует студенческий профиль}
+        '422': {description: Недопустимая роль}
   /users/{user_id}/status:
     patch:
       tags: [Users]
@@ -1410,13 +1432,26 @@ paths:
     get:
       tags: [Results, Files]
       operationId: downloadSubmissionFile
+      description: Файл доступен в том числе куратору закреплённого активного участника выполнения.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/SubmissionID'}, {$ref: '#/components/parameters/FileID'}]
       responses: {'200': {description: Файл результата}}
+    delete:
+      tags: [Results, Files]
+      operationId: detachStageSubmissionFile
+      description: Активный участник снимает вложение с редактируемой сдачи этапа. Объект в MinIO сохраняется.
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/SubmissionID'}, {$ref: '#/components/parameters/FileID'}]
+      responses:
+        '204': {description: Вложение снято}
+        '403': {description: Требуется роль студента}
+        '404': {description: Сдача этапа или вложение недоступны}
+        '409': {description: Сдача закрыта для изменений}
   /evaluations/{evaluation_id}:
     get:
       tags: [Results]
       operationId: getEvaluation
+      description: Куратор закреплённого активного участника может читать опубликованные оценки.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/EvaluationID'}]
       responses: {'200': {description: Оценка}}

@@ -14,8 +14,8 @@ services:
       MINIO_ROOT_USER: showcase
       MINIO_ROOT_PASSWORD: showcase-development-secret
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
     healthcheck:
@@ -62,13 +62,17 @@ services:
       db_pass: ${POSTGRES_PASSWORD}
       db_name: showcase
       ssl_mode: disable
+      minio_endpoint: minio:9000
+      minio_access_key: showcase
+      minio_secret_key: showcase-development-secret
+      minio_use_ssl: "false"
     depends_on:
       minio:
         condition: service_healthy
       postgres:
         condition: service_healthy
     ports:
-      - "3005:3005"
+      - "${BACKEND_PORT:-3005}:3005"
   
   backup:
     build:

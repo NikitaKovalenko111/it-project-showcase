@@ -108,8 +108,12 @@ func getExecutionRound(ctx context.Context, tx *sql.Tx, execution, user, round s
 	var caseID string
 	err := tx.QueryRowContext(ctx, `SELECT c.case_id FROM executions e JOIN cases c ON c.case_id=e.case_id
 		WHERE e.execution_id=$1 FOR UPDATE OF c`, execution).Scan(&caseID)
-	if errors.Is(err, sql.ErrNoRows) { return nil, ErrAccessDenied }
-	if err != nil { return nil, err }
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrAccessDenied
+	}
+	if err != nil {
+		return nil, err
+	}
 	var data []byte
 	err = tx.QueryRowContext(ctx, `SELECT x.value FROM executions e JOIN cases c ON c.case_id=e.case_id
 		JOIN event_plans p ON p.case_id=c.case_id CROSS JOIN LATERAL jsonb_array_elements(p.plan->'rounds') x(value)
@@ -222,7 +226,9 @@ func (r *Repository) GradeEventRound(ctx context.Context, user, execution, round
 func (r *Repository) ListEventRoundSubmissions(ctx context.Context, user, execution string, admin bool) ([]models.EventRoundSubmission, error) {
 	var manager, allowed bool
 	err := r.db.QueryRowContext(ctx, `SELECT ($3 OR `+eventManager+`),($3 OR `+eventManager+` OR EXISTS(
-		SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2::uuid AND m.left_at IS NULL))
+		SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2::uuid AND m.left_at IS NULL) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.left_at IS NULL
+		JOIN user_roles ur ON ur.user_id=sc.curator_id JOIN roles cr ON cr.role_id=ur.role_id AND cr.code='university_staff'
+		WHERE sc.curator_id=$2::uuid AND sc.revoked_at IS NULL AND em.execution_id=e.execution_id))
 		FROM executions e JOIN cases c ON c.case_id=e.case_id WHERE e.execution_id=$1`, execution, user, admin).Scan(&manager, &allowed)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && !allowed) {
 		return nil, ErrAccessDenied

@@ -49,6 +49,17 @@ func (s *Service) GetSubmission(ctx context.Context, u, id string, c, a bool) (*
 	return x, mapErr(e, true)
 }
 
+func (s *Service) DetachStageFile(ctx context.Context, actor, submissionID, fileID string) error {
+	if !validID(submissionID) || !validID(fileID) {
+		return ErrNotFound
+	}
+	err := s.repo.DetachStageFile(ctx, actor, submissionID, fileID)
+	if errors.Is(err, result_repo.ErrStageFileLocked) {
+		return ErrConflict
+	}
+	return mapErr(err, true)
+}
+
 func (s *Service) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
 	if !validID(submission) {
 		return nil, ErrNotFound

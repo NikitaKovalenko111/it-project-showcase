@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 
 	"it-project-showcase/backend/pkg"
@@ -13,7 +14,9 @@ type authContextKey uint8
 
 const accessTokenClaimsContextKey authContextKey = iota
 
-func Authorization(accessSecret string, logger *slog.Logger) func(http.Handler) http.Handler {
+type AccessRoleLookup func(context.Context, string) ([]string, error)
+
+func Authorization(accessSecret string, logger *slog.Logger, lookups ...AccessRoleLookup) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenString, ok := bearerToken(r.Header.Get("Authorization"))
@@ -28,6 +31,25 @@ func Authorization(accessSecret string, logger *slog.Logger) func(http.Handler) 
 				logger.Warn("authorization failed", slog.Any("error", err))
 				pkg.WriteError(w, http.StatusUnauthorized, "invalid_access_token", "Valid access token is required")
 				return
+			}
+
+			if len(lookups) > 0 {
+				current, err := lookups[0](r.Context(), claims.Subject)
+				if err != nil {
+					QueueErrorLog(r.Context(), "check current access roles", err)
+					pkg.WriteError(w, http.StatusServiceUnavailable, "auth_unavailable", "Authorization unavailable")
+					return
+				}
+				matched := len(current) > 0 && len(current) == len(claims.Roles)
+				for _, role := range claims.Roles {
+					if !slices.Contains(current, role) {
+						matched = false
+					}
+				}
+				if !matched {
+					pkg.WriteError(w, http.StatusUnauthorized, "invalid_access_token", "Valid access token is required")
+					return
+				}
 			}
 
 			ctx := context.WithValue(r.Context(), accessTokenClaimsContextKey, claims)

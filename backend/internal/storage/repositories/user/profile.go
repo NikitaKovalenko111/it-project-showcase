@@ -44,6 +44,10 @@ func (r *UsersRepo) ReviewRole(ctx context.Context, moderator, userID, status st
 		return err
 	}
 	defer tx.Rollback()
+	var lockedID string
+	if err = tx.QueryRowContext(ctx, `SELECT user_id FROM users WHERE user_id=$1 FOR UPDATE`, userID).Scan(&lockedID); err != nil {
+		return err
+	}
 	var role string
 	err = tx.QueryRowContext(ctx, `UPDATE role_requests SET status=$3,reviewed_by=$1,reviewed_at=CURRENT_TIMESTAMP
 		WHERE user_id=$2 AND status='pending' RETURNING role_code`, moderator, userID, status).Scan(&role)
@@ -55,6 +59,53 @@ func (r *UsersRepo) ReviewRole(ctx context.Context, moderator, userID, status st
 			SELECT $1,role_id FROM roles WHERE code=$2 ON CONFLICT DO NOTHING`, userID, role); err != nil {
 			return err
 		}
+	}
+	return tx.Commit()
+}
+
+var ErrRoleChangeConflict = errors.New("role change conflicts with the account state")
+
+func (r *UsersRepo) SetRole(ctx context.Context, actor, userID, role string) error {
+	tx, err := audit.Begin(ctx, r.db)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var id string
+	err = tx.QueryRowContext(ctx, `SELECT user_id FROM users WHERE user_id=$1 AND status<>'deleted' FOR UPDATE`, userID).Scan(&id)
+	if err != nil {
+		return err
+	}
+
+	var admin, studentProfile bool
+	err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r USING(role_id)
+		WHERE ur.user_id=$1 AND r.code='admin'), EXISTS(SELECT 1 FROM students WHERE user_id=$1)`, userID).Scan(&admin, &studentProfile)
+	if err != nil {
+		return err
+	}
+	if admin || (role == "student" && !studentProfile) {
+		return ErrRoleChangeConflict
+	}
+
+	if _, err = tx.ExecContext(ctx, `DELETE FROM user_roles WHERE user_id=$1
+		AND role_id NOT IN (SELECT role_id FROM roles WHERE code=$2)`, userID, role); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO user_roles(user_id,role_id)
+		SELECT $1,role_id FROM roles WHERE code=$2 ON CONFLICT DO NOTHING`, userID, role); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE role_requests SET status=CASE WHEN role_code=$3 THEN 'approved' ELSE 'rejected' END,
+		reviewed_by=$1, reviewed_at=CURRENT_TIMESTAMP WHERE user_id=$2 AND status='pending'`, actor, userID, role); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE student_curators SET revoked_at=clock_timestamp() WHERE revoked_at IS NULL
+		AND ((curator_id=$1 AND $2<>'university_staff') OR (student_id=$1 AND $2<>'student'))`, userID, role); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=$1 AND revoked_at IS NULL`, userID); err != nil {
+		return err
 	}
 	return tx.Commit()
 }

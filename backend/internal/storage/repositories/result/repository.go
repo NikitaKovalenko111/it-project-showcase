@@ -20,11 +20,56 @@ type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
+var ErrStageFileLocked = errors.New("stage attachment is locked")
+
+func (r *Repository) DetachStageFile(ctx context.Context, actor, submissionID, fileID string) error {
+	tx, err := audit.Begin(ctx, r.db)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var caseID string
+	err = tx.QueryRowContext(ctx, `SELECT c.case_id FROM submissions s
+		JOIN executions e ON e.execution_id=s.execution_id JOIN cases c ON c.case_id=e.case_id
+		WHERE s.submission_id=$1 AND s.kind='stage' AND EXISTS (
+			SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL)
+		FOR UPDATE OF c`, submissionID, actor).Scan(&caseID)
+	if err != nil {
+		return err
+	}
+
+	var detached, editable bool
+	err = tx.QueryRowContext(ctx, `SELECT sf.detached_at IS NOT NULL,
+		(s.status IN ('submitted','revision') AND x.status IN ('in_progress','revision','submitted')
+		AND es.status IN ('in_progress','revision','submitted')
+		AND NOT EXISTS (SELECT 1 FROM evaluations v WHERE v.submission_id=s.submission_id AND v.status='published')
+		AND NOT EXISTS (SELECT 1 FROM case_placements p WHERE p.case_id=x.case_id))
+		FROM submission_files sf JOIN submissions s ON s.submission_id=sf.submission_id
+		JOIN executions x ON x.execution_id=s.execution_id
+		JOIN execution_stages es ON es.execution_id=x.execution_id AND es.stage_id=s.stage_id
+		WHERE sf.submission_id=$1 AND sf.file_id=$2 FOR UPDATE OF es, x`, submissionID, fileID).Scan(&detached, &editable)
+	if err != nil {
+		return err
+	}
+	if detached {
+		return nil
+	}
+	if !editable {
+		return ErrStageFileLocked
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE submission_files SET detached_at=clock_timestamp(), detached_by=$3
+		WHERE submission_id=$1 AND file_id=$2`, submissionID, fileID, actor); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 func (r *Repository) ReviewDetails(ctx context.Context, user, submission string, company, admin bool) (*models.ResultReviewDetails, error) {
 	var rawFiles, rawEvaluators []byte
 	err := r.db.QueryRowContext(ctx, `SELECT
 		COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'original_name',f.original_name,'mime_type',f.mime_type,'size_bytes',f.size_bytes)
-		ORDER BY sf.ordinal,f.file_id) FROM submission_files sf JOIN files f ON f.file_id=sf.file_id AND f.status='active' WHERE sf.submission_id=s.submission_id),'[]'::jsonb),
+		ORDER BY sf.ordinal,f.file_id) FROM submission_files sf JOIN files f ON f.file_id=sf.file_id AND f.status='active' WHERE sf.submission_id=s.submission_id AND sf.detached_at IS NULL),'[]'::jsonb),
 		COALESCE((SELECT jsonb_agg(jsonb_build_object('evaluation_id',v.evaluation_id,'name',COALESCE(NULLIF(concat_ws(' ',p.last_name,p.first_name),''),u.username))
 		ORDER BY v.created_at,v.evaluation_id) FROM evaluations v JOIN users u ON u.user_id=v.evaluator_id LEFT JOIN students p ON p.user_id=u.user_id
 		WHERE v.submission_id=s.submission_id AND v.status='published'),'[]'::jsonb)
@@ -46,16 +91,16 @@ func (r *Repository) ReviewDetails(ctx context.Context, user, submission string,
 	}
 	return &item, nil
 }
-func (r *Repository) authorize(ctx context.Context, u, e string, c, a bool) error {
+func (r *Repository) authorize(ctx context.Context, u, e string, c, a, curator bool) error {
 	var ok bool
-	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=x.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company'))) FROM executions x WHERE x.execution_id=$1`, e, u, c, a).Scan(&ok)
+	err := r.db.QueryRowContext(ctx, `SELECT ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=x.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=x.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR ($5 AND EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.left_at IS NULL JOIN user_roles ur ON ur.user_id=sc.curator_id JOIN roles cr ON cr.role_id=ur.role_id AND cr.code='university_staff' WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL AND em.execution_id=x.execution_id))) FROM executions x WHERE x.execution_id=$1`, e, u, c, a, curator).Scan(&ok)
 	if errors.Is(err, sql.ErrNoRows) || !ok {
 		return ErrForbidden
 	}
 	return err
 }
 
-const subSelect = `SELECT s.submission_id,s.execution_id,s.stage_id,s.version_no,s.kind,s.title,s.description,s.repository_url,s.demo_url,s.status,s.submitted_by,s.submitted_at,s.reviewed_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal,'original_name',m.original_name,'mime_type',m.mime_type,'size_bytes',m.size_bytes) ORDER BY f.ordinal,f.file_id) FROM submission_files f JOIN files m ON m.file_id=f.file_id AND m.status='active' WHERE f.submission_id=s.submission_id),'[]'::jsonb) FROM submissions s`
+const subSelect = `SELECT s.submission_id,s.execution_id,s.stage_id,s.version_no,s.kind,s.title,s.description,s.repository_url,s.demo_url,s.status,s.submitted_by,s.submitted_at,s.reviewed_at,COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal,'original_name',m.original_name,'mime_type',m.mime_type,'size_bytes',m.size_bytes) ORDER BY f.ordinal,f.file_id) FROM submission_files f JOIN files m ON m.file_id=f.file_id AND m.status='active' WHERE f.submission_id=s.submission_id AND f.detached_at IS NULL),'[]'::jsonb) FROM submissions s`
 
 func scanSub(row interface{ Scan(...any) error }) (*models.Submission, error) {
 	var x models.Submission
@@ -70,7 +115,7 @@ func scanSub(row interface{ Scan(...any) error }) (*models.Submission, error) {
 	return &x, err
 }
 func (r *Repository) ListSubmissions(ctx context.Context, u, e string, c, a bool, limit int, before *time.Time, bid string) ([]models.Submission, error) {
-	if err := r.authorize(ctx, u, e, c, a); err != nil {
+	if err := r.authorize(ctx, u, e, c, a, true); err != nil {
 		return nil, err
 	}
 	q := subSelect + ` WHERE s.execution_id=$1`
@@ -97,7 +142,7 @@ func (r *Repository) ListSubmissions(ctx context.Context, u, e string, c, a bool
 	return out, rows.Err()
 }
 func (r *Repository) GetSubmission(ctx context.Context, u, id string, c, a bool) (*models.Submission, error) {
-	x, err := scanSub(r.db.QueryRowContext(ctx, subSelect+` JOIN executions e ON e.execution_id=s.execution_id WHERE s.submission_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=e.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')))`, id, u, c, a))
+	x, err := scanSub(r.db.QueryRowContext(ctx, subSelect+` JOIN executions e ON e.execution_id=s.execution_id WHERE s.submission_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=e.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.left_at IS NULL JOIN user_roles ur ON ur.user_id=sc.curator_id JOIN roles cr ON cr.role_id=ur.role_id AND cr.code='university_staff' WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL AND em.execution_id=e.execution_id))`, id, u, c, a))
 	if errors.Is(err, sql.ErrNoRows) {
 		var exists bool
 		if e := r.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM submissions WHERE submission_id=$1)`, id).Scan(&exists); e == nil && exists {
@@ -136,7 +181,7 @@ func (r *Repository) CreateSubmission(ctx context.Context, u, e string, in model
 		return nil, err
 	}
 	for _, f := range in.Files {
-		res, er := tx.ExecContext(ctx, `INSERT INTO submission_files(submission_id,file_id,kind,ordinal) SELECT $1,file_id,$3,$4 FROM files WHERE file_id=$2 AND status='active' AND (uploaded_by=$5 OR EXISTS(SELECT 1 FROM submission_files sf JOIN submissions s ON s.submission_id=sf.submission_id WHERE sf.file_id=$2 AND s.execution_id=$6 AND s.kind=$7 AND s.stage_id IS NOT DISTINCT FROM $8))`, id, f.FileID, f.Kind, f.Ordinal, u, e, in.Kind, stage)
+		res, er := tx.ExecContext(ctx, `INSERT INTO submission_files(submission_id,file_id,kind,ordinal) SELECT $1,file_id,$3,$4 FROM files WHERE file_id=$2 AND status='active' AND (uploaded_by=$5 OR EXISTS(SELECT 1 FROM submission_files sf JOIN submissions s ON s.submission_id=sf.submission_id WHERE sf.file_id=$2 AND sf.detached_at IS NULL AND s.execution_id=$6 AND s.kind=$7 AND s.stage_id IS NOT DISTINCT FROM $8))`, id, f.FileID, f.Kind, f.Ordinal, u, e, in.Kind, stage)
 		if er != nil {
 			return nil, er
 		}
@@ -191,7 +236,7 @@ func (r *Repository) ListEvaluations(ctx context.Context, u, id string, c, a boo
 	return out, rows.Err()
 }
 func (r *Repository) GetEvaluation(ctx context.Context, u, id string, c, a bool) (*models.Evaluation, error) {
-	x, err := scanEval(r.db.QueryRowContext(ctx, evalSelect+` JOIN submissions s ON s.submission_id=v.submission_id JOIN executions e ON e.execution_id=s.execution_id WHERE v.evaluation_id=$1 AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=e.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')))`, id, u, c, a))
+	x, err := scanEval(r.db.QueryRowContext(ctx, evalSelect+` JOIN submissions s ON s.submission_id=v.submission_id JOIN executions e ON e.execution_id=s.execution_id WHERE v.evaluation_id=$1 AND (v.status='published' OR $4 OR $3) AND ($4 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL) OR ($3 AND EXISTS(SELECT 1 FROM cases k JOIN company_members cm ON cm.company_id=k.company_id WHERE k.case_id=e.case_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company')) OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.left_at IS NULL JOIN user_roles ur ON ur.user_id=sc.curator_id JOIN roles cr ON cr.role_id=ur.role_id AND cr.code='university_staff' WHERE sc.curator_id=$2 AND sc.revoked_at IS NULL AND em.execution_id=e.execution_id))`, id, u, c, a))
 	if errors.Is(err, sql.ErrNoRows) {
 		var exists bool
 		if e := r.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM evaluations WHERE evaluation_id=$1)`, id).Scan(&exists); e == nil && exists {
@@ -292,7 +337,7 @@ func (r *Repository) ListReviews(ctx context.Context, u, sid string, c, a bool) 
 	return out, rows.Err()
 }
 func (r *Repository) ListAwards(ctx context.Context, u, e string, c, a bool) ([]models.Award, error) {
-	if err := r.authorize(ctx, u, e, c, a); err != nil {
+	if err := r.authorize(ctx, u, e, c, a, false); err != nil {
 		return nil, err
 	}
 	rows, err := r.db.QueryContext(ctx, `SELECT a.award_id,a.execution_id,a.title,a.place_no,a.amount,a.currency,a.awarded_by,a.awarded_at,COALESCE(f.status,'pending'),f.evidence_file_id FROM awards a LEFT JOIN reward_fulfillments f ON f.award_id=a.award_id WHERE a.execution_id=$1 ORDER BY a.awarded_at`, e)
@@ -340,7 +385,7 @@ func (r *Repository) UpdateFulfillment(ctx context.Context, u, id, status, comme
 	return nil, sql.ErrNoRows
 }
 func (r *Repository) ListCertificates(ctx context.Context, u, e string, c, a bool) ([]models.Certificate, error) {
-	if err := r.authorize(ctx, u, e, c, a); err != nil {
+	if err := r.authorize(ctx, u, e, c, a, false); err != nil {
 		return nil, err
 	}
 	rows, err := r.db.QueryContext(ctx, `SELECT certificate_id,execution_id,student_id,file_id,verification_code,issued_by,issued_at,revoked_at FROM certificates WHERE execution_id=$1 ORDER BY issued_at`, e)
