@@ -1183,8 +1183,6 @@ select option {
 .curator-stage-progress { display: flex; align-items: center; gap: 10px; }
 .curator-stage-progress progress { width: 84px; height: 7px; accent-color: #3b6ca4; }
 .curator-stage-progress span { white-space: nowrap; font-size: 12px; }
-.company-documents { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.company-documents .btn { max-width: 100%; white-space: normal; text-align: left; }
 @media (max-width: 1150px) {
   .curator-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -1279,3 +1277,8 @@ select option {
 .home-page .curator-agenda-cards .case-card__company { min-height:0; padding-right:0; }
 .curator-agenda-cards .tech-tag { font-size:11px; background:#f1f5f9; color:#475569; padding:2px 7px; border-radius:4px; font-family:monospace; }
 
+
+/* Legal details contain only requisites; keep one deliberate gap below the heading. */
+.card.feature-panel.company-legal { display:block; }
+.company-legal > .feature-toolbar { margin:0 0 12px; padding:0; min-height:0; gap:12px; }
+.company-legal > dl.company-legal-grid { margin:0; }
