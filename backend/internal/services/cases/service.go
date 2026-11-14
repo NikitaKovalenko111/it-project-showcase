@@ -160,6 +160,14 @@ func (s *Service) SubmitForModeration(ctx context.Context, userID, caseID string
 	return item, mapRepositoryError(err)
 }
 
+func (s *Service) WithdrawModeration(ctx context.Context, userID, caseID string) (*models.Case, error) {
+	if !uuidPattern.MatchString(caseID) {
+		return nil, ErrNotFound
+	}
+	item, err := s.repo.WithdrawModeration(ctx, userID, caseID)
+	return item, mapRepositoryError(err)
+}
+
 func (s *Service) Cancel(ctx context.Context, userID, caseID string) (*models.Case, error) {
 	if !uuidPattern.MatchString(caseID) {
 		return nil, ErrNotFound

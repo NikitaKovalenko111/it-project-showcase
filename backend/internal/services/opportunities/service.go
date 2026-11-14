@@ -81,6 +81,18 @@ func (s *Service) ListTeamProfiles(ctx context.Context, l, o int) ([]models.Team
 	return s.repo.ListTeamProfiles(ctx, l, o)
 }
 func validateInternship(in *models.InternshipInput) error {
+	if len(in.FileIDs) > 30 {
+		return ErrInvalid
+	}
+	seen := make(map[uuid.UUID]bool, len(in.FileIDs))
+	for i, value := range in.FileIDs {
+		file, err := uuid.Parse(value)
+		if err != nil || seen[file] {
+			return ErrInvalid
+		}
+		seen[file] = true
+		in.FileIDs[i] = file.String()
+	}
 	if in.Kind != "" && in.Kind != "internship" && in.Kind != "practice" {
 		return ErrInvalid
 	}
@@ -130,16 +142,16 @@ func (s *Service) GetInternship(ctx context.Context, idv, user string, admin boo
 func (s *Service) ListInternships(ctx context.Context, status, owner string, l, o int) ([]models.InternshipProgram, int, error) {
 	return s.repo.ListInternships(ctx, status, owner, l, o)
 }
-func (s *Service) UpdateInternshipStatus(ctx context.Context, u, idv, status, comment string, admin bool) (*models.InternshipProgram, error) {
-	allowed := map[string]bool{"moderation": true, "published": true, "revision": true, "closed": true, "hidden": true}
+func (s *Service) UpdateInternshipStatus(ctx context.Context, u, idv, status, comment string, admin, curator bool) (*models.InternshipProgram, error) {
+	allowed := map[string]bool{"draft": true, "moderation": true, "published": true, "revision": true, "closed": true, "hidden": true}
 	comment = strings.TrimSpace(comment)
 	if !id(idv) || !allowed[status] || len(comment) > 4000 || ((status == "revision" || status == "hidden") && comment == "") {
 		return nil, ErrInvalid
 	}
-	if !admin && (status != "moderation" && status != "closed") {
+	if (status == "hidden" && !admin) || ((status == "published" || status == "revision") && !admin && !curator) {
 		return nil, ErrForbidden
 	}
-	x, e := s.repo.UpdateInternshipStatus(ctx, u, idv, status, strings.TrimSpace(comment), admin)
+	x, e := s.repo.UpdateInternshipStatusByRole(ctx, u, idv, status, comment, admin, curator)
 	return x, mapped(e)
 }
 func (s *Service) Leaderboard(ctx context.Context, c, user string, admin bool) ([]models.LeaderboardEntry, error) {

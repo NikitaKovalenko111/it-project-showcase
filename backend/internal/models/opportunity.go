@@ -23,6 +23,7 @@ type TeamSearchProfile struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 type InternshipProgram struct {
+	FileIDs             []string   `json:"file_ids"`
 	Kind                string     `json:"kind"`
 	Capacity            *int       `json:"capacity"`
 	ProgramID           string     `json:"program_id"`
@@ -40,6 +41,7 @@ type InternshipProgram struct {
 	PublishedAt         *time.Time `json:"published_at"`
 }
 type InternshipInput struct {
+	FileIDs             []string   `json:"file_ids"`
 	Kind                string     `json:"kind"`
 	Capacity            *int       `json:"capacity"`
 	CompanyID           string     `json:"company_id"`

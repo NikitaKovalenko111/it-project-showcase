@@ -33,14 +33,14 @@ func (s *Service) CreateFeedback(ctx context.Context, author, body string, files
 }
 
 func (s *Service) ListFeedback(ctx context.Context, user, status string, admin bool, limit int, offset int64) ([]models.Feedback, int64, error) {
-	if status != "" && status != "reviewing" && status != "accepted" && status != "rejected" {
+	if status != "" && status != "reviewing" && status != "reviewed" && status != "accepted" && status != "rejected" {
 		return nil, 0, ErrInvalid
 	}
 	return s.repo.ListFeedback(ctx, user, status, admin, limit, offset)
 }
 
 func (s *Service) ReviewFeedback(ctx context.Context, actor, id, status string) error {
-	if !validID(id) || (status != "accepted" && status != "rejected") {
+	if !validID(id) || (status != "reviewed" && status != "accepted" && status != "rejected") {
 		return ErrInvalid
 	}
 	err := s.repo.ReviewFeedback(ctx, actor, id, status)

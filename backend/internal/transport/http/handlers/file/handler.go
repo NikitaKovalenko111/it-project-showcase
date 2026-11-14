@@ -169,6 +169,18 @@ func (h *Handler) DownloadFeedbackFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) DownloadProgramFile(w http.ResponseWriter, r *http.Request) {
+	user, admin := eventFileActor(r)
+	file, object, err := h.service.DownloadProgramFile(r.Context(), r.PathValue("program_id"), r.PathValue("file_id"), user, admin)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	defer object.Close()
+	w.Header().Set("Cache-Control", "private, no-store")
+	writeDownload(w, r, file, object, true)
+}
+
 func (h *Handler) DownloadInternshipResume(w http.ResponseWriter, r *http.Request) {
 	user, _ := middleware.UserIDFromContext(r.Context())
 	isAdmin := false

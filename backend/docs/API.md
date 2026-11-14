@@ -506,6 +506,8 @@ draft -> moderation -> published
 
 ### POST `/cases/{case_id}/submit-moderation`
 
+`POST /cases/{case_id}/withdraw-moderation` возвращает кейс из модерации в исходный `draft` или `revision`. Для старых записей без исходного статуса используется `draft`. Действие доступно управляющему представителю и сохраняет содержимое, файлы и историю замечаний.
+
 Переводит `draft` или `revision` в `moderation`. Повторная отправка или переход из другого состояния возвращает `409 invalid_case_transition`.
 
 ### GET `/cases/moderation?status=moderation&limit=20&cursor=...`

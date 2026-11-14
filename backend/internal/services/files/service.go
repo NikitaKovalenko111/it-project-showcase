@@ -202,6 +202,17 @@ func (s *Service) DownloadFeedbackFile(ctx context.Context, feedbackID, fileID, 
 	return s.open(ctx, file, err)
 }
 
+func (s *Service) DownloadProgramFile(ctx context.Context, program, file, viewer string, admin bool) (*models.File, io.ReadCloser, error) {
+	if _, err := uuid.Parse(program); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	if _, err := uuid.Parse(file); err != nil {
+		return nil, nil, ErrNotFound
+	}
+	item, err := s.repo.GetProgramFile(ctx, program, file, viewer, admin)
+	return s.open(ctx, item, err)
+}
+
 func (s *Service) DownloadInternshipResume(ctx context.Context, applicationID, userID string, admin bool) (*models.File, io.ReadCloser, error) {
 	if _, err := uuid.Parse(applicationID); err != nil {
 		return nil, nil, ErrNotFound
