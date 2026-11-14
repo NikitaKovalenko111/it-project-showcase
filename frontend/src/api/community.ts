@@ -79,9 +79,14 @@ const companyInvitation = (item: any): SystemNotification => ({
     senderId: item.company_id,
     senderName: 'Представитель компании',
     reason:
-      ({ case: 'Участие в кейсе', internship: 'Стажировка' } as Record<string, string>)[
-        item.kind
-      ] || 'Приглашение',
+      (
+        {
+          case: 'Участие в кейсе',
+          internship: 'Стажировка',
+          interview: 'Техническое собеседование',
+          job: 'Приглашение на работу',
+        } as Record<string, string>
+      )[item.kind] || 'Приглашение',
     status: item.status === 'sent' ? 'pending' : item.status,
     replies: [],
   },

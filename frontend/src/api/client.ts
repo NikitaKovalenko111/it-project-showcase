@@ -1,3 +1,4 @@
+import { createInvitationApi, invitationKind } from './invitations'
 import { createUserManagement } from './users'
 import {
   fromUser,
@@ -944,15 +945,16 @@ export const apiClient = {
     caseId: string,
     type: string,
     message: string,
+    companyId?: string,
   ): Promise<void> {
     if (apiRuntime.mode === 'live') {
-      const project = await apiClient.getCaseById(caseId)
-      await axiosInstance.post(`/companies/${project.companyId}/student-invitations`, {
-        student_id: studentId,
-        case_id: caseId,
-        kind: type,
-        message,
-      })
+      const kind = invitationKind(type)
+      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+      const owner =
+        kind === 'case'
+          ? (await apiClient.getCaseById(caseId)).companyId
+          : companyId || actor?.companyProfile?.companyId
+      await createInvitationApi(axiosInstance).send(owner, studentId, caseId, type, message)
       return
     }
     await delay(180)

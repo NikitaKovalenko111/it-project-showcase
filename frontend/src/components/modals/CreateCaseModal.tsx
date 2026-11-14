@@ -809,7 +809,7 @@ export const CreateCaseModal: React.FC<{
           )}
 
           {team && !olympiad && (
-            <label>
+            <label className="nda-checkbox-field">
               <input type="checkbox" checked={nda} onChange={(e) => setNda(e.target.checked)} />{' '}
               Требуется NDA
             </label>

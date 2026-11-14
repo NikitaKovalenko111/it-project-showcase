@@ -1,7 +1,6 @@
 import { apiClient } from '../../api/client'
 import React, { useState, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '../../store'
-import { inviteStudentRequest } from '../../store/actions'
+import { useAppSelector } from '../../store'
 import { User } from '../../types/models'
 import { CheckCircle2, Send, UserCheck, X } from 'lucide-react'
 
@@ -16,13 +15,13 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const dispatch = useAppDispatch()
   const { casesList } = useAppSelector((state) => state.cases)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const companyCases = casesList.filter((c) =>
     currentUser?.companyProfile?.companyId
-      ? c.companyId === currentUser.companyProfile.companyId
+      ? c.companyId === currentUser.companyProfile.companyId &&
+        ['open', 'in_progress'].includes(c.status)
       : true,
   )
 
@@ -37,6 +36,7 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      setInviteType('Участие в проекте')
       setSent(false)
       setError('')
       setSelectedCaseId('')
@@ -51,9 +51,15 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
     setBusy(true)
     setError('')
     try {
-      const caseId = selectedCaseId || companyCases[0]?.id
-      if (!caseId) throw new Error('Выберите кейс')
-      await apiClient.inviteStudent(student.id, caseId, inviteType, message)
+      const caseId = inviteType === 'Участие в проекте' ? selectedCaseId : ''
+      if (inviteType === 'Участие в проекте' && !caseId) throw new Error('Выберите проект')
+      await apiClient.inviteStudent(
+        student.id,
+        caseId,
+        inviteType,
+        message,
+        currentUser?.companyProfile?.companyId,
+      )
       setSent(true)
     } catch (e) {
       setError((e as Error).message)
@@ -101,7 +107,14 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
                 <select
                   className="select"
                   value={inviteType}
-                  onChange={(e) => setInviteType(e.target.value)}
+                  onChange={(e) => {
+                    const type = e.target.value
+                    setInviteType(type)
+                    setSelectedCaseId('')
+                    setMessage(
+                      `Здравствуйте, ${student.fullName}! ${type === 'Участие в проекте' ? 'Приглашаем обсудить участие в нашем проекте.' : type === 'Техническое собеседование' ? 'Приглашаем вас на техническое собеседование в нашу компанию.' : 'Приглашаем вас на стажировку в нашей компании.'}`,
+                    )
+                  }}
                 >
                   <option value="Участие в проекте">
                     Участие в проекте (индивидуально/командой)
@@ -115,22 +128,33 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Выберите проект/кейс компании:*</label>
-                <select
-                  className="select"
-                  value={selectedCaseId}
-                  onChange={(e) => setSelectedCaseId(e.target.value)}
-                  required
-                >
-                  {companyCases.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title} (
-                      {c.rewardType === 'contest' ? `Призовой фонд ${c.prizeFund} ₽` : c.direction})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {inviteType === 'Участие в проекте' ? (
+                <div className="form-group">
+                  <label>Выберите проект/кейс компании:*</label>
+                  <select
+                    aria-label="Проект для приглашения"
+                    className="select"
+                    value={selectedCaseId}
+                    onChange={(e) => setSelectedCaseId(e.target.value)}
+                    required
+                  >
+                    <option value="">Выберите проект</option>
+                    {companyCases.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title} (
+                        {c.rewardType === 'contest'
+                          ? `Призовой фонд ${c.prizeFund} ₽`
+                          : c.direction}
+                        )
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <p className="invitation-context-note">
+                  Приглашение от компании, без привязки к проекту.
+                </p>
+              )}
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Персональное сообщение / оффер:*</label>

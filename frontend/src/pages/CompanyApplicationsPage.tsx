@@ -80,7 +80,7 @@ export const CompanyApplicationsPage: React.FC = () => {
       </div>
 
       {/* UUST Schedule-style filter container */}
-      <div className="uust-container">
+      <div className="uust-container joined-filter-panel">
         <div className="uust-tabs-row application-status-tabs">
           <button
             className={`uust-tab ${statusFilter === 'all' ? 'active' : ''}`}

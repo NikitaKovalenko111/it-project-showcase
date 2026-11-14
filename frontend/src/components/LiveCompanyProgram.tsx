@@ -190,6 +190,12 @@ export function LiveCompanyProgram() {
           )}
         </div>
       )}
+      {!programId && user?.role === 'admin' && (
+        <p className="role-capability-note">
+          Размещать стажировки и практики сейчас может представитель компании. Администратору
+          доступна модерация.
+        </p>
+      )}
       {notice && (
         <p role="status" className="opportunity-notice">
           {notice}

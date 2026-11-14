@@ -106,11 +106,14 @@ export const WorkspaceListPage: React.FC = () => {
               </select>
             </label>
           )}
-          <CatalogSearch
-            value={search}
-            onChange={setSearch}
-            label="Поиск по проекту, компании, команде или направлению"
-          />
+          <label className="workspace-search-filter">
+            Поиск
+            <CatalogSearch
+              value={search}
+              onChange={setSearch}
+              label="Проект, компания, команда или направление"
+            />
+          </label>
         </div>
       </div>
       {loading || curatorPending ? (

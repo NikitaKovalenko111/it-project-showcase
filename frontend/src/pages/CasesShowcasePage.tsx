@@ -123,8 +123,7 @@ export const CasesShowcasePage: React.FC = () => {
 
   const canCreateCase =
     currentUser?.role === 'company' ||
-    currentUser?.role === 'admin' ||
-    currentUser?.role === 'university'
+    (apiRuntime.mode !== 'live' && ['admin', 'university'].includes(currentUser?.role || ''))
 
   const getRewardBadge = (c: any) => {
     if (c.rewardType === 'contest') {
@@ -190,6 +189,12 @@ export const CasesShowcasePage: React.FC = () => {
         )}
       </div>
 
+      {apiRuntime.mode === 'live' && currentUser?.role === 'admin' && (
+        <p className="role-capability-note">
+          Создание публикаций от имени компании пока недоступно администратору. Доступна проверка и
+          модерация публикаций.
+        </p>
+      )}
       {/* UUST Schedule-Style Filter Container (Authorial Upgrade of ISU widget) */}
       <ScrollToolbar>
         <div className="uust-container">

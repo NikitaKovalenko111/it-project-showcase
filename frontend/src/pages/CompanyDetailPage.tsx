@@ -381,7 +381,7 @@ export const CompanyDetailPage: React.FC = () => {
       )}
 
       {/* Tabs Row (Schedule-style authorial container) */}
-      <div className="uust-container">
+      <div className="uust-container joined-filter-panel">
         <div className="uust-tabs-row">
           <button
             className={`uust-tab ${activeTab === 'cases' ? 'active' : ''}`}

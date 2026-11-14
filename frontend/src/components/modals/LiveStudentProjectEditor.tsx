@@ -1,3 +1,4 @@
+import { CatalogMultiSelect } from '../CatalogMultiSelect'
 import { isOptionalWebUrl } from '../../utils/validation'
 import { LocalizedFileInput } from '../LocalizedFileInput'
 import { useEffect, useState, type FormEvent } from 'react'
@@ -157,7 +158,11 @@ export function LiveStudentProjectEditor({
             </p>
           )}
           {!catalog && !error && <p role="status">Загружаем направления и технологии…</p>}
-          <fieldset aria-label="Данные проекта" disabled={saving || !catalog}>
+          <fieldset
+            className="student-project-fields"
+            aria-label="Данные проекта"
+            disabled={saving || !catalog}
+          >
             <label>
               Видимость
               <select
@@ -220,48 +225,20 @@ export function LiveStudentProjectEditor({
                 onChange={(e) => update('problemSolved', e.target.value)}
               />
             </label>
-            <label>
-              Направления
-              <select
-                className="select"
-                multiple
-                size={5}
-                value={form.directionIds}
-                onChange={(e) =>
-                  update(
-                    'directionIds',
-                    Array.from(e.target.selectedOptions, (option) => option.value),
-                  )
-                }
-              >
-                {catalog?.directions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Технологии
-              <select
-                className="select"
-                multiple
-                size={5}
-                value={form.technologyIds}
-                onChange={(e) =>
-                  update(
-                    'technologyIds',
-                    Array.from(e.target.selectedOptions, (option) => option.value),
-                  )
-                }
-              >
-                {catalog?.technologies.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <CatalogMultiSelect
+              label="Направления"
+              items={catalog?.directions || []}
+              value={form.directionIds}
+              onChange={(ids) => update('directionIds', ids)}
+              limit={20}
+            />
+            <CatalogMultiSelect
+              label="Технологии"
+              items={catalog?.technologies || []}
+              value={form.technologyIds}
+              onChange={(ids) => update('technologyIds', ids)}
+              limit={50}
+            />
             <label>
               Репозиторий
               <input

@@ -1,3 +1,4 @@
+import { StudentProjectCover } from '../components/StudentProjectCover'
 import { ExpandableText } from '../components/ExpandableText'
 import { ProfileAvatarUpload } from '../components/ProfileAvatarUpload'
 import { IdentityImage } from '../components/IdentityImage'
@@ -710,9 +711,8 @@ export const StudentProfilePage: React.FC = () => {
                         border: '1px solid #e2e8f0',
                       }}
                     >
-                      <img
-                        src={p.coverImage}
-                        alt=""
+                      <StudentProjectCover
+                        project={p}
                         style={{
                           width: '80px',
                           height: '80px',

@@ -179,7 +179,7 @@ export const FavoritesPage: React.FC = () => {
                 })}
               </PaginatedGrid>
               {!projects.length && (
-                <div className="card empty-state">
+                <div className="card empty-state favorites-empty">
                   <p>
                     {search
                       ? 'По вашему запросу ничего не найдено.'
