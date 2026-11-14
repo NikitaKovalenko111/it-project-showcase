@@ -332,7 +332,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                     <LocalizedFileInput
                       id="application-resume"
                       className="input"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf"
                       onChange={(e) => setResume(e.target.files?.[0] || null)}
                     />
                   </div>

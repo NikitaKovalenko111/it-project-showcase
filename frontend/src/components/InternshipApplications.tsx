@@ -137,7 +137,7 @@ export function InternshipApply({
               Приложить файл резюме (необязательно)
               <LocalizedFileInput
                 className="input"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 disabled={busy}
                 onChange={(event) => {
                   const file = event.target.files?.[0]

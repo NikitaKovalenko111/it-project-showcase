@@ -87,40 +87,50 @@ test('server errors propagate instead of returning demo executions', async () =>
   await assert.rejects(() => api.getExecutions('c'), /Permission denied/)
 })
 
-test('a draft plan saves through stage routes supported by the backend', async () => {
+test('plan is saved atomically with exact server dates and a conflict snapshot', async () => {
   const calls = []
-  const stages = [{ stage_id: 'old', ordinal: 1, title: 'Old' }]
+  const old = { stage_id: 'old', ordinal: 1, title: 'Old', due_at: '2027-01-01T10:30:00Z' }
   const api = createWorkflow({
-    async get(path) {
-      assert.equal(path, '/cases/c/stages')
-      return { data: { items: [...stages] } }
-    },
-    async post(path, body) {
-      calls.push(['POST', path])
-      stages.push({ ...body, stage_id: 'new' })
-      return { data: { stage_id: 'new' } }
+    async get() {
+      return { data: { items: [old] } }
     },
     async put(path, body) {
-      calls.push(['PUT', path, body])
-      stages.reverse().forEach((stage, i) => {
-        stage.ordinal = i + 1
-      })
+      calls.push([path, body])
+      return { data: { items: [{ stage_id: 'new', ordinal: 1, title: 'New' }, old] } }
     },
   })
-  const existing = { id: 'old', title: 'Old', description: '', deadline: '' }
+  const existing = { id: 'old', title: 'Old', description: '', deadline: '2027-01-01' }
   const result = await api.updateSharedPlan(
     'c',
     [{ id: 'plan_new', title: 'New', description: '', deadline: '' }, existing],
     [existing],
+    ' Reason ',
   )
   assert.deepEqual(calls, [
-    ['POST', '/cases/c/stages'],
-    ['PUT', '/cases/c/stages/order', { stage_ids: ['new', 'old'] }],
+    [
+      '/cases/c/stages',
+      {
+        previous: [{ stage_id: 'old', title: 'Old', expected_result: '', due_at: old.due_at }],
+        stages: [
+          { stage_id: '', title: 'New', expected_result: '', due_at: null },
+          { stage_id: 'old', title: 'Old', expected_result: '', due_at: old.due_at },
+        ],
+        reason: 'Reason',
+      },
+    ],
   ])
   assert.deepEqual(
-    result.map((stage) => stage.id),
+    result.map((s) => s.id),
     ['new', 'old'],
   )
+  await assert.rejects(() => api.updateSharedPlan('c', [], []), /План изменился/)
+  assert.equal(calls.length, 1)
+})
+
+test('withdraw placements uses the canonical delete route', async () => {
+  const calls = []
+  await createWorkflow({ delete: async (path) => calls.push(path) }).withdrawResults('c')
+  assert.deepEqual(calls, ['/cases/c/leaderboard/placements'])
 })
 
 test('placements use evaluation_status and include every evaluated participant', async () => {
@@ -153,4 +163,27 @@ test('placements use evaluation_status and include every evaluated participant',
       },
     ],
   ])
+})
+
+test('submitted execution can send a new version and ignores superseded results', async () => {
+  const { api, state } = fixture()
+  state.status = 'submitted'
+  assert.equal((await api.getExecution('e')).canSubmitResult, true)
+  const apiWithVersions = createWorkflow({
+    async get(path) {
+      if (path === '/executions/e') return { data: state }
+      if (path.endsWith('/submissions'))
+        return {
+          data: {
+            items: [
+              { submission_id: 'old', kind: 'final', status: 'superseded' },
+              { submission_id: 'current', kind: 'final', status: 'submitted' },
+            ],
+          },
+        }
+      if (path === '/submissions/old/evaluations') throw new Error('Old evaluation requested')
+      return { data: { items: [] } }
+    },
+  })
+  assert.equal((await apiWithVersions.getExecution('e')).submission.id, 'current')
 })

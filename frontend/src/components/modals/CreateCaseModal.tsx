@@ -664,7 +664,7 @@ export const CreateCaseModal: React.FC<{
             <span className="form-hint">PDF, DOC, DOCX или TXT</span>
             <LocalizedFileInput
               className="input"
-              accept=".pdf,.doc,.docx,.txt"
+              accept=".pdf,.txt"
               onChange={(e) => setSpec(e.target.files?.[0] || null)}
             />
             {!spec && caseItem?.specificationFile && (

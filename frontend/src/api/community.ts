@@ -41,6 +41,7 @@ type AsyncMethods = {
     caseId: string,
     rows: Parameters<MockServer['updateSharedPlan']>[1],
     baseline?: Parameters<MockServer['updateSharedPlan']>[1],
+    reason?: string,
   ) => Promise<ReturnType<MockServer['updateSharedPlan']>>
 }
 
@@ -77,6 +78,7 @@ const companyInvitation = (item: any): SystemNotification => ({
   },
 })
 export const listCuratedExecutions = workflow.listCuratedExecutions
+export const getCuratedExecutions = workflow.getCuratedExecutions
 
 // Only canonical backend routes are used in live mode.
 // Missing endpoints surface an error; live mode never writes to mock storage.
@@ -258,8 +260,6 @@ export const communityApi = new Proxy({} as AsyncMethods, {
             )
           }
           case 'reportContent': {
-            if (id === 'internship')
-              throw new Error('Сервер пока не поддерживает жалобы на стажировки и практики.')
             return (
               await axiosInstance.post('/reports', {
                 resource_type: ({ project: 'student_project', user: 'profile' } as any)[id] || id,

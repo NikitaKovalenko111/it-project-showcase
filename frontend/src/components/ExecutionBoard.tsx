@@ -56,7 +56,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const refresh = async () => {
     const [e, r] = await Promise.all([
       communityApi.getExecutions(project.id),
-      curator || canSubmit || liveOlympiad
+      curator || canSubmit
         ? { complete: false, items: [] }
         : communityApi.getLeaderboard(project.id),
     ])
@@ -320,7 +320,14 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {view === 'plan' && (
                 <SharedProjectPlan
                   project={project}
-                  editable={live ? canSubmit && !entries.length : manager && !finished}
+                  editable={
+                    live
+                      ? manager &&
+                        user?.role === 'company' &&
+                        !finished &&
+                        ['draft', 'revision', 'open', 'in_progress'].includes(project.status)
+                      : manager && !finished
+                  }
                   onOpenDeadlines={
                     live &&
                     manager &&
@@ -468,7 +475,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             : 'Итоги ещё не опубликованы'}
                       </h2>
                     </div>
-                    {manager && !liveOlympiad && (!live || !ranking.complete) && (
+                    {manager && (
                       <button
                         type="button"
                         className={`btn btn-sm ${ranking.complete ? 'btn-secondary' : 'btn-primary'}`}
@@ -486,7 +493,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                       </button>
                     )}
                   </div>
-                  {(ranking.complete || (manager && !liveOlympiad)) && (
+                  {(ranking.complete || manager) && (
                     <ReportTableView
                       label="Итоги проекта"
                       headers={[

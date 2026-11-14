@@ -245,11 +245,10 @@ export const apiClient = {
   async updateAvatar(user: User, file: File): Promise<User> {
     let avatar: string
     if (apiRuntime.mode === 'live') {
-      if (user.role !== 'student') throw new Error('Загрузка аватара доступна студентам.')
       const body = new FormData()
       body.append('file', file)
-      const { data } = await axiosInstance.put('/users/me/photo', body)
-      avatar = `${apiRuntime.baseUrl || '/api/v1'}/students/${user.id}/photo?v=${data.file_id}`
+      const { data } = await axiosInstance.put('/users/me/avatar', body)
+      avatar = `${apiRuntime.baseUrl || '/api/v1'}/users/${user.id}/avatar?v=${data.file_id}`
     } else {
       avatar = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -367,6 +366,7 @@ export const apiClient = {
     if (apiRuntime.mode === 'live') {
       await axiosInstance.patch(`/users/${user.id}/status`, {
         status: blocked ? 'blocked' : 'active',
+        reason: reason.trim(),
       })
       return { ...user, isBlocked: blocked }
     }
@@ -467,8 +467,10 @@ export const apiClient = {
   },
 
   async withdrawCaseModeration(id: string): Promise<CaseProject> {
-    if (apiRuntime.mode === 'live')
-      throw new Error('Сервер пока не поддерживает отзыв кейса с модерации.')
+    if (apiRuntime.mode === 'live') {
+      await axiosInstance.post(`/cases/${id}/withdraw-moderation`)
+      return apiClient.getCaseById(id)
+    }
     return mockServer.withdrawCaseModeration(id)
   },
 

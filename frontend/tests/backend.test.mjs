@@ -89,3 +89,26 @@ test('nullable server deadlines do not display Invalid Date', () => {
   assert.equal(formatDate(null), 'Не указан')
   assert.equal(formatDate('invalid'), 'Не указан')
 })
+
+test('current backend cursor response fetches subsequent pages', async () => {
+  const cursors = []
+  const result = await collectPages(async ({ cursor }) => {
+    cursors.push(cursor)
+    return {
+      data: cursor ? { items: [2], next_cursor: null } : { items: [1], next_cursor: 'next' },
+    }
+  })
+  assert.deepEqual(result, [1, 2])
+  assert.deepEqual(cursors, [undefined, 'next'])
+})
+
+test('shared avatar takes precedence over legacy student photo', () => {
+  assert.equal(
+    fromUser({ user_id: 'u', avatar_file_id: 'avatar', student: { photo_file_id: 'old' } }).avatar,
+    '/api/v1/users/u/avatar?v=avatar',
+  )
+  assert.equal(
+    fromUser({ user_id: 'u', student: { photo_file_id: 'old' } }).avatar,
+    '/api/v1/students/u/photo?v=old',
+  )
+})

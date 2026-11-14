@@ -24,9 +24,11 @@ export function fromUser(d: any): User {
     roleRequestStatus: d.role_request_status || undefined,
     username: d.username,
     email: d.email,
-    avatar: s?.photo_file_id
-      ? `/api/v1/students/${d.user_id}/photo?v=${s.photo_file_id}`
-      : undefined,
+    avatar: d.avatar_file_id
+      ? `/api/v1/users/${d.user_id}/avatar?v=${d.avatar_file_id}`
+      : s?.photo_file_id
+        ? `/api/v1/students/${d.user_id}/photo?v=${s.photo_file_id}`
+        : undefined,
     fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
     role:
       (['admin', 'company_representative', 'company', 'curator', 'university', 'student'].find(
@@ -266,7 +268,7 @@ export async function collectPages<T>(
     if (Array.isArray(data)) return data
     if (!Array.isArray(data.items)) throw new Error('Некорректный ответ списка API')
     items.push(...data.items)
-    cursor = data.meta?.has_more ? data.meta.next_cursor : undefined
+    cursor = data.next_cursor ?? (data.meta?.has_more ? data.meta.next_cursor : undefined)
     if (cursor && seen.has(cursor)) throw new Error('API повторил курсор страницы')
     if (cursor) seen.add(cursor)
   } while (cursor)
@@ -367,6 +369,7 @@ export const fromStudent = (d: any): User =>
       photo_file_id: d.photo_file_id,
       institute: d.institute,
       group_name: d.group_name,
+      education_level: d.education_level,
       curator_id: d.curator_id,
       rating: d.rating,
       direction: d.direction,
@@ -454,7 +457,8 @@ export async function collectNumbered<T>(
     result.push(...data.items)
     if (
       data.items.length < 100 ||
-      (data.meta?.total !== undefined && result.length >= data.meta.total)
+      ((data.total ?? data.meta?.total) !== undefined &&
+        result.length >= (data.total ?? data.meta?.total))
     )
       return result
   }

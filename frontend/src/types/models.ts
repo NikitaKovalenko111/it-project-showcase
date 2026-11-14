@@ -320,6 +320,7 @@ export interface ProjectEvaluation {
   caseId: string
   companyId: string
   companyName: string
+  evaluatorId?: string
   evaluatorName: string
   scores: Record<string, number>
   totalScore: number

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Users, Layers, FileCheck2, Award } from 'lucide-react'
-import { communityApi } from '../api/community'
+import { communityApi, getCuratedExecutions } from '../api/community'
+import { apiRuntime } from '../api/runtime'
 import type { CaseProject, User } from '../types/models'
 import type { Execution } from '../types/execution'
 import { PaginationControls } from './PaginatedGrid'
@@ -33,7 +34,11 @@ export function CuratorOverview({
     setEntries([])
     setPage(1)
     const ids = caseKey ? caseKey.split('|') : []
-    Promise.allSettled(ids.map((id) => communityApi.getExecutions(id))).then((results) => {
+    Promise.allSettled(
+      apiRuntime.mode === 'live'
+        ? [getCuratedExecutions()]
+        : ids.map((id) => communityApi.getExecutions(id)),
+    ).then((results) => {
       if (!active) return
       const assigned = new Set(studentKey.split('|'))
       setEntries(
@@ -63,7 +68,7 @@ export function CuratorOverview({
     {
       icon: Award,
       color: 'amber',
-      value: entries.filter((entry) => entry.evaluation).length,
+      value: apiRuntime.mode === 'live' ? '—' : entries.filter((entry) => entry.evaluation).length,
       label: 'Оценённые решения',
     },
   ]
@@ -145,11 +150,13 @@ export function CuratorOverview({
                             </span>
                           </div>
                           <small>
-                            {entry.evaluation
-                              ? 'Решение оценено'
-                              : entry.submission
-                                ? 'Результат на проверке'
-                                : 'В работе'}
+                            {apiRuntime.mode === 'live'
+                              ? 'Оценки недоступны куратору'
+                              : entry.evaluation
+                                ? 'Решение оценено'
+                                : entry.submission
+                                  ? 'Результат на проверке'
+                                  : 'В работе'}
                           </small>
                         </td>
                         <td>

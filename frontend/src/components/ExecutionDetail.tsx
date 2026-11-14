@@ -54,7 +54,8 @@ export const ExecutionDetail: React.FC<{
     manager &&
     !finished &&
     !!entry.submission &&
-    (!live || (user?.role === 'company' && !entry.evaluation))
+    (!live ||
+      (user?.role === 'company' && (!entry.evaluation || entry.evaluation.evaluatorId === user.id)))
   const canSubmitResult =
     participant && !finished && !entry.evaluation && entry.canSubmitResult !== false
   const curated = apiRuntime.mode === 'live' && user?.role === 'curator'
@@ -73,7 +74,6 @@ export const ExecutionDetail: React.FC<{
     team = teamsList.find((t) => t.id === entry.teamId)
   const submissionId = entry.submission?.id
   const hasFiles = !!entry.submission?.attachedFiles.length
-  const ownSubmission = !live || entry.submission?.studentId === user?.id
   useEffect(() => {
     if (!live || !manager || active !== 'submission' || liveOlympiad || !submissionId || !hasFiles)
       return
@@ -243,7 +243,7 @@ export const ExecutionDetail: React.FC<{
                       if (!description.trim()) throw new Error('Добавьте описание решения.')
                       if (!isOptionalWebUrl(demoUrl))
                         throw new Error('Введите ссылку на видео с http:// или https://.')
-                      const current = ownSubmission ? entry.submission?.attachedFiles || [] : []
+                      const current = entry.submission?.attachedFiles || []
                       if (current.length + images.length + videos.length + files.length > 30)
                         throw new Error('К результату можно приложить не больше 30 файлов.')
                       const attachments = await Promise.all([
@@ -291,11 +291,6 @@ export const ExecutionDetail: React.FC<{
                       onChange={(event) => setDemoUrl(event.target.value)}
                     />
                   </label>
-                  {!ownSubmission && hasFiles && (
-                    <p className="inline-notice">
-                      Для новой версии загрузите заново нужные файлы из работы другого участника.
-                    </p>
-                  )}
                   <div className="result-upload-fields">
                     <FilePicker
                       label="Фото и скриншоты"
@@ -303,14 +298,12 @@ export const ExecutionDetail: React.FC<{
                       onChange={setImages}
                       accept="image/png,image/jpeg,image/webp"
                     />
-                    {!live && (
-                      <FilePicker
-                        label="Видео MP4 и WebM"
-                        files={videos}
-                        onChange={setVideos}
-                        accept="video/mp4,video/webm,.mp4,.webm"
-                      />
-                    )}
+                    <FilePicker
+                      label="Видео MP4 и WebM"
+                      files={videos}
+                      onChange={setVideos}
+                      accept="video/mp4,video/webm,.mp4,.webm"
+                    />
                     <FilePicker
                       label="Документы и архивы"
                       files={files}

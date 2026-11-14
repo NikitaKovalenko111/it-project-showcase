@@ -17,6 +17,7 @@ export const SharedProjectPlan: React.FC<{
   const [rows, setRows] = useState<Row[]>([]),
     [baseline, setBaseline] = useState<Row[]>([]),
     [error, setError] = useState(''),
+    [reason, setReason] = useState(''),
     [busy, setBusy] = useState(false),
     [saved, setSaved] = useState(false),
     [shift, setShift] = useState(1),
@@ -53,7 +54,7 @@ export const SharedProjectPlan: React.FC<{
     setError('')
     setSaved(false)
     try {
-      const result = await communityApi.updateSharedPlan(project.id, rows, baseline)
+      const result = await communityApi.updateSharedPlan(project.id, rows, baseline, reason)
       setRows(result)
       setBaseline(result)
       setSaved(true)
@@ -270,6 +271,20 @@ export const SharedProjectPlan: React.FC<{
           </div>
           {editable && (
             <div className="action-row">
+              {apiRuntime.mode === 'live' && ['open', 'in_progress'].includes(project.status) && (
+                <label>
+                  Причина переноса сроков
+                  <textarea
+                    className="textarea"
+                    maxLength={1000}
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    required={rows.some((row) =>
+                      baseline.some((old) => old.id === row.id && old.deadline !== row.deadline),
+                    )}
+                  />
+                </label>
+              )}
               <button className="btn btn-primary" disabled={busy}>
                 Сохранить общий план
               </button>
