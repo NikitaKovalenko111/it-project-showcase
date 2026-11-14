@@ -29,13 +29,21 @@ export const caseStatusLabels: Record<CaseProject['status'], string> = {
   archived: 'В архиве',
   moderation: 'На рассмотрении',
 }
-export const matchesSearch = (query: string, ...values: unknown[]) =>
-  values
-    .flat()
+export const complexityBadge = (level: CaseProject['complexity']) =>
+  ({
+    Начальный: 'badge-complexity-low',
+    Средний: 'badge-complexity-medium',
+    Высокий: 'badge-complexity-high',
+  })[level] || 'badge-complexity-medium'
+
+export const matchesSearch = (query: string, ...values: unknown[]) => {
+  const normalize = (value: string) => value.toLocaleLowerCase('ru').replace(/ё/g, 'е')
+  const text = normalize(values.flat().filter(Boolean).join(' '))
+  return normalize(query)
+    .split(/[,\s]+/)
     .filter(Boolean)
-    .join(' ')
-    .toLocaleLowerCase('ru')
-    .includes(query.trim().toLocaleLowerCase('ru'))
+    .every((term) => text.includes(term))
+}
 
 export const visibleStudentProjectsFor = (
   user: User | null | undefined,

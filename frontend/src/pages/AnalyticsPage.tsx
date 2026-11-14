@@ -163,11 +163,6 @@ export const AnalyticsPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>{title}</h1>
-          <p>
-            {companyView
-              ? 'Заявки, отбор, команды и результаты по кейсам вашей компании.'
-              : 'Участие студентов, сроки, завершения, модерация и взаимодействие с компаниями.'}
-          </p>
         </div>
         <div className="page-header__actions">
           <button
@@ -193,26 +188,19 @@ export const AnalyticsPage: React.FC = () => {
           </button>
         </div>
       </div>
-      <section className="card analytics-filter-panel" aria-labelledby="analytics-filter-title">
-        <div className="feature-toolbar">
-          <h2 id="analytics-filter-title">
-            Фильтры{' '}
-            {activeFilterCount > 0 && (
-              <span className="badge badge-direction">{activeFilterCount}</span>
-            )}
-          </h2>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            disabled={!activeFilterCount}
-            onClick={() => setFilters(defaultFilters)}
-          >
-            <RotateCcw size={15} /> Сбросить
-          </button>
-        </div>
+      <section className="card analytics-filter-panel" aria-label="Фильтры отчёта">
         <div className="analytics-filters">
           <label>
-            Период
+            <span>
+              Период{' '}
+              <span
+                className="period-help"
+                title="Период определяется датой публикации проекта"
+                aria-label="Период определяется датой публикации проекта"
+              >
+                ⓘ
+              </span>
+            </span>
             <select
               className="select"
               value={filters.period}
@@ -311,6 +299,14 @@ export const AnalyticsPage: React.FC = () => {
               </select>
             </label>
           )}
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            disabled={!activeFilterCount}
+            onClick={() => setFilters(defaultFilters)}
+          >
+            <RotateCcw size={15} /> Сбросить
+          </button>
         </div>
       </section>
       {error && <p role="alert">{error}</p>}
@@ -327,12 +323,6 @@ export const AnalyticsPage: React.FC = () => {
               </div>
             ))}
           </div>
-          <p className="analytics-note">
-            Период относится к дате публикации проекта. Курс и институт отбирают проекты по
-            заявителям и участникам. Интервью учитываются по текущему статусу; фонды показывают
-            заявленные суммы, а выплаты — только подтвержденные. История приглашений на стажировки
-            пока недоступна.
-          </p>
           {activeReport && (
             <section className="card analytics-table">
               <div className="card__header analytics-report-header">

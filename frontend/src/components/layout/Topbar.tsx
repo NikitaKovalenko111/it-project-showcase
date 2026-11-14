@@ -1,13 +1,7 @@
-import { apiRuntime } from '../../api/runtime'
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
-import {
-  markAllNotificationsReadRequest,
-  markNotificationReadRequest,
-  switchUserRequest,
-} from '../../store/actions'
-import { mockServer } from '../../api/mockServer'
+import { markAllNotificationsReadRequest, markNotificationReadRequest } from '../../store/actions'
 import {
   Building2,
   GraduationCap,
@@ -17,8 +11,8 @@ import {
   CheckCheck,
   ClipboardList,
   Menu,
-  MessageSquare,
-  Info,
+  Layers,
+  FolderOpen,
   Star,
 } from 'lucide-react'
 
@@ -68,7 +62,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
       )
     : ownTeams
 
-  const allUsers = apiRuntime.mode === 'mock' ? mockServer.getUsers() : []
   useEffect(() => setShowInfo(false), [pathname])
 
   useEffect(() => {
@@ -96,16 +89,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
     if (notification?.link?.startsWith('/') && !notification.link.startsWith('//')) {
       navigate(notification.link)
       setShowNotifications(false)
-    }
-  }
-
-  const handleSwitchUser = (userId: string) => {
-    const u = allUsers.find((user) => user.id === userId)
-    if (u) {
-      dispatch(switchUserRequest(u))
-      setShowInfo(false)
-      // Immediately navigate to home root so role-specific dashboard appears
-      navigate('/')
     }
   }
 
@@ -144,10 +127,11 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
         {/* Chat / Messages Icon */}
         <button
           className="topbar-isu__icon-btn"
-          title="Сообщения и чаты проектных команд"
+          title="Активные проекты"
+          aria-label="Активные проекты"
           onClick={() => navigate('/workspace')}
         >
-          <MessageSquare size={17} />
+          <Layers size={17} />
         </button>
 
         {/* Role-specific Quick Action in Header */}
@@ -257,17 +241,17 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
             onClick={() => setShowInfo(!showInfo)}
             aria-expanded={showInfo}
             aria-controls="topbar-project-info"
-            aria-label="Информация о проекте и командах"
-            title="Информация о проекте и командах"
+            aria-label="Проекты и команды"
+            title="Проекты и команды"
           >
-            <Info size={17} />
+            <FolderOpen size={17} />
           </button>
 
           {showInfo && (
             <section
               id="topbar-project-info"
               className="topbar-isu__menu-dropdown project-info-popover"
-              aria-label="Информация о проекте и командах"
+              aria-label="Проекты и команды"
             >
               <div className="dropdown-title">Проекты и команды</div>
               <div className="project-info-popover__body">
@@ -283,7 +267,13 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                   <ul>
                     {projectTeams.slice(0, 3).map((team) => (
                       <li key={team.id}>
-                        {team.name} <small>{team.members.length} чел.</small>
+                        {team.name}{' '}
+                        <small>
+                          {team.members.length} чел.
+                          {team.caseId && casesList.find((item) => item.id === team.caseId)
+                            ? ` · ${casesList.find((item) => item.id === team.caseId)?.title}`
+                            : ''}{' '}
+                        </small>
                       </li>
                     ))}
                   </ul>
@@ -297,35 +287,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                   </Link>
                 )}
               </div>
-              {apiRuntime.mode === 'mock' && (
-                <details className="project-info-popover__demo">
-                  <summary>Демо-профили</summary>
-                  <button
-                    className={`dropdown-item ${currentUser?.role === 'student' ? 'active' : ''}`}
-                    onClick={() => handleSwitchUser('usr_student_1')}
-                  >
-                    <GraduationCap size={14} aria-hidden="true" /> Студент (Алмаз Магасумов)
-                  </button>
-                  <button
-                    className={`dropdown-item ${currentUser?.role === 'company' ? 'active' : ''}`}
-                    onClick={() => handleSwitchUser('usr_company_1')}
-                  >
-                    <Building2 size={14} aria-hidden="true" /> Компания (БашНефтеАвтоматика)
-                  </button>
-                  <button
-                    className={`dropdown-item ${currentUser?.role === 'curator' ? 'active' : ''}`}
-                    onClick={() => handleSwitchUser('usr_curator_1')}
-                  >
-                    <Landmark size={14} aria-hidden="true" /> Куратор кафедры
-                  </button>
-                  <button
-                    className={`dropdown-item ${currentUser?.role === 'admin' ? 'active' : ''}`}
-                    onClick={() => handleSwitchUser('usr_admin_1')}
-                  >
-                    <Settings size={14} aria-hidden="true" /> Администратор ИСУ
-                  </button>
-                </details>
-              )}
             </section>
           )}
         </div>

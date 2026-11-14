@@ -1,0 +1,207 @@
+.comments-panel {
+  &.card {
+    padding: 20px;
+  }
+  .comments-heading {
+    gap: 12px 20px;
+    margin: 0 0 16px;
+  }
+  .comments-heading h2 {
+    line-height: 1.4;
+  }
+  .comments-heading label {
+    margin: 0;
+  }
+  .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    flex: 0 0 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    font-size: 12px;
+  }
+  .comment-compose {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px 12px;
+    margin: 0 0 16px;
+    > p,
+    > .form-error {
+      grid-column: 1 / -1;
+      margin: 0;
+    }
+    > label {
+      grid-column: 2;
+      margin: 0;
+      min-width: 0;
+    }
+    > .comment-compose-avatar {
+      margin-top: 4px;
+    }
+    .textarea {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      max-height: 180px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      resize: none;
+      line-height: 22px;
+      font-size: 14px;
+    }
+    > .btn {
+      grid-column: 2;
+      justify-self: end;
+      align-self: start;
+      margin: 0;
+      min-height: 32px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+  }
+  .comment-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 6px 12px;
+    margin: 0;
+    padding: 14px 0;
+    border: 0;
+    border-radius: 0;
+    overflow-wrap: anywhere;
+    & + .comment-item {
+      border-top: 1px solid #edf1f6;
+    }
+    > .comment-header {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 14px;
+      margin: 0;
+    }
+    .comment-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    time {
+      color: #748197;
+      font-size: 12px;
+    }
+    > p {
+      grid-column: 2;
+      margin: 0 !important;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    > .action-row {
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0;
+    }
+    .action-row .btn,
+    .comment-like {
+      min-height: 28px;
+      padding: 3px 0;
+      font-size: 12px;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+    > .comment-compose,
+    > .comment-item,
+    > button {
+      grid-column: 2;
+    }
+    > .comment-compose {
+      margin: 8px 0 0;
+    }
+    > .comment-item {
+      border-left: 2px solid #e2e8f0;
+      padding-left: 12px;
+    }
+    > button {
+      justify-self: start;
+    }
+  }
+}
+.avatar-crop-modal {
+  .avatar-crop-body {
+    gap: 16px;
+    padding: 20px 24px;
+  }
+  .avatar-crop-body > p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .avatar-crop-area {
+    width: min(100%, 320px);
+    outline-offset: 4px;
+  }
+  .avatar-crop-area > img {
+    max-width: none;
+    max-height: none;
+    object-fit: fill;
+    -webkit-user-drag: none;
+  }
+  .avatar-crop-controls {
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+  .avatar-crop-controls label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .avatar-crop-controls input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+@media (max-width: 600px) {
+  .comments-panel.card {
+    padding: 14px;
+  }
+  .comments-panel .comment-item > .comment-header {
+    align-items: flex-start;
+  }
+  .comments-panel .comment-header time {
+    margin-left: 48px;
+    margin-top: -6px;
+  }
+  .comments-panel .comment-item > .comment-item {
+    grid-column: 1 / -1;
+    margin-left: 12px;
+  }
+  .comments-panel .comment-item > .comment-compose {
+    grid-column: 1 / -1;
+  }
+  .comments-panel .comments-heading label {
+    width: auto;
+    max-width: 100%;
+  }
+  .comments-panel .comments-heading select {
+    max-width: 220px;
+    min-width: 0;
+    padding-right: 24px;
+  }
+}

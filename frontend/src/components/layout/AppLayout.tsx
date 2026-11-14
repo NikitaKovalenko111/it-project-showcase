@@ -37,9 +37,7 @@ export const AppLayout: React.FC = () => {
 
   useEffect(() => {
     if (!mobileOpen) return
-    const previousOverflow = document.body.style.overflow
     const previousFocus = document.activeElement as HTMLElement | null
-    document.body.style.overflow = 'hidden'
     const sidebar = document.getElementById('main-sidebar')
     sidebar?.querySelector<HTMLButtonElement>('.sidebar__close')?.focus()
     const onKeyDown = (event: KeyboardEvent) => {
@@ -65,7 +63,6 @@ export const AppLayout: React.FC = () => {
     }
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', onKeyDown)
       previousFocus?.focus()
     }

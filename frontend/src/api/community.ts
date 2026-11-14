@@ -12,6 +12,7 @@ type CommunityMethod =
   | 'getStudentAchievements'
   | 'updateExecutionStage'
   | 'finalizeResults'
+  | 'withdrawResults'
   | 'getExecutions'
   | 'submitExecution'
   | 'gradeExecution'
@@ -257,6 +258,8 @@ export const communityApi = new Proxy({} as AsyncMethods, {
             )
           }
           case 'reportContent': {
+            if (id === 'internship')
+              throw new Error('Сервер пока не поддерживает жалобы на стажировки и практики.')
             return (
               await axiosInstance.post('/reports', {
                 resource_type: ({ project: 'student_project', user: 'profile' } as any)[id] || id,

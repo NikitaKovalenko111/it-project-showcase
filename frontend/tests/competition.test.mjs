@@ -102,6 +102,7 @@ test('stage files and reviews are isolated by execution and persist across reloa
   const entries = server.getExecutions('demo_hackathon'),
     own = entries.find((e) => e.status === 'active'),
     peer = entries.find((e) => e.id !== own.id)
+  const peerMaterials = structuredClone(peer.milestones[0].attachedMaterials)
   const stage = own.milestones[0]
   login(own.studentId)
   server.updateExecutionStage(own.id, stage.id, 'submit', [
@@ -116,10 +117,10 @@ test('stage files and reviews are isolated by execution and persist across reloa
   )
   assert.throws(() => server.updateExecutionStage(own.id, stage.id, 'accepted'), /прав/)
   login('usr_company_1')
-  assert.equal(
+  assert.deepEqual(
     new MockServer().getExecutions('demo_hackathon').find((e) => e.id === peer.id).milestones[0]
-      .attachedMaterials.length,
-    0,
+      .attachedMaterials,
+    peerMaterials,
   )
   server.updateExecutionStage(own.id, stage.id, 'accepted')
   login(own.studentId)
@@ -219,4 +220,108 @@ test('unused shared stages can be removed for everyone, while closed event plans
     server.gradeExecution(e.id, { a: 20, b: 50 }, '')
   server.finalizeResults('demo_olympiad')
   assert.throws(() => server.updateSharedPlan('demo_olympiad', plan), /завершён/)
+})
+
+test('company can withdraw only its own pending case without deleting its plan', () => {
+  const { server, login } = setup()
+  login('usr_student_1')
+  assert.throws(() => server.withdrawCaseModeration('demo_case_review'), /прав/)
+  login('usr_company_1')
+  const before = server.getSharedPlan('demo_case_review')
+  const project = server.withdrawCaseModeration('demo_case_review')
+  assert.equal(project.status, 'revision')
+  assert.equal(project.isModerated, false)
+  assert.deepEqual(server.getSharedPlan(project.id), before)
+  assert.equal(new MockServer().getCaseById(project.id).moderationStatus, 'revision')
+  assert.throws(() => server.withdrawCaseModeration('case_1'), /модерации/)
+})
+
+test('curated teams differ in size, submissions differ in completeness, and edits survive reload', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const entries = server.getExecutions('demo_hackathon')
+  assert.equal(entries.length, 12)
+  assert.deepEqual([...new Set(entries.map((e) => e.members.length))].sort(), [1, 2, 3, 4])
+  assert.equal(entries.filter((e) => e.submission).length, 9)
+  assert.ok(entries.some((e) => e.submission?.attachedFiles.length === 1))
+  assert.ok(entries.some((e) => e.submission?.attachedFiles.length === 2))
+  const stored = JSON.parse(memory.get('uust_showcase_curated_v1_companies'))
+  stored[0].description = 'Описание, изменённое пользователем вручную.'
+  localStorage.setItem('uust_showcase_curated_v1_companies', JSON.stringify(stored))
+  localStorage.removeItem?.('uust_showcase_curated_v1_fixture_quality_20261114')
+  memory.delete('uust_showcase_curated_v1_fixture_quality_20261114')
+  const reloaded = new MockServer()
+  assert.equal(reloaded.getCompanyById(stored[0].id).description, stored[0].description)
+})
+
+test('detailed fixtures upgrade unchanged text while preserving user edits and record counts', async () => {
+  const { server, login } = setup()
+  login('usr_admin_1')
+  const { buildCases, buildStudents, buildPortfolio, buildCompanies } = await import(
+    await loadTs(new URL('../src/api/fixtures/builders.ts', import.meta.url))
+  )
+  const prefix = 'uust_showcase_curated_v1_'
+  const cases = JSON.parse(memory.get(prefix + 'cases')),
+    users = JSON.parse(memory.get(prefix + 'users')),
+    projects = JSON.parse(memory.get(prefix + 'studentProjects')),
+    companies = JSON.parse(memory.get(prefix + 'companies'))
+  const oldCase = buildCases(false)[0],
+    oldStudent = buildStudents(false)[0],
+    oldProject = buildPortfolio(false)[0],
+    oldCompany = buildCompanies(false)[0]
+  cases.find((item) => item.id === oldCase.id).fullDescription = oldCase.fullDescription
+  cases[1].fullDescription = 'Текст, самостоятельно изменённый пользователем.'
+  users.find((item) => item.id === oldStudent.id).studentProfile.bio = oldStudent.studentProfile.bio
+  projects.find((item) => item.id === oldProject.id).fullDescription = oldProject.fullDescription
+  companies.find((item) => item.id === oldCompany.id).description = oldCompany.description
+  for (const [key, value] of Object.entries({ cases, users, studentProjects: projects, companies }))
+    localStorage.setItem(prefix + key, JSON.stringify(value))
+  memory.delete(prefix + 'fixture_details_20261114_v2')
+  const reloaded = new MockServer()
+  assert.ok(
+    reloaded.getCaseById(oldCase.id).fullDescription.length > oldCase.fullDescription.length * 2,
+  )
+  assert.equal(reloaded.getCaseById(cases[1].id).fullDescription, cases[1].fullDescription)
+  assert.ok(
+    reloaded.getUserById(oldStudent.id).studentProfile.bio.length >
+      oldStudent.studentProfile.bio.length * 2,
+  )
+  assert.ok(
+    reloaded.getStudentProjectById(oldProject.id).fullDescription.length >
+      oldProject.fullDescription.length * 2,
+  )
+  assert.ok(
+    reloaded.getCompanyById(oldCompany.id).description.length > oldCompany.description.length,
+  )
+  for (const [key, value] of Object.entries({ cases, users, studentProjects: projects, companies }))
+    assert.equal(JSON.parse(memory.get(prefix + key)).length, value.length)
+})
+
+test('profile fixtures fill blank fields and preserve edited contacts, documents and progress', () => {
+  const { server, login } = setup()
+  login('usr_company_1')
+  const teams = server.getExecutions('demo_hackathon')
+  assert.ok(new Set(teams.map((e) => e.milestones.map((m) => m.status).join(','))).size >= 3)
+  assert.ok(teams.some((e) => e.milestones.some((m) => m.feedback && m.attachedMaterials.length)))
+  const companyKey = 'uust_showcase_curated_v1_companies'
+  const companies = JSON.parse(memory.get(companyKey))
+  const count = companies.length
+  companies[0].phone = '+7 (000) 999-99-99'
+  companies[0].documents = [{ name: 'Мой документ', url: 'data:text/plain,custom' }]
+  companies[1].inn = ''
+  memory.set(companyKey, JSON.stringify(companies))
+  memory.delete('uust_showcase_curated_v1_fixture_profiles_20261114_v3')
+  const reloaded = new MockServer()
+  const result = JSON.parse(memory.get(companyKey))
+  assert.equal(result.length, count)
+  assert.equal(result[0].phone, '+7 (000) 999-99-99')
+  assert.deepEqual(result[0].documents, companies[0].documents)
+  assert.match(result[1].inn, /^\d{10}$/)
+  const student = reloaded.getUserById('usr_student_1').studentProfile
+  assert.ok(student.resume.url.endsWith('.pdf'))
+  assert.ok(student.phone && student.portfolioUrl && student.files.length)
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(reloaded.getExecutions('demo_hackathon'))),
+    JSON.parse(JSON.stringify(teams)),
+  )
 })

@@ -1,6 +1,8 @@
+import { ExpandableText } from './ExpandableText'
+import { matchesSearch } from '../utils/publication'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, Users } from 'lucide-react'
+import { UserPlus, Users, X } from 'lucide-react'
 import { apiClient } from '../api/client'
 import { communityApi } from '../api/community'
 import { useAppDispatch, useAppSelector } from '../store'
@@ -10,10 +12,11 @@ import { CreateTeamModal } from './modals/CreateTeamModal'
 import { PaginatedGrid } from './PaginatedGrid'
 import { TeamMembers } from './TeamMembers'
 
-export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = ({
-  caseId,
-  searchMode = false,
-}) => {
+export const TeamsPanel: React.FC<{
+  caseId?: string
+  searchMode?: boolean
+  initialView?: 'teams' | 'requests'
+}> = ({ caseId, searchMode = false, initialView }) => {
   const user = useAppSelector((s) => s.auth.currentUser),
     dispatch = useAppDispatch()
   const [teams, setTeams] = useState<ProjectTeam[]>([]),
@@ -29,7 +32,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
     [preferredCase, setPreferredCase] = useState(''),
     [filterCase, setFilterCase] = useState(caseId || '')
   const [teamQuery, setTeamQuery] = useState(''),
-    [view, setView] = useState('teams'),
+    [view, setView] = useState(initialView || 'teams'),
     [direction, setDirection] = useState('incoming')
   const [create, setCreate] = useState(false),
     [busy, setBusy] = useState(false),
@@ -111,7 +114,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
           !t.caseId &&
           t.leaderId !== user?.id &&
           !t.members.some((m) => m.id === user?.id) &&
-          t.name.toLowerCase().includes(teamQuery.toLowerCase()) &&
+          matchesSearch(teamQuery, t.name) &&
           (!filterCase || t.recruitingCaseId === filterCase),
       )
     : caseId
@@ -127,7 +130,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
     return (
       <section className="card teams-panel">
         <h2>Команды проекта</h2>
-        <PaginatedGrid className="teams-grid">
+        <PaginatedGrid pageSize={6} className="teams-grid">
           {shown.map((t) => (
             <article className="team-card" key={t.id}>
               <h3>{t.name}</h3>
@@ -143,28 +146,30 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
       {!searchMode && (
         <>
           <div className="team-panel-header">
-            <h2>Составы и приглашения</h2>
+            <h2>{view === 'requests' ? 'Заявки и приглашения' : 'Составы команд'}</h2>
             <button className="btn btn-primary btn-sm" onClick={() => setCreate(true)}>
               <Users size={16} /> Создать команду
             </button>
           </div>
-          <nav className="tabs-bar team-navigation" aria-label="Мои команды">
-            <button
-              className={`tab-btn ${view === 'teams' ? 'active' : ''}`}
-              onClick={() => setView('teams')}
-            >
-              Составы команд
-            </button>
-            <button
-              className={`tab-btn ${view === 'requests' ? 'active' : ''}`}
-              onClick={() => {
-                setView('requests')
-                setSelected('')
-              }}
-            >
-              Заявки и приглашения
-            </button>
-          </nav>
+          {!initialView && (
+            <nav className="tabs-bar team-navigation" aria-label="Мои команды">
+              <button
+                className={`tab-btn ${view === 'teams' ? 'active' : ''}`}
+                onClick={() => setView('teams')}
+              >
+                Составы команд
+              </button>
+              <button
+                className={`tab-btn ${view === 'requests' ? 'active' : ''}`}
+                onClick={() => {
+                  setView('requests')
+                  setSelected('')
+                }}
+              >
+                Заявки и приглашения
+              </button>
+            </nav>
+          )}
         </>
       )}
       {error && (
@@ -282,7 +287,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
           )}
           {(searchMode || view === 'teams') && (
             <>
-              <PaginatedGrid className="teams-grid">
+              <PaginatedGrid pageSize={6} className="teams-grid">
                 {shown.map((t) => {
                   const member = t.leaderId === user.id || t.members.some((m) => m.id === user.id),
                     isPending = pending(t, user.id)
@@ -292,7 +297,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
                         <h3>{t.name}</h3>
                         <span className="badge badge-direction">{t.members.length} участн.</span>
                       </header>
-                      {t.description && <p>{t.description}</p>}
+                      {t.description && <ExpandableText compact text={t.description} />}
                       {t.recruitingCaseId && (
                         <p className="team-project">
                           Набор: {cases.find((c) => c.id === t.recruitingCaseId)?.title || 'Проект'}
@@ -361,8 +366,13 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
               >
                 <div className="feature-toolbar">
                   <h3>Набор в «{managed.name}»</h3>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setSelected('')}>
-                    Закрыть
+                  <button
+                    type="button"
+                    className="close-btn"
+                    aria-label="Закрыть окно"
+                    onClick={() => setSelected('')}
+                  >
+                    <X size={20} />
                   </button>
                 </div>
                 <p>Вы капитан. Приглашённый студент появится в составе только после согласия.</p>
@@ -418,9 +428,7 @@ export const TeamsPanel: React.FC<{ caseId?: string; searchMode?: boolean }> = (
                 <h4>{query.trim() ? 'Результаты поиска' : 'Кандидаты, которые ищут команду'}</h4>
                 <PaginatedGrid className="request-list">
                   {(query.trim()
-                    ? students.filter((s) =>
-                        `${s.fullName} ${s.email}`.toLowerCase().includes(query.toLowerCase()),
-                      )
+                    ? students.filter((s) => matchesSearch(query, s.fullName, s.email))
                     : students.filter((s) => candidates.some((c) => c.studentId === s.id))
                   )
                     .filter((s) => s.id !== user.id && !managed.members.some((m) => m.id === s.id))

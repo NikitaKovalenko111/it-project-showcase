@@ -1,3 +1,4 @@
+import { isOptionalWebUrl } from '../../utils/validation'
 import { apiClient } from '../../api/client'
 import { FilePicker } from '../FilePicker'
 import { uploadFile } from '../../utils/files'
@@ -42,10 +43,14 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (busy) return
 
     setBusy(true)
     setError('')
     try {
+      if (development && ![repoUrl, demoUrl].every(isOptionalWebUrl)) {
+        throw new Error('Укажите ссылки с http:// или https://.')
+      }
       const uploaded = await Promise.all(screenshots.map(uploadFile))
       const presentations = await Promise.all(presentationFiles.map(uploadFile))
       const videos = await Promise.all(videoFiles.map(uploadFile))
@@ -56,10 +61,10 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
         createSubmissionSuccess(
           await apiClient.createSubmission({
             caseId,
-            authorName: currentUser?.fullName || 'Иван Петров (Студент)',
+            authorName: currentUser?.fullName || 'Автор решения',
             description,
-            repoUrl: development ? repoUrl : '',
-            demoUrl: development ? demoUrl || undefined : undefined,
+            repoUrl: development ? repoUrl.trim() : '',
+            demoUrl: development ? demoUrl.trim() || undefined : undefined,
             presentationUrl: presentations[0]?.url,
             videoUrl: videos[0]?.url,
             documentationUrl: docs[0]?.url,

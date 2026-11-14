@@ -1,3 +1,4 @@
+import { LocalizedFileInput } from './LocalizedFileInput'
 import { useEffect, useState } from 'react'
 import {
   getEventPlan,
@@ -217,9 +218,8 @@ export function EventRoundWork({
                     </label>
                     <label>
                       Файл решения
-                      <input
+                      <LocalizedFileInput
                         key={id}
-                        type="file"
                         className="input"
                         onChange={(e) => changeAnswer(id, { file: e.target.files?.[0] })}
                       />
