@@ -444,6 +444,51 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		}
 	})
 
+	t.Run("assigned curator reads results and a participant detaches a stage file", func(t *testing.T) {
+		exec(`INSERT INTO student_curators(student_id,curator_id,assigned_by) VALUES($1,$2,$3)`, student, applicant, manager)
+		results := result_repo.Init(db)
+		items, err := results.ListSubmissions(ctx, applicant, teamExecution.ExecutionID, false, false, 10, nil, "")
+		if err != nil || len(items) == 0 {
+			t.Fatalf("curator submissions: %+v %v", items, err)
+		}
+		grades, err := results.ListEvaluations(ctx, applicant, items[0].SubmissionID, false, false)
+		if err != nil || len(grades) != 1 {
+			t.Fatalf("curator grades: %+v %v", grades, err)
+		}
+		if _, err = results.GetEvaluation(ctx, applicant, grades[0].EvaluationID, false, false); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = results.GetEvaluation(ctx, newUser(false), grades[0].EvaluationID, false, false); !errors.Is(err, result_repo.ErrForbidden) {
+			t.Fatalf("unrelated user grade: %v", err)
+		}
+		stage := id(`SELECT stage_id FROM case_stages WHERE case_id=$1 ORDER BY ordinal LIMIT 1`, hackathon.CaseID)
+		exec(`UPDATE executions SET status='in_progress' WHERE execution_id=$1`, teamExecution.ExecutionID)
+		exec(`UPDATE execution_stages SET status='submitted' WHERE execution_id=$1 AND stage_id=$2`, teamExecution.ExecutionID, stage)
+		fileID := items[0].Files[0].FileID
+		submission, err := results.CreateSubmission(ctx, student, teamExecution.ExecutionID, models.SubmissionInput{
+			Kind: "stage", StageID: stage, Title: "Checkpoint", Description: "Checkpoint",
+			Files: []models.SubmissionFile{{FileID: fileID, Kind: "attachment", Ordinal: 1}},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		files := file_repo.Init(db)
+		if _, err = files.GetSubmissionFile(ctx, submission.SubmissionID, fileID, applicant, false); err != nil {
+			t.Fatal(err)
+		}
+		for range 2 {
+			if err = results.DetachStageFile(ctx, student, submission.SubmissionID, fileID); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if _, err = files.GetSubmissionFile(ctx, submission.SubmissionID, fileID, applicant, false); !errors.Is(err, sql.ErrNoRows) {
+			t.Fatalf("detached attachment is still accessible: %v", err)
+		}
+		if _, err = files.GetSubmissionFile(ctx, items[0].SubmissionID, fileID, applicant, false); err != nil {
+			t.Fatalf("attachment vanished from another submission: %v", err)
+		}
+	})
+
 	t.Run("expired case cannot be submitted or approved", func(t *testing.T) {
 		skill := id(`SELECT competency_id FROM showcase.competencies WHERE name='Python' AND is_active`)
 		input := models.CaseInput{
@@ -480,12 +525,46 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 	api := middleware.RequestID(mux)
 	request := func(method, path, token, body string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/api/v1"+path, strings.NewReader(body))
-		req.Header.Set("Authorization", "Bearer "+token)
+		if token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
 		req.Header.Set("X-Request-ID", "qa-workflow-request")
 		response := httptest.NewRecorder()
 		api.ServeHTTP(response, req)
 		return response
 	}
+
+	t.Run("moderator replaces role and the old access token is rejected", func(t *testing.T) {
+		administrator, account := newUser(false), newUser(false)
+		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='admin'`, administrator)
+		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='university_staff'`, account)
+		adminToken, _, err := pkg.CreateAccessTokenWithRoles(administrator, []string{"admin"}, secret, time.Minute)
+		if err != nil {
+			t.Fatal(err)
+		}
+		oldToken, _, err := pkg.CreateAccessTokenWithRoles(account, []string{"university_staff"}, secret, time.Minute)
+		if err != nil {
+			t.Fatal(err)
+		}
+		response := request(http.MethodPatch, "/users/"+account+"/role", adminToken, `{"role":"company_representative"}`)
+		if response.Code != http.StatusNoContent {
+			t.Fatalf("change role: %d %s", response.Code, response.Body)
+		}
+		current, err := users.GetUserRoles(ctx, account)
+		if err != nil || len(current) != 1 || current[0] != "company_representative" {
+			t.Fatalf("changed roles: %v %v", current, err)
+		}
+		verify := middleware.Authorization(secret, logger, users.GetActiveUserRoles)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+oldToken)
+		res := httptest.NewRecorder()
+		verify.ServeHTTP(res, req)
+		if res.Code != http.StatusUnauthorized {
+			t.Fatalf("old role token: %d", res.Code)
+		}
+	})
 
 	t.Run("registration profile and curator directory", func(t *testing.T) {
 		name := "qa-" + uuid.NewString()[:12]
