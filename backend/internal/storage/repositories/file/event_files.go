@@ -23,6 +23,8 @@ func (r *Repository) GetEventSolutionFile(ctx context.Context, user, execution, 
 		JOIN files f ON f.file_id=$4 AND f.status='active'
 		WHERE s.execution_id=$1 AND s.round_id=$3 AND s.solutions @> jsonb_build_array(jsonb_build_object('file_id',f.file_id::text))
 		AND ($5 OR EXISTS(SELECT 1 FROM execution_members m WHERE m.execution_id=e.execution_id AND m.student_id=$2 AND m.left_at IS NULL)
-		OR EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company'))`,
+		OR EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR EXISTS(SELECT 1 FROM student_curators sc JOIN execution_members em ON em.student_id=sc.student_id AND em.left_at IS NULL
+		JOIN user_roles ur ON ur.user_id=sc.curator_id JOIN roles cr ON cr.role_id=ur.role_id AND cr.code='university_staff'
+		WHERE sc.curator_id=$2::uuid AND sc.revoked_at IS NULL AND em.execution_id=e.execution_id))`,
 		execution, user, roundID, fileID, admin))
 }

@@ -10,6 +10,7 @@ import (
 	"it-project-showcase/backend/internal/objectstorage"
 	"it-project-showcase/backend/internal/services"
 	"it-project-showcase/backend/internal/storage"
+	users_repo "it-project-showcase/backend/internal/storage/repositories/user"
 	transport "it-project-showcase/backend/internal/transport/http"
 	"it-project-showcase/backend/internal/transport/http/handlers"
 	"it-project-showcase/backend/pkg"
@@ -52,7 +53,7 @@ func Run(cfg *config.Config) {
 	handlers := handlers.Init(services)
 
 	mux := http.NewServeMux()
-	authorize := middleware.Authorization(cfg.JWT.AccessSecret, logger)
+	authorize := middleware.Authorization(cfg.JWT.AccessSecret, logger, users_repo.Init(storage.Db).GetActiveUserRoles)
 	transport := transport.Init(handlers, authorize)
 	transport.Start(mux)
 

@@ -30,6 +30,29 @@ func (s *Service) List(ctx context.Context, limit int, offset int64) ([]models.U
 	return s.userRepo.ListUsers(ctx, limit, offset)
 }
 
+var (
+	ErrInvalidRole        = errors.New("invalid account role")
+	ErrRoleChangeConflict = users_repo.ErrRoleChangeConflict
+)
+
+func (s *Service) SetRole(ctx context.Context, actor, userID, role string) error {
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+	if role != "student" && role != "company_representative" && role != "university_staff" {
+		return ErrInvalidRole
+	}
+	if id.String() == actor {
+		return ErrRoleChangeConflict
+	}
+	err = s.userRepo.SetRole(ctx, actor, id.String(), role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}
+
 func (s *Service) ReviewRole(ctx context.Context, actor, userID, status string) error {
 	if _, err := uuid.Parse(userID); err != nil {
 		return ErrNotFound

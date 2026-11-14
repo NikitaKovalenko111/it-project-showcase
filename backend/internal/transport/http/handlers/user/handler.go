@@ -23,6 +23,7 @@ func Init(service *users_service.Service) *Handler { return &Handler{service: se
 func (h *Handler) Start(mux *http.ServeMux, admin func(http.Handler) http.Handler) {
 	mux.Handle("GET /{$}", admin(http.HandlerFunc(h.List)))
 	mux.Handle("PATCH /{user_id}/status", admin(http.HandlerFunc(h.SetStatus)))
+	mux.Handle("PATCH /{user_id}/role", admin(http.HandlerFunc(h.SetRole)))
 	mux.Handle("PATCH /{user_id}/role-request", admin(http.HandlerFunc(h.ReviewRole)))
 	mux.HandleFunc("/", shared.NotFound)
 }
@@ -44,6 +45,30 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.WriteJSON(w, 200, pagination.NewPageResponse(items, query, total))
+}
+
+func (h *Handler) SetRole(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Role string `json:"role"`
+	}
+	if !decodeStrict(w, r, &input) {
+		return
+	}
+	actor, _ := middleware.UserIDFromContext(r.Context())
+	err := h.service.SetRole(r.Context(), actor, r.PathValue("user_id"), input.Role)
+	switch {
+	case err == nil:
+		pkg.WriteEmpty(w, http.StatusNoContent)
+	case errors.Is(err, users_service.ErrNotFound):
+		pkg.WriteError(w, 404, "user_not_found", "User not found")
+	case errors.Is(err, users_service.ErrInvalidRole):
+		pkg.WriteError(w, 422, "invalid_role", "Role must be student, company_representative or university_staff")
+	case errors.Is(err, users_service.ErrRoleChangeConflict):
+		pkg.WriteError(w, 409, "role_change_conflict", "Role change conflicts with the account state")
+	default:
+		middleware.QueueErrorLog(r.Context(), "set user role failed", err)
+		pkg.WriteError(w, 500, "role_update_failed", "Failed to update user role")
+	}
 }
 
 func (h *Handler) ReviewRole(w http.ResponseWriter, r *http.Request) {

@@ -204,6 +204,24 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 	return &user, nil
 }
 
+func (r *UsersRepo) GetActiveUserRoles(ctx context.Context, userID string) ([]string, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT r.code FROM users u JOIN user_roles ur ON ur.user_id=u.user_id
+		JOIN roles r ON r.role_id=ur.role_id WHERE u.user_id=$1 AND u.status='active'`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	roles := []string{}
+	for rows.Next() {
+		var role string
+		if err = rows.Scan(&role); err != nil {
+			return nil, err
+		}
+		roles = append(roles, role)
+	}
+	return roles, rows.Err()
+}
+
 func (r *UsersRepo) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT r.code

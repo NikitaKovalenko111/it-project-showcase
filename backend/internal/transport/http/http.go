@@ -76,10 +76,10 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Cases.StartEventRounds(executions, studentOnly, manager)
 	h.handlers.Files.StartEventFiles(cases, executions, h.authorize)
 
-	submissions := mount(api, "/submissions", workflow)
+	submissions := mount(api, "/submissions", executionArea)
 	h.handlers.Results.StartSubmissions(submissions)
 	h.handlers.Files.StartSubmissions(submissions)
-	h.handlers.Results.StartEvaluations(mount(api, "/evaluations", workflow))
+	h.handlers.Results.StartEvaluations(mount(api, "/evaluations", executionArea))
 	h.handlers.Results.StartAwards(mount(api, "/awards", workflow))
 
 	projects := mount(api, "/student-projects", nil)
