@@ -95,7 +95,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	internships := mount(api, "/internships", nil)
 	h.handlers.Opportunities.StartInternships(internships, representative, reviewer, h.authorize, h.optionalAuthorization)
 	h.handlers.Opportunities.StartInternshipApplications(internships, studentOnly, representative, workflow)
-	h.handlers.Files.StartInternships(internships, workflow)
+	h.handlers.Files.StartInternships(internships, workflow, h.optionalAuthorization)
 	h.handlers.Cases.StartViews(cases, h.authorize)
 
 	h.handlers.Platform.StartFavorites(mount(api, "/favorites", h.authorize))

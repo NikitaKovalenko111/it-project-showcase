@@ -31,6 +31,13 @@ func (r *Repository) GetInternshipResume(ctx context.Context, applicationID, use
 		WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company'))`, applicationID, userID, admin))
 }
 
+func (r *Repository) GetProgramFile(ctx context.Context, program, file, viewer string, admin bool) (*models.File, error) {
+	return scanFile(r.db.QueryRowContext(ctx, `SELECT `+eventFileColumns+`
+		FROM showcase.internship_files x JOIN showcase.files f ON f.file_id=x.file_id
+		WHERE x.program_id=$1 AND x.file_id=$2 AND f.status='active'
+		AND showcase.can_read_program(x.program_id,NULLIF($3,'')::uuid,$4)`, program, file, viewer, admin))
+}
+
 func scanFile(row interface{ Scan(...any) error }) (*models.File, error) {
 	var file models.File
 	err := row.Scan(&file.FileID, &file.StorageKey, &file.OriginalName, &file.MIMEType, &file.SizeBytes, &file.ChecksumSHA256, &file.UploadedBy, &file.CreatedAt)

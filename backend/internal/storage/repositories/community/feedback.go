@@ -80,7 +80,9 @@ func (r *Repository) ListFeedback(ctx context.Context, user, status string, admi
 }
 
 func (r *Repository) ReviewFeedback(ctx context.Context, actor, id, status string) error {
-	result, err := r.db.ExecContext(ctx, `UPDATE showcase.feedback_messages SET status=$3,moderator_id=$2,reviewed_at=CURRENT_TIMESTAMP WHERE feedback_id=$1 AND status='reviewing'`, id, actor, status)
+	result, err := r.db.ExecContext(ctx, `UPDATE showcase.feedback_messages
+		SET status=$3,moderator_id=$2,reviewed_at=CURRENT_TIMESTAMP
+		WHERE feedback_id=$1 AND (status='reviewing' OR (status='reviewed' AND $3 IN ('accepted','rejected')))`, id, actor, status)
 	if err != nil {
 		return err
 	}

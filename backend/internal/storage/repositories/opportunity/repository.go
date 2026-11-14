@@ -3,6 +3,7 @@ package opportunity_repo
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"it-project-showcase/backend/internal/models"
@@ -160,26 +161,44 @@ func (r *Repository) ListTeamProfiles(ctx context.Context, limit, offset int) ([
 	return items, total, e
 }
 
-const internshipCols = `p.program_id,p.company_id,c.full_name,p.created_by,p.title,p.summary,p.content_markdown,p.status,COALESCE(p.moderation_comment,''),p.application_deadline,p.created_at,p.updated_at,p.published_at,p.capacity,p.kind`
+const internshipCols = `p.program_id,p.company_id,c.full_name,p.created_by,p.title,p.summary,p.content_markdown,p.status,COALESCE(p.moderation_comment,''),p.application_deadline,p.created_at,p.updated_at,p.published_at,p.capacity,p.kind,
+	COALESCE((SELECT jsonb_agg(x.file_id ORDER BY x.file_id) FROM showcase.internship_files x WHERE x.program_id=p.program_id),'[]'::jsonb)`
 
 func scanInternship(row interface{ Scan(...any) error }) (*models.InternshipProgram, error) {
 	var x models.InternshipProgram
-	e := row.Scan(&x.ProgramID, &x.CompanyID, &x.CompanyName, &x.CreatedBy, &x.Title, &x.Summary, &x.ContentMarkdown, &x.Status, &x.ModerationComment, &x.ApplicationDeadline, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt, &x.Capacity, &x.Kind)
+	var files []byte
+	e := row.Scan(&x.ProgramID, &x.CompanyID, &x.CompanyName, &x.CreatedBy, &x.Title, &x.Summary, &x.ContentMarkdown, &x.Status, &x.ModerationComment, &x.ApplicationDeadline, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt, &x.Capacity, &x.Kind, &files)
+	if e == nil {
+		e = json.Unmarshal(files, &x.FileIDs)
+	}
 	return &x, e
 }
 func (r *Repository) CreateInternship(ctx context.Context, user string, in models.InternshipInput) (*models.InternshipProgram, error) {
+	tx, e := r.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, e
+	}
+	defer tx.Rollback()
 	var id string
-	e := r.db.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline,capacity,kind) SELECT $2,$1,$3,$4,$5,$6,$7,$8 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind).Scan(&id)
+	e = tx.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline,capacity,kind) SELECT $2,$1,$3,$4,$5,$6,$7,$8 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind).Scan(&id)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
 	if e != nil {
 		return nil, e
 	}
-	return r.GetInternship(ctx, id, false, user)
+	if e = saveProgramFiles(ctx, tx, id, user, in.FileIDs); e != nil {
+		return nil, e
+	}
+	item, e := scanInternship(tx.QueryRowContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c USING(company_id) WHERE p.program_id=$1`, id))
+	if e != nil {
+		return nil, e
+	}
+	return item, tx.Commit()
 }
 func (r *Repository) GetInternship(ctx context.Context, id string, admin bool, user string) (*models.InternshipProgram, error) {
-	x, e := scanInternship(r.db.QueryRowContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id WHERE p.program_id=$1 AND ($2 OR p.status='published' OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=NULLIF($3,'')::uuid AND m.status='active'))`, id, admin, user))
+	x, e := scanInternship(r.db.QueryRowContext(ctx, `SELECT `+internshipCols+` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id
+		WHERE p.program_id=$1 AND showcase.can_read_program(p.program_id,NULLIF($3,'')::uuid,$2)`, id, admin, user))
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -217,7 +236,12 @@ func (r *Repository) ListInternships(ctx context.Context, status, owner string, 
 }
 
 func (r *Repository) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
-	item, err := scanInternship(r.db.QueryRowContext(ctx, `WITH updated AS (
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	item, err := scanInternship(tx.QueryRowContext(ctx, `WITH updated AS (
 		UPDATE showcase.internship_programs p
 		SET title=$4,summary=$5,content_markdown=$6,application_deadline=$7,capacity=COALESCE($8,p.capacity),
 			status=CASE WHEN p.status='published' THEN 'revision' ELSE p.status END
@@ -231,18 +255,64 @@ func (r *Repository) UpdateInternship(ctx context.Context, user, programID strin
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
-	return item, err
+	if err != nil {
+		return nil, err
+	}
+	if err = saveProgramFiles(ctx, tx, programID, user, in.FileIDs); err != nil {
+		return nil, err
+	}
+	if in.FileIDs != nil {
+		item.FileIDs = in.FileIDs
+	}
+	return item, tx.Commit()
+}
+
+func saveProgramFiles(ctx context.Context, tx *sql.Tx, program, user string, ids []string) error {
+	if ids == nil {
+		return nil
+	}
+	for _, id := range ids {
+		var attached string
+		err := tx.QueryRowContext(ctx, `SELECT f.file_id FROM showcase.files f WHERE f.file_id=$1 AND f.status='active'
+			AND (f.uploaded_by=$2 OR EXISTS(SELECT 1 FROM showcase.internship_files x WHERE x.program_id=$3 AND x.file_id=f.file_id))`, id, user, program).Scan(&attached)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrForbidden
+		}
+		if err != nil {
+			return err
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM showcase.internship_files WHERE program_id=$1`, program); err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO showcase.internship_files(program_id,file_id) VALUES($1,$2)`, program, id); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 func (r *Repository) UpdateInternshipStatus(ctx context.Context, user, id, status, comment string, admin bool) (*models.InternshipProgram, error) {
-	res, e := r.db.ExecContext(ctx, `UPDATE showcase.internship_programs p SET status=$3,moderation_comment=NULLIF($4,''),published_at=CASE WHEN $3='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END WHERE p.program_id=$1 AND (($5 AND ((p.status='moderation' AND $3 IN ('published','revision')) OR (p.status IN ('published','closed') AND $3='hidden'))) OR (NOT $5 AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='published' AND $3='closed'))))`, id, user, status, comment, admin)
-	if e != nil {
-		return nil, e
-	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
+	return r.UpdateInternshipStatusByRole(ctx, user, id, status, comment, admin, false)
+}
+
+func (r *Repository) UpdateInternshipStatusByRole(ctx context.Context, user, id, status, comment string, admin, curator bool) (*models.InternshipProgram, error) {
+	item, e := scanInternship(r.db.QueryRowContext(ctx, `WITH updated AS (
+		UPDATE showcase.internship_programs p SET status=$3,
+		moderation_comment=CASE WHEN $3='draft' THEN p.moderation_comment ELSE NULLIF($4,'') END,
+		published_at=CASE WHEN $3='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END
+		WHERE p.program_id=$1 AND (
+			(($5 OR $6) AND p.status='moderation' AND $3 IN ('published','revision'))
+			OR ($5 AND p.status IN ('published','closed') AND $3='hidden')
+			OR (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+				AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='published' AND $3='closed')
+					OR (p.status='moderation' AND $3='draft'))))
+		RETURNING p.*
+	) SELECT `+internshipCols+` FROM updated p JOIN showcase.companies c ON c.company_id=p.company_id`, id, user, status, comment, admin, curator))
+	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
-	return r.GetInternship(ctx, id, admin, user)
+	return item, e
 }
 
 func (r *Repository) Leaderboard(ctx context.Context, caseID, user string, admin bool) ([]models.LeaderboardEntry, error) {
@@ -317,8 +387,12 @@ func (r *Repository) SetPlacements(ctx context.Context, user, caseID string, ite
 			ELSE EXISTS(SELECT 1 FROM submissions s JOIN evaluations v ON v.submission_id=s.submission_id
 				WHERE s.execution_id=x.execution_id AND s.kind='final' AND s.status<>'superseded' AND v.status='published') END)`,
 			caseID, item.ExecutionID).Scan(&eligible)
-		if e != nil { return e }
-		if !eligible { return ErrConflict }
+		if e != nil {
+			return e
+		}
+		if !eligible {
+			return ErrConflict
+		}
 	}
 	if _, e = tx.ExecContext(ctx, `DELETE FROM showcase.case_placements WHERE case_id=$1`, caseID); e != nil {
 		return e

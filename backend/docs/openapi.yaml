@@ -294,7 +294,7 @@ paths:
       operationId: listFeedback
       description: 'Очередь обращений модератора.'
       security: [{bearerAuth: []}]
-      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}, {name: status, in: query, schema: {type: string, enum: [reviewing, accepted, rejected]}}]
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/PageSize'}, {name: status, in: query, schema: {type: string, enum: [reviewing, reviewed, accepted, rejected]}}]
       responses:
         '200': {description: 'Успешный ответ', content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
         '401': {description: Требуется Bearer access token}
@@ -913,13 +913,20 @@ paths:
       parameters: [{$ref: '#/components/parameters/ProgramID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
       responses: {'200': {description: Содержимое программы обновлено}}
+  /internships/{program_id}/files/{file_id}/content:
+    get:
+      tags: [Internships, Files]
+      operationId: downloadProgramFile
+      security: [{}, {bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ProgramID'}, {$ref: '#/components/parameters/FileID'}]
+      responses: {'200': {description: Файл доступной программы}, '404': {description: Файл недоступен}}
   /internships/{program_id}/status:
     patch:
       tags: [Internships]
       operationId: updateInternshipStatus
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ProgramID'}]
-      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [status], properties: {status: {type: string, enum: [moderation, published, revision, closed, hidden]}, comment: {type: string}}}}}}
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [status], properties: {status: {type: string, enum: [draft, moderation, published, revision, closed, hidden]}, comment: {type: string}}}}}}
       responses: {'200': {description: Статус изменён}}
   /portfolio/me/files:
     get:
@@ -1180,6 +1187,13 @@ paths:
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       responses: {'200': {description: Полная карточка для компании}}
+  /cases/{case_id}/withdraw-moderation:
+    post:
+      tags: [Cases]
+      operationId: withdrawCaseModeration
+      security: [{bearerAuth: []}]
+      parameters: [{$ref: '#/components/parameters/CaseID'}]
+      responses: {'200': {description: Кейс возвращён в draft или revision}, '403': {description: Нет доступа}, '409': {description: Кейс вне модерации}}
   /cases/{case_id}/submit-moderation:
     post:
       tags: [Cases]
@@ -1671,7 +1685,7 @@ components:
     Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, likes_count, liked_by_me, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}, created_at: {type: string, format: date-time}}}
     CommentLikeState: {type: object, required: [likes_count, liked_by_me], properties: {likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}}}
     CuratorAssignment: {type: object, required: [student_id, curator_id, curator_name, assigned_by, assigned_at], properties: {student_id: {type: string, format: uuid}, curator_id: {type: string, format: uuid}, curator_name: {type: string}, assigned_by: {type: string, format: uuid}, assigned_at: {type: string, format: date-time}}}
-    ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile, company]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}
+    ReportInput: {type: object, required: [resource_type, resource_id, reason], properties: {resource_type: {type: string, enum: [case, student_project, comment, profile, company, internship]}, resource_id: {type: string, format: uuid}, reason: {type: string, enum: [spam, abuse, fraud, copyright, personal_data, other]}, details: {type: string, maxLength: 4000}}}
     TeamDiscoveryInput: {type: object, required: [name, visibility, looking_for_members], properties: {name: {type: string}, description: {type: string}, visibility: {type: string, enum: [private, open]}, looking_for_members: {type: boolean}}}
     TeamJoinInput: {type: object, properties: {role_id: {type: string, format: uuid}, resume_file_id: {type: string, format: uuid}, cover_letter: {type: string, maxLength: 4000}}}
     TeamSearchProfileInput: {type: object, properties: {headline: {type: string, maxLength: 200}, description: {type: string, maxLength: 4000}, resume_file_id: {type: string, format: uuid}, is_visible: {type: boolean}}}
@@ -1679,7 +1693,7 @@ components:
     EvaluationInput: {type: object, required: [scores], properties: {feedback: {type: string}, scores: {type: array, items: {type: object, required: [criterion_id, score], properties: {criterion_id: {type: string, format: uuid}, score: {type: number, minimum: 0}, comment: {type: string}}}}}}
     PlacementsInput: {type: object, required: [placements], properties: {placements: {type: array, items: {type: object, required: [execution_id], properties: {execution_id: {type: string, format: uuid}, place_no: {type: integer, minimum: 1}, nomination: {type: string}}}}}}
     StudentProjectInput: {type: object, required: [title, category, short_description, full_description], properties: {title: {type: string}, category: {type: string, enum: [coursework, pet_project, startup, research, hackathon, other]}, short_description: {type: string}, full_description: {type: string}, visibility: {type: string, enum: [public, private], default: public}, tags: {type: array, maxItems: 10, uniqueItems: true, items: {type: string, maxLength: 40}}, cover_file_id: {type: string, format: uuid}}}
-    InternshipInput: {type: object, required: [company_id, title, summary, content_markdown], properties: {company_id: {type: string, format: uuid}, title: {type: string}, summary: {type: string}, content_markdown: {type: string}, capacity: {type: integer, minimum: 1, maximum: 10000, description: При создании обязателен лимит людей.}, application_deadline: {type: string, format: date-time}}}
+    InternshipInput: {type: object, required: [company_id, title, summary, content_markdown], properties: {company_id: {type: string, format: uuid}, title: {type: string}, summary: {type: string}, content_markdown: {type: string}, file_ids: {type: array, maxItems: 30, items: {type: string, format: uuid}}, capacity: {type: integer, minimum: 1, maximum: 10000, description: При создании обязателен лимит людей.}, application_deadline: {type: string, format: date-time}}}
     RoleRequestDecision: {type: object, required: [status], properties: {status: {type: string, enum: [approved, rejected]}}}
     StudentSearchItem:
       type: object
@@ -1773,8 +1787,8 @@ components:
               solutions: {type: array, items: {$ref: '#/components/schemas/EventSolution'}}
               scores: {type: array, items: {$ref: '#/components/schemas/EventTaskScore'}}
     FeedbackInput: {type: object, required: [body], properties: {body: {type: string, minLength: 1, maxLength: 4000}, file_ids: {type: array, maxItems: 5, uniqueItems: true, items: {type: string, format: uuid}}}}
-    FeedbackDecision: {type: object, required: [status], properties: {status: {type: string, enum: [accepted, rejected]}}}
-    Feedback: {type: object, properties: {feedback_id: {type: string, format: uuid}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [reviewing, accepted, rejected]}, file_ids: {type: array, items: {type: string, format: uuid}}, moderator_id: {type: string, format: uuid, nullable: true}, created_at: {type: string, format: date-time}, reviewed_at: {type: string, format: date-time, nullable: true}}}
+    FeedbackDecision: {type: object, required: [status], properties: {status: {type: string, enum: [reviewed, accepted, rejected]}}}
+    Feedback: {type: object, properties: {feedback_id: {type: string, format: uuid}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [reviewing, reviewed, accepted, rejected]}, file_ids: {type: array, items: {type: string, format: uuid}}, moderator_id: {type: string, format: uuid, nullable: true}, created_at: {type: string, format: date-time}, reviewed_at: {type: string, format: date-time, nullable: true}}}
     InternshipApplicationInput: {type: object, properties: {cover_letter: {type: string, maxLength: 4000}, resume_file_id: {type: string, format: uuid}}}
     InternshipApplicationDecision: {type: object, required: [status], properties: {status: {type: string, enum: [accepted, rejected, withdrawn]}}}
     InternshipApplication: {type: object, properties: {application_id: {type: string, format: uuid}, program_id: {type: string, format: uuid}, student_id: {type: string, format: uuid}, cover_letter: {type: string}, resume_file_id: {type: string, format: uuid, nullable: true}, status: {type: string, enum: [submitted, accepted, rejected, withdrawn]}, created_at: {type: string, format: date-time}, decided_at: {type: string, format: date-time, nullable: true}}}

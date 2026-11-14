@@ -94,7 +94,7 @@ func (s *Service) DeleteComment(ctx context.Context, u, id string, admin bool) e
 	return e
 }
 func (s *Service) CreateReport(ctx context.Context, u, k, id, reason, details string) (*models.Report, error) {
-	allowedK := map[string]bool{"case": true, "student_project": true, "comment": true, "profile": true, "company": true}
+	allowedK := map[string]bool{"case": true, "student_project": true, "comment": true, "profile": true, "company": true, "internship": true}
 	allowedR := map[string]bool{"spam": true, "abuse": true, "fraud": true, "copyright": true, "personal_data": true, "other": true}
 	details = strings.TrimSpace(details)
 	if !allowedK[k] || !allowedR[reason] || !validID(id) || len(details) > 4000 {

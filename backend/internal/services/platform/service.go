@@ -98,7 +98,9 @@ func (s *Service) ListAudit(ctx context.Context, entity, action string, limit in
 	return s.repo.ListAudit(ctx, entity, action, limit, offset)
 }
 func (s *Service) SearchStudents(ctx context.Context, filter models.StudentSearchFilter, limit int, pos, id string) ([]models.StudentSearchItem, error) {
-	if err := normalizeStudentSearch(&filter); err != nil { return nil, err }
+	if err := normalizeStudentSearch(&filter); err != nil {
+		return nil, err
+	}
 	b, e := before(pos, id)
 	if e != nil {
 		return nil, e
@@ -109,17 +111,24 @@ func (s *Service) SearchStudentsByRating(ctx context.Context, filter models.Stud
 	if sort != "rating_asc" && sort != "rating_desc" {
 		return nil, 0, ErrInvalid
 	}
-	if err := normalizeStudentSearch(&filter); err != nil { return nil, 0, err }
+	if err := normalizeStudentSearch(&filter); err != nil {
+		return nil, 0, err
+	}
 	return s.repo.SearchStudentsByRating(ctx, filter, sort, limit, offset)
 }
 
 func normalizeStudentSearch(filter *models.StudentSearchFilter) error {
-	for _, field := range []struct{ value *string; max int }{
-		{&filter.Query,100}, {&filter.Direction,200}, {&filter.Technology,100},
-		{&filter.GroupName,150}, {&filter.EducationLevel,150},
+	for _, field := range []struct {
+		value *string
+		max   int
+	}{
+		{&filter.Query, 100}, {&filter.Direction, 200}, {&filter.Technology, 100},
+		{&filter.GroupName, 150}, {&filter.EducationLevel, 150},
 	} {
 		*field.value = strings.TrimSpace(*field.value)
-		if utf8.RuneCountInString(*field.value)>field.max { return ErrInvalid }
+		if utf8.RuneCountInString(*field.value) > field.max {
+			return ErrInvalid
+		}
 	}
 	return nil
 }

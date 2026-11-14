@@ -183,6 +183,9 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 	if _, err = files.GetFeedbackFile(ctx, message.FeedbackID, taskFile, student, false); !errors.Is(err, sql.ErrNoRows) {
 		t.Fatalf("feedback file exposed: %v", err)
 	}
+	if err = feedback.ReviewFeedback(ctx, manager, message.FeedbackID, "reviewed"); err != nil {
+		t.Fatal(err)
+	}
 	if err = feedback.ReviewFeedback(ctx, manager, message.FeedbackID, "accepted"); err != nil {
 		t.Fatal(err)
 	}
@@ -242,6 +245,12 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 	if _, err = cases.SubmitForModeration(ctx, manager, hackathon.CaseID); err != nil {
 		t.Fatal(err)
 	}
+	if withdrawn, err := cases.WithdrawModeration(ctx, manager, hackathon.CaseID); err != nil || withdrawn.Status != "draft" {
+		t.Fatalf("withdraw draft: %+v %v", withdrawn, err)
+	}
+	if _, err = cases.SubmitForModeration(ctx, manager, hackathon.CaseID); err != nil {
+		t.Fatal(err)
+	}
 	if _, err = cases.Moderate(ctx, manager, hackathon.CaseID, "approve", ""); err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +268,55 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 	}
 
 	t.Run("administrator hides a program without removing applications", func(t *testing.T) {
-		_, err := opportunities.UpdateInternshipStatus(ctx, manager, internship.ProgramID, "hidden", "Review", false)
+		curator := newUser(false)
+		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='university_staff'`, curator)
+		program, err := opportunities.CreateInternship(ctx, manager, models.InternshipInput{
+			CompanyID: company, Kind: "practice", Title: "Practice", Summary: "Summary",
+			ContentMarkdown: "Description", Capacity: &one, FileIDs: []string{taskFile},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, status := range []string{"moderation", "draft", "moderation"} {
+			if _, err := opportunities.UpdateInternshipStatus(ctx, manager, program.ProgramID, status, "", false); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if _, err := files.GetProgramFile(ctx, program.ProgramID, taskFile, student, false); !errors.Is(err, sql.ErrNoRows) {
+			t.Fatalf("pending file visible to student: %v", err)
+		}
+		if _, err := opportunities.GetInternship(ctx, program.ProgramID, false, curator); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := files.GetProgramFile(ctx, program.ProgramID, taskFile, curator, false); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := opportunities.UpdateInternshipStatusByRole(ctx, curator, program.ProgramID, "revision", "Improve", false, true); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := opportunities.UpdateInternshipStatus(ctx, manager, program.ProgramID, "moderation", "", false); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := opportunities.UpdateInternshipStatusByRole(ctx, curator, program.ProgramID, "published", "", false, true); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := feedback.CreateReport(ctx, student, "internship", program.ProgramID, "other", ""); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := opportunities.UpdateInternshipStatusByRole(ctx, curator, program.ProgramID, "hidden", "Hide", false, true); !errors.Is(err, opportunity_repo.ErrForbidden) {
+			t.Fatalf("curator hid program: %v", err)
+		}
+		if _, err := opportunities.UpdateInternshipStatus(ctx, manager, program.ProgramID, "hidden", "Hide", true); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := files.GetProgramFile(ctx, program.ProgramID, taskFile, manager, true); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := feedback.CreateReport(ctx, other, "internship", program.ProgramID, "other", ""); !errors.Is(err, community_repo.ErrNotFound) {
+			t.Fatalf("hidden program accepted report: %v", err)
+		}
+
+		_, err = opportunities.UpdateInternshipStatus(ctx, manager, internship.ProgramID, "hidden", "Review", false)
 		if !errors.Is(err, opportunity_repo.ErrForbidden) {
 			t.Fatalf("company block: %v", err)
 		}

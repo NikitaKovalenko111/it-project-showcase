@@ -271,8 +271,8 @@ func (h *Handler) UpdateInternshipStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	claims, _ := middleware.TokenClaimsFromContext(r.Context())
-	review := admin(r) || (slices.Contains(claims.Roles, "university_staff") && (q.Status == "published" || q.Status == "revision"))
-	x, e := h.service.UpdateInternshipStatus(r.Context(), user(r), r.PathValue("program_id"), q.Status, q.Comment, review)
+	curator := claims != nil && slices.Contains(claims.Roles, "university_staff")
+	x, e := h.service.UpdateInternshipStatus(r.Context(), user(r), r.PathValue("program_id"), q.Status, q.Comment, admin(r), curator)
 	if e != nil {
 		writeError(w, e)
 		return

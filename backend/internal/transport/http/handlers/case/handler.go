@@ -36,6 +36,7 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, revi
 	mux.Handle("POST /", representative(http.HandlerFunc(h.Create)))
 	mux.Handle("PUT /{case_id}", representative(http.HandlerFunc(h.Update)))
 	mux.Handle("POST /{case_id}/submit-moderation", representative(http.HandlerFunc(h.SubmitForModeration)))
+	mux.Handle("POST /{case_id}/withdraw-moderation", representative(http.HandlerFunc(h.WithdrawModeration)))
 	mux.Handle("PATCH /{case_id}/status", representative(http.HandlerFunc(h.SetStatus)))
 	mux.Handle("PATCH /{case_id}/moderation", reviewer(http.HandlerFunc(h.Moderate)))
 	mux.Handle("GET /{case_id}/stages", optionalAuthorization(http.HandlerFunc(h.ListStages)))
@@ -316,6 +317,16 @@ func (h *Handler) SubmitForModeration(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, http.StatusOK, item)
 }
+func (h *Handler) WithdrawModeration(w http.ResponseWriter, r *http.Request) {
+	userID, _ := middleware.UserIDFromContext(r.Context())
+	item, err := h.service.WithdrawModeration(r.Context(), userID, r.PathValue("case_id"))
+	if err != nil {
+		writeCaseError(w, r, err)
+		return
+	}
+	pkg.WriteJSON(w, http.StatusOK, item)
+}
+
 func (h *Handler) SetStatus(w http.ResponseWriter, r *http.Request) {
 	var request StatusRequest
 	if !decodeJSON(w, r, &request) {

@@ -273,6 +273,10 @@ func (r *Repository) Cancel(ctx context.Context, userID, caseID string) (*models
 	return r.transitionByMember(ctx, userID, caseID, []string{"draft", "moderation", "revision", "published"}, "cancelled")
 }
 
+func (r *Repository) WithdrawModeration(ctx context.Context, userID, caseID string) (*models.Case, error) {
+	return r.transitionByMember(ctx, userID, caseID, []string{"moderation"}, "withdraw_moderation")
+}
+
 func (r *Repository) transitionByMember(ctx context.Context, userID, caseID string, allowed []string, next string) (*models.Case, error) {
 	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
@@ -316,7 +320,10 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 			return nil, ErrEventPlanRequired
 		}
 	}
-	if _, err = tx.ExecContext(ctx, `UPDATE cases SET status=$2 WHERE case_id=$1`, caseID, next); err != nil {
+	if _, err = tx.ExecContext(ctx, `UPDATE cases
+		SET status=CASE WHEN $2='withdraw_moderation' THEN COALESCE(moderation_from_status,'draft') ELSE $2 END,
+		    moderation_from_status=CASE WHEN $2='moderation' THEN status ELSE NULL END
+		WHERE case_id=$1`, caseID, next); err != nil {
 		return nil, fmt.Errorf("apply case transition: %w", err)
 	}
 	if err = tx.Commit(); err != nil {
