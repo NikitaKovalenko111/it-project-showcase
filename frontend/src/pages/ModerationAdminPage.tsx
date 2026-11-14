@@ -160,10 +160,6 @@ export const ModerationAdminPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Панель администрирования</h1>
-          <p>
-            Управление контентом, верификация компаний, модерация кейсов и системный журнал аудита
-            действий пользователей.
-          </p>
         </div>
       </div>
       <AdminInsights auditLogs={logs} />

@@ -1,3 +1,4 @@
+import { SelectMenus } from './components/SelectMenus'
 import { restoreMockFiles } from './utils/mockFiles'
 import { apiRuntime } from './api/runtime'
 import { AutoSizeTextareas } from './components/AutoSizeTextareas'
@@ -24,6 +25,7 @@ async function start() {
         <BrowserRouter>
           <ConfirmProvider>
             <AutoSizeTextareas />
+            <SelectMenus />
             <App />
           </ConfirmProvider>
         </BrowserRouter>

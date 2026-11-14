@@ -1,3 +1,4 @@
+import { AttachmentPreview } from '../components/AttachmentPreview'
 import { createId } from '../utils/id'
 import { FileDownload } from '../components/FileDownload'
 import React, { useEffect, useState } from 'react'
@@ -16,11 +17,16 @@ type Feedback = {
   body: string
   file_ids: string[]
   created_at: string
-  status: 'reviewing' | 'accepted' | 'rejected'
+  status: 'reviewing' | 'reviewed' | 'accepted' | 'rejected'
   userId?: string
   mockFiles?: { name: string; url: string }[]
 }
-const labels = { reviewing: 'На рассмотрении', accepted: 'Принято', rejected: 'Отклонено' }
+const labels = {
+  reviewing: 'На рассмотрении',
+  reviewed: 'Рассмотрено',
+  accepted: 'Сделано',
+  rejected: 'Отклонено',
+}
 const mockFeedbackKey = 'showcase_curated_v1_feedback'
 const readMockFeedback = (): Feedback[] => JSON.parse(localStorage.getItem(mockFeedbackKey) || '[]')
 const saveMockFeedback = (records: Feedback[]) =>
@@ -82,7 +88,6 @@ export const FeedbackPage: React.FC = () => {
       <header className="page-header">
         <div className="page-header__content">
           <h1>{admin ? 'Приём жалоб и обращений' : 'Обратная связь'}</h1>
-          {!admin && <p>Расскажите, что не работает или что вы хотели бы улучшить.</p>}
         </div>
       </header>
       {admin && <AdminInsights reportsOnly />}
@@ -121,7 +126,7 @@ export const FeedbackPage: React.FC = () => {
                 setFiles([])
                 sessionStorage.removeItem(key)
                 fileDrafts.delete(key)
-                setNotice(live ? 'Обращение отправлено.' : 'Обращение сохранено в деморежиме.')
+                setNotice('Обращение отправлено.')
               } catch (cause) {
                 setError((cause as Error).message)
               } finally {
@@ -159,9 +164,8 @@ export const FeedbackPage: React.FC = () => {
                 </a>
               ))}
             </div>
-            {!live && <p className="form-hint">Обращение сохранится в этом браузере.</p>}
             <button className="btn btn-primary" disabled={busy || !text.trim()}>
-              {busy ? 'Сохранение…' : live ? 'Отправить' : 'Сохранить демообращение'}
+              {busy ? 'Отправка…' : 'Отправить'}
             </button>
           </form>
         </section>
@@ -186,7 +190,7 @@ export const FeedbackPage: React.FC = () => {
                   <p className="preserve-text">{record.body}</p>
                   <div className="action-row">
                     {record.mockFiles?.map((file, index) => (
-                      <FileDownload key={index} file={file} />
+                      <AttachmentPreview key={index} file={file} />
                     ))}
                     {(record.file_ids || []).map((id, i) => (
                       <FeedbackAttachment
@@ -200,12 +204,16 @@ export const FeedbackPage: React.FC = () => {
                 labels[record.status],
                 ...(admin
                   ? [
-                      record.status === 'reviewing' && (
+                      record.status !== 'accepted' && record.status !== 'rejected' && (
                         <div className="action-row">
-                          {(['accepted', 'rejected'] as const).map((status) => (
+                          {(
+                            (live
+                              ? ['accepted', 'rejected']
+                              : ['reviewed', 'accepted', 'rejected']) as Feedback['status'][]
+                          ).map((status) => (
                             <button
                               key={status}
-                              className="btn btn-secondary btn-sm"
+                              className={`btn btn-sm ${status === 'rejected' ? 'btn-danger' : status === 'accepted' ? 'btn-success' : 'btn-secondary'}`}
                               disabled={busy}
                               onClick={async () => {
                                 setBusy(true)
@@ -239,7 +247,11 @@ export const FeedbackPage: React.FC = () => {
                                 }
                               }}
                             >
-                              {status === 'accepted' ? 'Принять' : 'Отклонить'}
+                              {status === 'accepted'
+                                ? 'Сделано'
+                                : status === 'reviewed'
+                                  ? 'Рассмотрено'
+                                  : 'Отклонено'}
                             </button>
                           ))}
                         </div>

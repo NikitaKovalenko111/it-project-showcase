@@ -51,6 +51,7 @@ export interface User {
 }
 
 export interface Company {
+  documents?: { name: string; url: string }[]
   isBlocked?: boolean
   internshipProgram?: string
   practiceProgram?: string
@@ -482,7 +483,7 @@ export interface TeamSeeker {
 export interface ContentReport {
   id: string
   authorId: string
-  targetType: 'case' | 'project' | 'comment' | 'user' | 'company'
+  targetType: 'case' | 'project' | 'comment' | 'user' | 'company' | 'internship'
   targetId: string
   reason: string
   message: string

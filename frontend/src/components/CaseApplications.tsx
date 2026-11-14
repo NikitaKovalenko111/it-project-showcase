@@ -143,7 +143,7 @@ export const CaseApplications: React.FC<{ caseId: string; registrations?: boolea
                       className="btn btn-secondary btn-sm"
                       to={`/cases/${a.caseId}/workspace?application=${a.id}`}
                     >
-                      К выполнению
+                      Открыть работу
                     </Link>
                   )}
                 </div>

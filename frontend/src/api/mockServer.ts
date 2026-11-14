@@ -1,3 +1,5 @@
+import { buildCases, buildCompanies, buildPortfolio, buildStudents } from './fixtures/builders'
+import { textAttachment } from './fixtures/builders'
 import { createId } from '../utils/id'
 import { showcaseSeed } from './showcaseSeed'
 import { TEAM_NAME_MAX_LENGTH } from '../utils/validation'
@@ -195,6 +197,258 @@ export class MockServer {
       save('milestones', this.milestones)
       save('shared_plan_initialized', true)
     }
+    // Upgrade only untouched fixture fields; retain manually edited records and uploaded files.
+    if (!load('fixture_quality_20261114', false)) {
+      for (const company of this.companies) {
+        const fixture = showcase.companies.find((item) => item.id === company.id)
+        if (!fixture) continue
+        if (!company.website) company.website = fixture.website
+        if (!company.internshipProgram) company.internshipProgram = fixture.internshipProgram
+        if (!company.practiceProgram) company.practiceProgram = fixture.practiceProgram
+        if (company.description === fixture.description.split('\n\n')[0])
+          company.description = fixture.description
+      }
+      for (const fixture of demo.executions) {
+        const entry = this.executions.find((item) => item.id === fixture.id)
+        const team = this.teams.find((item) => item.id === fixture.teamId)
+        if (
+          team &&
+          team.name === fixture.name &&
+          team.members.length === 1 &&
+          team.members[0].id === fixture.members[0].id
+        ) {
+          team.members = [team.members[0], ...fixture.members.slice(1)]
+          if (!team.description)
+            team.description = demo.teams.find((item) => item.id === team.id)?.description
+          if (entry?.members.length === 1)
+            entry.members = [entry.members[0], ...fixture.members.slice(1)]
+        }
+        if (entry?.submission && fixture.submission) {
+          const legacy = fixture.submission.description.split('\n\nПодготовка данных:')[0]
+          if (entry.submission.description === legacy) {
+            entry.submission.description = fixture.submission.description
+            if (!entry.submission.screenshots.length)
+              entry.submission.screenshots = fixture.submission.screenshots
+          }
+        }
+      }
+      save('executions', this.executions)
+      save('fixture_quality_20261114', true)
+    }
+    if (!load('fixture_details_20261114_v2', false)) {
+      const legacyCases = buildCases(false),
+        legacyCompanies = buildCompanies(false),
+        legacyProjects = buildPortfolio(false),
+        legacyUsers = buildStudents(false)
+      for (const item of this.cases) {
+        const old = legacyCases.find((row) => row.id === item.id),
+          next = showcase.cases.find((row) => row.id === item.id)
+        if (old && next && item.fullDescription === old.fullDescription)
+          item.fullDescription = next.fullDescription
+      }
+      for (const item of this.companies) {
+        const old = legacyCompanies.find((row) => row.id === item.id),
+          next = showcase.companies.find((row) => row.id === item.id)
+        if (old && next && item.description === old.description) item.description = next.description
+      }
+      for (const item of this.studentProjects) {
+        const old = legacyProjects.find((row) => row.id === item.id),
+          next = showcase.projects.find((row) => row.id === item.id)
+        if (old && next && item.fullDescription === old.fullDescription)
+          item.fullDescription = next.fullDescription
+      }
+      for (const item of this.users) {
+        const old = legacyUsers.find((row) => row.id === item.id),
+          next = showcase.users.find((row) => row.id === item.id)
+        if (
+          old &&
+          next &&
+          item.studentProfile?.bio === old.studentProfile?.bio &&
+          item.studentProfile
+        )
+          item.studentProfile.bio = next.studentProfile!.bio
+      }
+      save('studentProjects', this.studentProjects)
+      save('fixture_details_20261114_v2', true)
+    }
+    if (!load('fixture_profiles_20261114_v3', false)) {
+      const fillBlank = (
+        target: Record<string, unknown>,
+        fixture: Record<string, unknown>,
+        fields: string[],
+      ) => {
+        for (const field of fields) {
+          if (
+            target[field] === undefined ||
+            target[field] === '' ||
+            (Array.isArray(target[field]) && !target[field].length)
+          )
+            if (fixture[field] !== undefined) target[field] = structuredClone(fixture[field])
+        }
+      }
+      for (const item of this.companies) {
+        const fixture = showcase.companies.find((company) => company.id === item.id)
+        if (fixture)
+          fillBlank(
+            item as unknown as Record<string, unknown>,
+            fixture as unknown as Record<string, unknown>,
+            ['inn', 'kpp', 'ogrn', 'legalAddress', 'phone', 'documents'],
+          )
+      }
+      for (const item of this.users) {
+        const fixture = showcase.users.find((user) => user.id === item.id)
+        if (fixture?.studentProfile && item.studentProfile)
+          fillBlank(
+            item.studentProfile as unknown as Record<string, unknown>,
+            fixture.studentProfile as unknown as Record<string, unknown>,
+            ['phone', 'githubUrl', 'gitlabUrl', 'portfolioUrl', 'links', 'resume', 'files'],
+          )
+      }
+      for (const item of this.studentProjects) {
+        const fixture = showcase.projects.find((project) => project.id === item.id)
+        if (fixture)
+          fillBlank(
+            item as unknown as Record<string, unknown>,
+            fixture as unknown as Record<string, unknown>,
+            ['githubUrl', 'productUrl', 'screenshots'],
+          )
+      }
+      for (const entry of this.executions) {
+        const fixture = demo.executions.find((row) => row.id === entry.id)
+        if (entry.submission && fixture?.submission)
+          fillBlank(
+            entry.submission as unknown as Record<string, unknown>,
+            fixture.submission as unknown as Record<string, unknown>,
+            ['repoUrl', 'demoUrl', 'documentationUrl', 'presentationUrl'],
+          )
+      }
+      save('studentProjects', this.studentProjects)
+      save('executions', this.executions)
+      save('fixture_profiles_20261114_v3', true)
+    }
+    if (!load('team_catalog_annotations_v1', false)) {
+      const students = buildStudents()
+      const definitions = [
+        {
+          id: 'recruiting_interface',
+          name: 'Интерфейсная мастерская',
+          leader: 18,
+          project: 'case_2',
+          description:
+            'Разрабатываем календарь лабораторий. Ищем участника, который поможет с доступностью форм, состояниями загрузки и проверкой мобильной версии. Встречаемся по вторникам; перед первой задачей обсуждаем макеты и критерии готовности.',
+        },
+        {
+          id: 'recruiting_data',
+          name: 'Исследователи данных',
+          leader: 21,
+          project: 'case_3',
+          description:
+            'Сравниваем способы проверки учебных данных. Нужны Python, внимательность к пропускам и желание документировать эксперименты. Начинаем с небольшого набора, результаты обсуждаем с наставником раз в неделю.',
+        },
+        {
+          id: 'recruiting_quality',
+          name: 'Качество по шагам',
+          leader: 24,
+          project: 'case_4',
+          description:
+            'Готовим прототип и воспроизводимые сценарии проверки. Ищем разработчика интерфейса или тестировщика. Задачи распределяем по доступному времени, код просматриваем вместе и фиксируем личный вклад в отчёте.',
+        },
+      ]
+      for (const item of definitions) {
+        const leader = students[item.leader]
+        if (!this.teams.some((team) => team.id === item.id))
+          this.teams.push({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            leaderId: leader.id,
+            leaderName: leader.fullName,
+            recruitingCaseId: item.project,
+            createdAt: '2026-11-13',
+            members: [
+              {
+                id: leader.id,
+                name: leader.fullName,
+                role: 'Капитан',
+                competencies: leader.studentProfile!.skills,
+                email: leader.email,
+              },
+            ],
+          })
+      }
+      const requests: TeamRequest[] = [
+        {
+          id: 'seed_incoming_invitation',
+          teamId: 'recruiting_interface',
+          studentId: students[0].id,
+          senderId: students[18].id,
+          kind: 'invitation',
+          message:
+            'Приглашаем помочь с интерфейсом календаря и проверкой доступности. Можно начать с одного сценария записи в лабораторию.',
+          status: 'pending',
+          createdAt: '2026-11-13T10:00:00Z',
+        },
+        {
+          id: 'seed_incoming_application',
+          teamId: 'team_alpha',
+          studentId: students[19].id,
+          senderId: students[19].id,
+          kind: 'application',
+          message:
+            'Хочу присоединиться к проверке телеметрии. Могу подготовить набор граничных случаев и инструкцию воспроизведения.',
+          status: 'pending',
+          createdAt: '2026-11-13T11:00:00Z',
+        },
+        {
+          id: 'seed_outgoing_invitation',
+          teamId: 'team_alpha',
+          studentId: students[20].id,
+          senderId: students[0].id,
+          kind: 'invitation',
+          message:
+            'Предлагаем взять визуализацию истории показаний. Требования и учебный набор разберём на первой встрече.',
+          status: 'pending',
+          createdAt: '2026-11-13T12:00:00Z',
+        },
+        {
+          id: 'seed_outgoing_application',
+          teamId: 'recruiting_data',
+          studentId: students[0].id,
+          senderId: students[0].id,
+          kind: 'application',
+          message:
+            'Готов помочь с панелью сравнения экспериментов и формами загрузки данных. Удобен дистанционный формат.',
+          status: 'pending',
+          createdAt: '2026-11-13T13:00:00Z',
+        },
+      ]
+      for (const request of requests)
+        if (!this.teamRequests.some((row) => row.id === request.id)) this.teamRequests.push(request)
+      for (const index of [19, 20, 22]) {
+        const student = students[index]
+        if (!this.seekers.some((row) => row.studentId === student.id))
+          this.seekers.push({
+            id: 'seed_seeker_' + index,
+            studentId: student.id,
+            message:
+              'Ищу команду для учебного прототипа. Готов обсуждать требования, брать небольшие задачи и показывать результат раз в неделю.',
+            techStack: student.studentProfile!.skills,
+          })
+      }
+      save('teamRequests', this.teamRequests)
+      save('seekers', this.seekers)
+      save('team_catalog_annotations_v1', true)
+    }
+    if (!load('fixture_legal_repair_v4', false)) {
+      for (const item of this.companies) {
+        const fixture = showcase.companies.find((row) => row.id === item.id)
+        if (!fixture) continue
+        for (const key of ['inn', 'kpp', 'ogrn', 'legalAddress', 'phone'] as const)
+          if (!item[key]?.trim()) item[key] = fixture[key]
+        if (!item.documents?.length) item.documents = structuredClone(fixture.documents || [])
+      }
+      save('fixture_legal_repair_v4', true)
+    }
     this.cases.forEach((project) => {
       const apps = this.applications.filter((item) => item.caseId === project.id)
       project.applicationsCount = apps.length
@@ -219,6 +473,17 @@ export class MockServer {
     save('teams', this.teams)
     save('applications', this.applications)
     save('companies', this.companies)
+  }
+  withdrawCaseModeration(id: string): CaseProject {
+    const project = this.requireCaseManager(id)
+    if (this.sessionUser()?.role !== 'company' || project.status !== 'moderation')
+      throw new Error('Отозвать можно только свою публикацию на модерации.')
+    project.status = 'revision'
+    project.moderationStatus = 'revision'
+    project.moderationComment = 'Публикация отозвана компанией для редактирования.'
+    project.isModerated = false
+    save('cases', this.cases)
+    return structuredClone(project)
   }
   private syncExecutions(caseId: string): void {
     const project = this.cases.find((c) => c.id === caseId)
@@ -298,6 +563,10 @@ export class MockServer {
           if (team) e.members = structuredClone(team.members)
         }
         e.milestones ||= []
+        const upgradedStages = load<string[]>('fixture_work_details_v3', [])
+        const upgradeStages =
+          e.id.startsWith('demo_') && project.kind !== 'olympiad' && !upgradedStages.includes(e.id)
+
         for (const template of this.milestones.filter((m) => m.caseId === caseId)) {
           const id = `${e.id}::${template.id}`
           const existing = e.milestones.find((m) => m.id === id)
@@ -328,6 +597,56 @@ export class MockServer {
             existing.deadline = template.deadline
             existing.stepNumber = template.stepNumber
           }
+        }
+        if (upgradeStages) {
+          const index = Number(e.id.split('_').slice(-1)[0])
+          for (const stage of e.milestones) {
+            const previousDefault = e.submission ? 'accepted' : 'pending'
+            if (
+              stage.status !== previousDefault ||
+              stage.attachedMaterials.length ||
+              stage.feedback
+            )
+              continue
+            const step = stage.stepNumber - 1
+            const progress =
+              index < 4
+                ? ['accepted', 'accepted', 'accepted']
+                : index < 9
+                  ? [
+                      'accepted',
+                      index % 2 ? 'accepted' : 'needs_work',
+                      index % 2 ? 'submitted' : 'pending',
+                    ]
+                  : ['in_progress', 'pending', 'pending']
+            stage.status = (progress[step] as ProjectMilestone['status']) || 'pending'
+            if (['accepted', 'submitted', 'needs_work'].includes(stage.status)) {
+              stage.attachedMaterials = [
+                textAttachment(
+                  ['Сценарии и требования.txt', 'Проверка прототипа.txt', 'Отчёт о защите.txt'][
+                    step
+                  ] || 'Отчёт.txt',
+                  e.name +
+                    ' · ' +
+                    project.title +
+                    '\n\n' +
+                    stage.description +
+                    '\n\nЛичный вклад: ' +
+                    e.members.map((member) => member.name + ' - ' + member.role).join('; ') +
+                    '\n\nПроверки: корректный ввод, пустые значения, повторное действие, восстановление после ошибки. Результаты проверяем по согласованным критериям задания.',
+                ),
+              ]
+              stage.submittedAt = '2026-11-11T10:00:00Z'
+              stage.feedback =
+                stage.status === 'accepted'
+                  ? 'Материалы проверены. Основной сценарий воспроизводится по инструкции.'
+                  : stage.status === 'needs_work'
+                    ? 'Добавьте результаты проверки восстановления после ошибки и укажите ограничения прототипа.'
+                    : undefined
+            }
+          }
+          upgradedStages.push(e.id)
+          save('fixture_work_details_v3', upgradedStages)
         }
         e.milestones.sort((a, b) => a.stepNumber - b.stepNumber)
       })

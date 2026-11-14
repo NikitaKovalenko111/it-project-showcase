@@ -1,3 +1,4 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { ProfileAvatarUpload } from '../components/ProfileAvatarUpload'
 import { IdentityImage } from '../components/IdentityImage'
 import { isOptionalWebUrl, isPhoneValid } from '../utils/validation'
@@ -21,6 +22,7 @@ import { InviteStudentModal } from '../components/modals/InviteStudentModal'
 import { participatesInCase } from '../utils/access'
 import { mockServer } from '../api/mockServer'
 import {
+  ArrowLeft,
   Award,
   Bookmark,
   CheckCircle2,
@@ -238,8 +240,24 @@ export const StudentProfilePage: React.FC = () => {
   return (
     <div>
       {achievementError && <p role="alert">{achievementError}</p>}
-      <div className="page-actions page-actions--top">
+      <div className="page-actions page-actions--top profile-toolbar">
+        {!isOwnProfile && (
+          <Link className="btn btn-secondary btn-sm profile-back" to="/students-search">
+            <ArrowLeft size={18} /> Назад к студентам
+          </Link>
+        )}
+        {isOwnProfile && (
+          <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
+            <Edit3 size={14} /> {isEditing ? 'Отменить редактирование' : 'Редактировать профиль'}
+          </button>
+        )}
         <AdminUserActions key={targetUser.id} user={targetUser} />
+        {currentUser?.role === 'company' && (
+          <button className="btn btn-primary btn-sm" onClick={() => setInviteModalOpen(true)}>
+            <Send size={14} /> Пригласить в кейс / на стажировку
+          </button>
+        )}
+
         {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
       </div>
       {/* Profile Header Banner */}
@@ -347,20 +365,6 @@ export const StudentProfilePage: React.FC = () => {
             <div style={{ fontSize: '10px', color: '#38bdf8', marginTop: '4px' }}>
               Побед в конкурсах: {student?.winsCount ?? 0}
             </div>
-          </div>
-
-          {/* Actions */}
-          <div>
-            {isOwnProfile ? (
-              <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
-                <Edit3 size={14} />{' '}
-                {isEditing ? 'Отменить редактирование' : 'Редактировать профиль'}
-              </button>
-            ) : currentUser?.role === 'company' ? (
-              <button className="btn btn-primary btn-sm" onClick={() => setInviteModalOpen(true)}>
-                <Send size={14} /> Пригласить в кейс / на стажировку
-              </button>
-            ) : null}
           </div>
         </div>
       </div>
@@ -748,11 +752,7 @@ export const StudentProfilePage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '15px' }}>О себе и интересы</h3>
             </div>
             <div className="card__body">
-              <p
-                style={{ margin: '0 0 16px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}
-              >
-                {student?.bio || 'Студент кафедры программной инженерии.'}
-              </p>
+              <ExpandableText text={student?.bio || 'Описание пока не заполнено.'} />
 
               <div style={{ marginBottom: '14px' }}>
                 <span

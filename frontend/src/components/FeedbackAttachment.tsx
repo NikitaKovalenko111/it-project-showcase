@@ -1,3 +1,4 @@
+import { AttachmentPreview } from './AttachmentPreview'
 import { useEffect, useState } from 'react'
 import { axiosInstance } from '../api/http'
 
@@ -28,7 +29,7 @@ export function FeedbackAttachment({ name, path }: { name: string; path: string 
           }
         } else if (match?.[2]) filename = match[2]
         const type = data.type.split(';')[0].toLowerCase()
-        if (rasterTypes.includes(type)) url = URL.createObjectURL(data)
+        url = URL.createObjectURL(data)
         const text = type === 'text/plain' ? await data.slice(0, 8192).text() : undefined
         if (!controller.signal.aborted) setPreview({ name: filename, type, url, text })
       })
@@ -44,12 +45,14 @@ export function FeedbackAttachment({ name, path }: { name: string; path: string 
   if (failed) return <small>{name} · Предпросмотр недоступен</small>
   if (!preview) return <small role="status">{name} · Загружается</small>
   return (
-    <figure className="feedback-attachment">
-      {preview.url && <img src={preview.url} alt={preview.name} />}
-      <figcaption>
-        {preview.name} {preview.type && <small>{preview.type}</small>}
-      </figcaption>
+    <div className="feedback-attachment">
+      {preview.url && (
+        <AttachmentPreview
+          file={{ name: preview.name, url: preview.url }}
+          image={rasterTypes.includes(preview.type)}
+        />
+      )}
       {preview.text !== undefined && <pre>{preview.text}</pre>}
-    </figure>
+    </div>
   )
 }

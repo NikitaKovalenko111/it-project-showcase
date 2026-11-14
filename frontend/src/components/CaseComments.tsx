@@ -223,7 +223,7 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
         <h2>
           Комментарии <span>{comments.length}</span>
         </h2>
-        <label>
+        <label className="comment-sort-control">
           <SlidersHorizontal size={18} />
           <span className="sr-only">Сортировка</span>
           <select className="select" value={sort} onChange={(e) => setSort(e.target.value)}>

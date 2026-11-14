@@ -76,7 +76,6 @@ export const FavoritesPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Заявки и избранное</h1>
-          <p>Статусы ваших откликов, сохраненные кейсы и сроки проектов.</p>
         </div>
       </div>
       <div className="tabs-bar mobile-wrap-tabs">

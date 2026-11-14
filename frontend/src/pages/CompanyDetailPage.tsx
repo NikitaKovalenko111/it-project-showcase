@@ -1,3 +1,4 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
 import { matchesSearch } from '../utils/publication'
 import { formatDate } from '../utils/date'
@@ -248,7 +249,7 @@ export const CompanyDetailPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <p style={{ margin: 0 }}>{description}</p>
+            <ExpandableText text={description} />
           )}
         </div>
       </div>
@@ -275,20 +276,6 @@ export const CompanyDetailPage: React.FC = () => {
           </div>
           <div className="metric-label">Завершённых кейсов</div>
         </div>
-
-        {!live && (
-          <>
-            <div className="metric-card metric-card--amber">
-              <div className="metric-value">16+</div>
-              <div className="metric-label">Студентов на стажировке / в штате</div>
-            </div>
-
-            <div className="metric-card metric-card--coral">
-              <div className="metric-value">3 года</div>
-              <div className="metric-label">Сотрудничества с кафедрой ИИМР</div>
-            </div>
-          </>
-        )}
       </div>
 
       {/* Contact Cards Grid */}
@@ -473,7 +460,7 @@ export const CompanyDetailPage: React.FC = () => {
                   На данный момент у компании нет открытых кейсов.
                 </div>
               ) : (
-                <PaginatedGrid>
+                <PaginatedGrid pageSize={6} paginationKey="companyCases">
                   {filteredCases.map((c) => (
                     <div key={c.id} className="case-card">
                       <div className="case-card__top-accent" />
@@ -489,7 +476,7 @@ export const CompanyDetailPage: React.FC = () => {
                           <Link to={`/cases/${c.id}`}>{c.title}</Link>
                         </h3>
 
-                        <p className="case-card__desc">{c.shortDescription}</p>
+                        <ExpandableText compact text={c.shortDescription} />
 
                         <div className="case-card__meta-grid">
                           <div className="meta-item">

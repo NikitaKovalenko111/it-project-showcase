@@ -89,6 +89,7 @@ export function competitionSeed() {
         : undefined,
   }))
   const users: User[] = buildStudents().slice(3, 15)
+  const specialists = buildStudents().slice(15)
   const executions: Execution[] = cases.flatMap((c) =>
     Array.from({ length: 12 }, (_, i) => {
       const user = i === 0 ? INITIAL_USERS[0] : users[i]
@@ -141,6 +142,17 @@ export function competitionSeed() {
             competencies: [...user.studentProfile!.skills],
             ...(user.avatar ? { avatar: user.avatar } : {}),
           },
+          ...(c.kind === 'olympiad'
+            ? []
+            : Array.from({ length: i % 4 }, (_, memberIndex) => {
+                const specialist = specialists[(i * 3 + memberIndex) % specialists.length]
+                return {
+                  id: specialist.id,
+                  name: specialist.fullName,
+                  role: ['Разработчик интерфейса', 'Инженер данных', 'Тестировщик'][memberIndex],
+                  competencies: [...specialist.studentProfile!.skills],
+                }
+              })),
         ],
         status: i < 4 ? 'evaluated' : i < 9 ? 'submitted' : 'active',
         submission:
@@ -165,9 +177,18 @@ export function competitionSeed() {
                           'Сравнение порогового метода с анализом скользящего среднего.',
                           'Панель датчиков с историей отклонений и пояснением предупреждений.',
                         ][i % 3] +
-                        ' Прототип проверен на учебных данных; ограничения описаны в материалах.',
-                repoUrl: '',
-                screenshots: [],
+                        ' Прототип проверен на учебных данных; ограничения описаны в материалах.' +
+                        (i % 2 === 0
+                          ? '\n\nПодготовка данных: проверены единицы измерения, часовой пояс и порядок событий. Пропуски не заменяем нулями, а показываем как отдельное состояние. Повторные записи отбрасываются по сочетанию идентификатора датчика и времени.\n\nПроверка результата: сравнили штатную работу, кратковременное отключение датчика и скачок показаний. В журнале сохраняются причина сигнала и использованный порог. Известное ограничение: модель проверена на двух типах оборудования и требует повторной настройки при смене частоты измерений.'
+                          : ''),
+                repoUrl: 'https://example.org/#' + c.id + '-team-' + i + '-code',
+                demoUrl:
+                  c.kind !== 'olympiad' && i % 3 !== 2
+                    ? 'https://example.org/#' + c.id + '-team-' + i + '-demo'
+                    : undefined,
+                documentationUrl: '/demo/documents/practice-1.pdf',
+                presentationUrl: i % 2 === 0 ? '/demo/documents/project-1.svg' : undefined,
+                screenshots: c.kind !== 'olympiad' && i % 3 === 0 ? ['/demo/project.svg'] : [],
                 attachedFiles: [
                   textAttachment(
                     'Пояснение к решению.txt',
@@ -182,7 +203,7 @@ export function competitionSeed() {
                       ? 'Проверки алгоритмов:\n1. Последовательность из одного элемента.\n2. Убывающие и одинаковые значения.\n3. Граф без пути между вершинами.\n4. Несколько путей одинаковой длины.\n5. Максимальный размер входных данных.'
                       : '1. Открыть основной экран и проверить начальное состояние.\n2. Ввести корректные данные и проверить результат.\n3. Проверить пустые и повторяющиеся значения.\n4. Сопоставить результат с требованиями задания.',
                   ),
-                ],
+                ].slice(0, i % 3 === 1 ? 1 : 2),
                 submittedAt: '2026-11-02T10:00:00Z',
               }
             : undefined,
@@ -216,6 +237,11 @@ export function competitionSeed() {
       leaderId: e.members[0].id,
       leaderName: e.members[0].name,
       members: e.members,
+      description:
+        'Распределяем работу между участниками: согласование сценариев и проверка гипотез, подготовка данных, разработка прототипа и тестирование. ' +
+        (e.members.length > 2
+          ? 'Проводим взаимное ревью и фиксируем личный вклад каждого участника в итоговом отчёте. Сложные решения разбираем с наставником на еженедельной встрече.'
+          : 'Сейчас сфокусированы на одном воспроизводимом сценарии; дополнительные функции добавим после проверки основного результата.'),
       createdAt: '2026-11-02',
     }))
   const applications: CaseApplication[] = executions.map((e) => {

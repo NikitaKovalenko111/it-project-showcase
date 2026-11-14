@@ -1,3 +1,5 @@
+import { RichMarkdown, markdownSchema, MarkdownImage } from './RichMarkdown'
+import { MarkdownImageUpload } from './MarkdownImageUpload'
 import { apiRuntime } from '../api/runtime'
 import { axiosInstance } from '../api/http'
 import { fromCompany } from '../api/backend'
@@ -60,12 +62,16 @@ export const CompanyProgram: React.FC<{
           }}
         >
           <div data-color-mode="light">
+            <MarkdownImageUpload onInsert={(markdown) => setText((value) => value + markdown)} />
             <MDEditor
               value={text}
               onChange={(value) => setText((value || '').slice(0, 15000))}
               height={350}
               textareaProps={{ 'aria-label': 'Условия, отбор, сроки и контакты', maxLength: 15000 }}
-              previewOptions={{ rehypePlugins: [rehypeSanitize] }}
+              previewOptions={{
+                rehypePlugins: [[rehypeSanitize, markdownSchema]],
+                components: { img: MarkdownImage },
+              }}
             />
           </div>
           <div className="action-row">
@@ -79,9 +85,8 @@ export const CompanyProgram: React.FC<{
         </form>
       ) : (
         <>
-          <MDEditor.Markdown
-            rehypePlugins={[rehypeSanitize]}
-            source={
+          <RichMarkdown
+            text={
               (practice ? company.practiceProgram : company.internshipProgram) ||
               'Компания пока не опубликовала программу.'
             }
@@ -92,14 +97,14 @@ export const CompanyProgram: React.FC<{
                 Редактировать описание
               </button>
             )}
-            {apiRuntime.mode === 'live' && (
+            {
               <Link
                 className="btn btn-secondary"
                 to={`/internships?company=${company.id}&kind=${practice ? 'practice' : 'internship'}&scope=all`}
               >
                 {practice ? 'Открытые практики' : 'Открытые стажировки'}
               </Link>
-            )}
+            }
           </div>
         </>
       )}

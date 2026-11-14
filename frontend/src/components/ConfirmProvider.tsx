@@ -40,7 +40,12 @@ export const ConfirmProvider: React.FC<React.PropsWithChildren> = ({ children })
     <Context.Provider value={confirm}>
       {children}
       {current && (
-        <Modal key={current.id} title="Подтверждение действия" onClose={() => finish(null)}>
+        <Modal
+          className="confirm-dialog"
+          key={current.id}
+          title="Подтверждение действия"
+          onClose={() => finish(null)}
+        >
           <div className="modal-dialog__body">
             <p>{current.message}</p>
             {current.withReason && (

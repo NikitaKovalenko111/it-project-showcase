@@ -1,3 +1,4 @@
+import { scenarioNotes } from './narratives'
 import type { Opportunity, OpportunityApplication } from '../opportunities'
 import { buildCompanies, buildStudents } from './builders'
 
@@ -145,7 +146,7 @@ const briefs = [
   ],
 ] as const
 
-export function buildPrograms(): Opportunity[] {
+export function buildPrograms(detailed = true): Opportunity[] {
   const companies = buildCompanies()
   return briefs.map(
     ([id, kind, companyIndex, title, summary, outcome, workload, requirements], index) => {
@@ -164,7 +165,16 @@ export function buildPrograms(): Opportunity[] {
           workload +
           '. Дистанционно, с еженедельным разбором работы с наставником.\n\n## Подготовка\n\n' +
           requirements +
-          '.\n\n## Отбор\n\nКраткий рассказ об опыте и разговор с наставником. Можно приложить учебный проект.\n\n## Итог\n\nДемонстрация решения, рецензия наставника и подтверждение прохождения программы. Условия оплаты обсуждаются до начала участия.',
+          '.\n\n## Отбор\n\nКраткий рассказ об опыте и разговор с наставником. Можно приложить учебный проект.\n\n## Итог\n\nДемонстрация решения, рецензия наставника и подтверждение прохождения программы. Условия оплаты обсуждаются до начала участия.' +
+          (detailed
+            ? '\n\n## Поэтапная работа\n\nНа первой встрече участник и наставник уточняют задачу: ' +
+              outcome +
+              ' Затем участник готовит короткий план, демонстрирует промежуточную версию и получает обратную связь. На последней неделе проводится защита с разбором проверок и личного вклада.\n\n## Рабочие ситуации\n\n' +
+              scenarioNotes(company.directions[0]) +
+              '\n\n## Поддержка и критерии готовности\n\nДля старта достаточно знаний: ' +
+              requirements +
+              '. Важны регулярная связь, понятная инструкция запуска и честное описание ограничений. Если часть задания не получается завершить, участник заранее обсуждает это с наставником и согласует сокращённый объём результата.'
+            : ''),
         capacity: [4, 6, 3, 5][index % 4],
         application_deadline: '2027-01-25',
         status: [2, 5, 10].includes(index) ? 'moderation' : 'published',

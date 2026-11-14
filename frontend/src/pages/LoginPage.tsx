@@ -39,7 +39,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [registerNotice, setRegisterNotice] = useState('')
   const [registerError, setRegisterError] = useState('')
   const [registering, setRegistering] = useState(false)
-  const [username, setUsername] = useState(apiRuntime.mode === 'mock' ? 'student' : '')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
   // Registration fields - Student
@@ -481,16 +481,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
 
                   <div className="form-group">
-                    <label>
-                      Направление подготовки *
-                      <input
-                        className="input"
-                        placeholder="Например, программная инженерия"
-                        required
-                        value={direction}
-                        onChange={(e) => setDirection(e.target.value)}
-                      />
-                    </label>
+                    <label htmlFor="registration-direction">Направление подготовки *</label>
+                    <input
+                      id="registration-direction"
+                      className="input"
+                      placeholder="Например, программная инженерия"
+                      required
+                      value={direction}
+                      onChange={(e) => setDirection(e.target.value)}
+                    />
                   </div>
                   <div className="form-group">
                     <label>Курс:*</label>

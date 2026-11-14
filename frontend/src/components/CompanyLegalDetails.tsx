@@ -1,3 +1,4 @@
+import { FileDownload } from './FileDownload'
 import { useState } from 'react'
 import { axiosInstance } from '../api/http'
 import { fromCompany } from '../api/backend'
@@ -146,6 +147,13 @@ export function CompanyLegalDetails({
         </dl>
       ) : (
         <p>Компания пока не указала реквизиты.</p>
+      )}
+      {!!company.documents?.length && (
+        <div className="company-documents" aria-label="Документы компании">
+          {company.documents.map((file) => (
+            <FileDownload key={file.url} file={file} />
+          ))}
+        </div>
       )}
     </section>
   )

@@ -1,3 +1,5 @@
+import { companyDetails, studentDetails } from './profileDetails'
+import { scenarioNotes, learningGoals } from './narratives'
 import type {
   User,
   Company,
@@ -24,7 +26,7 @@ export const companyId = (index: number) =>
 export const caseId = (index: number) =>
   index < 5 ? 'case_' + (index + 1) : 'showcase_case_' + (index - 5)
 
-export function buildStudents(): User[] {
+export function buildStudents(detailed = true): User[] {
   return studentNames.map((fullName, index) => {
     const profile = specializations[index % specializations.length]
     return {
@@ -46,7 +48,13 @@ export function buildStudents(): User[] {
           profile.bio +
           ' Работаю над темой: ' +
           portfolioBriefs[index % portfolioBriefs.length].title +
-          '.',
+          '.' +
+          (detailed
+            ? '\n\n' +
+              learningGoals[index % learningGoals.length] +
+              '\n\n' +
+              scenarioNotes(profile.direction)
+            : ''),
         interests: [profile.direction, companyBriefs[index % companyBriefs.length].industry],
         skills: [...profile.skills],
         techStack: [...profile.skills],
@@ -56,20 +64,40 @@ export function buildStudents(): User[] {
         verifiedProjectsCount: 0,
         winsCount: 0,
         curatorId: index % 3 === 0 ? 'showcase_curator' : 'usr_curator_1',
+        ...(detailed ? studentDetails(index) : {}),
       },
     }
   })
 }
 
-export function buildCompanies(): Company[] {
+export function buildCompanies(detailed = true): Company[] {
   return companyBriefs.map((item, index) => ({
     id: companyId(index),
     name: 'ООО «' + item.name + '»',
     shortName: item.name,
     logo: '/demo/company.svg',
-    description: item.description,
+    description:
+      item.description +
+      (index % 4 === 0
+        ? '\n\nКоманда объединяет разработчиков интерфейсов, инженеров данных и специалистов предметной области. Студенты работают с обезличенными учебными выгрузками и отдельным стендом: сначала обсуждают сценарии с наставником, затем проверяют гипотезы на прототипе и документируют ограничения. Раз в неделю проводится обзор результатов с демонстрацией и разбором вопросов. Итог оценивается по воспроизводимости, качеству проверки данных и понятности решения для пользователя.'
+        : '') +
+      (detailed
+        ? '\n\nРаботаем с направлением «' +
+          item.directions[0] +
+          '». ' +
+          scenarioNotes(item.directions[0]) +
+          '\n\nСтуденту доступны постановка задачи, консультации наставника и учебный стенд. До начала работы согласуем ожидаемый результат, формат связи и личный вклад в командную разработку.'
+        : ''),
+    internshipProgram:
+      '## Работа с наставником\n\n' +
+      item.description +
+      '\n\n### Как проходит стажировка\n\nВосемь недель по 12–16 часов: знакомство с учебным стендом, выбор одного сценария, разработка прототипа, проверки и итоговая демонстрация. Наставник проводит еженедельный обзор, помогает согласовать требования и даёт обратную связь по коду.\n\n### Отбор\n\nРасскажите о своём опыте и приложите учебный проект или описание решённой задачи. Коммерческий опыт не требуется. Конкретные места и сроки указаны в открытых программах ниже.',
+    practiceProgram:
+      '## Производственная практика\n\n' +
+      item.description +
+      '\n\n### Задание и результат\n\nВместе с куратором согласуем индивидуальное задание, календарный план и критерии готовности. Результат включает прототип, описание проведённых проверок и отчёт о практике. Можно участвовать индивидуально или небольшой командой; роли и личный вклад фиксируются в отчёте.\n\n### Организация\n\nРабота на обезличенных данных, еженедельные встречи и итоговая защита. Для оформления документов свяжитесь с контактным лицом компании.',
     industry: item.industry,
-    website: '',
+    website: 'https://example.org/#company-' + (index + 1),
     email: 'projects@company-' + (index + 1) + '.example',
     phone: '',
     contactPerson: ['Роман Семёнов', 'Ирина Котова', 'Денис Хакимов', 'Светлана Юдина'][index % 4],
@@ -79,10 +107,11 @@ export function buildCompanies(): Company[] {
     completedProjectsCount: 0,
     isVerified: index < 11,
     isModerated: true,
+    ...(detailed ? companyDetails(index) : {}),
   }))
 }
 
-export function buildCases(): CaseProject[] {
+export function buildCases(detailed = true): CaseProject[] {
   const companies = buildCompanies()
   return caseBriefs.map((item, index) => {
     const company = companies[item.company]
@@ -101,7 +130,14 @@ export function buildCases(): CaseProject[] {
         item.problem +
         '\n\n## Что нужно сделать\n\n' +
         item.result +
-        '\n\n## Условия\n\nКомпания предоставляет учебные данные и еженедельную консультацию наставника. Решение должно запускаться по инструкции на компьютере проверяющего.',
+        '\n\n## Условия\n\nКомпания предоставляет учебные данные и еженедельную консультацию наставника. Решение должно запускаться по инструкции на компьютере проверяющего.' +
+        (detailed
+          ? '\n\n## Сценарии проверки\n\n' +
+            scenarioNotes(item.direction) +
+            '\n\n## Приёмка и ограничения\n\nНа защите покажите результат: ' +
+            item.result +
+            ' Отдельно опишите, что уже проверено, какие предположения пришлось сделать и какие функции пока не входят в прототип. Проверяющий должен повторить основной сценарий по приложенной инструкции без помощи автора.'
+          : ''),
       direction: item.direction,
       complexity: index % 4 === 0 ? 'Высокий' : index % 3 === 0 ? 'Начальный' : 'Средний',
       participationFormat: index % 4 === 2 ? 'individual' : 'both',
@@ -146,7 +182,7 @@ export function buildCases(): CaseProject[] {
   })
 }
 
-export function buildPortfolio(): StudentProject[] {
+export function buildPortfolio(detailed = true): StudentProject[] {
   const students = buildStudents()
   return portfolioBriefs.map((item, index) => {
     const owner = students[index < 3 ? [2, 0, 1][index] : index]
@@ -164,15 +200,36 @@ export function buildPortfolio(): StudentProject[] {
         item.problem +
         '\n\n## Реализация\n\n' +
         item.result +
-        '\n\n## Дальнейшее развитие\n\nПланируется проверить решение на расширенном наборе сценариев и собрать обратную связь пользователей.',
+        '\n\n## Дальнейшее развитие\n\nПланируется проверить решение на расширенном наборе сценариев и собрать обратную связь пользователей.' +
+        (detailed
+          ? '\n\n## Как проверяем результат\n\n' +
+            scenarioNotes(item.direction) +
+            '\n\n## Текущее состояние\n\n' +
+            [
+              'Готов основной сценарий; дополнительные фильтры и восстановление состояния пока в разработке. На встрече с наставником нужно согласовать критерии завершения.',
+              'Основная версия завершена. Проверены пустые данные, повторные действия и мобильный экран. Следующий этап — собрать наблюдения пользователей и выбрать улучшения по результатам проверки.',
+              'Готов интерактивный прототип. До разработки полной версии сравниваем варианты взаимодействия и уточняем ограничения учебного стенда.',
+            ][index % 3] +
+            '\n\n## Личный вклад\n\nАвтор подготовил постановку задачи, прототип, проверочные сценарии и инструкцию демонстрации. Использованные технологии: ' +
+            item.tech.join(', ') +
+            '.'
+          : ''),
       problemSolved: item.problem,
       technologies: [...item.tech],
       direction: item.direction,
       createdAt: '2026-10-' + String(2 + index).padStart(2, '0'),
       status: index % 3 === 1 ? 'готовый продукт' : 'в разработке',
-      githubUrl: '',
-      productUrl: '',
-      screenshots: index === 1 ? ['/demo/pytest-preview.svg'] : [],
+      githubUrl: detailed ? 'https://example.org/#project-' + (index + 1) + '-code' : '',
+      productUrl:
+        detailed && index % 3 === 1 ? 'https://example.org/#project-' + (index + 1) + '-demo' : '',
+      screenshots: detailed
+        ? [
+            '/demo/documents/project-' + (index + 1) + '.svg',
+            ...(index % 3 === 1 ? ['/demo/pytest-preview.svg'] : []),
+          ]
+        : index === 1
+          ? ['/demo/pytest-preview.svg']
+          : [],
       badges: index % 2 === 0 ? ['seeking_mentor'] : ['open_for_internship'],
       isModerated: moderationStatus === 'approved',
       moderationStatus,

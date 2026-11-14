@@ -1,3 +1,5 @@
+import { MarkdownImageUpload } from '../MarkdownImageUpload'
+import { markdownSchema, MarkdownImage } from '../RichMarkdown'
 import { useState, useEffect, type ReactNode } from 'react'
 import { Modal } from '../Modal'
 import { X } from 'lucide-react'
@@ -170,6 +172,14 @@ export function OpportunityPublicationModal({
             </div>
             <div data-color-mode="light">
               <p id="opportunity-program-label">Программа и условия участия</p>
+              <MarkdownImageUpload
+                onInsert={(markdown) =>
+                  setEditor((value) => ({
+                    ...value,
+                    content_markdown: (value.content_markdown || '') + markdown,
+                  }))
+                }
+              />
               <MDEditor
                 preview={compact ? 'edit' : 'live'}
                 overflow={false}
@@ -182,7 +192,10 @@ export function OpportunityPublicationModal({
                   'aria-labelledby': 'opportunity-program-label',
                   maxLength: 15000,
                 }}
-                previewOptions={{ rehypePlugins: [rehypeSanitize] }}
+                previewOptions={{
+                  rehypePlugins: [[rehypeSanitize, markdownSchema]],
+                  components: { img: MarkdownImage },
+                }}
               />
             </div>
             {error && (

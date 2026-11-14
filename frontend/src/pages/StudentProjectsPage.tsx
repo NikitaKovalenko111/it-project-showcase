@@ -1,3 +1,4 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
 import { getProjectCatalog, type ProjectCatalog } from '../api/studentProjectCatalog'
 import { PaginatedGrid } from '../components/PaginatedGrid'
@@ -121,10 +122,6 @@ export const StudentProjectsPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Витрина студенческих проектов</h1>
-          <p>
-            Открытый каталог авторских разработок студентов: pet-проекты, курсовые работы, стартапы
-            и победители хакатонов.
-          </p>
         </div>
         <div className="page-header__actions">
           {currentUser?.role === 'student' && (
@@ -367,7 +364,7 @@ export const StudentProjectsPage: React.FC = () => {
                       <Link to={`/student-projects/${item.id}`}>{item.title}</Link>
                     </h3>
 
-                    <p className="student-project-card__desc">{item.shortDescription}</p>
+                    <ExpandableText compact text={item.shortDescription} />
 
                     {item.visibility !== 'private' && !isPublished(item) && (
                       <p className={`badge publication-${publicationStatus(item)}`}>

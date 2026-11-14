@@ -65,13 +65,12 @@ export function PaginationControls({
   change: (page: number, size?: number) => void
   label?: string
 }) {
-  if (pages <= 1 && size === pageSize) return null
   const numbers = Array.from(new Set([1, current - 1, current, current + 1, pages]))
     .filter((n) => n > 0 && n <= pages)
     .sort((a, b) => a - b)
   return (
     <nav className="pagination" aria-label={label}>
-      {pages > 1 && (
+      {pages >= 1 && (
         <div className="pagination__pages">
           <button
             type="button"

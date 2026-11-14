@@ -56,7 +56,7 @@ export const DemoBar: React.FC = () => {
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_curator_1' ? 'active' : ''}`}
           onClick={() => handleSelectRole('usr_curator_1')}
-          title="Сотрудник / Куратор кафедры (Елена Ахметова)"
+          title="Сотрудник / Куратор (Елена Ахметова)"
         >
           <Landmark size={14} aria-hidden="true" /> Куратор
         </button>

@@ -17,13 +17,7 @@ export const ReportButton: React.FC<{
     [error, setError] = useState(''),
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false)
-  const reportLabel = {
-    company: 'Пожаловаться на компанию',
-    case: 'Пожаловаться на кейс',
-    user: 'Пожаловаться на пользователя',
-    project: 'Пожаловаться на проект',
-    comment: 'Пожаловаться на комментарий',
-  }[targetType]
+  const reportLabel = 'Пожаловаться'
   if (!user) return null
   return (
     <>

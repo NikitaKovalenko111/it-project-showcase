@@ -1,3 +1,6 @@
+import { OpportunityReviewActions } from './OpportunityReviewActions'
+import { ExpandableText } from './ExpandableText'
+import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Building2, Calendar, Users } from 'lucide-react'
 import { useAppSelector } from '../store'
@@ -6,10 +9,8 @@ import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { matchesSearch } from '../utils/publication'
 import type { Opportunity } from './modals/OpportunityPublicationModal'
-import { OpportunityDescription } from './OpportunityDescription'
 import { PaginatedGrid } from './PaginatedGrid'
 import { CatalogSearch } from './CatalogSearch'
-import { Modal } from './Modal'
 
 const labels: Record<string, string> = {
   moderation: 'На модерации',
@@ -22,13 +23,9 @@ const labels: Record<string, string> = {
 export function InternshipModeration() {
   const admin = useAppSelector((state) => state.auth.currentUser?.role === 'admin')
   const [items, setItems] = useState<Opportunity[]>([])
-  const [selected, setSelected] = useState<Opportunity>()
-  const [comment, setComment] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('moderation')
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const visible = items.filter(
     (item) =>
@@ -62,43 +59,11 @@ export function InternshipModeration() {
     }
   }, [admin])
 
-  const close = () => {
-    setSelected(undefined)
-    setError('')
-  }
-  const review = async (decision: 'published' | 'revision' | 'hidden') => {
-    if (!selected || busy || (decision !== 'published' && !comment.trim())) return
-    setBusy(true)
-    setError('')
-    setMessage('')
-    try {
-      const data = await opportunityApi.setStatus(selected.program_id, decision, comment.trim())
-      setItems((rows) =>
-        admin
-          ? rows.map((row) => (row.program_id === data.program_id ? data : row))
-          : rows.filter((row) => row.program_id !== data.program_id),
-      )
-      close()
-      setMessage(
-        {
-          published: 'Публикация одобрена.',
-          revision: 'Публикация возвращена на доработку.',
-          hidden: 'Публикация заблокирована и скрыта с витрины.',
-        }[decision],
-      )
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <section className="opportunity-review">
       <header className="home-section__header">
         <div>
           <h2>Модерация стажировок и практик</h2>
-          <p>Рассматривайте описания и условия участия.</p>
         </div>
       </header>
       <div className="opportunity-filters">
@@ -129,12 +94,7 @@ export function InternshipModeration() {
           </label>
         )}
       </div>
-      {message && (
-        <p className="inline-notice" role="status">
-          {message}
-        </p>
-      )}
-      {!selected && error && (
+      {error && (
         <p className="form-error" role="alert">
           {error}
         </p>
@@ -144,7 +104,12 @@ export function InternshipModeration() {
       ) : !visible.length ? (
         <p className="card empty-state">По выбранным условиям публикаций нет.</p>
       ) : (
-        <PaginatedGrid key={JSON.stringify([status, search])} paginationKey="opportunityReview">
+        <PaginatedGrid
+          pageSize={6}
+          className="review-list"
+          key={JSON.stringify([status, search])}
+          paginationKey="opportunityReview"
+        >
           {visible.map((item) => (
             <article key={item.program_id} className="case-card opportunity-card">
               <div className="case-card__top-accent" />
@@ -159,7 +124,7 @@ export function InternshipModeration() {
                 <div className="case-card__company">
                   <Building2 size={16} /> {item.company_name}
                 </div>
-                <p className="case-card__desc">{item.summary}</p>
+                <ExpandableText compact text={item.summary} />
                 <div className="case-card__meta-grid opportunity-meta">
                   {item.capacity != null && (
                     <span>
@@ -173,101 +138,25 @@ export function InternshipModeration() {
                   )}
                 </div>
               </div>
+              <OpportunityReviewActions
+                program={item}
+                onChanged={(updated) =>
+                  setItems((rows) =>
+                    rows.map((row) => (row.program_id === updated.program_id ? updated : row)),
+                  )
+                }
+              />
               <div className="case-card__footer-bar">
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    setSelected(item)
-                    setComment('')
-                    setError('')
-                  }}
+                <Link
+                  className="btn btn-secondary btn-sm"
+                  to={`/internships?scope=all&program=${item.program_id}&review=1`}
                 >
-                  {item.status === 'moderation' ? 'Рассмотреть' : 'Открыть публикацию'}
-                </button>
+                  Прочитать описание и условия
+                </Link>
               </div>
             </article>
           ))}
         </PaginatedGrid>
-      )}
-      {selected && (
-        <Modal title={selected.title} className="modal-dialog--lg" onClose={close} busy={busy}>
-          <div className="modal-dialog__body opportunity-review-detail">
-            <div className="action-row">
-              <span className="badge badge-direction">
-                {selected.kind === 'practice' ? 'Практика' : 'Стажировка'}
-              </span>
-              <span className="badge badge-status">{labels[selected.status]}</span>
-            </div>
-            <p>
-              <strong>{selected.company_name}</strong>
-            </p>
-            <OpportunityDescription
-              summary={selected.summary}
-              markdown={selected.content_markdown}
-            />
-            {selected.moderation_comment && (
-              <p className="inline-notice">Комментарий: {selected.moderation_comment}</p>
-            )}
-            {(selected.status === 'moderation' ||
-              (admin &&
-                (selected.status === 'published' ||
-                  (apiRuntime.mode !== 'live' && selected.status === 'closed')))) && (
-              <label>
-                {selected.status === 'moderation' ? 'Комментарий модератора' : 'Причина блокировки'}
-                <textarea
-                  className="textarea"
-                  disabled={busy}
-                  maxLength={4000}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                />
-              </label>
-            )}
-            {error && (
-              <p className="form-error" role="alert">
-                {error}
-              </p>
-            )}
-          </div>
-          <div className="modal-dialog__footer">
-            <button type="button" className="btn btn-secondary" disabled={busy} onClick={close}>
-              Закрыть
-            </button>
-            {selected.status === 'moderation' && (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  disabled={busy || !comment.trim()}
-                  onClick={() => void review('revision')}
-                >
-                  На доработку
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={busy}
-                  onClick={() => void review('published')}
-                >
-                  Опубликовать
-                </button>
-              </>
-            )}
-            {admin &&
-              (selected.status === 'published' ||
-                (apiRuntime.mode !== 'live' && selected.status === 'closed')) && (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  disabled={busy || !comment.trim()}
-                  onClick={() => void review('hidden')}
-                >
-                  Заблокировать
-                </button>
-              )}
-          </div>
-        </Modal>
       )}
     </section>
   )

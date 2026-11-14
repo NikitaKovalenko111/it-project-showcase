@@ -1,9 +1,9 @@
+import { CaseComments } from './CaseComments'
 import { ReportTableView } from './ReportTableView'
 import { useConfirm } from './ConfirmProvider'
 import { DeadlineHistory } from './DeadlineHistory'
 import { OlympiadStandings } from './OlympiadStandings'
 import { EventPlanPanel } from './EventPlanPanel'
-import { WorkspaceFiles } from './WorkspaceFiles'
 import React, { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Clock, FileCheck2, FileText, Users } from 'lucide-react'
@@ -15,7 +15,6 @@ import { fetchCasesRequest, fetchCaseByIdRequest } from '../store/actions'
 import { canManageCase } from '../utils/access'
 import { SharedProjectPlan } from './SharedProjectPlan'
 import { ExecutionDetail } from './ExecutionDetail'
-import { CaseComments } from './CaseComments'
 import { CaseApplications } from './CaseApplications'
 import { PaginatedGrid } from './PaginatedGrid'
 import { apiClient } from '../api/client'
@@ -34,8 +33,8 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
     olympiad = project.kind === 'olympiad'
   const live = apiRuntime.mode === 'live'
   const liveOlympiad = live && olympiad
-  const hasEventPlan = live && (project.kind === 'hackathon' || olympiad)
-  const curator = live && user?.role === 'curator'
+  const hasEventPlan = project.kind === 'hackathon' || olympiad
+  const curator = user?.role === 'curator'
   const canSubmit =
     live && user?.role === 'company' && manager && ['draft', 'revision'].includes(project.status)
   const [params] = useSearchParams()
@@ -61,6 +60,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
         ? { complete: false, items: [] }
         : communityApi.getLeaderboard(project.id),
     ])
+    if (params.get('application')) setView('teams')
     if (params.get('application'))
       setSelected(
         e.find(
@@ -119,7 +119,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
     refresh()
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [project.id, user?.id])
+  }, [project.id, user?.id, params.get('application'), params.get('execution')])
   const own = student ? entries[0] : undefined,
     entry = student ? own : entries.find((e) => e.id === selected)
   const visible = entries.filter(
@@ -140,7 +140,8 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
         ['teams', 'Контрольные точки'],
         ['submission', 'Результат и оценка'],
         ['members', own?.teamId ? 'Моя команда' : 'Участник'],
-        ['plan', olympiad && !live ? 'Расписание туров' : 'План задания'],
+        ['teamDiscussion', 'Обсуждение команды'],
+        ['discussion', 'Обсуждение и файлы'],
         ['results', 'Итоги'],
       ]
     : [
@@ -235,13 +236,6 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                 </span>
               </>
             )}
-            {!manager && (
-              <span className="observer-label">
-                {curator
-                  ? 'Мониторинг куратора · этапы и комментарии'
-                  : 'Мониторинг куратора · просмотр этапов и результатов'}
-              </span>
-            )}
           </div>
         )}
       </header>
@@ -256,12 +250,15 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {label}
             </button>
           ))}
-          <button
-            className={`uust-tab ${view === 'discussion' ? 'active' : ''}`}
-            onClick={() => setView('discussion')}
-          >
-            Обсуждение и файлы
-          </button>
+          {!student && (
+            <button
+              className={`uust-tab ${view === 'discussion' ? 'active' : ''}`}
+              onClick={() => setView('discussion')}
+            >
+              Обсуждение и файлы
+            </button>
+          )}
+
           {hasEventPlan && (
             <button
               className={`uust-tab ${view === 'event' ? 'active' : ''}`}
@@ -301,16 +298,10 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                 <CaseApplications
                   key={project.id}
                   caseId={project.id}
-                  registrations={hasEventPlan}
+                  registrations={live && hasEventPlan}
                 />
               )}
-              {view === 'discussion' && (
-                <section>
-                  <h2>Обсуждение и файлы</h2>
-                  <WorkspaceFiles entries={entries} />
-                  <CaseComments caseId={project.id} />
-                </section>
-              )}
+              {view === 'discussion' && <CaseComments caseId={project.id} />}
               {view === 'deadlines' && live && manager && (
                 <DeadlineHistory
                   project={project}
@@ -321,7 +312,10 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                 />
               )}
               {view === 'event' && hasEventPlan && (
-                <EventPlanPanel project={project} editable={canSubmit && !entries.length} />
+                <EventPlanPanel
+                  project={project}
+                  editable={live ? canSubmit && !entries.length : manager}
+                />
               )}
               {view === 'plan' && (
                 <SharedProjectPlan
@@ -338,7 +332,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                   onSaved={refresh}
                 />
               )}
-              {((student && ['teams', 'submission', 'members'].includes(view)) ||
+              {((student && ['teams', 'submission', 'members', 'teamDiscussion'].includes(view)) ||
                 (!student && view === 'teams' && entry)) &&
                 entry && (
                   <ExecutionDetail
@@ -348,23 +342,33 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                     manager={manager}
                     finished={finished}
                     onChange={refresh}
-                    section={student ? (view === 'teams' ? 'stages' : view) : undefined}
+                    section={
+                      student
+                        ? view === 'teams'
+                          ? 'stages'
+                          : view === 'teamDiscussion'
+                            ? 'discussion'
+                            : view
+                        : undefined
+                    }
                     onBack={student ? undefined : () => setSelected('')}
                   />
                 )}
-              {student && !own && ['teams', 'submission', 'members'].includes(view) && (
-                <div className="empty-state">
-                  <h2>Выполнение пока недоступно</h2>
-                  <p>
-                    {live
-                      ? 'Дождитесь одобрения заявки организатором.'
-                      : 'Для кейса дождитесь одобрения заявки. Запись на олимпиаду и хакатон подтверждается автоматически.'}
-                  </p>
-                  <Link className="btn btn-secondary btn-sm" to={`/cases/${project.id}`}>
-                    Открыть задание
-                  </Link>
-                </div>
-              )}
+              {student &&
+                !own &&
+                ['teams', 'submission', 'members', 'teamDiscussion'].includes(view) && (
+                  <div className="empty-state">
+                    <h2>Выполнение пока недоступно</h2>
+                    <p>
+                      {live
+                        ? 'Дождитесь одобрения заявки организатором.'
+                        : 'Для кейса дождитесь одобрения заявки. Запись на олимпиаду и хакатон подтверждается автоматически.'}
+                    </p>
+                    <Link className="btn btn-secondary btn-sm" to={`/cases/${project.id}`}>
+                      Открыть задание
+                    </Link>
+                  </div>
+                )}
               {!student && view === 'teams' && !entry && (
                 <>
                   <div className="execution-filter">
@@ -397,7 +401,10 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                   </div>
                   <PaginatedGrid className="execution-rows">
                     {visible.map((e) => (
-                      <article className="card execution-card" key={e.id}>
+                      <article
+                        className={`card execution-card ${curator ? 'execution-card--observer' : ''}`}
+                        key={e.id}
+                      >
                         {!curator && (
                           <span className="badge badge-direction">
                             {e.status === 'evaluated'
@@ -460,15 +467,6 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             ? 'Итоговая таблица'
                             : 'Итоги ещё не опубликованы'}
                       </h2>
-                      <p>
-                        {liveOlympiad
-                          ? 'Здесь доступны баллы за отдельные туры.'
-                          : ranking.complete
-                            ? 'Места доступны участникам.'
-                            : manager
-                              ? 'Опубликуйте места после оценки работ всех участников.'
-                              : 'Организатор опубликует места после проверки работ.'}
-                      </p>
                     </div>
                     {manager && !liveOlympiad && (!live || !ranking.complete) && (
                       <button

@@ -1,3 +1,4 @@
+import { ExpandableText } from './ExpandableText'
 import { matchesSearch } from '../utils/publication'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -129,7 +130,7 @@ export const TeamsPanel: React.FC<{
     return (
       <section className="card teams-panel">
         <h2>Команды проекта</h2>
-        <PaginatedGrid className="teams-grid">
+        <PaginatedGrid pageSize={6} className="teams-grid">
           {shown.map((t) => (
             <article className="team-card" key={t.id}>
               <h3>{t.name}</h3>
@@ -286,7 +287,7 @@ export const TeamsPanel: React.FC<{
           )}
           {(searchMode || view === 'teams') && (
             <>
-              <PaginatedGrid className="teams-grid">
+              <PaginatedGrid pageSize={6} className="teams-grid">
                 {shown.map((t) => {
                   const member = t.leaderId === user.id || t.members.some((m) => m.id === user.id),
                     isPending = pending(t, user.id)
@@ -296,7 +297,7 @@ export const TeamsPanel: React.FC<{
                         <h3>{t.name}</h3>
                         <span className="badge badge-direction">{t.members.length} участн.</span>
                       </header>
-                      {t.description && <p>{t.description}</p>}
+                      {t.description && <ExpandableText compact text={t.description} />}
                       {t.recruitingCaseId && (
                         <p className="team-project">
                           Набор: {cases.find((c) => c.id === t.recruitingCaseId)?.title || 'Проект'}

@@ -1,3 +1,4 @@
+import { apiClient } from '../api/client'
 import { complexityBadge } from '../utils/publication'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
@@ -173,16 +174,38 @@ export const CaseDetailPage: React.FC = () => {
 
         <div className="page-actions">
           <AdminCaseActions project={activeCase} />
-          <ReportButton targetType="case" targetId={activeCase.id} />
+          {isCompanyRepresentative && activeCase.status === 'moderation' && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={async () => {
+                try {
+                  await apiClient.withdrawCaseModeration(activeCase.id)
+                  dispatch(fetchCaseByIdRequest(activeCase.id))
+                  setApplicationNotice('Публикация отозвана для редактирования.')
+                } catch (cause) {
+                  setApplicationNotice((cause as Error).message)
+                }
+              }}
+            >
+              Отозвать с модерации
+            </button>
+          )}
+          {canManageCase(currentUser, activeCase) && (
+            <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
+              Редактировать кейс
+            </button>
+          )}
+          {!isCompanyRepresentative && <ReportButton targetType="case" targetId={activeCase.id} />}
           {currentUser?.role === 'student' && (
             <button
               className={`btn btn-secondary btn-sm ${isFavorite ? 'favorited' : ''}`}
+              style={{ height: 36, width: 36, padding: 0, flex: '0 0 36px' }}
               aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'}
               aria-pressed={isFavorite}
               onClick={() => dispatch(toggleFavoriteRequest(activeCase.id))}
             >
               <Bookmark
-                size={22}
+                size={18}
                 fill={isFavorite ? '#d94326' : 'none'}
                 color={isFavorite ? '#d94326' : '#64748b'}
               />
@@ -934,13 +957,6 @@ export const CaseDetailPage: React.FC = () => {
             Подать заявку своей команды
           </button>
         )}
-      <div className="action-row">
-        {canManageCase(currentUser, activeCase) && (
-          <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
-            Редактировать кейс
-          </button>
-        )}
-      </div>
 
       <PublicationContext project={activeCase} />
       {apiRuntime.mode === 'live' && instantRegistration && isPublished(activeCase) && (

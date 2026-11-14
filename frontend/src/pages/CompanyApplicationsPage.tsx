@@ -76,7 +76,6 @@ export const CompanyApplicationsPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Входящие заявки и регистрации</h1>
-          <p>Отбирайте исполнителей для кейсов и просматривайте регистрации на мероприятия.</p>
         </div>
       </div>
 
@@ -139,7 +138,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                 placeholder="Студент или название кейса"
               />
             </div>
-            <label className="catalog-sort">
+            <label className="catalog-sort application-kind-sort">
               Тип задания
               <select
                 className="uust-select"

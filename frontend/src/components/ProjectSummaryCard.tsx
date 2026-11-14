@@ -1,3 +1,4 @@
+import { ExpandableText } from './ExpandableText'
 import { complexityBadge } from '../utils/publication'
 import { formatDate } from '../utils/date'
 import React from 'react'
@@ -14,12 +15,14 @@ import {
 export const ProjectSummaryCard: React.FC<{
   project: CaseProject
   workspace?: boolean
+  catalog?: boolean
   onRemove?: () => void
   applicationStatus?: string
   teamName?: string
   extraAction?: React.ReactNode
-}> = ({ project, workspace, onRemove, applicationStatus, teamName, extraAction }) => (
+}> = ({ project, workspace, catalog, onRemove, applicationStatus, teamName, extraAction }) => (
   <article className="card card-hover case-card project-summary-card">
+    {catalog && <div className="case-card__top-accent" />}
     {onRemove && (
       <button
         className="case-card__fav-btn favorited"
@@ -33,12 +36,15 @@ export const ProjectSummaryCard: React.FC<{
     <div className="card__body">
       <div className="case-card__company">
         {project.companyLogo && <img src={project.companyLogo} alt="" />}
-        <span className="company-title">{project.companyName}</span>
+        <div>
+          <span className="company-title">{project.companyName}</span>
+          {catalog && <div className="company-sub">Индустриальный партнёр</div>}
+        </div>
       </div>
       <Link to={`/cases/${project.id}`}>
         <h2 className="case-card__title">{project.title}</h2>
       </Link>
-      <p className="case-card__desc">{project.shortDescription}</p>
+      <ExpandableText compact text={project.shortDescription} />
       <div className="case-card__tags">
         <span className="badge badge-direction">
           {
@@ -82,6 +88,15 @@ export const ProjectSummaryCard: React.FC<{
           </span>
         </div>
       </div>
+      {catalog && !!project.recommendedTech.length && (
+        <div className="case-card__technologies">
+          {project.recommendedTech.slice(0, 4).map((tech) => (
+            <span className="tech-tag" key={tech}>
+              {tech}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
     <div className="card__footer">
       {extraAction}

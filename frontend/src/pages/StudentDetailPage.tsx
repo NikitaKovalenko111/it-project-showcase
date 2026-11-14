@@ -1,3 +1,6 @@
+import { apiClient } from '../api/client'
+import { useConfirm } from '../components/ConfirmProvider'
+import { RichMarkdown } from '../components/RichMarkdown'
 import { apiRuntime } from '../api/runtime'
 import { FileDownload } from '../components/FileDownload'
 import { LiveStudentProjectEditor } from '../components/modals/LiveStudentProjectEditor'
@@ -45,6 +48,9 @@ function ProjectScreenshot({ url, label }: { url: string; label: string }) {
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
+  const confirm = useConfirm()
+  const [actionError, setActionError] = useState('')
+  const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
   const currentUser = useAppSelector((state) => state.auth.currentUser)
   const { studentsList: authors } = useAppSelector((state) => state.students)
@@ -128,9 +134,44 @@ export const StudentDetailPage: React.FC = () => {
             Редактировать проект
           </button>
         )}
+        {currentUser?.role === 'admin' && (
+          <button
+            className={`btn btn-sm ${publicationStatus(activeProject) === 'hidden' ? 'btn-secondary' : 'btn-danger'}`}
+            disabled={busy}
+            onClick={async () => {
+              const hidden = publicationStatus(activeProject) === 'hidden'
+              if (
+                !(await confirm(
+                  `${hidden ? 'Восстановить' : 'Заблокировать'} проект «${activeProject.title}»?`,
+                ))
+              )
+                return
+              setBusy(true)
+              setActionError('')
+              try {
+                await apiClient.moderatePublication(
+                  'student',
+                  activeProject.id,
+                  hidden ? 'approved' : 'hidden',
+                  'Решение администратора из карточки проекта',
+                )
+                dispatch(fetchStudentProjectByIdRequest(activeProject.id))
+              } catch (cause) {
+                setActionError((cause as Error).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {publicationStatus(activeProject) === 'hidden'
+              ? 'Восстановить проект'
+              : 'Заблокировать проект'}
+          </button>
+        )}
         <ReportButton targetType="project" targetId={activeProject.id} />
       </div>
 
+      {actionError && <p role="alert">{actionError}</p>}
       <div
         className="responsive-detail-grid"
         style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}
@@ -230,7 +271,7 @@ export const StudentDetailPage: React.FC = () => {
                 <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '8px' }}>
                   Подробное описание:
                 </h3>
-                <p
+                <div
                   style={{
                     margin: 0,
                     fontSize: '13px',
@@ -239,8 +280,8 @@ export const StudentDetailPage: React.FC = () => {
                     whiteSpace: 'pre-line',
                   }}
                 >
-                  {activeProject.fullDescription}
-                </p>
+                  <RichMarkdown text={activeProject.fullDescription} />
+                </div>
               </div>
 
               {(activeProject.screenshots.length > 0 || protectedFiles.length > 0) && (

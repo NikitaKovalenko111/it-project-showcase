@@ -163,11 +163,6 @@ export const AnalyticsPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>{title}</h1>
-          <p>
-            {companyView
-              ? 'Заявки, отбор, команды и результаты по кейсам вашей компании.'
-              : 'Статистика по студентам, кейсам и компаниям.'}
-          </p>
         </div>
         <div className="page-header__actions">
           <button

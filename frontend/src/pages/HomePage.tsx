@@ -1,3 +1,6 @@
+import { ProjectSummaryCard } from '../components/ProjectSummaryCard'
+import { CuratorOverview } from '../components/CuratorOverview'
+import { ExpandableText } from '../components/ExpandableText'
 import { complexityBadge } from '../utils/publication'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { IdentityImage } from '../components/IdentityImage'
@@ -56,6 +59,7 @@ export const HomePage: React.FC = () => {
     loading: studentsLoading,
     error: studentsError,
   } = useAppSelector((state) => state.students)
+  const { teamsList } = useAppSelector((state) => state.students)
   const { projectsList } = useAppSelector((state) => state.studentProjects)
   const { companiesList } = useAppSelector((state) => state.companies)
   const { currentUser } = useAppSelector((state) => state.auth)
@@ -197,14 +201,13 @@ export const HomePage: React.FC = () => {
           <div className="home-section__header">
             <div>
               <h2>Кейсы вашего предприятия</h2>
-              <p>Задачи, опубликованные вашей компанией для студентов кафедр</p>
             </div>
             <button className="btn btn-primary btn-sm" onClick={() => setCreateModalOpen(true)}>
               <Plus size={14} /> Разместить новый кейс
             </button>
           </div>
 
-          <div className="case-grid">
+          <PaginatedGrid className="case-grid" pageSize={6} paginationKey="companyHomeCases">
             {myCompanyCases.map((c) => (
               <div key={c.id} className="case-card">
                 <div className="case-card__top-accent" />
@@ -225,7 +228,7 @@ export const HomePage: React.FC = () => {
                     <Link to={`/cases/${c.id}`}>{c.title}</Link>
                   </h3>
 
-                  <p className="case-card__desc">{c.shortDescription}</p>
+                  <ExpandableText compact text={c.shortDescription} />
 
                   <div className="case-card__meta-grid">
                     <div className="meta-item">
@@ -264,7 +267,7 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </PaginatedGrid>
         </div>
 
         {/* Section: Recent Applications */}
@@ -401,21 +404,25 @@ export const HomePage: React.FC = () => {
       (student) =>
         student.role === 'student' && student.studentProfile?.curatorId === currentUser?.id,
     )
-    const groups = new Set(students.map((student) => student.studentProfile?.group).filter(Boolean))
     const curatedCaseIds = new Set(curated?.map((item) => item.case_id))
     const projects = casesList.filter((project) =>
       apiRuntime.mode === 'live'
         ? curatedCaseIds.has(project.id)
         : project.curatorId === currentUser?.id ||
-          students.some((student) => student.id === project.assignedStudentId),
+          students.some((student) => student.id === project.assignedStudentId) ||
+          teamsList.some(
+            (team) =>
+              team.caseId === project.id &&
+              team.members.some((member) => students.some((student) => student.id === member.id)),
+          ),
     )
     return (
       <div className="home-page">
         <div className="home-hero">
           <div className="home-hero__badge">
-            <GraduationCap size={13} /> Кабинет куратора кафедры
+            <GraduationCap size={13} /> Кабинет куратора
           </div>
-          <h1 className="home-hero__title">Координация проектного обучения кафедры</h1>
+          <h1 className="home-hero__title">Координация проектного обучения</h1>
           <div className="home-hero__actions">
             <Link to="/workspace" className="btn btn-primary">
               <Layers size={15} /> Мониторинг проектов
@@ -423,60 +430,17 @@ export const HomePage: React.FC = () => {
             <Link to="/students-search" className="btn btn-secondary">
               <Search size={15} /> Студенты и группы
             </Link>
+            <Link to="/analytics" className="btn btn-coral">
+              <Award size={15} /> Успеваемость и защиты
+            </Link>
           </div>
         </div>
-        <div className="home-stats-grid curator-stats" aria-label="Сводка куратора">
-          {[
-            {
-              label: 'Закреплённые студенты',
-              value:
-                apiRuntime.mode === 'live' || studentsError
-                  ? '—'
-                  : studentsLoading
-                    ? '…'
-                    : students.length,
-              Icon: GraduationCap,
-              tone: 'blue',
-            },
-            {
-              label: 'Учебные группы',
-              value:
-                apiRuntime.mode === 'live' || studentsError
-                  ? '—'
-                  : studentsLoading
-                    ? '…'
-                    : groups.size,
-              Icon: Users,
-              tone: 'emerald',
-            },
-            {
-              label: 'Проекты под наблюдением',
-              value:
-                curatedError || casesError
-                  ? '—'
-                  : casesLoading || (apiRuntime.mode === 'live' && !curated)
-                    ? '…'
-                    : projects.length,
-              Icon: Layers,
-              tone: 'purple',
-            },
-          ].map(({ label, value, Icon, tone }) => (
-            <div className="stat-card" key={label}>
-              <div className={`stat-card__icon stat-icon--${tone}`}>
-                <Icon size={22} />
-              </div>
-              <div className="stat-card__content">
-                <div className="stat-number">{value}</div>
-                <div className="stat-label">{label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {curatedError && <p role="alert">{curatedError}</p>}
+        <CuratorOverview projects={projects} students={students} />
         <section className="home-section">
           <div className="home-section__header">
             <div>
               <h2>Очереди модерации</h2>
-              <p>Публикации компаний и студенческие работы</p>
             </div>
           </div>
           <div className="curator-review-links">
@@ -491,65 +455,23 @@ export const HomePage: React.FC = () => {
             </Link>
           </div>
         </section>
-        <section className="home-section">
+        <section className="home-section curator-agenda">
           <div className="home-section__header">
-            <div>
-              <h2>Проекты закреплённых студентов</h2>
-              <p>Откройте проект, чтобы посмотреть контрольные точки и комментарии.</p>
-            </div>
+            <h2>Ближайшие защиты и сроки</h2>
             <Link to="/workspace" className="home-section__link">
-              Все проекты <ArrowRight size={15} />
+              Открыть активные проекты <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
-          {curatedError || casesError ? (
-            <p role="alert">{curatedError || casesError}</p>
-          ) : casesLoading || (apiRuntime.mode === 'live' && !curated) ? (
-            <p role="status">Загрузка проектов…</p>
-          ) : !projects.length ? (
-            <p className="card empty-state">У закреплённых студентов пока нет проектов.</p>
-          ) : (
-            <PaginatedGrid className="case-grid curator-projects" paginationKey="curatorProjects">
-              {projects.map((project) => (
-                <article className="case-card" key={project.id}>
-                  <div className="case-card__top-accent" />
-                  <div className="card__body">
-                    <div className="case-card__tags">
-                      <span className="badge badge-direction">
-                        {
-                          {
-                            case: 'Кейс',
-                            hackathon: 'Хакатон',
-                            olympiad: 'Олимпиада',
-                            internship: 'Стажировка',
-                          }[project.kind || 'case']
-                        }
-                      </span>
-                      <span className="badge badge-status">
-                        {caseStatusLabels[project.status] || project.status}
-                      </span>
-                    </div>
-                    <h3 className="case-card__title">{project.title}</h3>
-                    <div className="case-card__company">
-                      <Building2 size={15} /> {project.companyName}
-                    </div>
-                    {project.deadlineDate && (
-                      <p className="curator-project-date">
-                        <Calendar size={15} /> Срок: {formatDate(project.deadlineDate)}
-                      </p>
-                    )}
-                  </div>
-                  <div className="case-card__footer-bar">
-                    <Link
-                      className="btn btn-secondary btn-sm"
-                      to={`/cases/${project.id}/workspace`}
-                    >
-                      К мониторингу <ArrowRight size={14} />
-                    </Link>
-                  </div>
-                </article>
+          <div className="case-grid curator-agenda-cards">
+            {projects
+              .filter((project) => project.deadlineDate)
+              .sort((a, b) => a.deadlineDate.localeCompare(b.deadlineDate))
+              .slice(0, 3)
+              .map((project) => (
+                <ProjectSummaryCard key={project.id} project={project} workspace catalog />
               ))}
-            </PaginatedGrid>
-          )}
+          </div>
+          {!projects.length && <p>Ближайших сроков пока нет.</p>}
         </section>
       </div>
     )
@@ -648,7 +570,7 @@ export const HomePage: React.FC = () => {
         <div className="home-section__header">
           <div>
             <h2>Актуальные кейсы от предприятий</h2>
-            <p>Задачи от ведущих ИТ-компаний Башкортостана для командной разработки</p>
+            <p>Задачи компаний для разработки, практики и участия в мероприятиях.</p>
           </div>
           <Link to="/cases" className="home-section__link">
             Все кейсы ({publishedCases.length}) <ArrowRight size={14} />
@@ -680,7 +602,7 @@ export const HomePage: React.FC = () => {
                   <Link to={`/cases/${c.id}`}>{c.title}</Link>
                 </h3>
 
-                <p className="case-card__desc">{c.shortDescription}</p>
+                <ExpandableText compact text={c.shortDescription} />
 
                 <div className="case-card__tags">
                   {c.direction && <span className="badge badge-direction">{c.direction}</span>}
@@ -750,7 +672,7 @@ export const HomePage: React.FC = () => {
                 <h3 className="student-project-card__title">
                   <Link to={`/student-projects/${p.id}`}>{p.title}</Link>
                 </h3>
-                <p className="student-project-card__desc">{p.shortDescription}</p>
+                <ExpandableText compact text={p.shortDescription} />
 
                 <div className="student-project-card__author-row">
                   <div>

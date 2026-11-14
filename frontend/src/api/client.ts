@@ -466,6 +466,12 @@ export const apiClient = {
     return mockServer.createCase(data)
   },
 
+  async withdrawCaseModeration(id: string): Promise<CaseProject> {
+    if (apiRuntime.mode === 'live')
+      throw new Error('Сервер пока не поддерживает отзыв кейса с модерации.')
+    return mockServer.withdrawCaseModeration(id)
+  },
+
   async submitCase(id: string): Promise<CaseProject> {
     await axiosInstance.post(`/cases/${id}/submit-moderation`)
     return apiClient.getCaseById(id)

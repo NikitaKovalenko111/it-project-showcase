@@ -26,7 +26,7 @@ test('standalone catalogs have the documented volume and valid references after 
     cases: 49,
     studentProjects: 15,
     applications: 39,
-    teams: 25,
+    teams: 28,
     executions: 36,
   })
   assert.equal(rows('users').filter((user) => user.role === 'student').length, 37)
@@ -80,7 +80,7 @@ test('curated records have unique names, matching author snapshots and usable lo
     assert.equal(item.companyId, cases.get(item.caseId).companyId)
   }
   for (const team of rows('teams')) {
-    assert.ok(cases.has(team.caseId))
+    assert.ok(cases.has(team.caseId || team.recruitingCaseId))
     assert.equal(team.leaderName, users.get(team.leaderId).fullName)
     for (const member of team.members) assert.equal(member.name, users.get(member.id).fullName)
   }
@@ -133,4 +133,20 @@ test('previous browser-created records remain isolated while curated edits survi
     new MockServer().getUserById(user.id).studentProfile.bio,
     'Изменённый профиль для демонстрации',
   )
+})
+
+test('team recruitment fixtures offer incoming, outgoing and open teams without losing user decisions', () => {
+  memory.clear()
+  const server = new MockServer()
+  const login = id => localStorage.setItem('uust_current_user', JSON.stringify(server.getUserById(id)))
+  login('usr_student_1')
+  const requests = server.getTeamRequests()
+  assert.ok(requests.some(row => row.kind === 'invitation' && row.studentId === 'usr_student_1'))
+  assert.ok(requests.some(row => row.kind === 'application' && row.senderId === 'usr_student_1'))
+  const teams = JSON.parse(memory.get('uust_showcase_curated_v1_teams'))
+  assert.equal(teams.filter(team => team.id.startsWith('recruiting_') && !team.caseId).length, 3)
+  const invite = requests.find(row => row.id === 'seed_incoming_invitation')
+  server.decideTeamRequest(invite.id, 'rejected')
+  const reloaded = new MockServer()
+  assert.equal(reloaded.getTeamRequests().find(row => row.id === invite.id).status, 'rejected')
 })

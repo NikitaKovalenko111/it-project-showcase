@@ -7,7 +7,6 @@ export const TeamsPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Команды</h1>
-          <p>Составы команд, приглашения и поиск участников.</p>
         </div>
       </div>
       <div className="uust-container attached-tabs">

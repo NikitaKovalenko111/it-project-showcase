@@ -1,6 +1,4 @@
-import MDEditor from '@uiw/react-md-editor'
-import rehypeSanitize from 'rehype-sanitize'
-
+import { RichMarkdown } from './RichMarkdown'
 export function OpportunityDescription({
   summary,
   markdown,
@@ -9,11 +7,12 @@ export function OpportunityDescription({
   markdown: string
 }) {
   const body = markdown.trim()
-  const firstParagraph = body.split(/\r?\n\s*\r?\n/, 1)[0]
   return (
-    <div className="opportunity-description" data-color-mode="light">
-      {summary.trim() !== firstParagraph && <p className="opportunity-lead">{summary}</p>}
-      {body && <MDEditor.Markdown source={body} rehypePlugins={[rehypeSanitize]} />}
+    <div className="opportunity-description">
+      {summary.trim() !== body.split(/\r?\n\s*\r?\n/, 1)[0] && (
+        <p className="opportunity-lead">{summary}</p>
+      )}
+      {body && <RichMarkdown text={body} />}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
@@ -46,10 +47,6 @@ export const CompaniesPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Компании-партнёры</h1>
-          <p>
-            Реестр индустриальных партнёров, высокотехнологичных предприятий и ИТ-компаний,
-            размещающих проектные кейсы для студентов.
-          </p>
         </div>
       </div>
 
@@ -142,17 +139,7 @@ export const CompaniesPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <p
-                      style={{
-                        margin: '0 0 16px',
-                        fontSize: '12.5px',
-                        color: '#334455',
-                        lineHeight: 1.55,
-                        minHeight: '56px',
-                      }}
-                    >
-                      {comp.description}
-                    </p>
+                    <ExpandableText compact text={comp.description} />
 
                     <div
                       className="responsive-grid"

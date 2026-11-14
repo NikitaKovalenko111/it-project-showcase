@@ -43,7 +43,21 @@ function read<T>(key: string, fallback: T): T {
 function save<T>(key: string, data: T) {
   localStorage.setItem('showcase_curated_v1_' + key, JSON.stringify(data))
 }
-const programs = () => read('opportunities', seed)
+const programs = () => {
+  const rows = read('opportunities', seed)
+  if (!read('program_details_20261114_v2', false)) {
+    const legacy = buildPrograms(false)
+    for (const row of rows) {
+      const old = legacy.find((item) => item.program_id === row.program_id),
+        next = seed.find((item) => item.program_id === row.program_id)
+      if (old && next && row.content_markdown === old.content_markdown)
+        row.content_markdown = next.content_markdown
+    }
+    save('opportunities', rows)
+    save('program_details_20261114_v2', true)
+  }
+  return rows
+}
 const applications = () =>
   read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
 function actor() {
@@ -115,6 +129,9 @@ export const opportunityApi = {
   },
 
   async setStatus(id: string, status: string, comment: string) {
+    if (apiRuntime.mode === 'live' && status === 'draft')
+      throw new Error('Сервер пока не поддерживает отзыв программы с модерации.')
+
     if (live)
       return (
         await axiosInstance.patch<Opportunity>(`/internships/${id}/status`, { status, comment })
@@ -125,6 +142,7 @@ export const opportunityApi = {
     if (!item) throw new Error('Программа не найдена.')
     const moderator = ['admin', 'curator', 'university'].includes(user.role)
     const allowed =
+      (status === 'draft' && item.status === 'moderation' && owns(user, item.company_id)) ||
       (status === 'moderation' &&
         ['draft', 'revision'].includes(item.status) &&
         (owns(user, item.company_id) || user.role === 'admin')) ||

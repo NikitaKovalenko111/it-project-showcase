@@ -1,6 +1,17 @@
 import { FileDownload } from './FileDownload'
 import React, { useEffect, useState } from 'react'
-import { Award, Clock, FileCheck2, FileText, Image, Video, Upload, Users } from 'lucide-react'
+import {
+  ArrowLeft,
+  MessageSquare,
+  Award,
+  Clock,
+  FileCheck2,
+  FileText,
+  Image,
+  Video,
+  Upload,
+  Users,
+} from 'lucide-react'
 import { CaseProject } from '../types/models'
 import { Execution } from '../types/execution'
 import { useAppSelector } from '../store'
@@ -12,7 +23,7 @@ import { ExecutionEvaluation } from './ExecutionEvaluation'
 import { TeamMembers } from './TeamMembers'
 import { legacyCriteria } from '../utils/evaluation'
 import { EventRoundWork } from './EventRoundWork'
-import { ExecutionComments } from './ExecutionComments'
+import { TeamDiscussion } from './TeamDiscussion'
 import { apiRuntime } from '../api/runtime'
 import { axiosInstance } from '../api/http'
 import { isOptionalWebUrl } from '../utils/validation'
@@ -86,7 +97,7 @@ export const ExecutionDetail: React.FC<{
           <div>
             {onBack && (
               <button className="btn btn-secondary btn-sm" onClick={onBack}>
-                ← К списку участников
+                <ArrowLeft size={18} /> К списку участников
               </button>
             )}
             <h2>{entry.name}</h2>
@@ -110,6 +121,7 @@ export const ExecutionDetail: React.FC<{
             ['stages', 'Контрольные точки', Clock],
             ...(!curated ? [['submission', 'Результат и оценка', FileCheck2]] : []),
             ['members', entry.teamId ? 'Проектная команда' : 'Участник', Users],
+            ['discussion', 'Обсуждение и файлы', MessageSquare],
           ].map(([value, label, Icon]) => (
             <button
               key={value as string}
@@ -131,9 +143,7 @@ export const ExecutionDetail: React.FC<{
           onChange={onChange}
         />
       )}
-      {active === 'stages' && apiRuntime.mode === 'live' && (
-        <ExecutionComments executionId={entry.id} />
-      )}
+      {active === 'discussion' && <TeamDiscussion entries={[entry]} caseId={project.id} />}
       {active === 'members' && (
         <section className="execution-members">
           <h2>{entry.teamId ? entry.name : 'Участник'}</h2>

@@ -73,13 +73,16 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
                 rel="noreferrer"
                 aria-label="Открыть сертификат"
                 onClick={(e) => {
-                  if (/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/')) {
+                  if (
+                    /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name) ||
+                    f.url.startsWith('data:image/')
+                  ) {
                     e.preventDefault()
                     setPreview(f)
                   }
                 }}
               >
-                {/\.(png|jpe?g|webp|gif)$/i.test(f.name) || f.url.startsWith('data:image/') ? (
+                {/\.(png|jpe?g|webp|gif|svg)$/i.test(f.name) || f.url.startsWith('data:image/') ? (
                   <CertificateImage key={f.url} url={f.url} name={f.name} />
                 ) : (
                   <div className="achievement-document">Сертификат / документ</div>
@@ -111,7 +114,7 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
         </div>
         {editable && (
           <label className="portfolio-upload">
-            Добавить фотографии достижений или сертификаты
+            Добавить достижение
             <LocalizedFileInput
               className="input"
               accept="image/*,.pdf"
@@ -145,7 +148,11 @@ export const PortfolioFiles: React.FC<{ user: User; editable: boolean }> = ({ us
       >
         {preview && (
           <>
-            <button className="btn btn-secondary" autoFocus onClick={() => setPreview(null)}>
+            <button
+              className="btn btn-secondary certificate-close"
+              autoFocus
+              onClick={() => setPreview(null)}
+            >
               Закрыть ×
             </button>
             <CertificateImage key={preview.url} url={preview.url} name={preview.name} />

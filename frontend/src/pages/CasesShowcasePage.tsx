@@ -1,3 +1,4 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { complexityBadge } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
@@ -181,9 +182,6 @@ export const CasesShowcasePage: React.FC = () => {
               ? 'Мои ИТ-кейсы'
               : 'Витрина ИТ-проектов и кейсов предприятий'}
           </h1>
-          <p style={{ fontSize: '12.5px', color: '#5e7188', margin: '4px 0 0' }}>
-            Автоматизированная система проектного обучения
-          </p>
         </div>
         {canCreateCase && (
           <button className="btn btn-primary btn-sm" onClick={() => setCreateModalOpen(true)}>
@@ -431,7 +429,7 @@ export const CasesShowcasePage: React.FC = () => {
                     <Link to={`/cases/${item.id}`}>{item.title}</Link>
                   </h3>
 
-                  <p className="case-card__desc">{item.shortDescription}</p>
+                  <ExpandableText compact text={item.shortDescription} />
                   {!isPublished(item) && (
                     <p className={`badge publication-${publicationStatus(item)}`}>
                       {publicationLabels[publicationStatus(item)]}

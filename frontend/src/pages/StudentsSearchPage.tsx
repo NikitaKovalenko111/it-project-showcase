@@ -1,9 +1,10 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { IdentityImage } from '../components/IdentityImage'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { canModerate, matchesSearch } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { fetchStudentsRequest, fetchTeamsRequest } from '../store/actions'
 import { InviteStudentModal } from '../components/modals/InviteStudentModal'
@@ -28,10 +29,11 @@ export const StudentsSearchPage: React.FC = () => {
   const { studentsList, loading, error: studentsError } = useAppSelector((state) => state.students)
   const { currentUser } = useAppSelector((state) => state.auth)
 
+  const [params] = useSearchParams()
   const [search, setSearch] = useState('')
   const [institute, setInstitute] = useState('all')
   const [course, setCourse] = useState('all')
-  const [groupSearch, setGroupSearch] = useState('')
+  const [groupSearch, setGroupSearch] = useState(params.get('group') || '')
   const [education, setEducation] = useState('all')
   const [onlyMine, setOnlyMine] = useState(false)
   const [skill, setSkill] = useState('')
@@ -105,11 +107,6 @@ export const StudentsSearchPage: React.FC = () => {
               ? 'Студенты и группы'
               : 'Поиск студентов и проектных команд'}
           </h1>
-          <p>
-            {canInvite
-              ? 'Подбирайте исполнителей по компетенциям и приглашайте в свои кейсы.'
-              : 'Группы, компетенции, рейтинг и портфолио студентов.'}
-          </p>
         </div>
         {currentUser?.role === 'student' && (
           <div className="page-header__actions">
@@ -293,16 +290,7 @@ export const StudentsSearchPage: React.FC = () => {
                   </div>
                 </div>
 
-                <p
-                  style={{
-                    margin: '0 0 14px',
-                    fontSize: '12px',
-                    color: '#334155',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {prof.bio}
-                </p>
+                <ExpandableText compact text={prof.bio} />
 
                 {/* Skills */}
                 <div

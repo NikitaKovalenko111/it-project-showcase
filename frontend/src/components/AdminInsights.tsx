@@ -9,6 +9,7 @@ import { CatalogSearch } from './CatalogSearch'
 import { matchesSearch } from '../utils/publication'
 
 const targets = {
+  internship: ['Стажировка / практика', '/internships?scope=all&program='],
   case: ['Кейс', '/cases'],
   project: ['Студенческий проект', '/student-projects'],
   comment: ['Комментарий', ''],
@@ -110,7 +111,19 @@ export function AdminInsights({
           {new Date(report.createdAt).toLocaleDateString('ru-RU')}
         </time>,
         <>
-          {path ? <Link to={`${path}/${report.targetId}`}>{name}</Link> : name}
+          {path ? (
+            <Link
+              to={
+                report.targetType === 'internship'
+                  ? path + report.targetId
+                  : `${path}/${report.targetId}`
+              }
+            >
+              {name}
+            </Link>
+          ) : (
+            name
+          )}
           <details className="report-details">
             <summary>Подробности</summary>
             <p className="preserve-text">{report.message || 'Пояснений нет.'}</p>
@@ -135,7 +148,13 @@ export function AdminInsights({
     }
   })
   return (
-    <section className="card feature-panel admin-insights">
+    <section
+      className={
+        reportsOnly
+          ? 'card feature-panel admin-insights admin-insights--reports'
+          : 'card feature-panel admin-insights'
+      }
+    >
       {error && (
         <p role="alert" className="form-error">
           {error}

@@ -201,11 +201,11 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
                       )}
                       {!pendingOnly && publicationStatus(project) === 'approved' && (
                         <button
-                          className="btn btn-secondary btn-sm"
+                          className="btn btn-danger btn-sm"
                           disabled={!!busy}
                           onClick={() => decide(project, 'hidden')}
                         >
-                          Скрыть публикацию
+                          Заблокировать публикацию
                         </button>
                       )}
                     </div>

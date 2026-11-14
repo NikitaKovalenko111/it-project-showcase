@@ -1,3 +1,6 @@
+import { ExpandableText } from './ExpandableText'
+import { ReportButton } from './ReportButton'
+import { OpportunityReviewActions, OpportunityBlockButton } from './OpportunityReviewActions'
 import { opportunityApi } from '../api/opportunities'
 import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
@@ -44,6 +47,7 @@ export function LiveCompanyProgram() {
   const user = useAppSelector((state) => state.auth.currentUser)
   const company = user?.role === 'company'
   const student = user?.role === 'student'
+  const reviewer = ['admin', 'curator', 'university'].includes(user?.role || '')
   const [params, setParams] = useSearchParams()
   const kind: OpportunityKind = params.get('kind') === 'practice' ? 'practice' : 'internship'
   const companyId = params.get('company')
@@ -87,7 +91,11 @@ export function LiveCompanyProgram() {
     setLoading(true)
     setError('')
     Promise.all([
-      opportunityApi.list(ownCatalog ? 'mine' : 'public'),
+      reviewer && programId
+        ? Promise.all([opportunityApi.list('public'), opportunityApi.list('moderation')]).then(
+            (lists) => [...new Map(lists.flat().map((item) => [item.program_id, item])).values()],
+          )
+        : opportunityApi.list(ownCatalog ? 'mine' : 'public'),
       student ? opportunityApi.listApplications() : Promise.resolve([]),
     ])
       .then(([items, applications]) => {
@@ -110,7 +118,7 @@ export function LiveCompanyProgram() {
     return () => {
       active = false
     }
-  }, [ownCatalog, student, user?.id])
+  }, [ownCatalog, student, user?.id, reviewer, programId])
 
   useEffect(() => {
     setShowApplications(false)
@@ -162,31 +170,26 @@ export function LiveCompanyProgram() {
     (!item.application_deadline || Date.parse(item.application_deadline) > Date.now())
 
   return (
-    <>
-      <div className="page-header">
-        <div className="page-header__content">
-          <h1>Стажировки и практики</h1>
-          <p>
-            {ownCatalog
-              ? 'Публикуйте программы и рассматривайте отклики студентов.'
-              : 'Найдите программу компании и подайте заявку на участие.'}
-          </p>
+    <div className="program-page">
+      {!programId && (
+        <div className="page-header">
+          <div className="page-header__content">{!programId && <h1>Стажировки и практики</h1>}</div>
+          {ownCatalog && !programId && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!preferredCompany}
+              onClick={() => {
+                setNotice('')
+                setEditor({ kind, company_id: preferredCompany?.id })
+              }}
+            >
+              <Plus size={16} />{' '}
+              {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
+            </button>
+          )}
         </div>
-        {ownCatalog && !programId && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={!preferredCompany}
-            onClick={() => {
-              setNotice('')
-              setEditor({ kind, company_id: preferredCompany?.id })
-            }}
-          >
-            <Plus size={16} />{' '}
-            {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
-          </button>
-        )}
-      </div>
+      )}
       {notice && (
         <p role="status" className="opportunity-notice">
           {notice}
@@ -201,9 +204,31 @@ export function LiveCompanyProgram() {
         <p role="status">Загружаем витрину…</p>
       ) : programId ? (
         <>
-          <Link className="btn btn-secondary" to={'?' + catalogUrl}>
-            <ArrowLeft size={16} /> К витрине
-          </Link>
+          <div className="program-detail-toolbar">
+            <Link
+              className="btn btn-secondary btn-sm"
+              to={params.get('review') ? '/companies?review=opportunities' : '?' + catalogUrl}
+            >
+              <ArrowLeft size={18} />{' '}
+              {params.get('review') ? 'К модерации публикаций' : 'К витрине'}
+            </Link>
+            <div className="action-row">
+              {selected && (
+                <OpportunityBlockButton
+                  program={selected}
+                  onChanged={(item) =>
+                    setPrograms((rows) =>
+                      rows.map((row) => (row.program_id === item.program_id ? item : row)),
+                    )
+                  }
+                />
+              )}
+              {selected &&
+                !(company && user?.companyProfile?.companyId === selected.company_id) && (
+                  <ReportButton targetType="internship" targetId={selected.program_id} />
+                )}
+            </div>
+          </div>
           {selected ? (
             <article className="opportunity-detail">
               <header className="opportunity-hero">
@@ -265,6 +290,27 @@ export function LiveCompanyProgram() {
                         }}
                       />
                     )}
+                    {ownCatalog && selected.status === 'moderation' && (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={async () => {
+                          try {
+                            const item = await opportunityApi.setStatus(
+                              selected.program_id,
+                              'draft',
+                              '',
+                            )
+                            setPrograms((rows) =>
+                              rows.map((row) => (row.program_id === item.program_id ? item : row)),
+                            )
+                          } catch (cause) {
+                            setError((cause as Error).message)
+                          }
+                        }}
+                      >
+                        Отозвать с модерации
+                      </button>
+                    )}
                     {ownCatalog && ['published', 'revision', 'draft'].includes(selected.status) && (
                       <button
                         type="button"
@@ -282,16 +328,41 @@ export function LiveCompanyProgram() {
                           type="button"
                           className="btn btn-secondary"
                           aria-expanded={showApplications}
-                          onClick={() => setShowApplications((show) => !show)}
+                          onClick={() => {
+                            setShowApplications((show) => !show)
+                            setTimeout(
+                              () =>
+                                document
+                                  .getElementById('program-applications')
+                                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+                              0,
+                            )
+                          }}
                         >
-                          Заявки студентов
+                          {showApplications ? 'Скрыть заявки' : 'Заявки студентов'}
                         </button>
                       )}
                   </div>
                 </aside>
               </div>
+              {reviewer && selected.status === 'moderation' && (
+                <OpportunityReviewActions
+                  program={selected}
+                  onChanged={(item) =>
+                    setPrograms((rows) =>
+                      rows.map((row) => (row.program_id === item.program_id ? item : row)),
+                    )
+                  }
+                />
+              )}
               {showApplications && ownCatalog && (
-                <InternshipApplications key={selected.program_id} programId={selected.program_id} />
+                <section className="opportunity-applications" id="program-applications">
+                  <h3>Заявки студентов</h3>
+                  <InternshipApplications
+                    key={selected.program_id}
+                    programId={selected.program_id}
+                  />
+                </section>
               )}
             </article>
           ) : (
@@ -300,10 +371,16 @@ export function LiveCompanyProgram() {
         </>
       ) : (
         <>
-          <div className="uust-container">
-            <div className="uust-tabs-row mobile-wrap-tabs">
+          <div className="uust-container program-catalog">
+            <div
+              className="uust-tabs-row mobile-wrap-tabs"
+              role="tablist"
+              aria-label="Тип программы"
+            >
               <button
                 type="button"
+                role="tab"
+                aria-selected={kind === 'internship'}
                 className={'uust-tab ' + (kind === 'internship' ? 'active' : '')}
                 onClick={() => choose('kind', 'internship')}
               >
@@ -311,6 +388,8 @@ export function LiveCompanyProgram() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={kind === 'practice'}
                 className={'uust-tab ' + (kind === 'practice' ? 'active' : '')}
                 onClick={() => choose('kind', 'practice')}
               >
@@ -367,7 +446,7 @@ export function LiveCompanyProgram() {
                   <h2 className="case-card__title">
                     <Link to={detailsUrl(item)}>{item.title}</Link>
                   </h2>
-                  <p className="case-card__desc">{item.summary}</p>
+                  <ExpandableText compact text={item.summary} />
                   <div className="case-card__tags">
                     <span className="badge badge-direction">{names[item.kind]}</span>
                     <span className="badge badge-status">
@@ -405,6 +484,6 @@ export function LiveCompanyProgram() {
           }}
         />
       )}
-    </>
+    </div>
   )
 }

@@ -48,7 +48,7 @@ const statusConfig: Record<OnlineStatus, { label: string; color: string }> = {
 const rolePillConfig: Record<UserRole, { text: string; color: string }> = {
   student: { text: 'Студент', color: '#3a75b4' },
   company: { text: 'Компания-партнёр', color: '#e68a19' },
-  curator: { text: 'Куратор кафедры', color: '#28a745' },
+  curator: { text: 'Куратор', color: '#28a745' },
   admin: { text: 'Администратор ИСУ', color: '#e04646' },
   university: { text: 'Администратор ИСУ', color: '#e04646' },
 }
@@ -104,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
           ],
           [
             { to: '/student-projects', label: 'ПРОЕКТЫ СТУДЕНТОВ', icon: FolderGit2 },
-            { to: `/profile/${userId}`, label: 'МОЁ ПОРТФОЛИО', icon: GraduationCap },
+            { to: `/profile/${userId}`, label: 'МОЙ ПРОФИЛЬ', icon: GraduationCap },
             {
               to: '/favorites',
               label: 'ЗАЯВКИ И ИЗБРАННОЕ',
@@ -235,83 +235,88 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
         <div className="profile-email">Email: {currentUser?.email || 'Не указан'}</div>
 
-        {/* Interactive Online Status Pill */}
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-          <button
-            className="profile-status-pill"
-            aria-expanded={showStatusMenu}
-            onClick={cycleStatus}
-            type="button"
-            title="Нажмите, чтобы изменить статус"
-          >
-            <span className="dot" style={{ backgroundColor: statusConfig[onlineStatus].color }} />
-            <span>{statusConfig[onlineStatus].label}</span>
-            <ChevronDown size={12} className="chevron" />
-          </button>
-
-          {showStatusMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                marginTop: '6px',
-                background: '#0e2048',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '6px',
-                padding: '4px',
-                zIndex: 200,
-                boxShadow: '0 6px 18px rgba(0,0,0,0.4)',
-                width: '130px',
-              }}
+        <div
+          className="profile-presence"
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
+        >
+          {/* Interactive Online Status Pill */}
+          <div className="profile-status-control">
+            <button
+              className="profile-status-pill"
+              aria-expanded={showStatusMenu}
+              onClick={cycleStatus}
+              type="button"
+              title="Нажмите, чтобы изменить статус"
             >
-              {(['online', 'busy', 'offline'] as OnlineStatus[]).map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => selectStatus(st)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    background: onlineStatus === st ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    border: 'none',
-                    color: '#fff',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '7px',
-                      height: '7px',
-                      borderRadius: '50%',
-                      backgroundColor: statusConfig[st].color,
-                    }}
-                  />
-                  <span>{statusConfig[st].label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+              <span className="dot" style={{ backgroundColor: statusConfig[onlineStatus].color }} />
+              <span>{statusConfig[onlineStatus].label}</span>
+              <ChevronDown size={12} className="chevron" />
+            </button>
 
-        {/* Role pill */}
-        <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
-          {role === 'student'
-            ? [
-                'Студент',
-                currentUser?.studentProfile?.institute,
-                currentUser?.studentProfile?.group,
-              ]
-                .filter(Boolean)
-                .join(' • ')
-            : pillInfo.text}
+            {showStatusMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginTop: '6px',
+                  background: '#0e2048',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '6px',
+                  padding: '4px',
+                  zIndex: 200,
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.4)',
+                  width: '130px',
+                }}
+              >
+                {(['online', 'busy', 'offline'] as OnlineStatus[]).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => selectStatus(st)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      background: onlineStatus === st ? 'rgba(255,255,255,0.1)' : 'transparent',
+                      border: 'none',
+                      color: '#fff',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        backgroundColor: statusConfig[st].color,
+                      }}
+                    />
+                    <span>{statusConfig[st].label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Role pill */}
+          <div className="role-pill" style={{ borderLeftColor: pillInfo.color }}>
+            {role === 'student'
+              ? [
+                  'Студент',
+                  currentUser?.studentProfile?.institute,
+                  currentUser?.studentProfile?.group,
+                ]
+                  .filter(Boolean)
+                  .join(' • ')
+              : pillInfo.text}
+          </div>
         </div>
       </div>
 
