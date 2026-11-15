@@ -575,6 +575,7 @@ paths:
     post:
       tags: [Cases]
       operationId: createCase
+      description: Представитель компании или модератор создаёт черновик. Модератор передаёт ID одобренной компании.
       summary: Создать кейс с динамическими критериями
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CaseInput'}}}}
@@ -901,6 +902,7 @@ paths:
     post:
       tags: [Internships]
       operationId: createInternship
+      description: Представитель компании или модератор создаёт черновик стажировки или практики. Модератор передаёт ID одобренной компании.
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
       responses: {'201': {description: Черновик программы}}

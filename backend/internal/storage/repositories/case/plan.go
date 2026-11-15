@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"it-project-showcase/backend/internal/models"
+	"it-project-showcase/backend/internal/storage/audit"
 )
 
 var ErrPlanChanged = errors.New("case plan changed")
 var ErrPlanDeadline = errors.New("plan deadline requires a future date and reason")
 
 func (r *Repository) SavePlan(ctx context.Context, userID, caseID string, input models.CasePlanUpdate) ([]models.CaseStage, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
@@ -22,8 +23,8 @@ func (r *Repository) SavePlan(ctx context.Context, userID, caseID string, input 
 	var status string
 	var publishedResults bool
 	err = tx.QueryRowContext(ctx, `SELECT c.status
-		FROM cases c WHERE c.case_id=$1 AND EXISTS(SELECT 1 FROM company_members m WHERE
-		m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+		FROM cases c WHERE c.case_id=$1 AND (EXISTS(SELECT 1 FROM company_members m WHERE
+		m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR (c.status IN ('draft','revision') AND (c.created_by=$2 AND showcase.is_active_admin($2))))
 		FOR UPDATE OF c`, caseID, userID).Scan(&status)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAccessDenied

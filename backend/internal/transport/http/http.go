@@ -50,7 +50,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 
 	cases := mount(api, "/cases", nil)
 	h.handlers.Cases.Start(cases, representative, manager, admin, reviewer, h.optionalAuthorization)
-	h.handlers.Cases.StartEventPlans(cases, representative, h.optionalAuthorization)
+	h.handlers.Cases.StartEventPlans(cases, manager, h.optionalAuthorization)
 	h.handlers.Files.StartCases(cases, h.authorize, reviewer)
 	h.handlers.Community.StartCases(cases, h.authorize, h.optionalAuthorization)
 	h.handlers.Opportunities.StartCases(cases, representative, manager, studentOnly, h.optionalAuthorization)
@@ -93,7 +93,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Community.StartFeedback(feedback, h.authorize, admin)
 	h.handlers.Files.StartFeedback(feedback, h.authorize)
 	internships := mount(api, "/internships", nil)
-	h.handlers.Opportunities.StartInternships(internships, representative, reviewer, h.authorize, h.optionalAuthorization)
+	h.handlers.Opportunities.StartInternships(internships, manager, reviewer, h.authorize, h.optionalAuthorization)
 	h.handlers.Opportunities.StartInternshipApplications(internships, studentOnly, representative, workflow)
 	h.handlers.Files.StartInternships(internships, workflow, h.optionalAuthorization)
 	h.handlers.Cases.StartViews(cases, h.authorize)
