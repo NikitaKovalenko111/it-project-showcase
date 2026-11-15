@@ -32,6 +32,9 @@ services:
       retries: 20
   api:
     build: ./backend
+    networks:
+      default:
+        aliases: [server]
     ports:
       - "127.0.0.1:${SHOWCASE_DEMO_PORT:-13006}:3005"
     volumes:
@@ -41,6 +44,17 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_MODE: live
+        VITE_API_URL: /api/v1
+    ports:
+      - "127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-13007}:80"
+    depends_on:
+      api:
+        condition: service_started
 volumes:
   postgres-demo:
   minio-demo:

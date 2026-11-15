@@ -14,6 +14,8 @@ BEGIN
         RAISE EXCEPTION 'Use the isolated showcase_demo database and role';
     END IF;
     PERFORM pg_advisory_xact_lock(hashtext('showcase-demo-seed-v1'));
+    UPDATE students s SET institute_name='Институт информатики, математики и робототехники' WHERE s.institute_name='ИИМРТ'
+        AND EXISTS (SELECT 1 FROM users u WHERE u.user_id=s.user_id AND u.username IN ('demo.student1', 'demo.student2', 'demo.student3', 'demo.student4', 'demo.student5', 'demo.student6', 'demo.student7', 'demo.student8', 'demo.student9', 'demo.student10', 'demo.student11', 'demo.student12'));
     SELECT case_id,created_by INTO STRICT listing,author FROM cases WHERE title='Мониторинг телеметрии компрессорной станции';
     INSERT INTO case_nda_versions(case_id,version_no,text,created_by)
     VALUES (listing,1,'Учебное NDA. Используйте только синтетические данные. Материалы предназначены для проверки сценария доступа.',author)

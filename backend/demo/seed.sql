@@ -77,7 +77,7 @@ BEGIN
         INSERT INTO user_roles(user_id,role_id) SELECT person,role_id FROM roles WHERE code='student';
         INSERT INTO students(user_id,last_name,first_name,institute_name,study_direction,program_name,course,group_name,bio,
             professional_interests,competencies,technologies,links)
-        VALUES (person,r.last_name,r.first_name,'ИИМРТ',r.direction,r.direction,r.course,r.group_name,r.bio,
+        VALUES (person,r.last_name,r.first_name,'Институт информатики, математики и робототехники',r.direction,r.direction,r.course,r.group_name,r.bio,
             '["Командная разработка","Анализ данных"]','["Работа с Git"]',
             CASE WHEN r.n%2=0 THEN '["Python","PostgreSQL"]'::jsonb ELSE '["Go","Git"]'::jsonb END,
             jsonb_build_array(jsonb_build_object('kind','portfolio','url','https://portfolio.example.test/student-'||r.n)));

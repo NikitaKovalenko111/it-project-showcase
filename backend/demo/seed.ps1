@@ -27,6 +27,7 @@ if (!$ready) { throw "Demo API did not become ready at $api" }
 
 Invoke-DemoSql 'seed.sql'
 Invoke-DemoSql 'extras.sql'
+Invoke-DemoSql 'uust-programs.sql'
 $login = Invoke-RestMethod -NoProxy -Method Post -Uri "$api/auth/login" -ContentType 'application/json' -Body (
     @{ login = 'demo.student1'; password = 'DemoShowcase2026!' } | ConvertTo-Json -Compress
 )
