@@ -18,23 +18,23 @@ func (h *Handler) StartTeamSearchProfile(mux *http.ServeMux) {
 func (h *Handler) StartTeamSearchProfiles(mux *http.ServeMux) {
 	mux.HandleFunc("GET /", h.ListTeamProfiles)
 }
-func (h *Handler) StartInternships(mux *http.ServeMux, representative, reviewer, authorize, optionalAuthorization func(http.Handler) http.Handler) {
+func (h *Handler) StartInternships(mux *http.ServeMux, manager, reviewer, authorize, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.ListInternships)
-	mux.Handle("GET /mine", representative(http.HandlerFunc(h.ListMyInternships)))
+	mux.Handle("GET /mine", manager(http.HandlerFunc(h.ListMyInternships)))
 	mux.Handle("GET /moderation", reviewer(http.HandlerFunc(h.ListInternshipModeration)))
 	mux.Handle("GET /{program_id}", optionalAuthorization(http.HandlerFunc(h.GetInternship)))
-	mux.Handle("POST /", representative(http.HandlerFunc(h.CreateInternship)))
-	mux.Handle("PUT /{program_id}", representative(http.HandlerFunc(h.UpdateInternship)))
+	mux.Handle("POST /", manager(http.HandlerFunc(h.CreateInternship)))
+	mux.Handle("PUT /{program_id}", manager(http.HandlerFunc(h.UpdateInternship)))
 	mux.Handle("PATCH /{program_id}/status", authorize(http.HandlerFunc(h.UpdateInternshipStatus)))
 }
 func (h *Handler) StartCases(mux *http.ServeMux, representative, manager, studentOnly, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.Handle("GET /{case_id}/leaderboard", optionalAuthorization(http.HandlerFunc(h.Leaderboard)))
 	mux.Handle("PUT /{case_id}/leaderboard/placements", manager(http.HandlerFunc(h.SetPlacements)))
 	mux.Handle("DELETE /{case_id}/leaderboard/placements", manager(http.HandlerFunc(h.WithdrawPlacements)))
-	mux.Handle("PUT /{case_id}/cover", representative(http.HandlerFunc(h.SetCaseCover)))
+	mux.Handle("PUT /{case_id}/cover", manager(http.HandlerFunc(h.SetCaseCover)))
 	mux.Handle("POST /{case_id}/nda-grants", studentOnly(http.HandlerFunc(h.AcceptNDA)))
 	mux.HandleFunc("GET /{case_id}/nda", h.GetNDA)
-	mux.Handle("POST /{case_id}/nda-versions", representative(http.HandlerFunc(h.CreateNDA)))
+	mux.Handle("POST /{case_id}/nda-versions", manager(http.HandlerFunc(h.CreateNDA)))
 }
 func (h *Handler) StartStudents(mux *http.ServeMux, authorize, admin, curator func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /{student_id}/portfolio/files", h.ListPublicPortfolioFiles)
