@@ -1,3 +1,4 @@
+import { StudentProjectCover } from '../components/StudentProjectCover'
 import { apiClient } from '../api/client'
 import { useConfirm } from '../components/ConfirmProvider'
 import { RichMarkdown } from '../components/RichMarkdown'
@@ -178,13 +179,11 @@ export const StudentDetailPage: React.FC = () => {
       >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
-            {activeProject.coverImage && (
-              <img
-                src={activeProject.coverImage}
-                alt=""
-                style={{ width: '100%', height: '320px', objectFit: 'cover' }}
-              />
-            )}
+            <StudentProjectCover
+              project={activeProject}
+              viewer={currentUser}
+              style={{ width: '100%', height: '320px', objectFit: 'cover' }}
+            />
 
             <div className="card__body">
               <div

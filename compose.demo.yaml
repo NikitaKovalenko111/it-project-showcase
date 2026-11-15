@@ -32,6 +32,8 @@ services:
       retries: 20
   api:
     build: ./backend
+    environment:
+      cors_allowed_origins: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:${SHOWCASE_DEMO_FRONTEND_PORT:-3006},http://127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-3006}"
     networks:
       default:
         aliases: [server]
@@ -51,7 +53,7 @@ services:
         VITE_API_MODE: live
         VITE_API_URL: /api/v1
     ports:
-      - "127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-13007}:80"
+      - "127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-3006}:80"
     depends_on:
       api:
         condition: service_started
