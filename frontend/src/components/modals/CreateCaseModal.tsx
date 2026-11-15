@@ -109,7 +109,14 @@ export const CreateCaseModal: React.FC<{
     setOpportunityNotice('')
     setSpec(null)
     setCover(null)
-    setCompanyId(caseItem?.companyId || user?.companyProfile?.companyId || companies[0]?.id || '')
+    setCompanyId(
+      caseItem?.companyId ||
+        user?.companyProfile?.companyId ||
+        companies.find(
+          (company) => user?.role !== 'admin' || (company.isVerified && !company.isBlocked),
+        )?.id ||
+        '',
+    )
     setKind(caseItem?.kind || 'case')
     setSelectedSkills(caseItem?.requiredCompetencies || [])
     if (caseItem) {
@@ -167,8 +174,12 @@ export const CreateCaseModal: React.FC<{
         <option value="hackathon">Хакатон</option>
         <option value="olympiad">Олимпиада</option>
         <option value="case">Кейс · отбор исполнителей</option>
-        {(!live || user?.role === 'company') && <option value="internship">Стажировка</option>}
-        {live && user?.role === 'company' && <option value="practice">Практика</option>}
+        {(!live || ['company', 'admin'].includes(user?.role || '')) && (
+          <option value="internship">Стажировка</option>
+        )}
+        {live && ['company', 'admin'].includes(user?.role || '') && (
+          <option value="practice">Практика</option>
+        )}
       </select>
     </label>
   )
@@ -192,7 +203,11 @@ export const CreateCaseModal: React.FC<{
         embedded
         onBusyChange={setBusy}
         initial={{ kind: opportunity, company_id: companyId }}
-        companies={companies.filter((company) => company.id === companyId)}
+        companies={companies.filter((company) =>
+          user?.role === 'admin'
+            ? company.isVerified && !company.isBlocked
+            : company.id === companyId,
+        )}
         formatControl={formatControl}
         onClose={onClose}
         onSaved={(_, submitted) =>
@@ -428,11 +443,13 @@ export const CreateCaseModal: React.FC<{
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
             >
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
+              {companies
+                .filter((c) => user?.role !== 'admin' || (c.isVerified && !c.isBlocked))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
           </label>
           <label>

@@ -144,6 +144,7 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  createdBy?: string
   managedByViewer?: boolean
   applicationDeadline?: string
   registrationsCount?: number

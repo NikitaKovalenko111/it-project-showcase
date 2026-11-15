@@ -130,6 +130,7 @@ export function fromCase(d: any): CaseProject {
     id: d.case_id,
     companyId: d.company_id,
     companyName: d.company_name || '',
+    createdBy: d.created_by,
     companyLogo: '',
     title: d.title,
     shortDescription: d.summary,

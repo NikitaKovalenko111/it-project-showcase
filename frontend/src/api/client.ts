@@ -394,7 +394,7 @@ export const apiClient = {
         company_id: filters?.companyId,
       })
       const managed = new Set<string>()
-      if (actor?.role === 'company') {
+      if (['company', 'admin'].includes(actor?.role)) {
         const own = await collectPages<any>((params) =>
           axiosInstance.get('/cases/mine', { params }),
         )

@@ -1,3 +1,4 @@
+import { canEditCaseDraft } from '../utils/publicationAccess'
 import { apiClient } from '../api/client'
 import { complexityBadge } from '../utils/publication'
 import MDEditor from '@uiw/react-md-editor'
@@ -174,23 +175,28 @@ export const CaseDetailPage: React.FC = () => {
 
         <div className="page-actions">
           <AdminCaseActions project={activeCase} />
-          {isCompanyRepresentative && activeCase.status === 'moderation' && (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={async () => {
-                try {
-                  await apiClient.withdrawCaseModeration(activeCase.id)
-                  dispatch(fetchCaseByIdRequest(activeCase.id))
-                  setApplicationNotice('Публикация отозвана для редактирования.')
-                } catch (cause) {
-                  setApplicationNotice((cause as Error).message)
-                }
-              }}
-            >
-              Отозвать с модерации
-            </button>
-          )}
-          {canManageCase(currentUser, activeCase) && (
+          {(isCompanyRepresentative ||
+            (currentUser?.role === 'admin' && activeCase.createdBy === currentUser.id)) &&
+            activeCase.status === 'moderation' && (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={async () => {
+                  try {
+                    await apiClient.withdrawCaseModeration(activeCase.id)
+                    dispatch(fetchCaseByIdRequest(activeCase.id))
+                    setApplicationNotice('Публикация отозвана для редактирования.')
+                  } catch (cause) {
+                    setApplicationNotice((cause as Error).message)
+                  }
+                }}
+              >
+                Отозвать с модерации
+              </button>
+            )}
+          {(apiRuntime.mode === 'live'
+            ? canEditCaseDraft(currentUser, activeCase) ||
+              (isCompanyRepresentative && ['open', 'in_progress'].includes(activeCase.status))
+            : canManageCase(currentUser, activeCase)) && (
             <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
               Редактировать кейс
             </button>

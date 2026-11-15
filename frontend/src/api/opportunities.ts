@@ -9,6 +9,7 @@ import type { User } from '../types/models'
 export type OpportunityKind = 'internship' | 'practice'
 export type Opportunity = {
   program_id: string
+  created_by?: string
   kind: OpportunityKind
   company_id: string
   company_name: string

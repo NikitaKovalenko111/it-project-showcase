@@ -1,3 +1,4 @@
+import { canEditCaseDraft } from '../utils/publicationAccess'
 import { CaseComments } from './CaseComments'
 import { ReportTableView } from './ReportTableView'
 import { useConfirm } from './ConfirmProvider'
@@ -35,8 +36,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const liveOlympiad = live && olympiad
   const hasEventPlan = project.kind === 'hackathon' || olympiad
   const curator = user?.role === 'curator'
-  const canSubmit =
-    live && user?.role === 'company' && manager && ['draft', 'revision'].includes(project.status)
+  const canSubmit = live && canEditCaseDraft(user, project)
   const [params] = useSearchParams()
   const [entries, setEntries] = useState<Execution[]>([]),
     [selected, setSelected] = useState(''),
@@ -323,7 +323,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                   editable={
                     live
                       ? manager &&
-                        user?.role === 'company' &&
+                        (user?.role === 'company' || canEditCaseDraft(user, project)) &&
                         !finished &&
                         ['draft', 'revision', 'open', 'in_progress'].includes(project.status)
                       : manager && !finished
