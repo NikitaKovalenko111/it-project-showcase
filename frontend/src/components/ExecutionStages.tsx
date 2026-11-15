@@ -1,4 +1,4 @@
-import { formatDate } from '../utils/date'
+import { formatDate, isPastDeadline } from '../utils/date'
 import { useConfirm } from './ConfirmProvider'
 import React, { useState } from 'react'
 import { Paperclip, CheckCircle2, Upload } from 'lucide-react'
@@ -48,6 +48,10 @@ export const ExecutionStages: React.FC<{
       {entry.milestones?.map((stage) => {
         const accepted = stage.status === 'accepted',
           current = ['in_progress', 'submitted', 'needs_work'].includes(stage.status)
+        const overdue =
+          !finished &&
+          ['pending', 'in_progress', 'needs_work'].includes(stage.status) &&
+          isPastDeadline(stage.deadline)
         return (
           <article
             className={`milestone-item ${accepted ? 'status-accepted' : current ? 'status-in_progress' : ''}`}
@@ -60,7 +64,7 @@ export const ExecutionStages: React.FC<{
               <div className="step-heading">
                 <h4 className="step-title">{stage.title}</h4>
                 <span
-                  className={`badge badge-status ${accepted ? 'status-completed' : current ? 'status-open' : 'status-moderation'}`}
+                  className={`badge badge-status ${accepted ? 'status-completed' : current ? 'status-open' : 'status-pending'}`}
                 >
                   {
                     {
@@ -74,7 +78,10 @@ export const ExecutionStages: React.FC<{
                 </span>
               </div>
               <p className="step-desc preserve-text">{stage.description}</p>
-              <p className="step-deadline">Срок сдачи: {formatDate(stage.deadline)}</p>
+              <p className="step-deadline">
+                Срок сдачи: {formatDate(stage.deadline)}
+                {overdue && <span className="badge badge-status status-overdue">Просрочено</span>}
+              </p>
               <div className="stage-files">
                 {stage.attachedMaterials.map((f, i) => (
                   <span className="portfolio-file" key={i}>

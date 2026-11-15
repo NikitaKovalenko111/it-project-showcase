@@ -1,3 +1,4 @@
+import { LocalizedFileInput } from './LocalizedFileInput'
 import React from 'react'
 import { FileText, Trash2 } from 'lucide-react'
 export const FilePicker: React.FC<{
@@ -9,8 +10,7 @@ export const FilePicker: React.FC<{
   <div className="file-picker">
     <label>
       {label}
-      <input
-        type="file"
+      <LocalizedFileInput
         multiple
         accept={accept}
         onChange={(e) => {

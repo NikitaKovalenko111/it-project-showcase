@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { useConfirm } from './ConfirmProvider'
 import React, { useEffect, useState } from 'react'
 import { Trash2, ArrowUp, ArrowDown, Plus } from 'lucide-react'
@@ -10,9 +11,9 @@ export const SharedProjectPlan: React.FC<{
   project: CaseProject
   editable: boolean
   onSaved: () => Promise<void>
-}> = ({ project, editable, onSaved }) => {
+  onOpenDeadlines?: () => void
+}> = ({ project, editable, onSaved, onOpenDeadlines }) => {
   const confirm = useConfirm()
-  const [locked, setLocked] = useState(false)
   const [rows, setRows] = useState<Row[]>([]),
     [baseline, setBaseline] = useState<Row[]>([]),
     [error, setError] = useState(''),
@@ -57,24 +58,13 @@ export const SharedProjectPlan: React.FC<{
       setBaseline(result)
       setSaved(true)
     } catch (e) {
-      const failure = e as Error & { code?: string }
-      if (failure.code === 'case_stages_locked') {
-        await loadPlan().catch(() => undefined)
-        setLocked(true)
-        setError('Этапы зафиксированы: по проекту уже создано выполнение.')
-      } else if (apiRuntime.mode === 'live') {
+      setError((e as Error).message)
+      if (apiRuntime.mode === 'live') {
         try {
           await loadPlan()
-          setError(
-            `${failure.message}. Показан актуальный план с сервера. Проверьте, какие изменения сохранились.`,
-          )
         } catch {
-          setError(
-            `${failure.message}. Не удалось обновить план. Откройте страницу заново перед повторной попыткой.`,
-          )
+          setError('Не удалось загрузить план после ошибки. Откройте вкладку заново.')
         }
-      } else {
-        setError(failure.message)
       }
       return
     } finally {
@@ -95,12 +85,24 @@ export const SharedProjectPlan: React.FC<{
       return next
     })
   if (loading) return <p role="status">Загрузка этапов…</p>
-  if (!editable || locked)
+  if (!editable)
     return (
       <section className="shared-plan readonly-plan">
-        <h2>{project.kind === 'olympiad' ? 'Расписание туров' : 'План задания'}</h2>
+        <h2>
+          {project.kind === 'olympiad' && apiRuntime.mode !== 'live'
+            ? 'Расписание туров'
+            : 'Контрольные точки'}
+        </h2>
         {error && <p role="alert">{error}</p>}
         <p>Организатор задаёт общие сроки и требования для всех участников.</p>
+        {onOpenDeadlines && (
+          <div className="action-row">
+            <small>Названия, состав и порядок контрольных точек редактируются в черновике.</small>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onOpenDeadlines}>
+              Перенести сроки
+            </button>
+          </div>
+        )}
         <div className="workspace-page__milestones">
           {rows.map((row, i) => (
             <article className="milestone-item" key={row.id}>
@@ -121,7 +123,9 @@ export const SharedProjectPlan: React.FC<{
       <div className="feature-toolbar">
         <div>
           <h2>
-            {project.kind === 'olympiad' ? 'Общее расписание туров' : 'Общий план реализации'}
+            {project.kind === 'olympiad' && apiRuntime.mode !== 'live'
+              ? 'Общее расписание туров'
+              : 'Общий план реализации'}
           </h2>
           <p>
             Названия, порядок и сроки общие для всех. Файлы, прогресс и рецензии хранятся отдельно у
@@ -223,7 +227,7 @@ export const SharedProjectPlan: React.FC<{
               onClick={() =>
                 setRows((rs) => [
                   ...rs,
-                  { id: `plan_${crypto.randomUUID()}`, title: '', description: '', deadline: '' },
+                  { id: `plan_${createId()}`, title: '', description: '', deadline: '' },
                 ])
               }
             >
@@ -244,7 +248,12 @@ export const SharedProjectPlan: React.FC<{
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              disabled={!Number.isInteger(shift) || !rows.length}
+              disabled={
+                !Number.isInteger(shift) ||
+                Math.abs(shift) > 365 ||
+                !shift ||
+                !rows.some((row) => row.deadline)
+              }
               onClick={() =>
                 setRows((rs) =>
                   rs.map((r) => {

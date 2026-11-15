@@ -1,11 +1,11 @@
-import { useConfirm } from './ConfirmProvider'
+import { apiRuntime } from '../api/runtime'
+import { useConfirmWithReason } from './ConfirmProvider'
 import React, { useState } from 'react'
 import { User } from '../types/models'
-import { apiClient, axiosInstance } from '../api/client'
-import { apiRuntime } from '../api/runtime'
+import { apiClient } from '../api/client'
 import { useAppSelector } from '../store'
 export const AdminUserActions: React.FC<{ user: User }> = ({ user }) => {
-  const confirm = useConfirm()
+  const confirm = useConfirmWithReason()
   const actor = useAppSelector((s) => s.auth.currentUser)
   const [blocked, setBlocked] = useState(!!user.isBlocked),
     [busy, setBusy] = useState(false),
@@ -14,23 +14,21 @@ export const AdminUserActions: React.FC<{ user: User }> = ({ user }) => {
   return (
     <section className="action-row">
       <button
-        className="btn btn-secondary"
+        className={blocked ? 'btn btn-secondary' : 'btn btn-danger'}
         disabled={busy}
         onClick={async () => {
-          if (
-            !(await confirm(
-              `${blocked ? 'Разблокировать' : 'Заблокировать'} пользователя ${user.fullName}?`,
-            ))
+          const action = blocked ? 'Разблокировать' : 'Заблокировать'
+          const reason = await confirm(
+            `${action} пользователя ${user.fullName} (@${user.username})?`,
+            action,
+            !blocked && apiRuntime.mode !== 'live',
+            !blocked,
           )
-            return
+          if (reason === null) return
           setBusy(true)
           setMessage('')
           try {
-            if (apiRuntime.mode === 'live')
-              await axiosInstance.patch(`/users/${user.id}/status`, {
-                status: blocked ? 'active' : 'blocked',
-              })
-            else await apiClient.toggleUserBlock(user.id)
+            await apiClient.setUserBlock(user, !blocked, reason)
             setBlocked(!blocked)
             setMessage('Статус пользователя изменён')
           } catch (e) {

@@ -178,7 +178,7 @@ test('company program permissions and curator assignments persist', () => {
 test('team cap prevents accepting excess applications without changing their status', () => {
   const env = setup()
   env.login('usr_company_1')
-  const applications = JSON.parse(memory.get('uust_showcase_v2_applications'))
+  const applications = JSON.parse(memory.get('uust_showcase_curated_v1_applications'))
   applications.push({
     ...applications[1],
     id: 'excess',
@@ -186,7 +186,7 @@ test('team cap prevents accepting excess applications without changing their sta
     companyId: 'comp_1',
     status: 'pending',
   })
-  memory.set('uust_showcase_v2_applications', JSON.stringify(applications))
+  memory.set('uust_showcase_curated_v1_applications', JSON.stringify(applications))
   const server = new MockServer()
   const project = server.getCaseById('case_1')
   server.updateCase({ ...project, maxTeams: 1 })

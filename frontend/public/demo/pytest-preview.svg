@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-label="Демо вывода генератора тестов">
+  <rect width="640" height="320" rx="16" fill="#14243b"/>
+  <rect x="20" y="20" width="600" height="280" rx="10" fill="#1d324d"/>
+  <g font-family="monospace" font-size="20" fill="#e0ecfa">
+    <text x="44" y="65">smart-pytest-gen</text>
+    <text x="44" y="119">$ pytest tests/test_parser.py</text>
+    <text x="44" y="173">test_reads_function ........... PASSED</text>
+    <text x="44" y="211">test_handles_empty_input ...... PASSED</text>
+    <text x="44" y="267" fill="#9fe2bb">2 passed</text>
+  </g>
+</svg>

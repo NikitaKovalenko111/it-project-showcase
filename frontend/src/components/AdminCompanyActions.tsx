@@ -14,7 +14,7 @@ export const AdminCompanyActions: React.FC<{ company: Company }> = ({ company })
   return (
     <>
       <button
-        className="btn btn-secondary btn-sm"
+        className="btn btn-danger btn-sm"
         disabled={busy || company.isBlocked}
         onClick={async () => {
           if (!(await confirm(`Приостановить деятельность компании «${company.name}»?`))) return

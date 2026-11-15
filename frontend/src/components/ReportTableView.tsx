@@ -1,5 +1,28 @@
 import { useState, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { PaginationControls } from './PaginatedGrid'
+
+export function useTablePagination<T>(rows: T[], label: string, filter = '') {
+  const [selection, setSelection] = useState({ page: 1, filter })
+  const [size, setSize] = useState(10)
+  const pages = Math.max(1, Math.ceil(rows.length / size))
+  const current = Math.min(selection.filter === filter ? selection.page : 1, pages)
+  const start = (current - 1) * size
+  return {
+    items: rows.slice(start, start + size),
+    controls: rows.length > 0 && (
+      <PaginationControls
+        current={current}
+        pages={pages}
+        size={size}
+        label={`Страницы списка «${label}»`}
+        change={(page, nextSize) => {
+          setSelection({ page, filter })
+          if (nextSize !== undefined) setSize(nextSize)
+        }}
+      />
+    ),
+  }
+}
 
 export function ReportTableView({
   label,
@@ -12,17 +35,13 @@ export function ReportTableView({
   rows: { id: string | number; cells: ReactNode[] }[]
   emptyText: string
 }) {
-  const [page, setPage] = useState(1)
-  const size = 10
-  const pages = Math.max(1, Math.ceil(rows.length / size))
-  const current = Math.min(page, pages)
-  const start = (current - 1) * size
+  const { items, controls } = useTablePagination(rows, label)
   if (!rows.length) return <p className="report-table-empty">{emptyText}</p>
 
   return (
     <>
       <div
-        className="table-container report-table-scroll"
+        className="table-container report-table-scroll report-table-responsive"
         tabIndex={0}
         role="region"
         aria-label={label}
@@ -38,41 +57,19 @@ export function ReportTableView({
             </tr>
           </thead>
           <tbody>
-            {rows.slice(start, start + size).map((row) => (
+            {items.map((row) => (
               <tr key={row.id}>
                 {row.cells.map((cell, index) => (
-                  <td key={index}>{cell}</td>
+                  <td key={index} data-label={headers[index]}>
+                    {cell}
+                  </td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {pages > 1 && (
-        <nav className="report-table-pager" aria-label={`Страницы: ${label}`}>
-          <span aria-live="polite">
-            {start + 1}–{Math.min(start + size, rows.length)} из {rows.length}
-          </span>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            aria-label="Предыдущая страница"
-            disabled={current === 1}
-            onClick={() => setPage(current - 1)}
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            aria-label="Следующая страница"
-            disabled={current === pages}
-            onClick={() => setPage(current + 1)}
-          >
-            <ChevronRight size={16} />
-          </button>
-        </nav>
-      )}
+      {controls}
     </>
   )
 }

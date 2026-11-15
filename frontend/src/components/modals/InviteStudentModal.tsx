@@ -64,7 +64,7 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog student-invite-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <UserCheck size={20} color="#1b5e91" />

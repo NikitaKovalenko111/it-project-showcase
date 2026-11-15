@@ -40,15 +40,15 @@ export const DemoBar: React.FC = () => {
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_student_1' ? 'active' : ''}`}
           onClick={() => handleSelectRole('usr_student_1')}
-          title="Студент-разработчик (Иван Петров, ПИ-301Б)"
+          title="Студент-разработчик (Алексей Миронов, ПИ-201)"
         >
-          <GraduationCap size={14} aria-hidden="true" /> Студент (Иван)
+          <GraduationCap size={14} aria-hidden="true" /> Студент
         </button>
 
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_company_1' ? 'active' : ''}`}
           onClick={() => handleSelectRole('usr_company_1')}
-          title="Представитель компании (БашНефтеАвтоматика)"
+          title="Представитель компании (ПромКонтур)"
         >
           <Building2 size={14} aria-hidden="true" /> Компания (R&D)
         </button>
@@ -56,7 +56,7 @@ export const DemoBar: React.FC = () => {
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_curator_1' ? 'active' : ''}`}
           onClick={() => handleSelectRole('usr_curator_1')}
-          title="Сотрудник / Куратор кафедры (Елена Ахметова)"
+          title="Сотрудник / Куратор (Елена Ахметова)"
         >
           <Landmark size={14} aria-hidden="true" /> Куратор
         </button>
@@ -72,7 +72,7 @@ export const DemoBar: React.FC = () => {
         <button
           className={`demo-bar__role-btn ${currentUser?.id === 'usr_student_2' ? 'active' : ''}`}
           onClick={() => handleSelectRole('usr_student_2')}
-          title="Студент-дизайнер (Мария Васильева, ИВТ-402)"
+          title="Студент-дизайнер (Мария Белова, ИВТ-301)"
         >
           <Palette size={14} aria-hidden="true" /> Студент (Мария)
         </button>

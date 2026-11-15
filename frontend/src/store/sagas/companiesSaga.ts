@@ -18,7 +18,12 @@ function* handleFetchCompanyById(action: { type: string; payload: { id: string }
     const company: Company = yield call(apiClient.getCompanyById, action.payload.id)
     yield put(actions.fetchCompanyByIdSuccess(company))
   } catch (error: any) {
-    console.error(error)
+    yield put(
+      actions.fetchCompanyByIdFailure(
+        action.payload.id,
+        error.message || 'Не удалось загрузить компанию.',
+      ),
+    )
   }
 }
 

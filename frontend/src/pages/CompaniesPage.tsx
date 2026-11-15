@@ -1,6 +1,8 @@
+import { ExpandableText } from '../components/ExpandableText'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
+import { InternshipModeration } from '../components/InternshipModeration'
 import { canModerate, matchesSearch } from '../utils/publication'
 import React, { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -19,13 +21,18 @@ import {
 
 export const CompaniesPage: React.FC = () => {
   const dispatch = useAppDispatch()
+  const { casesList } = useAppSelector((state) => state.cases)
   const { companiesList, loading } = useAppSelector((state) => state.companies)
 
   const { currentUser } = useAppSelector((state) => state.auth)
   const [search, setSearch] = useState('')
   const [query] = useSearchParams()
-  const [section, setSection] = useState<'companies' | 'cases'>(
-    query.get('review') === 'cases' && canModerate(currentUser) ? 'cases' : 'companies',
+  const [section, setSection] = useState<'companies' | 'cases' | 'opportunities'>(
+    canModerate(currentUser) && query.get('review') === 'cases'
+      ? 'cases'
+      : canModerate(currentUser) && query.get('review') === 'opportunities'
+        ? 'opportunities'
+        : 'companies',
   )
   const filteredCompanies = companiesList.filter((company) =>
     matchesSearch(search, company.name, company.shortName, company.industry, company.techStack),
@@ -40,15 +47,11 @@ export const CompaniesPage: React.FC = () => {
       <div className="page-header">
         <div className="page-header__content">
           <h1>Компании-партнёры</h1>
-          <p>
-            Реестр индустриальных партнёров, высокотехнологичных предприятий и ИТ-компаний,
-            размещающих проектные кейсы для студентов.
-          </p>
         </div>
       </div>
 
       {canModerate(currentUser) && (
-        <div className="tabs-bar">
+        <div className="tabs-bar mobile-wrap-tabs">
           <button
             className={`tab-btn ${section === 'companies' ? 'active' : ''}`}
             onClick={() => setSection('companies')}
@@ -61,17 +64,21 @@ export const CompaniesPage: React.FC = () => {
           >
             Заявки на публикацию кейсов
           </button>
+          <button
+            className={`tab-btn ${section === 'opportunities' ? 'active' : ''}`}
+            onClick={() => setSection('opportunities')}
+          >
+            Публикации стажировок и практик
+          </button>
         </div>
       )}
       {section === 'cases' ? (
         <PublicationReviewQueue kind="case" />
+      ) : section === 'opportunities' ? (
+        <InternshipModeration />
       ) : (
         <>
-          <CatalogSearch
-            value={search}
-            onChange={setSearch}
-            label="Поиск по компании, отрасли или технологии"
-          />
+          <CatalogSearch value={search} onChange={setSearch} label="Компания или технология" />
           {!loading && <p aria-live="polite">Найдено компаний: {filteredCompanies.length}</p>}
           {!loading && !filteredCompanies.length && (
             <div className="card empty-state">Компании не найдены.</div>
@@ -132,17 +139,7 @@ export const CompaniesPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <p
-                      style={{
-                        margin: '0 0 16px',
-                        fontSize: '12.5px',
-                        color: '#334455',
-                        lineHeight: 1.55,
-                        minHeight: '56px',
-                      }}
-                    >
-                      {comp.description}
-                    </p>
+                    <ExpandableText compact text={comp.description} />
 
                     <div
                       className="responsive-grid"
@@ -159,12 +156,30 @@ export const CompaniesPage: React.FC = () => {
                       }}
                     >
                       <div>
-                        Кейсов в семестре:{' '}
-                        <strong style={{ color: '#0c1938' }}>{comp.activeCasesCount}</strong>
+                        Активных кейсов:{' '}
+                        <strong style={{ color: '#0c1938' }}>
+                          {
+                            casesList.filter(
+                              (item) =>
+                                item.companyId === comp.id &&
+                                item.isModerated &&
+                                ['open', 'in_progress'].includes(item.status),
+                            ).length
+                          }
+                        </strong>
                       </div>
                       <div>
                         Завершено проектов:{' '}
-                        <strong style={{ color: '#0c1938' }}>{comp.completedProjectsCount}</strong>
+                        <strong style={{ color: '#0c1938' }}>
+                          {
+                            casesList.filter(
+                              (item) =>
+                                item.companyId === comp.id &&
+                                item.isModerated &&
+                                item.status === 'completed',
+                            ).length
+                          }
+                        </strong>
                       </div>
                     </div>
 
@@ -188,7 +203,7 @@ export const CompaniesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="case-card__footer-bar">
+                  <div className="case-card__footer-bar company-directory-footer">
                     <a
                       href={comp.website}
                       target="_blank"

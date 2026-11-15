@@ -73,13 +73,6 @@ export const WorkspaceListPage: React.FC = () => {
                 ? 'Мониторинг кейсов'
                 : 'Активные проекты'}
           </h1>
-          <p>
-            {companyView
-              ? 'Выберите проект: внутри — команды, этапы, проверка работ и общий план.'
-              : currentUser?.role === 'curator'
-                ? 'Контролируйте этапы выполнения и результаты участников.'
-                : 'Выберите проект, чтобы открыть выполнение своего задания.'}
-          </p>
         </div>
       </div>
       <div className="uust-container attached-tabs">
@@ -127,7 +120,7 @@ export const WorkspaceListPage: React.FC = () => {
       ) : (
         <>
           <p aria-live="polite">Найдено проектов: {projects.length}</p>
-          <PaginatedGrid>
+          <PaginatedGrid pageSize={6} paginationKey="activeProjects">
             {projects.map((project) => (
               <ProjectSummaryCard key={project.id} project={project} workspace />
             ))}

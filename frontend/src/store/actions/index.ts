@@ -95,9 +95,9 @@ export const fetchAllUsersSuccess = (users: User[]) => ({
   payload: { users },
 })
 
-export const toggleUserBlockRequest = (userId: string) => ({
+export const toggleUserBlockRequest = (user: User, blocked: boolean, reason: string) => ({
   type: types.TOGGLE_USER_BLOCK_REQUEST,
-  payload: { userId },
+  payload: { user, blocked, reason },
 })
 
 export const toggleUserBlockSuccess = (user: User) => ({
@@ -421,6 +421,11 @@ export const fetchCompaniesFailure = (error: string) => ({
 export const fetchCompanyByIdRequest = (id: string) => ({
   type: types.FETCH_COMPANY_BY_ID_REQUEST,
   payload: { id },
+})
+
+export const fetchCompanyByIdFailure = (id: string, error: string) => ({
+  type: types.FETCH_COMPANY_BY_ID_FAILURE,
+  payload: { id, error },
 })
 
 export const fetchCompanyByIdSuccess = (company: Company) => ({
