@@ -174,13 +174,14 @@ func scanInternship(row interface{ Scan(...any) error }) (*models.InternshipProg
 	return &x, e
 }
 func (r *Repository) CreateInternship(ctx context.Context, user string, in models.InternshipInput) (*models.InternshipProgram, error) {
-	tx, e := r.db.BeginTx(ctx, nil)
+	tx, e := audit.Begin(ctx, r.db)
 	if e != nil {
 		return nil, e
 	}
 	defer tx.Rollback()
 	var id string
-	e = tx.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline,capacity,kind) SELECT $2,$1,$3,$4,$5,$6,$7,$8 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind).Scan(&id)
+	e = tx.QueryRowContext(ctx, `INSERT INTO showcase.internship_programs(company_id,created_by,title,summary,content_markdown,application_deadline,capacity,kind) SELECT $2,$1,$3,$4,$5,$6,$7,$8 WHERE EXISTS (SELECT 1 FROM showcase.company_members m WHERE m.user_id=$1 AND m.company_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+		OR (showcase.is_active_admin($1) AND EXISTS (SELECT 1 FROM showcase.companies WHERE company_id=$2 AND status='approved')) RETURNING program_id`, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind).Scan(&id)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
@@ -210,7 +211,7 @@ func (r *Repository) ListInternships(ctx context.Context, status, owner string, 
 			SELECT 1 FROM showcase.company_members m
 			WHERE m.company_id=p.company_id AND m.user_id=NULLIF($2,'')::uuid AND m.status='active'
 			AND m.permissions ? 'manage_company'
-		))`
+		) OR (p.created_by=NULLIF($2,'')::uuid AND showcase.is_active_admin(NULLIF($2,'')::uuid)))`
 	rows, e := r.db.QueryContext(ctx, `SELECT `+internshipCols+
 		` FROM showcase.internship_programs p JOIN showcase.companies c ON c.company_id=p.company_id`+
 		scope+
@@ -236,7 +237,7 @@ func (r *Repository) ListInternships(ctx context.Context, status, owner string, 
 }
 
 func (r *Repository) UpdateInternship(ctx context.Context, user, programID string, in models.InternshipInput) (*models.InternshipProgram, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
@@ -247,8 +248,8 @@ func (r *Repository) UpdateInternship(ctx context.Context, user, programID strin
 			status=CASE WHEN p.status='published' THEN 'revision' ELSE p.status END
 		WHERE p.program_id=$1 AND p.company_id=$3 AND p.status IN ('draft','revision','published') AND ($9='' OR p.kind=$9)
 			AND ($8::int IS NULL OR $8 >= (SELECT count(*) FROM showcase.internship_applications a WHERE a.program_id=p.program_id AND a.status='accepted'))
-			AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id
-				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+			AND (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id
+				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR (p.status IN ('draft','revision') AND (p.created_by=$2 AND showcase.is_active_admin($2))))
 		RETURNING p.*
 	) SELECT `+internshipCols+` FROM updated p JOIN showcase.companies c ON c.company_id=p.company_id`,
 		programID, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind))
@@ -297,13 +298,19 @@ func (r *Repository) UpdateInternshipStatus(ctx context.Context, user, id, statu
 }
 
 func (r *Repository) UpdateInternshipStatusByRole(ctx context.Context, user, id, status, comment string, admin, curator bool) (*models.InternshipProgram, error) {
-	item, e := scanInternship(r.db.QueryRowContext(ctx, `WITH updated AS (
+	tx, err := audit.Begin(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	item, e := scanInternship(tx.QueryRowContext(ctx, `WITH updated AS (
 		UPDATE showcase.internship_programs p SET status=$3,
 		moderation_comment=CASE WHEN $3='draft' THEN p.moderation_comment ELSE NULLIF($4,'') END,
 		published_at=CASE WHEN $3='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END
 		WHERE p.program_id=$1 AND (
 			(($5 OR $6) AND p.status='moderation' AND $3 IN ('published','revision'))
 			OR ($5 AND p.status IN ('published','closed') AND $3='hidden')
+			OR ($5 AND p.created_by=$2 AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='moderation' AND $3='draft')))
 			OR (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
 				AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='published' AND $3='closed')
 					OR (p.status='moderation' AND $3='draft'))))
@@ -312,7 +319,10 @@ func (r *Repository) UpdateInternshipStatusByRole(ctx context.Context, user, id,
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
 	}
-	return item, e
+	if e != nil {
+		return nil, e
+	}
+	return item, tx.Commit()
 }
 
 func (r *Repository) Leaderboard(ctx context.Context, caseID, user string, admin bool) ([]models.LeaderboardEntry, error) {
@@ -619,7 +629,7 @@ func (r *Repository) CreateNDAVersion(ctx context.Context, user, caseID, text, f
 	}
 	defer tx.Rollback()
 	var allowed bool
-	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM showcase.cases c JOIN showcase.company_members m ON m.company_id=c.company_id WHERE c.case_id=$1 AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company' AND c.status='draft')`, caseID, user).Scan(&allowed)
+	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM showcase.cases c WHERE c.case_id=$1 AND c.status='draft' AND ((c.created_by=$2 AND showcase.is_active_admin($2)) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, caseID, user).Scan(&allowed)
 	if e != nil || !allowed {
 		return nil, ErrForbidden
 	}
@@ -671,7 +681,7 @@ func (r *Repository) AcceptNDA(ctx context.Context, user, caseID, versionID stri
 	return nil
 }
 func (r *Repository) SetCaseCover(ctx context.Context, user, caseID, fileID string) error {
-	res, e := audit.Exec(ctx, r.db, `UPDATE showcase.cases c SET cover_file_id=$3 WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') AND EXISTS(SELECT 1 FROM showcase.files f WHERE f.file_id=$3 AND f.uploaded_by=$2 AND f.status='active' AND f.mime_type LIKE 'image/%')`, caseID, user, fileID)
+	res, e := audit.Exec(ctx, r.db, `UPDATE showcase.cases c SET cover_file_id=$3 WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND ((c.created_by=$2 AND showcase.is_active_admin($2)) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')) AND EXISTS(SELECT 1 FROM showcase.files f WHERE f.file_id=$3 AND f.uploaded_by=$2 AND f.status='active' AND f.mime_type LIKE 'image/%')`, caseID, user, fileID)
 	if e != nil {
 		return e
 	}

@@ -566,6 +566,86 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		}
 	})
 
+	t.Run("admin prepares and publishes company listings", func(t *testing.T) {
+		administrator, anotherAdmin := newUser(false), newUser(false)
+		for _, actor := range []string{administrator, anotherAdmin} {
+			exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='admin'`, actor)
+		}
+		adminToken := func(actor string) string {
+			t.Helper()
+			token, _, err := pkg.CreateAccessTokenWithRoles(actor, []string{"admin"}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return token
+		}
+		send := func(method, path, token string, input any, expected int) []byte {
+			t.Helper()
+			var payload []byte
+			if input != nil {
+				var err error
+				payload, err = json.Marshal(input)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			response := request(method, path, token, string(payload))
+			if response.Code != expected {
+				t.Fatalf("%s %s: %d %s", method, path, response.Code, response.Body)
+			}
+			return response.Body.Bytes()
+		}
+		token := adminToken(administrator)
+		image := id(`INSERT INTO files(storage_key,original_name,mime_type,size_bytes,checksum_sha256,uploaded_by)
+			VALUES($1,'cover.png','image/png',12,'test',$2) RETURNING file_id`, uuid.NewString(), administrator)
+		caseInput := models.CaseInput{
+			CompanyID: company, Title: "Admin hackathon", Summary: "Summary", FullBrief: "Brief", Type: "educational",
+			EventFormat: "hackathon", WorkFormat: "remote", ParticipationMode: "individual", AdmissionMode: "open",
+			Capacity: &one, TeamSizeMin: &one, TeamSizeMax: &one, ApplicationDeadline: &deadline, DueAt: &dueAt,
+			ResultRequirements: "Result", IPTerms: "Terms", Visibility: "public",
+		}
+		var created models.Case
+		if err := json.Unmarshal(send(http.MethodPost, "/cases", token, caseInput, 201), &created); err != nil {
+			t.Fatal(err)
+		}
+		if created.CreatedBy != administrator || created.Status != "draft" {
+			t.Fatalf("case author or status: %+v", created)
+		}
+		send(http.MethodGet, "/cases/mine", token, nil, 200)
+		casePath := "/cases/" + created.CaseID
+		caseInput.Title = "Edited admin hackathon"
+		send(http.MethodPut, casePath, adminToken(anotherAdmin), caseInput, 403)
+		send(http.MethodPut, casePath, token, caseInput, 200)
+		send(http.MethodPut, casePath+"/cover", token, map[string]string{"file_id": image}, 204)
+		send(http.MethodPost, casePath+"/stages", token, models.CaseStageInput{Title: "Checkpoint", Ordinal: 1}, 201)
+		send(http.MethodPut, casePath+"/event-plan", token, models.EventPlan{
+			Subject: "Programming", TimeZone: "Asia/Yekaterinburg", PlatformName: "Platform", PlatformURL: "https://example.test",
+		}, 204)
+		send(http.MethodPost, casePath+"/submit-moderation", token, nil, 200)
+		send(http.MethodPatch, casePath+"/moderation", token, map[string]string{"decision": "approve"}, 200)
+		if actor := id(`SELECT moderator_id FROM case_moderation_events WHERE case_id=$1 AND decision='approve'`, created.CaseID); actor != administrator {
+			t.Fatalf("case moderator: %s", actor)
+		}
+		for _, kind := range []string{"internship", "practice"} {
+			input := models.InternshipInput{CompanyID: company, Title: "Admin " + kind, Summary: "Summary", ContentMarkdown: "Description", Kind: kind, Capacity: &one, FileIDs: []string{image}}
+			var program models.InternshipProgram
+			if err := json.Unmarshal(send(http.MethodPost, "/internships", token, input, 201), &program); err != nil {
+				t.Fatal(err)
+			}
+			send(http.MethodGet, "/internships/mine", token, nil, 200)
+			programPath := "/internships/" + program.ProgramID
+			input.Title = "Edited " + kind
+			send(http.MethodPut, programPath, token, input, 200)
+			for _, status := range []string{"moderation", "published"} {
+				send(http.MethodPatch, programPath+"/status", token, map[string]string{"status": status}, 200)
+			}
+			if actor := id(`SELECT actor_id FROM audit_logs WHERE entity_id=$1 AND entity_type='internship'
+				AND new_data->>'status'='published'`, program.ProgramID); actor != administrator {
+				t.Fatalf("program publisher: %s", actor)
+			}
+		}
+	})
+
 	t.Run("registration profile and curator directory", func(t *testing.T) {
 		name := "qa-" + uuid.NewString()[:12]
 		profile := `"first_name":"Test","last_name":"Student","institute":"Institute","direction":"Direction","group_name":"QA-101","course":2`

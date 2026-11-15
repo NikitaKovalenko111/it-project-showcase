@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"it-project-showcase/backend/internal/models"
+	"it-project-showcase/backend/internal/storage/audit"
 )
 
 var ErrRoundWindow = errors.New("round is not open for submissions")
@@ -19,7 +20,7 @@ const eventManager = `EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=
 	AND m.user_id=NULLIF($2,'')::uuid AND m.status='active' AND m.permissions ? 'manage_company')`
 
 func (r *Repository) SetEventPlan(ctx context.Context, user, caseID string, plan models.EventPlan) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := audit.Begin(ctx, r.db)
 	if err != nil {
 		return err
 	}
