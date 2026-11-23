@@ -2,6 +2,7 @@ import { createId } from '../../utils/id'
 import { LocalizedFileInput } from '../LocalizedFileInput'
 import { Modal } from '../Modal'
 import { axiosInstance } from '../../api/http'
+import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
 import { localDate } from '../../utils/date'
 import { apiRuntime } from '../../api/runtime'
 import React, { useEffect, useState } from 'react'
@@ -31,16 +32,22 @@ import {
 const live = apiRuntime.mode === 'live'
 const olympiadSubjects = ['Математика', 'Программирование', 'Физика', 'Информатика', 'Другое']
 
-export const CreateCaseModal: React.FC<{
+type CreateCaseProps = {
   caseItem?: CaseProject
   isOpen: boolean
   onClose: () => void
-}> = ({ caseItem, isOpen, onClose }) => {
+}
+
+export const CreateCaseModal: React.FC<CreateCaseProps> = (props) =>
+  props.isOpen ? <CreateCaseForm {...props} /> : null
+
+const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const [draft, setDraft] = useState<CaseProject>()
+  const [ndaText, setNdaText] = useState('')
   const [opportunity, setOpportunity] = useState<OpportunityKind>()
   const [opportunityNotice, setOpportunityNotice] = useState('')
-  const [registrationDeadline, setRegistrationDeadline] = useState('')
   const user = useAppSelector((s) => s.auth.currentUser),
     companies = useAppSelector((s) => s.companies.companiesList)
   const [kind, setKind] = useState<CaseKind>('case'),
@@ -105,11 +112,20 @@ export const CreateCaseModal: React.FC<{
   useEffect(() => {
     if (!isOpen) return
     setError('')
+    setDraft(undefined)
+    setNdaText('')
     setOpportunity(undefined)
     setOpportunityNotice('')
     setSpec(null)
     setCover(null)
-    setCompanyId(caseItem?.companyId || user?.companyProfile?.companyId || companies[0]?.id || '')
+    setCompanyId(
+      caseItem?.companyId ||
+        user?.companyProfile?.companyId ||
+        companies.find(
+          (company) => user?.role !== 'admin' || (company.isVerified && !company.isBlocked),
+        )?.id ||
+        '',
+    )
     setKind(caseItem?.kind || 'case')
     setSelectedSkills(caseItem?.requiredCompetencies || [])
     if (caseItem) {
@@ -120,7 +136,6 @@ export const CreateCaseModal: React.FC<{
       setShort(caseItem.shortDescription)
       setDirection(caseItem.direction)
       setDeadline(caseItem.deadlineDate)
-      setRegistrationDeadline(caseItem.applicationDeadline?.slice(0, 10) || '')
       setFormat(caseItem.workFormat)
       setSkills(caseItem.requiredCompetencies.join(', '))
       setRules(caseItem.olympiadRules || caseItem.internshipConditions || '')
@@ -134,12 +149,14 @@ export const CreateCaseModal: React.FC<{
       if (caseItem.publicationDetails) setDetails(caseItem.publicationDetails)
     }
   }, [isOpen, caseItem, user?.id])
-  if (!isOpen) return null
+  if (!isOpen || user?.role === 'admin') return null
   const dialog = (content: React.ReactNode, label = 'Размещение публикации') => (
     <Modal
       title={label}
       bare
-      className="modal-dialog--lg publication-dialog"
+      className={
+        opportunityNotice ? 'publication-confirmation' : 'modal-dialog--lg publication-dialog'
+      }
       busy={busy}
       onClose={onClose}
     >
@@ -151,7 +168,7 @@ export const CreateCaseModal: React.FC<{
       Формат публикации
       <select
         className="select"
-        disabled={!!caseItem}
+        disabled={!!caseItem || !!draft}
         value={opportunity || kind}
         onChange={(event) => {
           const next = event.target.value
@@ -167,8 +184,12 @@ export const CreateCaseModal: React.FC<{
         <option value="hackathon">Хакатон</option>
         <option value="olympiad">Олимпиада</option>
         <option value="case">Кейс · отбор исполнителей</option>
-        {(!live || user?.role === 'company') && <option value="internship">Стажировка</option>}
-        {live && user?.role === 'company' && <option value="practice">Практика</option>}
+        {(!live || ['company', 'admin'].includes(user?.role || '')) && (
+          <option value="internship">Стажировка</option>
+        )}
+        {live && ['company', 'admin'].includes(user?.role || '') && (
+          <option value="practice">Практика</option>
+        )}
       </select>
     </label>
   )
@@ -176,7 +197,12 @@ export const CreateCaseModal: React.FC<{
     return dialog(
       <>
         <div className="modal-dialog__body">
-          <p role="status">{opportunityNotice}</p>
+          <h3 role="status">{opportunityNotice}</h3>
+          <p>
+            {opportunityNotice.startsWith('Черновик')
+              ? 'Продолжить редактирование можно в списке своих публикаций.'
+              : 'Статус можно проверить в списке своих публикаций.'}
+          </p>
         </div>
         <footer className="modal-dialog__footer">
           <button type="button" className="btn btn-primary" onClick={onClose}>
@@ -192,7 +218,11 @@ export const CreateCaseModal: React.FC<{
         embedded
         onBusyChange={setBusy}
         initial={{ kind: opportunity, company_id: companyId }}
-        companies={companies.filter((company) => company.id === companyId)}
+        companies={companies.filter((company) =>
+          user?.role === 'admin'
+            ? company.isVerified && !company.isBlocked
+            : company.id === companyId,
+        )}
         formatControl={formatControl}
         onClose={onClose}
         onSaved={(_, submitted) =>
@@ -250,18 +280,39 @@ export const CreateCaseModal: React.FC<{
         </button>
       </header>
       <form
-        onInvalid={(event) => {
-          const field = event.target as HTMLInputElement
-          const label = field.labels?.[0]?.firstChild?.textContent?.trim()
-          setError(label ? `Проверьте поле «${label}».` : 'Проверьте обязательные поля.')
-        }}
+        onInput={clearFieldError}
+        onInvalid={markFieldError}
         onSubmit={async (e) => {
           e.preventDefault()
           if (busy) return
+          const form = e.currentTarget
+          const fields = new FormData(form)
+          const deadline = String(fields.get('deadline') || '')
+          const registrationDeadline = String(fields.get('registrationDeadline') || '')
+          for (const [name, label] of [
+            ['title', 'название'],
+            ['summary', 'краткое описание'],
+            ['description', 'техническое задание'],
+          ]) {
+            if (!String(fields.get(name) || '').trim()) {
+              reportFieldError(form, name, `Заполните ${label}.`)
+              return
+            }
+          }
+          if (
+            live &&
+            team &&
+            !olympiad &&
+            nda &&
+            (!caseItem || !caseItem.isConfidential) &&
+            !ndaText.trim()
+          ) {
+            reportFieldError(form, 'ndaText', 'Введите текст соглашения.')
+            return
+          }
           setBusy(true)
           setError('')
           try {
-            const deadline = String(new FormData(e.currentTarget).get('deadline') || '')
             const submit =
               (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') !== 'draft'
             const company = companies.find((c) => c.id === companyId)
@@ -370,7 +421,7 @@ export const CreateCaseModal: React.FC<{
                   : caseItem?.evaluationOrder || `Оценка по ${criteria.length} критериям`,
               olympiadTasks: olympiad && !live ? tasks : undefined,
               applicationDeadline:
-                liveEvent && registrationDeadline
+                live && registrationDeadline
                   ? `${registrationDeadline}T23:59:59Z`
                   : caseItem?.applicationDeadline,
               evaluationCriteria: internship
@@ -395,19 +446,42 @@ export const CreateCaseModal: React.FC<{
               ipRights: caseItem?.ipRights || 'author',
               isModerated: false,
               moderationStatus: 'pending',
-              coverUrl: file?.url || caseItem?.coverUrl,
-              coverFileId: file?.file_id || caseItem?.coverFileId,
+              coverUrl: file?.url || caseItem?.coverUrl || draft?.coverUrl,
+              coverFileId: file?.file_id || caseItem?.coverFileId || draft?.coverFileId,
             }
-            const saved = caseItem
+            const existing = caseItem || draft
+            let saved = existing
               ? await apiClient.updateCase({
-                  ...caseItem,
+                  ...existing,
                   ...payload,
-                  status: caseItem.status,
-                  isModerated: caseItem.isModerated,
-                  moderationStatus: caseItem.moderationStatus,
+                  status: existing.status,
+                  isModerated: existing.isModerated,
+                  moderationStatus: existing.moderationStatus,
                 })
-              : await apiClient.createCase(payload, !liveEvent && submit)
-            dispatch(caseItem ? updateCaseSuccess(saved) : createCaseSuccess(saved))
+              : await apiClient.createCase(
+                  live ? { ...payload, coverFileId: undefined } : payload,
+                  false,
+                )
+            if (live) {
+              if (!caseItem) setDraft(saved)
+              dispatch(existing ? updateCaseSuccess(saved) : createCaseSuccess(saved))
+              if (!existing && payload.coverFileId) {
+                await axiosInstance.put(`/cases/${saved.id}/cover`, {
+                  file_id: payload.coverFileId,
+                })
+                saved = await apiClient.getCaseById(saved.id)
+                setDraft(saved)
+              }
+              if (payload.isConfidential && ndaText.trim()) {
+                await axiosInstance.post(`/cases/${saved.id}/nda-versions`, {
+                  text: ndaText.trim(),
+                })
+              }
+              if (!liveEvent && submit && !caseItem) saved = await apiClient.submitCase(saved.id)
+              dispatch(updateCaseSuccess(saved))
+            } else {
+              dispatch(existing ? updateCaseSuccess(saved) : createCaseSuccess(saved))
+            }
             onClose()
             if (liveEvent && !caseItem) navigate(`/cases/${saved.id}/workspace?view=event`)
           } catch (e) {
@@ -428,11 +502,13 @@ export const CreateCaseModal: React.FC<{
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
             >
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
+              {companies
+                .filter((c) => user?.role !== 'admin' || (c.isVerified && !c.isBlocked))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
           </label>
           <label>
@@ -440,6 +516,8 @@ export const CreateCaseModal: React.FC<{
             <input
               className="input"
               required
+              name="title"
+              maxLength={300}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -490,7 +568,7 @@ export const CreateCaseModal: React.FC<{
                 }
                 max="2100-12-31"
                 required
-                value={deadline}
+                defaultValue={caseItem?.deadlineDate || ''}
                 onChange={(e) => setDeadline(e.target.value)}
               />
             </label>
@@ -520,15 +598,16 @@ export const CreateCaseModal: React.FC<{
               />
             </label>
           </div>
-          {liveEvent && (
+          {live && (
             <label>
-              Срок регистрации
+              {liveEvent ? 'Срок регистрации' : 'Срок подачи заявок'}
               <input
                 className="input"
                 type="date"
-                required
-                value={registrationDeadline}
-                onChange={(e) => setRegistrationDeadline(e.target.value)}
+                name="registrationDeadline"
+                required={liveEvent}
+                max={deadline || '2100-12-31'}
+                defaultValue={caseItem?.applicationDeadline?.slice(0, 10) || ''}
               />
             </label>
           )}
@@ -580,26 +659,31 @@ export const CreateCaseModal: React.FC<{
             </p>
           )}
           {live && !olympiad && (
-            <fieldset className="publication-competencies">
-              <legend>Предметная область и навыки</legend>
-              {serverSkills.length === 0 && <p>Нет доступных компетенций для выбора.</p>}
-              {[...new Set([...serverSkills, ...selectedSkills])].map((name) => (
-                <label key={name}>
-                  <input
-                    type="checkbox"
-                    checked={selectedSkills.includes(name)}
-                    onChange={(e) =>
-                      setSelectedSkills((current) =>
-                        e.target.checked
-                          ? [...current, name]
-                          : current.filter((skill) => skill !== name),
-                      )
-                    }
-                  />
-                  {name}
-                </label>
-              ))}
-            </fieldset>
+            <details className="publication-competencies">
+              <summary className="select">
+                Предметная область и навыки
+                {selectedSkills.length ? ` · выбрано ${selectedSkills.length}` : ''}
+              </summary>
+              <div className="publication-competencies__options">
+                {serverSkills.length === 0 && <p>Нет доступных компетенций для выбора.</p>}
+                {[...new Set([...serverSkills, ...selectedSkills])].map((name) => (
+                  <label key={name}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSkills.includes(name)}
+                      onChange={(e) =>
+                        setSelectedSkills((current) =>
+                          e.target.checked
+                            ? [...current, name]
+                            : current.filter((skill) => skill !== name),
+                        )
+                      }
+                    />
+                    {name}
+                  </label>
+                ))}
+              </div>
+            </details>
           )}
           {!live && (
             <label>
@@ -617,6 +701,7 @@ export const CreateCaseModal: React.FC<{
             <input
               className="input"
               required
+              name="summary"
               maxLength={500}
               value={short}
               onChange={(e) => setShort(e.target.value)}
@@ -631,6 +716,8 @@ export const CreateCaseModal: React.FC<{
             <textarea
               className="textarea"
               required
+              name="description"
+              maxLength={30000}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -809,9 +896,27 @@ export const CreateCaseModal: React.FC<{
           )}
 
           {team && !olympiad && (
-            <label>
+            <label className="nda-checkbox-field">
               <input type="checkbox" checked={nda} onChange={(e) => setNda(e.target.checked)} />{' '}
               Требуется NDA
+            </label>
+          )}
+          {live && team && !olympiad && nda && (!caseItem || caseItem.status === 'draft') && (
+            <label>
+              Текст соглашения о неразглашении
+              <textarea
+                className="textarea"
+                required={!caseItem || !caseItem.isConfidential}
+                name="ndaText"
+                maxLength={12000}
+                value={ndaText}
+                placeholder={
+                  caseItem?.isConfidential
+                    ? 'Введите текст, чтобы сохранить новую версию'
+                    : 'Введите условия, которые увидят участники'
+                }
+                onChange={(event) => setNdaText(event.target.value)}
+              />
             </label>
           )}
           {error && (

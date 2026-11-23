@@ -1282,3 +1282,64 @@ select option {
 .card.feature-panel.company-legal { display:block; }
 .company-legal > .feature-toolbar { margin:0 0 12px; padding:0; min-height:0; gap:12px; }
 .company-legal > dl.company-legal-grid { margin:0; }
+
+.student-project-actions { justify-content: flex-start; }
+.student-project-actions .student-project-edit { margin-left: auto; }
+.student-project-actions > :last-child:not(.student-project-edit) { margin-left: auto; }
+.student-project-actions:has(.student-project-edit) > :last-child { margin-left: 0; }
+.student-project-gallery { display: flex; flex-wrap: wrap; gap: 12px; }
+.student-project-gallery .attachment-preview { width: 180px; max-width: 100%; }
+.student-project-gallery img { width: 100%; height: 130px; object-fit: contain; }
+.favorites-empty > .btn { align-self: center; width: auto; max-width: 100%; flex: 0 0 auto; }
+.achievement-download { display: block; font-size: 12px; margin-top: 8px; overflow-wrap: anywhere; }
+
+.achievement-preview { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+
+/* Consistent filter controls and tabs connected to their content. */
+.joined-filter-panel { border: 1px solid #cedaeb; border-radius: 12px; background: #fff; overflow: hidden; }
+.joined-filter-panel > .uust-tabs-row { margin: 0; padding: 12px 16px 0; min-height: 0; height: auto; gap: 6px; align-items: flex-end; }
+.joined-filter-panel > .uust-tabs-row::after { display: none; }
+.joined-filter-panel > .uust-tabs-row .uust-tab { margin: 0; transform: none; min-height: 40px; padding: 9px 14px; border-radius: 8px 8px 0 0; }
+.joined-filter-panel > .uust-box { margin: 0; border: 0; border-top: 1px solid #dce4ed; border-radius: 0; box-shadow: none; padding: 16px; min-height: 0; }
+.joined-filter-panel > .uust-box::before { display: none; }
+.workspace-filter-panel { display: grid; grid-template-columns: minmax(180px, 240px) minmax(260px, 540px); gap: 16px; align-items: end; }
+.workspace-filter-panel:not(:has(.workspace-status-filter)) { grid-template-columns: minmax(0, 720px); }
+.workspace-filter-panel > .workspace-status-filter { width: auto; }
+.workspace-filter-panel > label { display: grid; gap: 7px; margin: 0; min-width: 0; }
+.workspace-filter-panel select, .workspace-filter-panel .catalog-search { height: 42px; min-height: 42px; margin: 0; }
+.workspace-filter-panel .catalog-search { padding: 0 12px; border-radius: 7px; }
+.workspace-filter-panel .catalog-search input { height: 40px; min-height: 0; padding-block: 0; }
+.student-directory-filters { display: grid; gap: 16px; }
+.student-directory-search { display: grid; gap: 7px; width: 100%; margin: 0; }
+.student-directory-search .catalog-search { width: 100%; margin: 0; height: 42px; min-height: 42px; padding: 0 12px; border-radius: 7px; }
+.student-directory-search .catalog-search input { height: 40px; min-height: 0; padding-block: 0; }
+.student-directory-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(175px,1fr)); gap: 14px; }
+.student-directory-grid > label { width: 100%; max-width: none; min-width: 0; display: grid; gap: 7px; margin: 0; }
+.student-directory-grid :is(input,select) { width: 100%; height: 42px; min-height: 42px; }
+.student-project-fields { display: grid; gap: 16px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.student-project-fields > label { margin: 0; display: grid; gap: 7px; }
+.catalog-multiselect { display: grid; gap: 7px; min-width: 0; }
+.catalog-multiselect__label { font-weight: 600; }
+.catalog-multiselect > details { border: 1px solid #ccd9ea; border-radius: 7px; background: #fff; }
+.catalog-multiselect summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 12px; cursor: pointer; list-style: none; }
+.catalog-multiselect summary::-webkit-details-marker { display: none; }
+.catalog-multiselect__menu { padding: 10px; border-top: 1px solid #dce4ed; }
+.catalog-multiselect .catalog-multiselect__search { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.catalog-multiselect__search input { min-width: 0; }
+.catalog-multiselect__options { max-height: 210px; overflow-y: auto; display: grid; gap: 2px; }
+.catalog-multiselect .catalog-multiselect__options label { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0; cursor: pointer; border-radius: 5px; }
+.catalog-multiselect__options label:hover { background: #edf3fa; }
+.catalog-multiselect .catalog-multiselect__options input[type=checkbox], .modal-dialog label.nda-checkbox-field input[type=checkbox] { width: 17px; height: 17px; min-height: 0; flex: 0 0 17px; margin: 0; padding: 0; accent-color: #315b90; }
+.catalog-multiselect__selected { display: flex; gap: 6px; flex-wrap: wrap; }
+.catalog-multiselect__selected button { display: inline-flex; gap: 6px; align-items: center; border: 1px solid #cbd9eb; background: #eef4fb; color: #254d7d; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+.modal-dialog label.nda-checkbox-field { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; margin: 0; padding: 12px 0; width: fit-content; }
+.role-capability-note, .invitation-context-note { color: #526780; line-height: 1.6; padding: 12px 16px; background: #eef4fb; border-radius: 8px; }
+.project-cover-placeholder { display: block; width: 100%; height: 100%; min-height: 80px; background: linear-gradient(135deg,#102544,#315b90); border-radius: inherit; }
+@media (max-width: 700px) {
+  .workspace-filter-panel { grid-template-columns: minmax(0,1fr); }
+  .student-directory-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .joined-filter-panel > .uust-tabs-row { padding-inline: 10px; }
+}
+@media (max-width: 440px) { .student-directory-grid { grid-template-columns: minmax(0,1fr); } }
+
+.catalog-multiselect .catalog-multiselect__search, .catalog-multiselect .catalog-multiselect__options label, .modal-dialog label.nda-checkbox-field { flex-direction: row; }

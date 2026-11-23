@@ -33,14 +33,24 @@ type CommunityMethod =
   | 'getInvitation'
   | 'respondInvitation'
 type AsyncMethods = {
-  [K in Exclude<CommunityMethod, 'updateSharedPlan'>]: (
+  [K in Exclude<CommunityMethod, 'updateSharedPlan' | 'updateExecutionStage'>]: (
     ...args: Parameters<MockServer[K]>
   ) => Promise<ReturnType<MockServer[K]>>
 } & {
+  updateExecutionStage: (
+    executionId: string,
+    stageId: string,
+    action: string,
+    attachments?: any[],
+    feedback?: string,
+    fileIndex?: number,
+    fileId?: string,
+  ) => Promise<ReturnType<MockServer['updateExecutionStage']>>
   updateSharedPlan: (
     caseId: string,
     rows: Parameters<MockServer['updateSharedPlan']>[1],
     baseline?: Parameters<MockServer['updateSharedPlan']>[1],
+    reason?: string,
   ) => Promise<ReturnType<MockServer['updateSharedPlan']>>
 }
 
@@ -69,14 +79,20 @@ const companyInvitation = (item: any): SystemNotification => ({
     senderId: item.company_id,
     senderName: 'Представитель компании',
     reason:
-      ({ case: 'Участие в кейсе', internship: 'Стажировка' } as Record<string, string>)[
-        item.kind
-      ] || 'Приглашение',
+      (
+        {
+          case: 'Участие в кейсе',
+          internship: 'Стажировка',
+          interview: 'Техническое собеседование',
+          job: 'Приглашение на работу',
+        } as Record<string, string>
+      )[item.kind] || 'Приглашение',
     status: item.status === 'sent' ? 'pending' : item.status,
     replies: [],
   },
 })
 export const listCuratedExecutions = workflow.listCuratedExecutions
+export const getCuratedExecutions = workflow.getCuratedExecutions
 
 // Only canonical backend routes are used in live mode.
 // Missing endpoints surface an error; live mode never writes to mock storage.
@@ -258,8 +274,6 @@ export const communityApi = new Proxy({} as AsyncMethods, {
             )
           }
           case 'reportContent': {
-            if (id === 'internship')
-              throw new Error('Сервер пока не поддерживает жалобы на стажировки и практики.')
             return (
               await axiosInstance.post('/reports', {
                 resource_type: ({ project: 'student_project', user: 'profile' } as any)[id] || id,

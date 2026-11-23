@@ -9,6 +9,7 @@ import type { User } from '../types/models'
 export type OpportunityKind = 'internship' | 'practice'
 export type Opportunity = {
   program_id: string
+  created_by?: string
   kind: OpportunityKind
   company_id: string
   company_name: string
@@ -129,9 +130,6 @@ export const opportunityApi = {
   },
 
   async setStatus(id: string, status: string, comment: string) {
-    if (apiRuntime.mode === 'live' && status === 'draft')
-      throw new Error('Сервер пока не поддерживает отзыв программы с модерации.')
-
     if (live)
       return (
         await axiosInstance.patch<Opportunity>(`/internships/${id}/status`, { status, comment })

@@ -1,3 +1,4 @@
+import { canCreatePublication, canEditProgram } from '../utils/publicationAccess'
 import { ExpandableText } from './ExpandableText'
 import { ReportButton } from './ReportButton'
 import { OpportunityReviewActions, OpportunityBlockButton } from './OpportunityReviewActions'
@@ -20,7 +21,7 @@ import { axiosInstance } from '../api/http'
 import { collectPages, fromCompany } from '../api/backend'
 import type { Company } from '../types/models'
 import { useAppSelector } from '../store'
-import { InternshipApplications, InternshipApply } from './InternshipApplications'
+import { InternshipApply } from './InternshipApplications'
 import { formatDate } from '../utils/date'
 import { matchesSearch } from '../utils/publication'
 import { CatalogSearch } from './CatalogSearch'
@@ -46,13 +47,16 @@ const plural = { internship: 'Стажировки', practice: 'Практики
 export function LiveCompanyProgram() {
   const user = useAppSelector((state) => state.auth.currentUser)
   const company = user?.role === 'company'
+  const admin = user?.role === 'admin'
+  const publisher = canCreatePublication(user)
   const student = user?.role === 'student'
   const reviewer = ['admin', 'curator', 'university'].includes(user?.role || '')
   const [params, setParams] = useSearchParams()
   const kind: OpportunityKind = params.get('kind') === 'practice' ? 'practice' : 'internship'
   const companyId = params.get('company')
   const programId = params.get('program')
-  const ownCatalog = company && params.get('scope') !== 'all'
+  const ownCatalog =
+    publisher && (company ? params.get('scope') !== 'all' : params.get('scope') === 'mine')
   const [companies, setCompanies] = useState<Company[]>([])
   const [programs, setPrograms] = useState<Opportunity[]>([])
   const [applied, setApplied] = useState<Set<string>>(new Set())
@@ -61,19 +65,26 @@ export function LiveCompanyProgram() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [showApplications, setShowApplications] = useState(false)
+  const [applicationNotice, setApplicationNotice] = useState('')
+  useEffect(() => setApplicationNotice(''), [programId])
 
   useEffect(() => {
-    if (!company) return
+    if (!publisher) return
     let active = true
     const ownedCompanies =
-      apiRuntime.mode === 'live'
+      apiRuntime.mode === 'live' && !admin
         ? collectPages<any>((params) => axiosInstance.get('/companies/mine', { params })).then(
             (rows) => rows.map(fromCompany),
           )
         : apiClient
             .getCompanies()
-            .then((rows) => rows.filter((item) => item.id === user?.companyProfile?.companyId))
+            .then((rows) =>
+              rows.filter((item) =>
+                admin
+                  ? item.isVerified && !item.isBlocked
+                  : item.id === user?.companyProfile?.companyId,
+              ),
+            )
     ownedCompanies
       .then((rows) => {
         if (active) setCompanies(rows)
@@ -84,7 +95,7 @@ export function LiveCompanyProgram() {
     return () => {
       active = false
     }
-  }, [company, user?.id])
+  }, [publisher, admin, user?.id])
 
   useEffect(() => {
     let active = true
@@ -92,9 +103,13 @@ export function LiveCompanyProgram() {
     setError('')
     Promise.all([
       reviewer && programId
-        ? Promise.all([opportunityApi.list('public'), opportunityApi.list('moderation')]).then(
-            (lists) => [...new Map(lists.flat().map((item) => [item.program_id, item])).values()],
-          )
+        ? Promise.all([
+            opportunityApi.list('public'),
+            opportunityApi.list('moderation'),
+            ...(admin ? [opportunityApi.list('mine')] : []),
+          ]).then((lists) => [
+            ...new Map(lists.flat().map((item) => [item.program_id, item])).values(),
+          ])
         : opportunityApi.list(ownCatalog ? 'mine' : 'public'),
       student ? opportunityApi.listApplications() : Promise.resolve([]),
     ])
@@ -118,11 +133,7 @@ export function LiveCompanyProgram() {
     return () => {
       active = false
     }
-  }, [ownCatalog, student, user?.id, reviewer, programId])
-
-  useEffect(() => {
-    setShowApplications(false)
-  }, [programId])
+  }, [ownCatalog, student, user?.id, reviewer, programId, admin])
 
   const choose = (field: string, value: string) => {
     const next = new URLSearchParams(params)
@@ -147,9 +158,8 @@ export function LiveCompanyProgram() {
       matchesSearch(search, item.title, item.summary, item.company_name),
   )
   const preferredCompany =
-    companies.find((item) => item.id === companyId) ||
     companies.find((item) => item.id === user?.companyProfile?.companyId) ||
-    companies[0]
+    (admin ? companies.find((item) => item.id === companyId) || companies[0] : undefined)
 
   const meta = (item: Opportunity) => (
     <div className="case-card__meta-grid opportunity-meta">
@@ -174,7 +184,7 @@ export function LiveCompanyProgram() {
       {!programId && (
         <div className="page-header">
           <div className="page-header__content">{!programId && <h1>Стажировки и практики</h1>}</div>
-          {ownCatalog && !programId && (
+          {publisher && !programId && (
             <button
               type="button"
               className="btn btn-primary"
@@ -190,8 +200,26 @@ export function LiveCompanyProgram() {
           )}
         </div>
       )}
+      {admin && !programId && (
+        <div className="action-row" style={{ marginBottom: 16 }}>
+          <button
+            type="button"
+            className={`btn ${ownCatalog ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => choose('scope', 'mine')}
+          >
+            Мои публикации
+          </button>
+          <button
+            type="button"
+            className={`btn ${!ownCatalog ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => choose('scope', 'all')}
+          >
+            Открытая витрина
+          </button>
+        </div>
+      )}
       {notice && (
-        <p role="status" className="opportunity-notice">
+        <p role="status" className="opportunity-notice inline-notice application-feedback">
           {notice}
         </p>
       )}
@@ -273,6 +301,11 @@ export function LiveCompanyProgram() {
                     {meta(selected)}
                   </div>
                   <div className="action-row">
+                    {applicationNotice && (
+                      <p className="inline-notice application-feedback" role="status">
+                        {applicationNotice}
+                      </p>
+                    )}
                     {student && applied.has(selected.program_id) && (
                       <Link className="btn btn-secondary" to="/favorites?tab=internships">
                         Заявка подана · Мои заявки
@@ -286,7 +319,9 @@ export function LiveCompanyProgram() {
                         kind={selected.kind}
                         onApplied={() => {
                           setApplied((items) => new Set([...items, selected.program_id]))
-                          setNotice('Заявка отправлена.')
+                          setApplicationNotice(
+                            'Заявка отправлена. Статус доступен в разделе «Заявки и избранное».',
+                          )
                         }}
                       />
                     )}
@@ -311,7 +346,11 @@ export function LiveCompanyProgram() {
                         Отозвать с модерации
                       </button>
                     )}
-                    {ownCatalog && ['published', 'revision', 'draft'].includes(selected.status) && (
+                    {canEditProgram(
+                      user,
+                      selected,
+                      companies.map((item) => item.id),
+                    ) && (
                       <button
                         type="button"
                         className="btn btn-secondary"
@@ -320,27 +359,17 @@ export function LiveCompanyProgram() {
                         Редактировать
                       </button>
                     )}
-                    {ownCatalog &&
+                    {company &&
+                      ownCatalog &&
                       ['published', 'closed', 'revision', 'moderation', 'hidden'].includes(
                         selected.status,
                       ) && (
-                        <button
-                          type="button"
+                        <Link
                           className="btn btn-secondary"
-                          aria-expanded={showApplications}
-                          onClick={() => {
-                            setShowApplications((show) => !show)
-                            setTimeout(
-                              () =>
-                                document
-                                  .getElementById('program-applications')
-                                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-                              0,
-                            )
-                          }}
+                          to={`/company-applications?kind=${selected.kind}&programId=${selected.program_id}`}
                         >
-                          {showApplications ? 'Скрыть заявки' : 'Заявки студентов'}
-                        </button>
+                          Заявки студентов
+                        </Link>
                       )}
                   </div>
                 </aside>
@@ -354,15 +383,6 @@ export function LiveCompanyProgram() {
                     )
                   }
                 />
-              )}
-              {showApplications && ownCatalog && (
-                <section className="opportunity-applications" id="program-applications">
-                  <h3>Заявки студентов</h3>
-                  <InternshipApplications
-                    key={selected.program_id}
-                    programId={selected.program_id}
-                  />
-                </section>
               )}
             </article>
           ) : (
@@ -479,6 +499,12 @@ export function LiveCompanyProgram() {
               item,
               ...items.filter((old) => old.program_id !== item.program_id),
             ])
+            if (admin) {
+              const next = new URLSearchParams(params)
+              next.set('scope', 'mine')
+              next.set('program', item.program_id)
+              setParams(next)
+            }
             setNotice(submitted ? 'Публикация отправлена на модерацию.' : 'Черновик сохранён.')
             setEditor(undefined)
           }}

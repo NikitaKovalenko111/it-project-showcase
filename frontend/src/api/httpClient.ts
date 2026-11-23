@@ -9,6 +9,18 @@ type Options = {
   refreshTokens?: (token: string) => Promise<{ access_token: string; refresh_token: string }>
 }
 const messages: Record<string, string> = {
+  event_plan_required:
+    'Перед отправкой на модерацию заполните план мероприятия, расписание и сроки.',
+  event_round_not_open: 'Тур ещё не открыт.',
+  event_round_already_submitted: 'Решение этого тура уже отправлено.',
+  case_plan_changed: 'План изменился на сервере. Загрузите его заново.',
+  case_stages_locked: 'План нельзя изменить: проект закрыт или этапы содержат работы участников.',
+  case_plan_deadline: 'Для переноса укажите будущий срок и причину.',
+  unsupported_file_type: 'Этот формат файла не поддерживается сервером.',
+  file_too_large: 'Файл превышает допустимый размер.',
+  role_change_conflict:
+    'Нельзя изменить собственную роль, роль администратора или назначить студента без студенческого профиля.',
+  auth_unavailable: 'Сервис авторизации временно недоступен. Повторите попытку позже.',
   invalid_credentials: 'Неверный логин или пароль.',
   account_temporarily_locked: 'Слишком много попыток входа. Попробуйте позже.',
   account_blocked: 'Учётная запись заблокирована.',

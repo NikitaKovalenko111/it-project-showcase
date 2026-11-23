@@ -1,3 +1,4 @@
+import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
 import { MarkdownImageUpload } from '../MarkdownImageUpload'
 import { markdownSchema, MarkdownImage } from '../RichMarkdown'
 import { useState, useEffect, type ReactNode } from 'react'
@@ -59,11 +60,33 @@ export function OpportunityPublicationModal({
         </button>
       </header>
       <form
+        onInput={clearFieldError}
+        onInvalid={markFieldError}
         onSubmit={async (event) => {
           event.preventDefault()
           if (busy) return
           const submit =
             (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') !== 'draft'
+          const form = event.currentTarget
+          for (const [name, label] of [
+            ['title', 'название'],
+            ['summary', 'краткое описание'],
+          ]) {
+            if (!String(new FormData(form).get(name) || '').trim()) {
+              reportFieldError(form, name, `Заполните ${label}.`)
+              return
+            }
+          }
+          const deadlineField = form.elements.namedItem('application_deadline') as HTMLInputElement
+          const applicationDeadline = deadlineField.value
+          const content = event.currentTarget.querySelector(
+            'textarea[aria-labelledby="opportunity-program-label"]',
+          ) as HTMLTextAreaElement | null
+          if (!editor.content_markdown?.trim()) {
+            content?.setCustomValidity('Заполните программу и условия участия.')
+            content?.reportValidity()
+            return
+          }
           setBusy(true)
           onBusyChange?.(true)
           setError('')
@@ -75,7 +98,9 @@ export function OpportunityPublicationModal({
               summary: editor.summary,
               content_markdown: editor.content_markdown,
               capacity: editor.capacity,
-              application_deadline: editor.application_deadline || null,
+              application_deadline: applicationDeadline
+                ? new Date(`${applicationDeadline}T23:59:59`).toISOString()
+                : null,
             }
             const saved = await opportunityApi.save(editor.program_id, payload)
             setEditor(saved)
@@ -98,26 +123,22 @@ export function OpportunityPublicationModal({
             {!editor.program_id && formatControl}
             <label>
               Компания
-              <select
-                className="select"
-                required
-                value={editor.company_id || ''}
-                disabled={!!editor.program_id}
-                onChange={(event) => setEditor({ ...editor, company_id: event.target.value })}
-              >
-                <option value="">Выберите компанию</option>
-                {companies.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name}
-                  </option>
-                ))}
-              </select>
+              <input
+                className="input"
+                readOnly
+                value={
+                  companies.find((company) => company.id === editor.company_id)?.name ||
+                  editor.company_name ||
+                  ''
+                }
+              />
             </label>
             <label>
               Название
               <input
                 className="input"
                 required
+                name="title"
                 maxLength={300}
                 value={editor.title || ''}
                 onChange={(event) => setEditor({ ...editor, title: event.target.value })}
@@ -128,6 +149,7 @@ export function OpportunityPublicationModal({
               <textarea
                 className="textarea"
                 required
+                name="summary"
                 rows={2}
                 maxLength={500}
                 value={editor.summary || ''}
@@ -154,18 +176,12 @@ export function OpportunityPublicationModal({
                 <input
                   className="input"
                   type="date"
-                  value={
+                  name="application_deadline"
+                  max="2100-12-31"
+                  defaultValue={
                     editor.application_deadline
                       ? new Date(editor.application_deadline).toLocaleDateString('sv-SE')
                       : ''
-                  }
-                  onChange={(event) =>
-                    setEditor({
-                      ...editor,
-                      application_deadline: event.target.value
-                        ? new Date(`${event.target.value}T23:59:59`).toISOString()
-                        : null,
-                    })
                   }
                 />
               </label>
@@ -190,7 +206,9 @@ export function OpportunityPublicationModal({
                 }
                 textareaProps={{
                   'aria-labelledby': 'opportunity-program-label',
+                  name: 'content_markdown',
                   maxLength: 15000,
+                  onInput: (event) => event.currentTarget.setCustomValidity(''),
                 }}
                 previewOptions={{
                   rehypePlugins: [[rehypeSanitize, markdownSchema]],
@@ -210,15 +228,11 @@ export function OpportunityPublicationModal({
             Отмена
           </button>
           {editor.status !== 'published' && (
-            <button
-              className="btn btn-secondary"
-              value="draft"
-              disabled={busy || !editor.content_markdown?.trim()}
-            >
+            <button className="btn btn-secondary" value="draft" disabled={busy}>
               Сохранить черновик
             </button>
           )}
-          <button className="btn btn-primary" disabled={busy || !editor.content_markdown?.trim()}>
+          <button className="btn btn-primary" disabled={busy}>
             {busy ? 'Сохраняем…' : 'Отправить на модерацию'}
           </button>
         </footer>

@@ -194,7 +194,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-dialog modal-dialog--lg"
+        className="modal-dialog modal-dialog--lg application-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="application-title"
@@ -332,7 +332,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                     <LocalizedFileInput
                       id="application-resume"
                       className="input"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf"
                       onChange={(e) => setResume(e.target.files?.[0] || null)}
                     />
                   </div>
@@ -351,13 +351,13 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                 </div>
 
                 {savedResume && !resume && (
-                  <label className="form-hint">
+                  <label className="form-hint opportunity-resume-option">
                     <input
                       type="checkbox"
                       checked={attachSavedResume}
                       onChange={(event) => setAttachSavedResume(event.target.checked)}
                     />{' '}
-                    Приложить резюме из профиля ({savedResume.name})
+                    <span>Приложить резюме из профиля ({savedResume.name})</span>
                   </label>
                 )}
                 {/* IP Rights Notice */}

@@ -1,4 +1,5 @@
 import { LocalizedFileInput } from './LocalizedFileInput'
+import { apiRuntime } from '../api/runtime'
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { uploadFile } from '../utils/files'
@@ -8,6 +9,8 @@ import { opportunityApi, type OpportunityApplication } from '../api/opportunitie
 import { apiClient } from '../api/client'
 import type { StudentProfile } from '../types/models'
 import { FileDownload } from './FileDownload'
+import { matchesSearch } from '../utils/publication'
+import { IdentityImage } from './IdentityImage'
 import { ReportTableView } from './ReportTableView'
 
 const statuses = {
@@ -59,7 +62,7 @@ export function InternshipApply({
         className="modal-dialog opportunity-apply-dialog"
         aria-labelledby="opportunity-apply-title"
         onCancel={(event) => {
-          if (busy) event.preventDefault()
+          if (event.target !== event.currentTarget || busy) event.preventDefault()
         }}
       >
         <header className="modal-dialog__header">
@@ -127,7 +130,7 @@ export function InternshipApply({
                   disabled={busy || !!attachment}
                   onChange={(event) => setAttachResume(event.target.checked)}
                 />
-                Приложить резюме из профиля · {resume.name}
+                <span>Приложить резюме из профиля · {resume.name}</span>
               </label>
             )}
             {resumeError && (
@@ -137,7 +140,7 @@ export function InternshipApply({
               Приложить файл резюме (необязательно)
               <LocalizedFileInput
                 className="input"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 disabled={busy}
                 onChange={(event) => {
                   const file = event.target.files?.[0]
@@ -178,7 +181,19 @@ export function InternshipApply({
   )
 }
 
-export function InternshipApplications({ programId }: { programId?: string }) {
+export function InternshipApplications({
+  programId,
+  companyQueue = false,
+  kind,
+  search = '',
+  status = 'all',
+}: {
+  programId?: string
+  companyQueue?: boolean
+  kind?: OpportunityKind
+  search?: string
+  status?: string
+}) {
   const [items, setItems] = useState<OpportunityApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -187,8 +202,28 @@ export function InternshipApplications({ programId }: { programId?: string }) {
     let active = true
     setLoading(true)
     setError('')
-    opportunityApi
-      .listApplications(programId)
+    const applications = companyQueue
+      ? opportunityApi.list('mine').then(async (programs) =>
+          (
+            await Promise.all(
+              programs
+                .filter(
+                  (program) =>
+                    (!kind || program.kind === kind) &&
+                    (!programId || program.program_id === programId),
+                )
+                .map(async (program) =>
+                  (await opportunityApi.listApplications(program.program_id)).map((item) => ({
+                    ...item,
+                    program_title: program.title,
+                    program_kind: program.kind,
+                  })),
+                ),
+            )
+          ).flat(),
+        )
+      : opportunityApi.listApplications(programId)
+    applications
       .then((rows) => {
         if (active) setItems(rows)
       })
@@ -201,7 +236,15 @@ export function InternshipApplications({ programId }: { programId?: string }) {
     return () => {
       active = false
     }
-  }, [programId])
+  }, [programId, companyQueue, kind])
+  const incoming = companyQueue || !!programId
+  const visible = items
+    .filter(
+      (item) =>
+        (!companyQueue || matchesSearch(search, item.program_title, item.student_name)) &&
+        (status === 'all' || (status === 'pending' ? 'submitted' : status) === item.status),
+    )
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
 
   const decide = async (id: string, status: 'accepted' | 'rejected' | 'withdrawn') => {
     if (busy) return
@@ -219,7 +262,9 @@ export function InternshipApplications({ programId }: { programId?: string }) {
 
   return (
     <section>
-      <h3>{programId ? 'Заявки студентов' : 'Мои заявки на стажировки и практики'}</h3>
+      {!companyQueue && (
+        <h3>{programId ? 'Заявки студентов' : 'Мои заявки на стажировки и практики'}</h3>
+      )}
       {error && (
         <p role="alert" className="form-error">
           {error}
@@ -231,17 +276,27 @@ export function InternshipApplications({ programId }: { programId?: string }) {
         <ReportTableView
           label="Заявки на стажировки и практики"
           headers={[
-            programId ? 'Студент' : 'Программа',
+            incoming ? 'Студент' : 'Программа',
+            ...(companyQueue ? ['Программа'] : []),
             'Дата',
             'Статус',
             'Письмо и резюме',
             'Действия',
           ]}
-          rows={items.map((item) => ({
+          rows={visible.map((item) => ({
             id: item.application_id,
             cells: [
-              programId ? (
-                <Link to={`/profile/${item.student_id}`}>
+              incoming ? (
+                <Link className="application-student" to={`/profile/${item.student_id}`}>
+                  <IdentityImage
+                    className="member-avatar"
+                    name={item.student_name || 'Студент'}
+                    src={
+                      apiRuntime.mode === 'live'
+                        ? `${apiRuntime.baseUrl || '/api/v1'}/students/${item.student_id}/photo`
+                        : undefined
+                    }
+                  />
                   {item.student_name || 'Открыть профиль'}
                 </Link>
               ) : (
@@ -251,14 +306,21 @@ export function InternshipApplications({ programId }: { programId?: string }) {
                   <small>{item.program_kind === 'practice' ? 'Практика' : 'Стажировка'}</small>
                 </>
               ),
+              ...(companyQueue
+                ? [
+                    <Link to={`/internships?kind=${item.program_kind}&program=${item.program_id}`}>
+                      {item.program_title}
+                    </Link>,
+                  ]
+                : []),
               new Date(item.created_at).toLocaleDateString('ru-RU'),
               statuses[item.status],
               <>
                 {item.cover_letter && <p className="preserve-text">{item.cover_letter}</p>}
-                {(item.resume_file_id || item.resume_url) && !programId && (
+                {(item.resume_file_id || item.resume_url) && !incoming && (
                   <small>Резюме приложено</small>
                 )}
-                {(item.resume_file_id || item.resume_url) && programId && (
+                {(item.resume_file_id || item.resume_url) && incoming && (
                   <FileDownload
                     file={{
                       name: 'Скачать резюме',
@@ -271,7 +333,7 @@ export function InternshipApplications({ programId }: { programId?: string }) {
               </>,
               item.status === 'submitted' && (
                 <div className="action-row">
-                  {programId ? (
+                  {incoming ? (
                     <>
                       <button
                         type="button"

@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { Building2, Calendar, Users } from 'lucide-react'
 import { useAppSelector } from '../store'
 import { opportunityApi } from '../api/opportunities'
-import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { matchesSearch } from '../utils/publication'
 import type { Opportunity } from './modals/OpportunityPublicationModal'
@@ -37,16 +36,10 @@ export function InternshipModeration() {
     let active = true
     setLoading(true)
     setError('')
-    Promise.all([
-      opportunityApi.list('moderation'),
-      admin && apiRuntime.mode === 'live' ? opportunityApi.list('public') : Promise.resolve([]),
-    ])
-      .then(([pending, published]) => {
-        if (active) {
-          setItems([
-            ...new Map([...published, ...pending].map((row) => [row.program_id, row])).values(),
-          ])
-        }
+    opportunityApi
+      .list('moderation')
+      .then((rows) => {
+        if (active) setItems(rows)
       })
       .catch((e: Error) => {
         if (active) setError(e.message)

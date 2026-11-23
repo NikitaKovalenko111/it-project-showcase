@@ -59,3 +59,25 @@ test('wrong login password does not refresh an unrelated session', async () => {
   await assert.rejects(() => client.post('/auth/login', {}), /Denied/)
   assert.deepEqual(counts(), { refreshes: 0, clears: 0 })
 })
+
+test('event plan validation is displayed in Russian', async () => {
+  const { client } = setup(422)
+  client.defaults.adapter = async (config) => {
+    throw new AxiosError('Validation', 'ERR_BAD_REQUEST', config, undefined, {
+      status: 422,
+      statusText: 'Error',
+      headers: {},
+      config,
+      data: {
+        error: {
+          code: 'event_plan_required',
+          message: 'Configure the event plan and deadlines before moderation',
+        },
+      },
+    })
+  }
+  await assert.rejects(
+    () => client.post('/cases/c/submit-moderation'),
+    /Перед отправкой на модерацию заполните план мероприятия/,
+  )
+})

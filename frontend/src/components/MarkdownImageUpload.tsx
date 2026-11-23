@@ -9,7 +9,7 @@ export function MarkdownImageUpload({ onInsert }: { onInsert: (markdown: string)
       <label>
         Добавить фото в текст
         <LocalizedFileInput
-          accept="image/png,image/jpeg,image/webp,image/gif"
+          accept="image/png,image/jpeg,image/webp"
           disabled={busy}
           onChange={async (event) => {
             const file = event.target.files?.[0]

@@ -1,4 +1,3 @@
-import { apiRuntime } from '../api/runtime'
 import { useConfirmWithReason } from './ConfirmProvider'
 import React, { useState } from 'react'
 import { User } from '../types/models'
@@ -21,7 +20,7 @@ export const AdminUserActions: React.FC<{ user: User }> = ({ user }) => {
           const reason = await confirm(
             `${action} пользователя ${user.fullName} (@${user.username})?`,
             action,
-            !blocked && apiRuntime.mode !== 'live',
+            !blocked,
             !blocked,
           )
           if (reason === null) return

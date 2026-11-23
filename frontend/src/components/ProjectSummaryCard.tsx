@@ -35,7 +35,7 @@ export const ProjectSummaryCard: React.FC<{
     )}
     <div className="card__body">
       <div className="case-card__company">
-        {project.companyLogo && <img src={project.companyLogo} alt="" />}
+        <img src={project.companyLogo || '/demo/company.svg'} alt="" />
         <div>
           <span className="company-title">{project.companyName}</span>
           {catalog && <div className="company-sub">Индустриальный партнёр</div>}

@@ -5,6 +5,7 @@ import { Paperclip, CheckCircle2, Upload } from 'lucide-react'
 import { Execution } from '../types/execution'
 import { communityApi } from '../api/community'
 import { FilePicker } from './FilePicker'
+import { FileDownload } from './FileDownload'
 import { uploadFile } from '../utils/files'
 
 export const ExecutionStages: React.FC<{
@@ -85,15 +86,8 @@ export const ExecutionStages: React.FC<{
               <div className="stage-files">
                 {stage.attachedMaterials.map((f, i) => (
                   <span className="portfolio-file" key={i}>
-                    <a
-                      href={f.url}
-                      download={f.url.startsWith('data:') ? f.name : undefined}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Paperclip size={13} />
-                      {f.name}
-                    </a>
+                    <Paperclip size={13} />
+                    <FileDownload file={f} className="stage-file-download" />
                     {participant && !finished && !accepted && (
                       <button
                         className="icon-delete"
@@ -109,6 +103,7 @@ export const ExecutionStages: React.FC<{
                                 [],
                                 '',
                                 i,
+                                f.file_id,
                               ),
                             )
                         }}

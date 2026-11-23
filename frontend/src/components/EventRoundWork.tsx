@@ -134,7 +134,11 @@ export function EventRoundWork({
           }
         }}
       >
-        <fieldset disabled={busy} className="execution-form">
+        <fieldset
+          hidden={!tasks.length}
+          disabled={busy}
+          className="execution-form round-work-fields"
+        >
           {tasks.map((task) => {
             const id = task.task_id!
             const solution = submitted?.solutions?.find((item) => item.task_id === id)

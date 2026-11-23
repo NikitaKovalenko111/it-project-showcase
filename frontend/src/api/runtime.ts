@@ -2,7 +2,8 @@ export const TOKEN_STORAGE_KEY = 'uust_auth_token'
 export const CURRENT_USER_KEY = 'uust_current_user'
 
 export const apiRuntime = {
-  mode: (import.meta.env.VITE_API_MODE as string) || 'mock',
+  mode:
+    import.meta.env.MODE === 'mock' ? 'mock' : (import.meta.env.VITE_API_MODE as string) || 'live',
   baseUrl: (import.meta.env.VITE_API_URL as string) || '',
   timeoutMs: Number(import.meta.env.VITE_API_TIMEOUT_MS) || 15000,
 }

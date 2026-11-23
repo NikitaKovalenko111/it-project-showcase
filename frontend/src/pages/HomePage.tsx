@@ -133,7 +133,7 @@ export const HomePage: React.FC = () => {
               <Search size={15} /> Поиск талантов
             </Link>
             {companyId && (
-              <Link to={`/company/${companyId}`} className="btn btn-coral">
+              <Link to={`/company/${companyId}`} className="btn btn-secondary">
                 <Building2 size={15} /> Карточка компании
               </Link>
             )}

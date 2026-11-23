@@ -1,3 +1,4 @@
+import { CatalogSearch } from '../components/CatalogSearch'
 import { ExpandableText } from '../components/ExpandableText'
 import { IdentityImage } from '../components/IdentityImage'
 import { PaginatedGrid } from '../components/PaginatedGrid'
@@ -119,19 +120,16 @@ export const StudentsSearchPage: React.FC = () => {
 
       {/* Filter Bar */}
       <div className="uust-container">
-        <div className="uust-box">
-          <div className="uust-filter-row">
-            <label className="catalog-filter">
-              {hasGroups ? 'ФИО, группа или компетенция' : 'ФИО или компетенция'}
-              <input
-                className="uust-input"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={hasGroups ? 'ФИО, группа, React, Python…' : 'ФИО, React, Python…'}
-              />
-            </label>
-          </div>
-          <div className="uust-filter-row">
+        <div className="uust-box student-directory-filters">
+          <label className="student-directory-search">
+            {hasGroups ? 'ФИО, группа или компетенция' : 'ФИО или компетенция'}
+            <CatalogSearch
+              value={search}
+              onChange={setSearch}
+              label={hasGroups ? 'ФИО, группа, React, Python…' : 'ФИО, React, Python…'}
+            />
+          </label>
+          <div className="student-directory-grid">
             <label className="catalog-filter">
               Институт
               <select

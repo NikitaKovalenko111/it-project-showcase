@@ -21,6 +21,7 @@ import {
   toggleFavoriteRequest,
 } from '../store/actions'
 import { visibleCasesFor } from '../utils/access'
+import { canReceiveApplications } from '../utils/recruiting'
 import { selectShowcaseCases, ShowcaseSort } from '../utils/showcase'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
@@ -58,7 +59,8 @@ export const CasesShowcasePage: React.FC = () => {
   const [eventFormat, setEventFormat] = useState('all')
   const live = apiRuntime.mode === 'live'
   const requestFilters = live ? undefined : filters
-  const [recruiting, setRecruiting] = useState(false)
+  const [recruiting, setRecruiting] = useState('all')
+  const [rewardPresence, setRewardPresence] = useState('all')
 
   useEffect(() => {
     dispatch(fetchCasesRequest(requestFilters))
@@ -76,6 +78,14 @@ export const CasesShowcasePage: React.FC = () => {
   const filteredCases = cases.filter(
     (item) =>
       (eventFormat === 'all' || (item.kind || 'case') === eventFormat) &&
+      (recruiting === 'all' || canReceiveApplications(item) === (recruiting === 'open')) &&
+      (rewardPresence === 'all' ||
+        Boolean(
+          item.prizeFund ||
+            item.rewardAmount ||
+            (item.rewardType === 'other' && item.rewardDescription),
+        ) ===
+          (rewardPresence === 'paid')) &&
       (!live ||
         (matchesSearch(
           filters.search,
@@ -88,16 +98,12 @@ export const CasesShowcasePage: React.FC = () => {
           (filters.direction === 'all' || item.direction === filters.direction) &&
           (filters.complexity === 'all' || item.complexity === filters.complexity) &&
           (filters.workFormat === 'all' || item.workFormat === filters.workFormat) &&
-          (filters.rewardType === 'all' || item.rewardType === filters.rewardType) &&
-          (!filters.hasReward ||
-            !!item.prizeFund ||
-            !!item.rewardAmount ||
-            !!item.rewardDescription))),
+          (filters.rewardType === 'all' || item.rewardType === filters.rewardType))),
   )
   const visibleCases = selectShowcaseCases(filteredCases, {
     period: 'all',
     technology: 'all',
-    recruiting,
+    recruiting: false,
     sort,
   })
 
@@ -110,7 +116,8 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const handleResetFilters = () => {
-    setRecruiting(false)
+    setRecruiting('all')
+    setRewardPresence('all')
     setSort('newest')
     setEventFormat('all')
     dispatch(resetCaseFilters())
@@ -123,8 +130,7 @@ export const CasesShowcasePage: React.FC = () => {
 
   const canCreateCase =
     currentUser?.role === 'company' ||
-    currentUser?.role === 'admin' ||
-    currentUser?.role === 'university'
+    (apiRuntime.mode !== 'live' && currentUser?.role === 'university')
 
   const getRewardBadge = (c: any) => {
     if (c.rewardType === 'contest') {
@@ -311,21 +317,26 @@ export const CasesShowcasePage: React.FC = () => {
                 <option value="hackathon">Хакатоны</option>
                 <option value="olympiad">Олимпиады</option>
               </select>
-              <button
-                type="button"
-                className={`uust-pill ${recruiting ? 'active' : ''}`}
-                aria-pressed={recruiting}
-                onClick={() => setRecruiting(!recruiting)}
+              <select
+                className="uust-select"
+                aria-label="Статус набора"
+                value={recruiting}
+                onChange={(event) => setRecruiting(event.target.value)}
               >
-                Только с открытым набором
-              </button>
-              <button
-                className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
-                onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
-                style={{ marginLeft: 'auto' }}
+                <option value="all">Любой статус набора</option>
+                <option value="open">Открытый набор</option>
+                <option value="closed">Закрытый набор</option>
+              </select>
+              <select
+                className="uust-select"
+                aria-label="Наличие вознаграждения"
+                value={rewardPresence}
+                onChange={(event) => setRewardPresence(event.target.value)}
               >
-                <RussianRuble size={14} aria-hidden="true" /> Только с оплатой / призом
-              </button>
+                <option value="all">С оплатой и без</option>
+                <option value="paid">Только с оплатой / призом</option>
+                <option value="unpaid">Без оплаты и приза</option>
+              </select>
 
               <button
                 onClick={handleResetFilters}
@@ -410,6 +421,9 @@ export const CasesShowcasePage: React.FC = () => {
                   </button>
                 )}
 
+                {item.coverUrl && isPublished(item) && (
+                  <img className="case-card__cover" src={item.coverUrl} alt="" loading="lazy" />
+                )}
                 <div className="card__body">
                   <div className="case-card__company">
                     <img

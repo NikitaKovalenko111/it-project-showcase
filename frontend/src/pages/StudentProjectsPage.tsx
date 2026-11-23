@@ -1,3 +1,4 @@
+import { StudentProjectCover } from '../components/StudentProjectCover'
 import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
 import { getProjectCatalog, type ProjectCatalog } from '../api/studentProjectCatalog'
@@ -164,7 +165,7 @@ export const StudentProjectsPage: React.FC = () => {
           {(!live || section === 'catalog') && (
             <ScrollToolbar>
               <div className="uust-container">
-                <div className="uust-box">
+                <div className="uust-box student-project-filters">
                   <div className="uust-filter-row">
                     <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
                       <Search
@@ -306,7 +307,7 @@ export const StudentProjectsPage: React.FC = () => {
               {catalogProjects.map((item) => (
                 <div key={item.id} className="student-project-card">
                   <div className="student-project-card__image-wrap">
-                    {item.coverImage && <img src={item.coverImage} alt={item.title} />}
+                    <StudentProjectCover project={item} />
                     <span className="category-tag">{item.category}</span>
                     <button
                       onClick={(e) => handleLike(e, item.id)}

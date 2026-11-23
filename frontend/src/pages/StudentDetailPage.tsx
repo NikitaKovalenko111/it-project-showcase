@@ -1,8 +1,9 @@
+import { ApiImage } from '../components/ApiImage'
+import { AttachmentPreview } from '../components/AttachmentPreview'
 import { apiClient } from '../api/client'
 import { useConfirm } from '../components/ConfirmProvider'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { apiRuntime } from '../api/runtime'
-import { FileDownload } from '../components/FileDownload'
 import { LiveStudentProjectEditor } from '../components/modals/LiveStudentProjectEditor'
 import { ProjectVisibility } from '../components/ProjectVisibility'
 import { ReportButton } from '../components/ReportButton'
@@ -28,22 +29,6 @@ import {
   Tag,
   User,
 } from 'lucide-react'
-
-function ProjectScreenshot({ url, label }: { url: string; label: string }) {
-  const [unavailable, setUnavailable] = useState(false)
-  if (unavailable) return <span className="screenshot-unavailable">Скриншот недоступен</span>
-  return (
-    <a href={url} target="_blank" rel="noreferrer">
-      <img
-        src={url}
-        loading="lazy"
-        alt={label}
-        onError={() => setUnavailable(true)}
-        style={{ width: 160, maxWidth: '100%' }}
-      />
-    </a>
-  )
-}
 
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -84,20 +69,20 @@ export const StudentDetailPage: React.FC = () => {
   const reviewer =
     ['curator', 'university'].includes(currentUser?.role || '') && server?.status === 'moderation'
   const canEdit = owner && (server?.status === 'draft' || server?.status === 'revision')
-  const protectedFiles =
-    (owner || currentUser?.role === 'admin' || reviewer) &&
-    !activeProject.coverImage &&
-    !activeProject.screenshots.length &&
-    server
-      ? [
-          ...(server.coverFileId ? [{ id: server.coverFileId, name: 'Обложка' }] : []),
-          ...server.assets
-            .filter((asset) => asset.kind === 'screenshot')
-            .map((asset, index) => ({
-              id: asset.file_id,
-              name: `Скриншот ${index + 1}`,
-            })),
-        ]
+  const canReadPrivateMedia = owner || currentUser?.role === 'admin' || reviewer
+  const mediaUrl = (fileId: string) =>
+    reviewer
+      ? `${apiRuntime.baseUrl || '/api/v1'}/student-projects/${activeProject.id}/review/files/${fileId}`
+      : `${apiRuntime.baseUrl || '/api/v1'}/files/${fileId}`
+  const coverUrl =
+    activeProject.coverImage ||
+    (canReadPrivateMedia && server?.coverFileId ? mediaUrl(server.coverFileId) : '')
+  const screenshots = activeProject.screenshots.length
+    ? activeProject.screenshots
+    : canReadPrivateMedia && server
+      ? server.assets
+          .filter((asset) => asset.kind === 'screenshot')
+          .map((asset) => mediaUrl(asset.file_id))
       : []
 
   const getBadgeTitle = (b: string) => {
@@ -121,14 +106,14 @@ export const StudentDetailPage: React.FC = () => {
 
   return (
     <div>
-      <div className="detail-actions">
+      <div className="detail-actions student-project-actions">
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам
         </Link>
         {canEdit && (
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm student-project-edit"
             onClick={() => setEditing(true)}
           >
             Редактировать проект
@@ -178,10 +163,10 @@ export const StudentDetailPage: React.FC = () => {
       >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
-            {activeProject.coverImage && (
-              <img
-                src={activeProject.coverImage}
-                alt=""
+            {coverUrl && (
+              <ApiImage
+                src={coverUrl}
+                alt="Обложка проекта"
                 style={{ width: '100%', height: '320px', objectFit: 'cover' }}
               />
             )}
@@ -284,22 +269,15 @@ export const StudentDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {(activeProject.screenshots.length > 0 || protectedFiles.length > 0) && (
+              {screenshots.length > 0 && (
                 <section>
                   <h3>Изображения проекта</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                    {activeProject.screenshots.map((url, index) => (
-                      <ProjectScreenshot key={url} url={url} label={`Скриншот ${index + 1}`} />
-                    ))}
-                    {protectedFiles.map((file) => (
-                      <FileDownload
-                        key={file.id}
-                        file={{
-                          name: file.name,
-                          url: reviewer
-                            ? `${apiRuntime.baseUrl || '/api/v1'}/student-projects/${activeProject.id}/review/files/${file.id}`
-                            : `${apiRuntime.baseUrl || '/api/v1'}/files/${file.id}`,
-                        }}
+                  <div className="student-project-gallery">
+                    {screenshots.map((url, index) => (
+                      <AttachmentPreview
+                        key={url}
+                        image
+                        file={{ name: `Скриншот ${index + 1}`, url }}
                       />
                     ))}
                   </div>

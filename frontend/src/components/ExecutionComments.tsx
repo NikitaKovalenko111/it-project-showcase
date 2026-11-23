@@ -3,7 +3,7 @@ import { mockServer } from '../api/mockServer'
 import { createId } from '../utils/id'
 import { IdentityImage } from './IdentityImage'
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { collectPages } from '../api/backend'
 import { axiosInstance } from '../api/http'
 import { useAppSelector } from '../store'
@@ -30,6 +30,11 @@ export function ExecutionComments({
   const [comments, setComments] = useState<Comment[]>([])
   const [sort, setSort] = useState('newest')
   const [body, setBody] = useState('')
+  const [reply, setReply] = useState<{ name: string; body: string }>()
+  const input = useRef<HTMLTextAreaElement>(null)
+  const quote = reply
+    ? `Ответ для ${reply.name}: «${reply.body.slice(0, 160)}${reply.body.length > 160 ? '…' : ''}»\n\n`
+    : ''
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -108,12 +113,13 @@ export function ExecutionComments({
         onSubmit={async (e) => {
           e.preventDefault()
           if (!body.trim() || sending) return
+          const message = quote + body.trim()
           setError('')
           setSending(true)
           try {
             let data: Comment
             if (apiRuntime.mode === 'live')
-              data = (await axiosInstance.post<Comment>(path, { body: body.trim() })).data
+              data = (await axiosInstance.post<Comment>(path, { body: message })).data
             else {
               if (
                 !user ||
@@ -124,7 +130,7 @@ export function ExecutionComments({
                 comment_id: createId(),
                 author_id: user.id,
                 author_name: user.fullName,
-                body: body.trim(),
+                body: message,
                 created_at: new Date().toISOString(),
               }
               const all = JSON.parse(
@@ -139,6 +145,7 @@ export function ExecutionComments({
               items.some((item) => item.comment_id === data.comment_id) ? items : [data, ...items],
             )
             setBody('')
+            setReply(undefined)
           } catch (e) {
             setError((e as Error).message)
           } finally {
@@ -146,6 +153,14 @@ export function ExecutionComments({
           }
         }}
       >
+        {reply && (
+          <div className="execution-reply">
+            <span>Ответ для {reply.name}</span>
+            <button type="button" className="text-toggle" onClick={() => setReply(undefined)}>
+              Отменить ответ
+            </button>
+          </div>
+        )}
         <IdentityImage
           className="comment-avatar comment-compose-avatar"
           name={user?.fullName || 'Участник'}
@@ -155,6 +170,8 @@ export function ExecutionComments({
           <span className="sr-only">Комментарий</span>
           <textarea
             className="textarea"
+            ref={input}
+            maxLength={5000 - quote.length}
             rows={1}
             data-min-rows="1"
             placeholder="Введите комментарий"
@@ -208,6 +225,18 @@ export function ExecutionComments({
                 </time>
               </div>
               <p className="preserve-text">{comment.body}</p>
+              {userId && userId !== comment.author_id && (
+                <button
+                  type="button"
+                  className="text-toggle"
+                  onClick={() => {
+                    setReply({ name, body: comment.body })
+                    input.current?.focus()
+                  }}
+                >
+                  Ответить
+                </button>
+              )}
             </article>
           )
         })}
