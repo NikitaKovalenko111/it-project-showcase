@@ -28,7 +28,7 @@ body:has(.modal-backdrop, dialog[open], .sidebar-backdrop.open) { overflow: hidd
   .topbar-isu { height: 64px; padding: 0 12px; gap: 8px; }
   .topbar-isu__left { gap: 6px; min-width: 0; }
   .topbar-isu__date { display: none; }
-  .topbar-isu__mobile-brand { display: block; font-size: 12px; font-weight: 700; color: #17395c; line-height: 1.25; }
+  .topbar-isu__mobile-brand { display: block; font-size: 12px; font-weight: 700; color: var(--ui-ink); line-height: 1.25; }
   .topbar-isu__right { gap: 4px; flex-shrink: 0; }
   .topbar-isu__hamburger, .topbar-isu__icon-btn { width: 44px; height: 44px; flex-shrink: 0; }
   .topbar-isu__menu-dropdown { max-width: calc(100vw - 24px); max-height: calc(100dvh - 86px); overflow-y: auto; }

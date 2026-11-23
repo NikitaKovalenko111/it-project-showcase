@@ -71,12 +71,12 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
       <div className="modal-dialog modal-dialog--lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FileLock2 size={22} color="#b45309" />
+            <FileLock2 size={22} color="var(--ui-warning)" />
             <div>
-              <h3 style={{ color: '#92400e' }}>
+              <h3 style={{ color: 'var(--ui-danger)' }}>
                 Соглашение о неразглашении конфиденциальной информации (NDA)
               </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
+              <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--ui-muted)' }}>
                 Проект: {caseItem.title} • {caseItem.companyName}
               </p>
             </div>
@@ -91,13 +91,13 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
             style={{
               maxHeight: '260px',
               overflowY: 'auto',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
+              background: 'var(--ui-panel)',
+              border: '1px solid var(--ui-line)',
               padding: '16px',
               borderRadius: '8px',
               fontSize: '12px',
               lineHeight: '1.6',
-              color: '#334155',
+              color: 'var(--ui-body)',
             }}
           >
             {live ? (
@@ -138,13 +138,9 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
           <div style={{ marginTop: '16px' }}>
             <label
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#1e293b',
+                color: 'var(--ui-ink)',
               }}
             >
               <input
@@ -168,7 +164,7 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
             className="btn btn-primary"
             disabled={!agreed || busy || (live && !currentAgreement)}
             onClick={handleConfirm}
-            style={{ background: '#b45309' }}
+            style={{ background: 'var(--ui-warning)' }}
           >
             <ShieldCheck size={16} />{' '}
             {live ? 'Подписать и запросить доступ' : 'Подписать NDA и открыть ТЗ'}

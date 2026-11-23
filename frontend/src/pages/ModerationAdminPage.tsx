@@ -305,15 +305,10 @@ export const ModerationAdminPage: React.FC = () => {
                     <tr key={comp.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img
+                          <IdentityImage
                             src={comp.logo}
-                            alt=""
-                            style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '6px',
-                              objectFit: 'cover',
-                            }}
+                            name={comp.shortName || comp.name}
+                            className="moderation-company-logo"
                           />
                           <Link to={`/company/${comp.id}`}>
                             <strong>{comp.name}</strong>
@@ -327,7 +322,7 @@ export const ModerationAdminPage: React.FC = () => {
                           href={comp.website}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: '#1b5e91' }}
+                          style={{ color: 'var(--ui-brand-text)' }}
                         >
                           {comp.website}
                         </a>
@@ -419,7 +414,9 @@ export const ModerationAdminPage: React.FC = () => {
                             >
                               {u.fullName}
                             </button>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>ID: {u.id}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
+                              ID: {u.id}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -522,7 +519,7 @@ export const ModerationAdminPage: React.FC = () => {
         <div className="card">
           <div className="card__header">
             <h3 style={{ margin: 0, fontSize: '15px' }}>Журнал аудита критических операций</h3>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>
+            <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
               Фиксация: пользователь, дата/время, операция, объект, старое и новое значение
             </span>
           </div>
@@ -544,7 +541,9 @@ export const ModerationAdminPage: React.FC = () => {
                 <tbody>
                   {auditPage.items.map((log) => (
                     <tr key={log.id}>
-                      <td style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                      <td
+                        style={{ fontSize: '11px', color: 'var(--ui-muted)', whiteSpace: 'nowrap' }}
+                      >
                         {log.timestamp}
                       </td>
                       <td>
@@ -553,7 +552,7 @@ export const ModerationAdminPage: React.FC = () => {
                             log.userName ||
                             'Не зафиксирован'}
                         </strong>{' '}
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--ui-muted)' }}>
                           (
                           {roleLabels[
                             users.find((user) => user.id === log.userId)?.role || log.userRole
@@ -568,14 +567,14 @@ export const ModerationAdminPage: React.FC = () => {
                       </td>
                       <td>
                         <strong>{log.objectName}</strong>
-                        <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--ui-icon)' }}>
                           {auditObjectLabels[log.objectType] || log.objectType}
                         </div>
                       </td>
-                      <td style={{ color: '#64748b', fontSize: '12px' }}>
+                      <td style={{ color: 'var(--ui-muted)', fontSize: '12px' }}>
                         {roleLabels[log.previousValue || ''] || log.previousValue || '—'}
                       </td>
-                      <td style={{ color: '#16805b', fontWeight: 600, fontSize: '12px' }}>
+                      <td style={{ color: 'var(--ui-success)', fontWeight: 600, fontSize: '12px' }}>
                         {roleLabels[log.newValue || ''] || log.newValue || '—'}
                       </td>
                       <td>

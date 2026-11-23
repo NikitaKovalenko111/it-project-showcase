@@ -94,7 +94,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
                   ? 'Итоговый отчёт о стажировке'
                   : 'Представление результатов проекта'}
             </h3>
-            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--ui-muted)' }}>
               Кейс: <strong>{caseTitle}</strong>
             </p>
           </div>

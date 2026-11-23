@@ -176,7 +176,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#3a75b4',
+                      color: 'var(--ui-brand-text)',
                       fontSize: '11px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -196,7 +196,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                     style={{
                       padding: '24px',
                       textAlign: 'center',
-                      color: '#94a3b8',
+                      color: 'var(--ui-icon)',
                       fontSize: '12px',
                     }}
                   >

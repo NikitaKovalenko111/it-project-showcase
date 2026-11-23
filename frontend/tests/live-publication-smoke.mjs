@@ -163,7 +163,15 @@ try {
   assert.equal(await run(() => document.activeElement.getAttribute('aria-invalid')), 'true')
   await until(
     () =>
-      run(() => getComputedStyle(document.activeElement).backgroundColor === 'rgb(252, 245, 245)'),
+      run(() => {
+        const swatch = document.createElement('span')
+        swatch.style.backgroundColor = getComputedStyle(document.documentElement)
+          .getPropertyValue('--ui-danger-surface')
+          .trim()
+        return (
+          getComputedStyle(document.activeElement).backgroundColor === swatch.style.backgroundColor
+        )
+      }),
     'Invalid input color did not update',
   )
   assert.equal(
@@ -214,7 +222,86 @@ try {
 
   await login('qa.admin')
   await open('/cases', 'select[aria-label="Статус набора"]')
-  assert.equal(await has('Разместить публикацию'), false)
+  assert.equal(await has('Разместить публикацию'), true)
+  const companySelect = 'dialog [name=company_id]'
+  async function chooseOtherCompany() {
+    const companies = await run(
+      (selector) =>
+        Array.from(document.querySelector(selector).options)
+          .map((company) => company.value)
+          .filter(Boolean),
+      companySelect,
+    )
+    assert.ok(companies.length > 1, 'Expected multiple companies for administrator')
+    const companyId = companies[1]
+    await set(companySelect, companyId)
+    return companyId
+  }
+  for (const kind of ['case', 'hackathon', 'olympiad']) {
+    await open('/cases', 'select[aria-label="Статус набора"]')
+    await click('Разместить публикацию')
+    await set('dialog select:has(option[value=hackathon])', kind)
+    const companyId = await chooseOtherCompany()
+    const draftTitle = prefix + ' Администратор ' + kind
+    await set('dialog [name=title]', draftTitle)
+    await set('dialog [name=summary]', 'Проверка черновика администратора')
+    await set('dialog [name=description]', 'Тестовое описание для публикации от имени компании.')
+    await set('dialog [name=deadline]', date(25))
+    await set('dialog [name=registrationDeadline]', date(15))
+    await set('dialog input[placeholder="Например, 30"]', '8')
+    if (kind === 'olympiad') await set('dialog [name=rules]', 'Решения оцениваются по баллам.')
+    start = responses.length
+    await click(kind === 'case' ? 'Сохранить черновик' : 'Создать черновик', 'dialog[open]')
+    const draft = await created('/cases', start)
+    assert.equal(draft.company_id, companyId)
+    assert.equal(draft.event_format, kind)
+    if (kind !== 'case')
+      await until(() => exists('.event-plan--editor'), 'Administrator event plan missing')
+    await open('/cases/' + draft.case_id, '.case-detail-layout')
+    await click('Редактировать кейс')
+    assert.equal(
+      await run((selector) => document.querySelector(selector).disabled, companySelect),
+      true,
+    )
+    await set('dialog [name=title]', draftTitle + ' изменён')
+    await click('Сохранить изменения', 'dialog[open]')
+    await until(async () => !(await exists('dialog[open]')), 'Administrator failed to edit ' + kind)
+    await open('/cases/' + draft.case_id, '.case-detail-layout')
+    assert.ok(await has(draftTitle + ' изменён'))
+  }
+  for (const kind of ['internship', 'practice']) {
+    if (kind === 'internship') {
+      await open('/cases', 'select[aria-label="Статус набора"]')
+      await click('Разместить публикацию')
+      await set('dialog select:has(option[value=hackathon])', kind)
+    } else {
+      await open('/internships?kind=practice', '.opportunity-filters')
+      await click('Разместить практику')
+    }
+    const companyId = await chooseOtherCompany()
+    const draftTitle = prefix + ' Администратор ' + kind
+    await set('dialog [name=title]', draftTitle)
+    await set('dialog [name=summary]', 'Проверка программы администратора')
+    await set('dialog input[type=number]', '8')
+    await set(
+      'dialog textarea[aria-labelledby=opportunity-program-label]',
+      'Тестовая программа и условия участия.',
+    )
+    start = responses.length
+    await click('Сохранить черновик', 'dialog[open]')
+    const draft = await created('/internships', start)
+    assert.equal(draft.company_id, companyId)
+    assert.equal(draft.kind, kind)
+    const route = '/internships?kind=' + kind + '&scope=mine&program=' + draft.program_id
+    await open(route, '.program-detail-toolbar')
+    await click('Редактировать')
+    assert.ok(await exists('dialog input[readonly]'))
+    await set('dialog [name=title]', draftTitle + ' изменён')
+    await click('Сохранить черновик', 'dialog[open]')
+    await until(async () => !(await exists('dialog[open]')), 'Administrator failed to edit ' + kind)
+    await open(route, '.program-detail-toolbar')
+    assert.ok(await has(draftTitle + ' изменён'))
+  }
   await open('/cases/' + hackathon.case_id, '.case-detail-layout')
   assert.equal(await has('Редактировать кейс'), false)
   await open('/companies?review=cases', '.review-list, [aria-live=polite]')

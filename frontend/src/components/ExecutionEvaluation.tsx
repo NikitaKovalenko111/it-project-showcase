@@ -63,7 +63,7 @@ export const ExecutionEvaluation: React.FC<{
                 {total} / {max}
               </strong>
             </div>
-            <Star size={36} color="#fbbf24" fill="#fbbf24" />
+            <Star size={36} color="var(--ui-warning-accent)" fill="var(--ui-warning-accent)" />
           </div>
           <p>
             {olympiad

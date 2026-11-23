@@ -33,7 +33,7 @@ export const DemoBar: React.FC = () => {
       </div>
 
       <div className="demo-bar__roles">
-        <span style={{ fontSize: '11px', color: '#8da4be', marginRight: '4px' }}>
+        <span style={{ fontSize: '11px', color: 'var(--ui-icon)', marginRight: '4px' }}>
           Переключить роль:
         </span>
 

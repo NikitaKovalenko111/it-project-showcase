@@ -24,16 +24,16 @@ export const ProjectVisibility: React.FC<{ project: StudentProject }> = ({ proje
     }
   }
   return (
-    <div className="visibility-settings">
-      <label>
-        Видимость
+    <div className="visibility-settings form-action-row">
+      <label className="form-action-row__field">
+        <span>Видимость</span>
         <select
           className="select"
           value={visibility}
           onChange={(e) => setVisibility(e.target.value as 'private' | 'public')}
         >
           <option value="private">Только я</option>
-          <option value="public">Общее обозрение после проверки</option>
+          <option value="public">Публично после проверки</option>
         </select>
       </label>
       <button

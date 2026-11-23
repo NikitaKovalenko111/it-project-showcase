@@ -379,8 +379,8 @@ export const TeamsPanel: React.FC<{
                 </div>
                 <p>Вы капитан. Приглашённый студент появится в составе только после согласия.</p>
                 {!managed.caseId && (
-                  <div className="team-form-row">
-                    <div className="team-project-picker">
+                  <div className="form-action-row">
+                    <div className="form-action-row__field team-project-picker">
                       <span>Для какого проекта набираете команду</span>
                       <details>
                         <summary className="select">

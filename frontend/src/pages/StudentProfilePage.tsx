@@ -263,10 +263,8 @@ export const StudentProfilePage: React.FC = () => {
       </div>
       {/* Profile Header Banner */}
       <div
-        className="card"
+        className="card profile-banner"
         style={{
-          background: 'linear-gradient(135deg, #091b2e 0%, #17395c 100%)',
-          color: '#ffffff',
           borderRadius: '8px',
           overflow: 'hidden',
           marginBottom: '24px',
@@ -299,9 +297,9 @@ export const StudentProfilePage: React.FC = () => {
               {achievements.length > 0 && (
                 <span
                   style={{
-                    background: 'rgba(38, 158, 184, 0.25)',
-                    border: '1px solid #38a5e1',
-                    color: '#7ce7fb',
+                    background: 'var(--ui-success-surface)',
+                    border: '1px solid var(--ui-success-line)',
+                    color: 'var(--ui-success)',
                     fontSize: '11px',
                     fontWeight: 700,
                     padding: '2px 8px',
@@ -312,19 +310,19 @@ export const StudentProfilePage: React.FC = () => {
                   Подтверждённое портфолио
                 </span>
               )}
-              <span style={{ fontSize: '12px', color: '#93c5fd' }}>
+              <span style={{ fontSize: '12px', color: 'var(--ui-brand-text)' }}>
                 Курс {student?.course || 3}
               </span>
             </div>
 
-            <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 6px', color: '#fff' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 6px' }}>
               {targetUser.fullName}
             </h1>
 
             <div
               style={{
                 fontSize: '13px',
-                color: '#b0c6dd',
+                color: 'var(--ui-muted)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '2px',
@@ -342,8 +340,8 @@ export const StudentProfilePage: React.FC = () => {
           {/* Rating Widget */}
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'var(--ui-paper)',
+              border: '1px solid var(--ui-line)',
               borderRadius: '8px',
               padding: '16px 20px',
               textAlign: 'center',
@@ -355,15 +353,17 @@ export const StudentProfilePage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
-                color: '#f59e0b',
+                color: 'var(--ui-warning-accent)',
                 marginBottom: '2px',
               }}
             >
-              <Star size={18} fill="#f59e0b" />
-              <strong style={{ fontSize: '24px', color: '#fff' }}>{student?.rating ?? 0}</strong>
+              <Star size={18} fill="var(--ui-warning-accent)" />
+              <strong style={{ fontSize: '24px', color: 'var(--ui-ink)' }}>
+                {student?.rating ?? 0}
+              </strong>
             </div>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Рейтинг студента</span>
-            <div style={{ fontSize: '10px', color: '#38bdf8', marginTop: '4px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--ui-icon)' }}>Рейтинг студента</span>
+            <div style={{ fontSize: '10px', color: 'var(--ui-brand-text)', marginTop: '4px' }}>
               Побед в конкурсах: {student?.winsCount ?? 0}
             </div>
           </div>
@@ -569,7 +569,7 @@ export const StudentProfilePage: React.FC = () => {
           <div className="card" style={{ marginBottom: '24px' }}>
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={20} color="#16805b" />
+                <ShieldCheck size={20} color="var(--ui-success)" />
                 <h3 style={{ margin: 0, fontSize: '16px' }}>Выполненные кейсы компаний</h3>
               </div>
               <span className="badge badge-verified">
@@ -582,7 +582,7 @@ export const StudentProfilePage: React.FC = () => {
               style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
             >
               {verifiedCases.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--ui-icon)' }}>
                   Пока нет подтверждённых кейсов
                 </div>
               ) : (
@@ -591,20 +591,13 @@ export const StudentProfilePage: React.FC = () => {
                     <div
                       key={c.id}
                       style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
+                        background: 'var(--ui-panel)',
+                        border: '1px solid var(--ui-line)',
                         borderRadius: '8px',
                         padding: '18px 20px',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          marginBottom: '8px',
-                        }}
-                      >
+                      <div className="profile-case-meta" style={{ marginBottom: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <img
                             src={c.companyLogo}
@@ -614,18 +607,19 @@ export const StudentProfilePage: React.FC = () => {
                               height: '28px',
                               borderRadius: '6px',
                               objectFit: 'cover',
+                              flexShrink: 0,
                             }}
                           />
-                          <strong style={{ fontSize: '13px', color: '#1e293b' }}>
+                          <strong style={{ fontSize: '13px', color: 'var(--ui-ink)' }}>
                             {c.companyName}
                           </strong>
                         </div>
 
                         <span
                           style={{
-                            background: '#ecfdf5',
-                            color: '#065f46',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--ui-success-surface)',
+                            color: 'var(--ui-success)',
+                            border: '1px solid var(--ui-success-line)',
                             fontSize: '11px',
                             fontWeight: 700,
                             padding: '3px 8px',
@@ -635,13 +629,13 @@ export const StudentProfilePage: React.FC = () => {
                             gap: '4px',
                           }}
                         >
-                          <CheckCircle2 size={13} color="#10b981" /> Отметка: Проект подтверждён
-                          компанией
+                          <CheckCircle2 size={13} color="var(--ui-success)" /> Отметка: Проект
+                          подтверждён компанией
                         </span>
                       </div>
 
                       <Link to={`/cases/${c.id}`}>
-                        <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f2b48' }}>
+                        <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: 'var(--ui-ink)' }}>
                           {c.title}
                         </h4>
                       </Link>
@@ -650,7 +644,7 @@ export const StudentProfilePage: React.FC = () => {
                         style={{
                           margin: '0 0 12px',
                           fontSize: '12px',
-                          color: '#475569',
+                          color: 'var(--ui-body)',
                           lineHeight: 1.5,
                         }}
                       >
@@ -658,13 +652,8 @@ export const StudentProfilePage: React.FC = () => {
                       </p>
 
                       <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: '11px',
-                          color: '#64748b',
-                        }}
+                        className="profile-case-meta"
+                        style={{ fontSize: '11px', color: 'var(--ui-muted)' }}
                       >
                         <span>Направление: {c.direction}</span>
                         <Link to={`/cases/${c.id}/workspace`} className="btn btn-secondary btn-sm">
@@ -682,7 +671,7 @@ export const StudentProfilePage: React.FC = () => {
           <div className="card">
             <div className="card__header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FolderGit2 size={20} color="#1b5e91" />
+                <FolderGit2 size={20} color="var(--ui-brand-text)" />
                 <h3 style={{ margin: 0, fontSize: '16px' }}>
                   Собственные проекты студента ({ownProjects.length})
                 </h3>
@@ -694,47 +683,20 @@ export const StudentProfilePage: React.FC = () => {
               style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
             >
               {ownProjects.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--ui-icon)' }}>
                   Нет опубликованных студенческих проектов
                 </div>
               ) : (
                 <PaginatedGrid className="paginated-stack">
                   {ownProjects.map((p) => (
-                    <div
-                      key={p.id}
-                      style={{
-                        display: 'flex',
-                        gap: '16px',
-                        padding: '14px',
-                        background: '#f8fafc',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                      }}
-                    >
-                      <StudentProjectCover
-                        project={p}
-                        style={{
-                          width: '80px',
-                          height: '80px',
-                          borderRadius: '8px',
-                          objectFit: 'cover',
-                        }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <span
-                          className="badge badge-direction"
-                          style={{ fontSize: '10px', marginBottom: '4px' }}
-                        >
-                          {p.category}
-                        </span>
+                    <div className="profile-project" key={p.id}>
+                      <StudentProjectCover project={p} variant="thumbnail" />
+                      <div className="profile-project__text">
+                        <span className="badge badge-direction">{p.category}</span>
                         <Link to={`/student-projects/${p.id}`}>
-                          <h4 style={{ margin: '0 0 4px', fontSize: '14px', color: '#0f2b48' }}>
-                            {p.title}
-                          </h4>
+                          <h4>{p.title}</h4>
                         </Link>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                          {p.shortDescription}
-                        </p>
+                        <p>{p.shortDescription}</p>
                       </div>
                     </div>
                   ))}
@@ -758,7 +720,7 @@ export const StudentProfilePage: React.FC = () => {
                 <span
                   style={{
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: 'var(--ui-muted)',
                     fontWeight: 600,
                     display: 'block',
                     marginBottom: '6px',
@@ -771,8 +733,8 @@ export const StudentProfilePage: React.FC = () => {
                     <span
                       key={int}
                       style={{
-                        background: '#eff6ff',
-                        color: '#1d4ed8',
+                        background: 'var(--ui-brand-surface)',
+                        color: 'var(--ui-brand-text)',
                         padding: '3px 8px',
                         borderRadius: '4px',
                         fontSize: '11px',
@@ -797,7 +759,7 @@ export const StudentProfilePage: React.FC = () => {
                 <span
                   style={{
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: 'var(--ui-muted)',
                     fontWeight: 600,
                     display: 'block',
                     marginBottom: '6px',
@@ -810,8 +772,8 @@ export const StudentProfilePage: React.FC = () => {
                     <span
                       key={s}
                       style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
+                        background: 'var(--ui-soft)',
+                        color: 'var(--ui-body)',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '12px',
@@ -828,7 +790,7 @@ export const StudentProfilePage: React.FC = () => {
                 <span
                   style={{
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: 'var(--ui-muted)',
                     fontWeight: 600,
                     display: 'block',
                     marginBottom: '6px',
@@ -841,9 +803,9 @@ export const StudentProfilePage: React.FC = () => {
                     <span
                       key={ts}
                       style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        color: '#0f2b48',
+                        background: 'var(--ui-panel)',
+                        border: '1px solid var(--ui-line)',
+                        color: 'var(--ui-ink)',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
@@ -899,11 +861,11 @@ export const StudentProfilePage: React.FC = () => {
                   alignItems: 'center',
                   gap: '8px',
                   fontSize: '12px',
-                  color: '#475569',
+                  color: 'var(--ui-body)',
                   marginTop: '4px',
                 }}
               >
-                <Mail size={14} color="#64748b" /> {targetUser.email}
+                <Mail size={14} color="var(--ui-muted)" /> {targetUser.email}
               </div>
 
               {targetUser.phone && (
@@ -913,10 +875,10 @@ export const StudentProfilePage: React.FC = () => {
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: '12px',
-                    color: '#475569',
+                    color: 'var(--ui-body)',
                   }}
                 >
-                  <Phone size={14} color="#64748b" /> {targetUser.phone}
+                  <Phone size={14} color="var(--ui-muted)" /> {targetUser.phone}
                 </div>
               )}
             </div>

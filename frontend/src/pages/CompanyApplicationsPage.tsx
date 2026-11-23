@@ -132,7 +132,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                   left: 14,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#94a3b8',
+                  color: 'var(--ui-icon)',
                 }}
               />
               <input
@@ -167,9 +167,9 @@ export const CompanyApplicationsPage: React.FC = () => {
       {filteredApps.length === 0 ? (
         !showPrograms && (
           <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-            <Users size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-            <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Заявок не найдено</h3>
-            <p style={{ color: '#64748b', fontSize: '13px' }}>
+            <Users size={48} color="var(--ui-icon)" style={{ margin: '0 auto 16px' }} />
+            <h3 style={{ margin: '0 0 8px', color: 'var(--ui-ink)' }}>Заявок не найдено</h3>
+            <p style={{ color: 'var(--ui-muted)', fontSize: '13px' }}>
               По выбранному фильтру заявок студентов нет.
             </p>
           </div>
@@ -204,7 +204,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                           style={{
                             margin: '0 0 2px',
                             fontSize: '16px',
-                            color: '#0c1938',
+                            color: 'var(--ui-ink)',
                             fontWeight: 800,
                           }}
                         >
@@ -219,7 +219,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                         <div
                           style={{
                             fontSize: '12px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                             display: 'flex',
                             gap: '8px',
                             alignItems: 'center',
@@ -282,17 +282,17 @@ export const CompanyApplicationsPage: React.FC = () => {
 
                   <div
                     style={{
-                      background: '#f8fafc',
+                      background: 'var(--ui-panel)',
                       padding: '14px',
                       borderRadius: '8px',
                       marginBottom: '14px',
-                      border: '1px solid #eef2f6',
+                      border: '1px solid var(--ui-soft)',
                     }}
                   >
                     <div
                       style={{
                         fontSize: '11px',
-                        color: '#627282',
+                        color: 'var(--ui-muted)',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         marginBottom: '4px',
@@ -300,7 +300,9 @@ export const CompanyApplicationsPage: React.FC = () => {
                     >
                       Публикация:
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e4b85' }}>
+                    <div
+                      style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ui-brand-text)' }}
+                    >
                       <Link to={`/cases/${app.caseId}`}>{app.caseTitle}</Link>
                     </div>
 
@@ -308,7 +310,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                       style={{
                         marginTop: '10px',
                         fontSize: '13px',
-                        color: '#334455',
+                        color: 'var(--ui-body)',
                         lineHeight: 1.5,
                       }}
                     >
@@ -332,7 +334,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                           }}
                         >
                           <Mail size={13} /> {app.studentEmail}
@@ -344,7 +346,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                           }}
                         >
                           <Phone size={13} /> {app.studentPhone}
@@ -363,7 +365,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#3a75b4',
+                            color: 'var(--ui-brand-text)',
                             fontWeight: 700,
                           }}
                         >
@@ -379,7 +381,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#3a75b4',
+                            color: 'var(--ui-brand-text)',
                             fontWeight: 700,
                           }}
                         >

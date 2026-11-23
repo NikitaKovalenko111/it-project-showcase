@@ -14,6 +14,8 @@ export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 export function OpportunityPublicationModal({
   initial,
   companies,
+  allowCompanySelection = false,
+  onCompanyChange,
   formatControl,
   embedded = false,
   onBusyChange,
@@ -22,6 +24,8 @@ export function OpportunityPublicationModal({
 }: {
   initial: Partial<Opportunity> & { kind: OpportunityKind }
   companies: Pick<Company, 'id' | 'name'>[]
+  allowCompanySelection?: boolean
+  onCompanyChange?: (companyId: string) => void
   formatControl?: ReactNode
   embedded?: boolean
   onBusyChange?: (busy: boolean) => void
@@ -38,6 +42,8 @@ export function OpportunityPublicationModal({
   const [editor, setEditor] = useState(initial)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const companyName =
+    companies.find((company) => company.id === editor.company_id)?.name || editor.company_name || ''
   const title =
     (editor.program_id ? 'Редактирование ' : 'Размещение ') +
     (editor.kind === 'practice' ? 'практики' : 'стажировки')
@@ -121,17 +127,36 @@ export function OpportunityPublicationModal({
         <div className="modal-dialog__body">
           <fieldset className="opportunity-fields" disabled={busy}>
             {!editor.program_id && formatControl}
-            <label>
+            <label className="publication-company-field">
               Компания
-              <input
-                className="input"
-                readOnly
-                value={
-                  companies.find((company) => company.id === editor.company_id)?.name ||
-                  editor.company_name ||
-                  ''
-                }
-              />
+              {allowCompanySelection && !editor.program_id ? (
+                <select
+                  className="select"
+                  name="company_id"
+                  title={companyName || undefined}
+                  required
+                  value={editor.company_id || ''}
+                  onChange={(event) => {
+                    const company_id = event.target.value
+                    setEditor((current) => ({ ...current, company_id }))
+                    onCompanyChange?.(company_id)
+                  }}
+                >
+                  <option value="">Выберите компанию</option>
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="input"
+                  readOnly
+                  title={companyName || undefined}
+                  value={companyName}
+                />
+              )}
             </label>
             <label>
               Название

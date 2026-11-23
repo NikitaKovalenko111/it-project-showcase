@@ -73,10 +73,10 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
       <div className="modal-dialog student-invite-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <UserCheck size={20} color="#1b5e91" />
+            <UserCheck size={20} color="var(--ui-brand-text)" />
             <div>
               <h3>Приглашение студента</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
+              <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--ui-muted)' }}>
                 Кандидат: <strong>{student.fullName}</strong> (
                 {student.studentProfile?.group || 'УУНиТ'})
               </p>
@@ -89,9 +89,11 @@ export const InviteStudentModal: React.FC<InviteStudentModalProps> = ({
 
         {sent ? (
           <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-            <CheckCircle2 size={44} color="#16805b" style={{ margin: '0 auto 12px' }} />
-            <h4 style={{ color: '#16805b', margin: '0 0 6px' }}>Приглашение успешно отправлено!</h4>
-            <p style={{ color: '#64748b', fontSize: '12px' }}>
+            <CheckCircle2 size={44} color="var(--ui-success)" style={{ margin: '0 auto 12px' }} />
+            <h4 style={{ color: 'var(--ui-success)', margin: '0 0 6px' }}>
+              Приглашение успешно отправлено!
+            </h4>
+            <p style={{ color: 'var(--ui-muted)', fontSize: '12px' }}>
               Студент получит приглашение в личном кабинете.
             </p>
             <button className="btn btn-primary" onClick={onClose}>

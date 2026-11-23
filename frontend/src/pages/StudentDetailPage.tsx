@@ -1,4 +1,4 @@
-import { ApiImage } from '../components/ApiImage'
+import { ProjectCover } from '../components/StudentProjectCover'
 import { AttachmentPreview } from '../components/AttachmentPreview'
 import { apiClient } from '../api/client'
 import { useConfirm } from '../components/ConfirmProvider'
@@ -58,7 +58,7 @@ export const StudentDetailPage: React.FC = () => {
     )
   if (loading || !activeProject || activeProject.id !== id) {
     return (
-      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ui-muted)' }}>
         Загрузка проекта...
       </div>
     )
@@ -163,23 +163,10 @@ export const StudentDetailPage: React.FC = () => {
       >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
-            {coverUrl && (
-              <ApiImage
-                src={coverUrl}
-                alt="Обложка проекта"
-                style={{ width: '100%', height: '320px', objectFit: 'cover' }}
-              />
-            )}
+            {coverUrl && <ProjectCover src={coverUrl} alt="Обложка проекта" variant="detail" />}
 
             <div className="card__body">
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '12px',
-                }}
-              >
+              <div className="student-project-meta">
                 <span className="badge badge-direction" style={{ textTransform: 'uppercase' }}>
                   {[activeProject.category, activeProject.direction].filter(Boolean).join(' • ')}
                 </span>
@@ -194,15 +181,23 @@ export const StudentDetailPage: React.FC = () => {
                   }
                   aria-pressed={!!activeProject.likedByMe}
                   aria-label={activeProject.likedByMe ? 'Убрать лайк' : 'Поставить лайк'}
-                  style={{ color: '#e11d48' }}
+                  style={{ color: 'var(--ui-danger-accent)' }}
                 >
-                  <Heart size={15} fill={activeProject.likedByMe ? '#e11d48' : 'none'} />{' '}
+                  <Heart
+                    size={15}
+                    fill={activeProject.likedByMe ? 'var(--ui-danger-accent)' : 'none'}
+                  />{' '}
                   {activeProject.likesCount}
                 </button>
               </div>
 
               <h1
-                style={{ fontSize: '24px', fontWeight: 800, color: '#0f2b48', margin: '0 0 16px' }}
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: 'var(--ui-ink)',
+                  margin: '0 0 16px',
+                }}
               >
                 {activeProject.title}
               </h1>
@@ -221,11 +216,11 @@ export const StudentDetailPage: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       fontWeight: 600,
-                      background: '#e0f2fe',
-                      color: '#0369a1',
+                      background: 'var(--ui-brand-surface)',
+                      color: 'var(--ui-brand-text)',
                       padding: '4px 10px',
                       borderRadius: '6px',
-                      border: '1px solid #bae6fd',
+                      border: '1px solid var(--ui-brand-line)',
                     }}
                   >
                     <Tag size={12} aria-hidden="true" /> {getBadgeTitle(b)}
@@ -234,16 +229,16 @@ export const StudentDetailPage: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '6px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--ui-ink)', marginBottom: '6px' }}>
                   <Lightbulb size={14} aria-hidden="true" /> Решаемая проблема:
                 </h3>
                 <p
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: '#334155',
+                    color: 'var(--ui-body)',
                     lineHeight: 1.6,
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '12px 16px',
                     borderRadius: '8px',
                   }}
@@ -253,14 +248,14 @@ export const StudentDetailPage: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--ui-ink)', marginBottom: '8px' }}>
                   Подробное описание:
                 </h3>
                 <div
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: '#334155',
+                    color: 'var(--ui-body)',
                     lineHeight: 1.7,
                     whiteSpace: 'pre-line',
                   }}
@@ -329,20 +324,20 @@ export const StudentDetailPage: React.FC = () => {
                     width: '46px',
                     height: '46px',
                     borderRadius: '50%',
-                    background: '#e2e8f0',
+                    background: 'var(--ui-line)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <User size={22} color="#1b5e91" />
+                  <User size={22} color="var(--ui-brand-text)" />
                 </div>
                 <div>
-                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block' }}>
+                  <strong style={{ fontSize: '14px', color: 'var(--ui-ink)', display: 'block' }}>
                     {authors.find((author) => author.id === activeProject.authorId)?.fullName ||
                       activeProject.authorName}
                   </strong>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                     {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент'}
                   </span>
                 </div>
@@ -367,8 +362,8 @@ export const StudentDetailPage: React.FC = () => {
                   <span
                     key={t}
                     style={{
-                      background: '#f1f5f9',
-                      color: '#1e293b',
+                      background: 'var(--ui-soft)',
+                      color: 'var(--ui-ink)',
                       fontSize: '12px',
                       fontFamily: 'monospace',
                       padding: '4px 8px',

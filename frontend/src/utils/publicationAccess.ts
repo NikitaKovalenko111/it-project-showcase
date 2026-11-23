@@ -6,8 +6,9 @@ export const canCreatePublication = (user: Actor) =>
 export const canEditCaseDraft = (user: Actor, project: CaseProject) =>
   !!user &&
   ['draft', 'revision'].includes(project.status) &&
-  user.role === 'company' &&
-  canManageCase(user, project)
+  (user.role === 'admin'
+    ? project.createdBy === user.id
+    : user.role === 'company' && canManageCase(user, project))
 export const canEditProgram = (
   user: Actor,
   program: { created_by?: string; company_id: string; status: string },

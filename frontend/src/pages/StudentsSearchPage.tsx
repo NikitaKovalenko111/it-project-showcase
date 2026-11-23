@@ -255,11 +255,11 @@ export const StudentsSearchPage: React.FC = () => {
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link to={`/profile/${stud.id}`}>
-                      <h3 style={{ margin: '0 0 2px', fontSize: '15px', color: '#0f2b48' }}>
+                      <h3 style={{ margin: '0 0 2px', fontSize: '15px', color: 'var(--ui-ink)' }}>
                         {stud.fullName}
                       </h3>
                     </Link>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                       {[
                         prof.group && `Группа ${prof.group}`,
                         prof.course > 0 && `${prof.course} курс`,
@@ -298,8 +298,8 @@ export const StudentsSearchPage: React.FC = () => {
                     <span
                       key={sk}
                       style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
+                        background: 'var(--ui-soft)',
+                        color: 'var(--ui-body)',
                         fontSize: '11px',
                         padding: '2px 7px',
                         borderRadius: '4px',
