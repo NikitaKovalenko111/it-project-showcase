@@ -22,6 +22,7 @@ import {
 } from '../store/actions'
 import { visibleCasesFor } from '../utils/access'
 import { canReceiveApplications } from '../utils/recruiting'
+import { canCreatePublication } from '../utils/publicationAccess'
 import { selectShowcaseCases, ShowcaseSort } from '../utils/showcase'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
@@ -129,7 +130,7 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const canCreateCase =
-    currentUser?.role === 'company' ||
+    canCreatePublication(currentUser) ||
     (apiRuntime.mode !== 'live' && currentUser?.role === 'university')
 
   const getRewardBadge = (c: any) => {

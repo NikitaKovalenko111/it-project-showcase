@@ -201,26 +201,28 @@ export const CaseDetailPage: React.FC = () => {
 
         <div className="page-actions">
           <AdminCaseActions project={activeCase} />
-          {isCompanyRepresentative && activeCase.status === 'moderation' && (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={async () => {
-                try {
-                  await apiClient.withdrawCaseModeration(activeCase.id)
-                  dispatch(fetchCaseByIdRequest(activeCase.id))
-                  setApplicationNotice('Публикация отозвана для редактирования.')
-                } catch (cause) {
-                  setApplicationNotice((cause as Error).message)
-                }
-              }}
-            >
-              Отозвать с модерации
-            </button>
-          )}
+          {(isCompanyRepresentative ||
+            (currentUser?.role === 'admin' && activeCase.createdBy === currentUser.id)) &&
+            activeCase.status === 'moderation' && (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={async () => {
+                  try {
+                    await apiClient.withdrawCaseModeration(activeCase.id)
+                    dispatch(fetchCaseByIdRequest(activeCase.id))
+                    setApplicationNotice('Публикация отозвана для редактирования.')
+                  } catch (cause) {
+                    setApplicationNotice((cause as Error).message)
+                  }
+                }}
+              >
+                Отозвать с модерации
+              </button>
+            )}
           {(apiRuntime.mode === 'live'
             ? canEditCaseDraft(currentUser, activeCase) ||
               (isCompanyRepresentative && ['open', 'in_progress'].includes(activeCase.status))
-            : isCompanyRepresentative) && (
+            : isCompanyRepresentative || isCuratorOrAdmin) && (
             <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
               Редактировать кейс
             </button>

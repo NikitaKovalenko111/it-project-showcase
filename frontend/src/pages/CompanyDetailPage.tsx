@@ -140,7 +140,8 @@ export const CompanyDetailPage: React.FC = () => {
             <ReportButton targetType="company" targetId={activeCompany.id} />
           )}
           <AdminCompanyActions key={activeCompany.id} company={activeCompany} />
-          {isCompanyRepresentative && (
+          {(isCompanyRepresentative ||
+            (isCuratorOrAdmin && activeCompany.isVerified && !activeCompany.isBlocked)) && (
             <button className="btn btn-primary btn-sm" onClick={() => setCreateCaseModalOpen(true)}>
               <Plus size={14} /> Разместить кейс от компании
             </button>
@@ -629,7 +630,11 @@ export const CompanyDetailPage: React.FC = () => {
       </div>
 
       {/* Modal for creating a case from company */}
-      <CreateCaseModal isOpen={createCaseModalOpen} onClose={() => setCreateCaseModalOpen(false)} />
+      <CreateCaseModal
+        isOpen={createCaseModalOpen}
+        initialCompanyId={activeCompany.id}
+        onClose={() => setCreateCaseModalOpen(false)}
+      />
     </div>
   )
 }

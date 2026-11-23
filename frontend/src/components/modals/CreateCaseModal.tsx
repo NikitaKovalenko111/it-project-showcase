@@ -34,6 +34,7 @@ const olympiadSubjects = ['Математика', 'Программирован�
 
 type CreateCaseProps = {
   caseItem?: CaseProject
+  initialCompanyId?: string
   isOpen: boolean
   onClose: () => void
 }
@@ -41,7 +42,12 @@ type CreateCaseProps = {
 export const CreateCaseModal: React.FC<CreateCaseProps> = (props) =>
   props.isOpen ? <CreateCaseForm {...props} /> : null
 
-const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }) => {
+const CreateCaseForm: React.FC<CreateCaseProps> = ({
+  caseItem,
+  initialCompanyId,
+  isOpen,
+  onClose,
+}) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [draft, setDraft] = useState<CaseProject>()
@@ -54,9 +60,28 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
     [title, setTitle] = useState(''),
     [description, setDescription] = useState(''),
     [short, setShort] = useState('')
-  const [companyId, setCompanyId] = useState(''),
+  const [selectedCompanyId, setSelectedCompanyId] = useState(''),
     [direction, setDirection] = useState<ProjectDirection | ''>(live ? '' : 'Frontend'),
     [deadline, setDeadline] = useState('')
+  const admin = user?.role === 'admin'
+  const companyOptions = admin
+    ? companies.filter((company) => company.isVerified && !company.isBlocked)
+    : companies
+  const existingPublication = caseItem || draft
+  const companyId =
+    existingPublication?.companyId ||
+    selectedCompanyId ||
+    initialCompanyId ||
+    user?.companyProfile?.companyId ||
+    companyOptions[0]?.id ||
+    ''
+  const company = existingPublication
+    ? {
+        id: existingPublication.companyId,
+        name: existingPublication.companyName,
+        logo: existingPublication.companyLogo,
+      }
+    : companyOptions.find((item) => item.id === companyId)
   const [serverDirections, setServerDirections] = useState<string[]>([])
   const [serverSkills, setServerSkills] = useState<string[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -118,14 +143,6 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
     setOpportunityNotice('')
     setSpec(null)
     setCover(null)
-    setCompanyId(
-      caseItem?.companyId ||
-        user?.companyProfile?.companyId ||
-        companies.find(
-          (company) => user?.role !== 'admin' || (company.isVerified && !company.isBlocked),
-        )?.id ||
-        '',
-    )
     setKind(caseItem?.kind || 'case')
     setSelectedSkills(caseItem?.requiredCompetencies || [])
     if (caseItem) {
@@ -149,7 +166,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
       if (caseItem.publicationDetails) setDetails(caseItem.publicationDetails)
     }
   }, [isOpen, caseItem, user?.id])
-  if (!isOpen || user?.role === 'admin') return null
+  if (!isOpen) return null
   const dialog = (content: React.ReactNode, label = 'Размещение публикации') => (
     <Modal
       title={label}
@@ -218,11 +235,9 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
         embedded
         onBusyChange={setBusy}
         initial={{ kind: opportunity, company_id: companyId }}
-        companies={companies.filter((company) =>
-          user?.role === 'admin'
-            ? company.isVerified && !company.isBlocked
-            : company.id === companyId,
-        )}
+        companies={admin ? companyOptions : companyOptions.filter((item) => item.id === companyId)}
+        allowCompanySelection={admin}
+        onCompanyChange={setSelectedCompanyId}
         formatControl={formatControl}
         onClose={onClose}
         onSaved={(_, submitted) =>
@@ -315,7 +330,6 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
           try {
             const submit =
               (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') !== 'draft'
-            const company = companies.find((c) => c.id === companyId)
             if (!company) throw new Error('Выберите компанию')
             if (
               team &&
@@ -497,18 +511,21 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
             Компания
             <select
               className="select"
+              name="company_id"
               required
-              disabled={user?.role === 'company'}
+              disabled={user?.role === 'company' || !!existingPublication || busy}
               value={companyId}
-              onChange={(e) => setCompanyId(e.target.value)}
+              onChange={(e) => setSelectedCompanyId(e.target.value)}
             >
-              {companies
-                .filter((c) => user?.role !== 'admin' || (c.isVerified && !c.isBlocked))
-                .map((c) => (
+              {existingPublication && company ? (
+                <option value={company.id}>{company.name}</option>
+              ) : (
+                companyOptions.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
-                ))}
+                ))
+              )}
             </select>
           </label>
           <label>
@@ -727,6 +744,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({ caseItem, isOpen, onClose }
               {olympiad ? 'Регламент и правила оценивания' : 'Условия, наставничество и оформление'}
               <textarea
                 className="textarea"
+                name="rules"
                 required
                 value={rules}
                 onChange={(e) => setRules(e.target.value)}

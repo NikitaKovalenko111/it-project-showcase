@@ -5,6 +5,7 @@ import { apiRuntime } from './runtime'
 import { collectNumbered } from './backend'
 import { mockServer } from './mockServer'
 import type { User } from '../types/models'
+import { canEditProgram } from '../utils/publicationAccess'
 
 export type OpportunityKind = 'internship' | 'practice'
 export type Opportunity = {
@@ -82,7 +83,8 @@ export const opportunityApi = {
     const user = actor()
     return programs().filter((item) => {
       if (scope === 'public') return item.status === 'published'
-      if (scope === 'mine') return owns(user, item.company_id)
+      if (scope === 'mine')
+        return owns(user, item.company_id) || (user.role === 'admin' && item.created_by === user.id)
       return user.role === 'admin'
         ? ['moderation', 'published', 'closed', 'hidden'].includes(item.status)
         : ['curator', 'university'].includes(user.role) && item.status === 'moderation'
@@ -107,7 +109,7 @@ export const opportunityApi = {
     if (
       !company ||
       (!owns(user, companyId) && user.role !== 'admin') ||
-      (programId && (!previous || !['draft', 'revision', 'published'].includes(previous.status)))
+      (programId && (!previous || !canEditProgram(user, previous)))
     )
       throw new Error('Программа недоступна для редактирования.')
     if (!payload.title?.trim() || !payload.summary?.trim())
@@ -115,6 +117,7 @@ export const opportunityApi = {
     const item: Opportunity = {
       ...previous,
       program_id: previous?.program_id || createId(),
+      created_by: previous ? previous.created_by : user.id,
       kind: previous?.kind || payload.kind,
       company_id: companyId,
       company_name: company.name,
@@ -139,11 +142,11 @@ export const opportunityApi = {
     const user = actor()
     if (!item) throw new Error('Программа не найдена.')
     const moderator = ['admin', 'curator', 'university'].includes(user.role)
+    const author =
+      owns(user, item.company_id) || (user.role === 'admin' && item.created_by === user.id)
     const allowed =
-      (status === 'draft' && item.status === 'moderation' && owns(user, item.company_id)) ||
-      (status === 'moderation' &&
-        ['draft', 'revision'].includes(item.status) &&
-        (owns(user, item.company_id) || user.role === 'admin')) ||
+      (status === 'draft' && item.status === 'moderation' && author) ||
+      (status === 'moderation' && ['draft', 'revision'].includes(item.status) && author) ||
       (status === 'closed' && item.status === 'published' && owns(user, item.company_id)) ||
       (item.status === 'moderation' && moderator && ['published', 'revision'].includes(status)) ||
       (user.role === 'admin' &&

@@ -325,27 +325,31 @@ export function LiveCompanyProgram() {
                         }}
                       />
                     )}
-                    {ownCatalog && selected.status === 'moderation' && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={async () => {
-                          try {
-                            const item = await opportunityApi.setStatus(
-                              selected.program_id,
-                              'draft',
-                              '',
-                            )
-                            setPrograms((rows) =>
-                              rows.map((row) => (row.program_id === item.program_id ? item : row)),
-                            )
-                          } catch (cause) {
-                            setError((cause as Error).message)
-                          }
-                        }}
-                      >
-                        Отозвать с модерации
-                      </button>
-                    )}
+                    {ownCatalog &&
+                      selected.status === 'moderation' &&
+                      (!admin || selected.created_by === user?.id) && (
+                        <button
+                          className="btn btn-secondary"
+                          onClick={async () => {
+                            try {
+                              const item = await opportunityApi.setStatus(
+                                selected.program_id,
+                                'draft',
+                                '',
+                              )
+                              setPrograms((rows) =>
+                                rows.map((row) =>
+                                  row.program_id === item.program_id ? item : row,
+                                ),
+                              )
+                            } catch (cause) {
+                              setError((cause as Error).message)
+                            }
+                          }}
+                        >
+                          Отозвать с модерации
+                        </button>
+                      )}
                     {canEditProgram(
                       user,
                       selected,
@@ -493,6 +497,7 @@ export function LiveCompanyProgram() {
         <OpportunityPublicationModal
           initial={editor}
           companies={companies}
+          allowCompanySelection={admin}
           onClose={() => setEditor(undefined)}
           onSaved={(item, submitted) => {
             setPrograms((items) => [

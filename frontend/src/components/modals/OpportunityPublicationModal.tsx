@@ -14,6 +14,8 @@ export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 export function OpportunityPublicationModal({
   initial,
   companies,
+  allowCompanySelection = false,
+  onCompanyChange,
   formatControl,
   embedded = false,
   onBusyChange,
@@ -22,6 +24,8 @@ export function OpportunityPublicationModal({
 }: {
   initial: Partial<Opportunity> & { kind: OpportunityKind }
   companies: Pick<Company, 'id' | 'name'>[]
+  allowCompanySelection?: boolean
+  onCompanyChange?: (companyId: string) => void
   formatControl?: ReactNode
   embedded?: boolean
   onBusyChange?: (busy: boolean) => void
@@ -123,15 +127,36 @@ export function OpportunityPublicationModal({
             {!editor.program_id && formatControl}
             <label>
               Компания
-              <input
-                className="input"
-                readOnly
-                value={
-                  companies.find((company) => company.id === editor.company_id)?.name ||
-                  editor.company_name ||
-                  ''
-                }
-              />
+              {allowCompanySelection && !editor.program_id ? (
+                <select
+                  className="select"
+                  name="company_id"
+                  required
+                  value={editor.company_id || ''}
+                  onChange={(event) => {
+                    const company_id = event.target.value
+                    setEditor((current) => ({ ...current, company_id }))
+                    onCompanyChange?.(company_id)
+                  }}
+                >
+                  <option value="">Выберите компанию</option>
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="input"
+                  readOnly
+                  value={
+                    companies.find((company) => company.id === editor.company_id)?.name ||
+                    editor.company_name ||
+                    ''
+                  }
+                />
+              )}
             </label>
             <label>
               Название
