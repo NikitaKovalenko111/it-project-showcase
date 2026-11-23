@@ -45,6 +45,21 @@ func (rw *responseWriter) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
+func (rw *responseWriter) Unwrap() http.ResponseWriter {
+	return rw.ResponseWriter
+}
+
+func (rw *responseWriter) FlushError() error {
+	if rw.status == 0 {
+		rw.WriteHeader(http.StatusOK)
+	}
+	return http.NewResponseController(rw.ResponseWriter).Flush()
+}
+
+func (rw *responseWriter) Flush() {
+	_ = rw.FlushError()
+}
+
 func Logger(log *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

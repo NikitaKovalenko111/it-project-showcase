@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"database/sql"
@@ -694,6 +695,89 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 				t.Fatalf("program publisher: %s", actor)
 			}
 		}
+	})
+
+	t.Run("endpoint regressions for comments favorites consents and streaming", func(t *testing.T) {
+		token, _, err := pkg.CreateAccessTokenWithRoles(student, []string{"student"}, secret, time.Minute)
+		if err != nil {
+			t.Fatal(err)
+		}
+		community := community_repo.Init(db)
+		comment, err := community.CreateComment(ctx, student, "case", item.CaseID, nil, "Comment to delete")
+		if err != nil {
+			t.Fatal(err)
+		}
+		reply, err := community.CreateComment(ctx, other, "case", item.CaseID, &comment.CommentID, "Keep this reply")
+		if err != nil {
+			t.Fatal(err)
+		}
+		response := request(http.MethodDelete, "/comments/"+comment.CommentID, token, "")
+		if response.Code != 204 {
+			t.Fatalf("delete comment: %d %s", response.Code, response.Body)
+		}
+		var body, status string
+		var deletedAt bool
+		if err = db.QueryRowContext(ctx, `SELECT body,status,deleted_at IS NOT NULL FROM comments WHERE comment_id=$1`, comment.CommentID).Scan(&body, &status, &deletedAt); err != nil {
+			t.Fatal(err)
+		}
+		if body != "Comment to delete" || status != "deleted" || !deletedAt {
+			t.Fatalf("invalid soft delete: %q %q %v", body, status, deletedAt)
+		}
+		visible, err := community.GetComment(ctx, comment.CommentID)
+		if err != nil || visible.Body != "" || visible.Status != "deleted" {
+			t.Fatalf("deleted content leaked: %+v %v", visible, err)
+		}
+		if _, err = community.GetComment(ctx, reply.CommentID); err != nil {
+			t.Fatalf("reply lost: %v", err)
+		}
+		for _, method := range []string{http.MethodPut, http.MethodDelete} {
+			response = request(method, "/favorites/case/"+item.CaseID, token, "")
+			if response.Code != 200 || !strings.Contains(response.Body.String(), `"favorite":`) {
+				t.Fatalf("favorite: %d %s", response.Code, response.Body)
+			}
+		}
+
+		consentTeam := id(`INSERT INTO teams(name,leader_id) VALUES('Consent regression',$1) RETURNING team_id`, student)
+		exec(`INSERT INTO team_members(team_id,student_id) VALUES($1,$2),($1,$3)`, consentTeam, student, other)
+		consentApplication := id(`INSERT INTO applications(case_id,case_revision_id,submitted_by,team_id,status)
+			SELECT $1,case_revision_id,$2,$3,'consent_pending' FROM case_revisions WHERE case_id=$1 AND version_no=1 RETURNING application_id`,
+			hackathon.CaseID, student, consentTeam)
+		response = request(http.MethodPost, "/applications/"+consentApplication+"/consents", token, "")
+		if response.Code != 200 || !strings.Contains(response.Body.String(), consentApplication) {
+			t.Fatalf("consent: %d %s", response.Code, response.Body)
+		}
+
+		loggedAPI := middleware.Logger(logger)(middleware.TimeoutExcept(time.Millisecond, "/api/v1/notifications/stream")(api))
+		server := httptest.NewServer(loggedAPI)
+		defer server.Close()
+		streamCtx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		req, err := http.NewRequestWithContext(streamCtx, http.MethodGet, server.URL+"/api/v1/notifications/stream", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		stream, err := server.Client().Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer stream.Body.Close()
+		if stream.StatusCode != 200 || !strings.HasPrefix(stream.Header.Get("Content-Type"), "text/event-stream") {
+			t.Fatalf("SSE: %d %s", stream.StatusCode, stream.Header)
+		}
+		scanner := bufio.NewScanner(stream.Body)
+		waitForEvent := func(event string) {
+			t.Helper()
+			for scanner.Scan() {
+				if scanner.Text() == "event: "+event {
+					return
+				}
+			}
+			t.Fatalf("missing SSE event %s: %v", event, scanner.Err())
+		}
+		waitForEvent("connected")
+		exec(`INSERT INTO notifications(user_id,type,title,body) VALUES($1,'test','SSE regression','New event')`, student)
+		waitForEvent("notification")
 	})
 
 	t.Run("registration profile and curator directory", func(t *testing.T) {

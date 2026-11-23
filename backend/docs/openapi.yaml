@@ -589,8 +589,7 @@ paths:
     put:
       tags: [Cases]
       operationId: updateCase
-      description: Управляющий представитель или admin редактирует кейс. Admin может редактировать чужой кейс. Статусы draft, revision, published. Изменение published создаёт revision. Автор и компания сохраняются.
-      description: После выхода из draft критерии оценки менять нельзя.
+      description: Управляющий представитель или admin редактирует кейс. Admin может редактировать чужой кейс. Статусы draft, revision, published. Изменение published создаёт revision. Автор и компания сохраняются. После выхода из draft критерии оценки менять нельзя.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CaseInput'}}}}
@@ -767,7 +766,7 @@ paths:
       operationId: consentApplication
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ApplicationID'}]
-      responses: {'204': {description: Согласие с версией условий записано}}
+      responses: {'200': {description: Согласие записано, возвращается актуальная заявка, content: {application/json: {schema: {type: object}}}}}
   /executions:
     get:
       tags: [Executions]
@@ -1517,13 +1516,31 @@ paths:
       operationId: addFavorite
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ResourceType'}, {$ref: '#/components/parameters/ResourceID'}]
-      responses: {'204': {description: Добавлено}}
+      responses:
+        '200':
+          description: Добавлено в избранное
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [favorite]
+                properties:
+                  favorite: {type: boolean, enum: [true]}
     delete:
       tags: [Platform]
       operationId: removeFavorite
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ResourceType'}, {$ref: '#/components/parameters/ResourceID'}]
-      responses: {'204': {description: Удалено}}
+      responses:
+        '200':
+          description: Удалено из избранного
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [favorite]
+                properties:
+                  favorite: {type: boolean, enum: [false]}
   /notifications/{notification_id}/read:
     patch:
       tags: [Platform]
