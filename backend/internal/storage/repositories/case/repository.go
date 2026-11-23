@@ -306,6 +306,9 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
 			return nil, err
 		}
+		if err := checkCurrentNDA(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
 		var ready bool
 		err = tx.QueryRowContext(ctx, `SELECT c.event_format='case' OR (
 			c.application_deadline IS NOT NULL AND (c.event_format<>'hackathon' OR c.due_at IS NOT NULL)
@@ -360,6 +363,9 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
 			return nil, err
 		}
+		if err := checkCurrentNDA(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
 	}
 	newStatus := map[string]string{"approve": "published", "request_revision": "revision", "reject": "revision", "hide": "hidden"}[decision]
 	if newStatus == "" {
@@ -376,6 +382,22 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 		return nil, fmt.Errorf("commit case moderation: %w", err)
 	}
 	return r.GetManaged(ctx, moderatorID, caseID, true)
+}
+
+var ErrNDARequired = errors.New("current NDA version is required")
+
+func checkCurrentNDA(ctx context.Context, tx *sql.Tx, caseID string) error {
+	var ready bool
+	err := tx.QueryRowContext(ctx, `SELECT NOT c.nda_required OR EXISTS(
+		SELECT 1 FROM case_nda_versions v WHERE v.case_id=c.case_id AND v.is_current)
+		FROM cases c WHERE c.case_id=$1`, caseID).Scan(&ready)
+	if err != nil {
+		return err
+	}
+	if !ready {
+		return ErrNDARequired
+	}
+	return nil
 }
 
 func checkPublicationDeadline(ctx context.Context, tx *sql.Tx, caseID string) error {

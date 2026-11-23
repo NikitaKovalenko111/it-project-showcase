@@ -249,7 +249,7 @@ func (r *Repository) UpdateInternship(ctx context.Context, user, programID strin
 		WHERE p.program_id=$1 AND p.company_id=$3 AND p.status IN ('draft','revision','published') AND ($9='' OR p.kind=$9)
 			AND ($8::int IS NULL OR $8 >= (SELECT count(*) FROM showcase.internship_applications a WHERE a.program_id=p.program_id AND a.status='accepted'))
 			AND (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id
-				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR (p.status IN ('draft','revision') AND (p.created_by=$2 AND showcase.is_active_admin($2))))
+				AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR showcase.is_active_admin($2))
 		RETURNING p.*
 	) SELECT `+internshipCols+` FROM updated p JOIN showcase.companies c ON c.company_id=p.company_id`,
 		programID, user, in.CompanyID, in.Title, in.Summary, in.ContentMarkdown, in.ApplicationDeadline, in.Capacity, in.Kind))
@@ -311,7 +311,7 @@ func (r *Repository) UpdateInternshipStatusByRole(ctx context.Context, user, id,
 			(($5 OR $6) AND p.status='moderation' AND $3 IN ('published','revision'))
 			OR ($5 AND $3='revision' AND p.status<>'revision')
 			OR ($5 AND p.status IN ('published','closed') AND $3='hidden')
-			OR ($5 AND p.created_by=$2 AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='moderation' AND $3='draft')))
+			OR ($5 AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='moderation' AND $3='draft')))
 			OR (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
 				AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='published' AND $3='closed')
 					OR (p.status='moderation' AND $3='draft'))))
@@ -624,15 +624,21 @@ func (r *Repository) Rating(ctx context.Context, student string) (*models.Studen
 }
 
 func (r *Repository) CreateNDAVersion(ctx context.Context, user, caseID, text, file string) (*models.NDAVersion, error) {
-	tx, e := r.db.BeginTx(ctx, nil)
+	tx, e := audit.Begin(ctx, r.db)
 	if e != nil {
 		return nil, e
 	}
 	defer tx.Rollback()
-	var allowed bool
-	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM showcase.cases c WHERE c.case_id=$1 AND c.status='draft' AND (showcase.is_active_admin($2) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, caseID, user).Scan(&allowed)
-	if e != nil || !allowed {
+	var lockedID string
+	e = tx.QueryRowContext(ctx, `SELECT c.case_id FROM showcase.cases c WHERE c.case_id=$1 AND c.status IN ('draft','revision')
+		AND (showcase.is_active_admin($2) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id
+			AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company'))
+		FOR UPDATE OF c`, caseID, user).Scan(&lockedID)
+	if errors.Is(e, sql.ErrNoRows) {
 		return nil, ErrForbidden
+	}
+	if e != nil {
+		return nil, e
 	}
 	_, e = tx.ExecContext(ctx, `UPDATE showcase.case_nda_versions SET is_current=FALSE WHERE case_id=$1 AND is_current`, caseID)
 	if e != nil {

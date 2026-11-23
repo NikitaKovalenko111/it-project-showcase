@@ -105,8 +105,9 @@ func (h *Handler) UpdateStage(w http.ResponseWriter, r *http.Request) {
 }
 func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 	var q struct {
-		StageID string `json:"stage_id"`
-		Body    string `json:"body"`
+		StageID         string `json:"stage_id"`
+		ParentCommentID string `json:"parent_comment_id"`
+		Body            string `json:"body"`
 	}
 	if json.NewDecoder(r.Body).Decode(&q) != nil {
 		pkg.WriteError(w, 400, "invalid_request", "Invalid request payload")
@@ -114,7 +115,7 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 	u, _ := middleware.UserIDFromContext(r.Context())
 	c, a := roles(r)
-	x, e := h.service.AddComment(r.Context(), u, r.PathValue("execution_id"), q.StageID, q.Body, c, a)
+	x, e := h.service.AddComment(r.Context(), u, r.PathValue("execution_id"), q.StageID, q.Body, c, a, q.ParentCommentID)
 	if e != nil {
 		h.err(w, r, e)
 		return

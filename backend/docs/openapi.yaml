@@ -375,6 +375,25 @@ paths:
         '401': {description: Требуется Bearer access token}
         '403': {description: Недостаточно прав}
         '404': {description: Ресурс недоступен}
+  /internships/applications:
+    get:
+      tags: [Internships]
+      operationId: listCompanyInternshipApplications
+      description: Общая очередь заявок на стажировки и практики управляемых компаний. Отбор остаётся за представителем компании.
+      security: [{bearerAuth: []}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/PageSize'}
+        - {in: query, name: company_id, schema: {type: string, format: uuid}}
+        - {in: query, name: program_id, schema: {type: string, format: uuid}}
+        - {in: query, name: kind, schema: {type: string, enum: [internship, practice]}}
+        - {in: query, name: status, schema: {type: string, enum: [submitted, accepted, rejected, withdrawn]}}
+        - {in: query, name: search, schema: {type: string, maxLength: 200}, description: Подстрока названия программы или имени студента}
+      responses:
+        '200': {description: Заявки с пагинацией, content: {application/json: {schema: {$ref: '#/components/schemas/FlatPage'}}}}
+        '401': {description: Требуется Bearer access token}
+        '403': {description: Требуется представитель компании}
+        '422': {description: Некорректные фильтры}
   /internships/applications/mine:
     get:
       tags: [Internships]
@@ -606,10 +625,11 @@ paths:
     patch:
       tags: [Cases]
       operationId: moderateCase
+      description: Модерация текущей версии. Администратор также возвращает опубликованную запись в revision решением request_revision с обязательным comment. Без актуального NDA конфиденциальный кейс нельзя одобрить (409 nda_version_required).
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ModerationRequest'}}}}
-      responses: {'200': {description: Решение записано}, '403': {$ref: '#/components/responses/Forbidden'}}
+      responses: {'200': {description: Решение записано}, '403': {$ref: '#/components/responses/Forbidden'}, '409': {description: Недопустимый переход или nda_version_required при отсутствии действующего NDA}}
   /cases/{case_id}/comments:
     get:
       tags: [Community]
@@ -932,7 +952,7 @@ paths:
     put:
       tags: [Internships]
       operationId: updateInternship
-      description: Представитель с manage_company редактирует объявление. Опубликованная программа переходит в revision.
+      description: Представитель с manage_company или активный admin редактирует объявление в draft, revision, published. Администратору доступна чужая запись. Автор и компания сохраняются; опубликованная программа переходит в revision.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ProgramID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
@@ -1047,6 +1067,7 @@ paths:
     post:
       tags: [Cases]
       operationId: createNDAVersion
+      description: Управляющий представитель или администратор сохраняет NDA в draft или revision. Без текущего NDA конфиденциальный кейс нельзя отправить на модерацию или одобрить (409 nda_version_required).
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/NDAInput'}}}}
@@ -1222,6 +1243,7 @@ paths:
     post:
       tags: [Cases]
       operationId: submitCaseModeration
+      description: Для конфиденциального кейса требуется текущая версия NDA; иначе 409 nda_version_required.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]
       responses: {'200': {description: Кейс отправлен на модерацию}}
@@ -1357,13 +1379,25 @@ paths:
       operationId: listExecutionComments
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ExecutionID'}]
-      responses: {'200': {description: Рабочее обсуждение}}
+      responses:
+        '200':
+          description: Плоская страница обсуждения с родительскими ID для построения дерева
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_cursor]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/ExecutionComment'}}
+                  next_cursor: {type: string, nullable: true}
     post:
       tags: [Executions]
       operationId: createExecutionComment
+      description: Сообщение или ответ в рабочем обсуждении. Родитель из того же выполнения; этап наследуется от родителя. GET возвращает плоские страницы с parent_comment_id; дерево строит клиент.
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [body], properties: {body: {type: string, minLength: 1, maxLength: 5000}, stage_id: {type: string, format: uuid, nullable: true}, parent_comment_id: {type: string, format: uuid, nullable: true}}}}}}
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ExecutionID'}]
-      responses: {'201': {description: Сообщение создано}}
+      responses: {'201': {description: Сообщение создано, content: {application/json: {schema: {$ref: '#/components/schemas/ExecutionComment'}}}}, '403': {description: Нет доступа либо родитель отсутствует или относится к другому выполнению или этапу}}
   /executions/{execution_id}/mentors:
     get:
       tags: [Executions]
@@ -1737,6 +1771,17 @@ components:
         evaluation_criteria: {type: array, items: {$ref: '#/components/schemas/EvaluationCriterionInput'}}
     CaseStageInput: {type: object, required: [ordinal, title], properties: {ordinal: {type: integer, minimum: 1}, title: {type: string, minLength: 1, maxLength: 300}, expected_result: {type: string, maxLength: 3000}, due_at: {type: string, format: date-time, nullable: true}}}
     ModerationRequest: {type: object, required: [decision], properties: {decision: {type: string, enum: [approve, request_revision, reject, hide]}, comment: {type: string}}}
+    ExecutionComment:
+      type: object
+      required: [comment_id, execution_id, author_id, body, created_at]
+      properties:
+        comment_id: {type: string, format: uuid}
+        execution_id: {type: string, format: uuid}
+        stage_id: {type: string, format: uuid, nullable: true}
+        parent_comment_id: {type: string, format: uuid, nullable: true}
+        author_id: {type: string, format: uuid}
+        body: {type: string}
+        created_at: {type: string, format: date-time}
     Comment: {type: object, required: [comment_id, resource_type, resource_id, author_id, body, status, reply_count, likes_count, liked_by_me, created_at], properties: {comment_id: {type: string, format: uuid}, resource_type: {type: string, enum: [case, student_project]}, resource_id: {type: string, format: uuid}, parent_comment_id: {type: string, format: uuid, nullable: true}, author_id: {type: string, format: uuid}, body: {type: string}, status: {type: string, enum: [active, deleted, hidden]}, reply_count: {type: integer}, likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}, created_at: {type: string, format: date-time}}}
     CommentLikeState: {type: object, required: [likes_count, liked_by_me], properties: {likes_count: {type: integer, minimum: 0}, liked_by_me: {type: boolean}}}
     CuratorAssignment: {type: object, required: [student_id, curator_id, curator_name, assigned_by, assigned_at], properties: {student_id: {type: string, format: uuid}, curator_id: {type: string, format: uuid}, curator_name: {type: string}, assigned_by: {type: string, format: uuid}, assigned_at: {type: string, format: date-time}}}

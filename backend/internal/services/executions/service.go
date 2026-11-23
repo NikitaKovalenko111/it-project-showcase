@@ -47,7 +47,7 @@ func (s *Service) UpdateStage(ctx context.Context, u, e, stage, status, feedback
 	x, err := s.repo.UpdateStage(ctx, u, e, stage, status, feedback, company)
 	return x, mapError(err)
 }
-func (s *Service) AddComment(ctx context.Context, u, e, stage, body string, c, a bool) (*models.ExecutionComment, error) {
+func (s *Service) AddComment(ctx context.Context, u, e, stage, body string, c, a bool, parentIDs ...string) (*models.ExecutionComment, error) {
 	body = strings.TrimSpace(body)
 	if !uuidPattern.MatchString(e) || body == "" || utf8.RuneCountInString(body) > 5000 {
 		return nil, ErrInvalid
@@ -59,7 +59,14 @@ func (s *Service) AddComment(ctx context.Context, u, e, stage, body string, c, a
 		}
 		sid = &stage
 	}
-	x, err := s.repo.AddComment(ctx, u, e, sid, body, c, a)
+	parent := ""
+	if len(parentIDs) > 0 {
+		parent = parentIDs[0]
+	}
+	if parent != "" && !uuidPattern.MatchString(parent) {
+		return nil, ErrInvalid
+	}
+	x, err := s.repo.AddComment(ctx, u, e, sid, body, c, a, parent)
 	return x, mapError(err)
 }
 func (s *Service) ListComments(ctx context.Context, u, e string, c, a bool, limit int, pos, id string) ([]models.ExecutionComment, error) {

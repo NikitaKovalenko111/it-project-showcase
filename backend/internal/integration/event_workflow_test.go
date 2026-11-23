@@ -677,6 +677,31 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		if actor := id(`SELECT moderator_id FROM case_moderation_events WHERE case_id=$1 AND decision='approve'`, created.CaseID); actor != administrator {
 			t.Fatalf("case moderator: %s", actor)
 		}
+		send(http.MethodPatch, casePath+"/moderation", token, map[string]string{"decision": "request_revision", "comment": "Update published brief"}, 200)
+		// Legacy confidential records may reach moderation without an NDA.
+		confidentialInput := foreignInput
+		confidentialInput.NDARequired = true
+		confidential, err := cases.Create(ctx, manager, confidentialInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ndaPath := "/cases/" + confidential.CaseID
+		if err := cases.SetEventPlan(ctx, manager, confidential.CaseID, foreignPlan); err != nil {
+			t.Fatal(err)
+		}
+		rejected := request(http.MethodPost, ndaPath+"/submit-moderation", token, "")
+		if rejected.Code != 409 || !strings.Contains(rejected.Body.String(), "nda_version_required") {
+			t.Fatalf("missing NDA: %d %s", rejected.Code, rejected.Body)
+		}
+		exec(`UPDATE cases SET status='moderation' WHERE case_id=$1`, confidential.CaseID)
+		rejected = request(http.MethodPatch, ndaPath+"/moderation", token, `{"decision":"approve"}`)
+		if rejected.Code != 409 {
+			t.Fatalf("legacy NDA approval: %d %s", rejected.Code, rejected.Body)
+		}
+		send(http.MethodPatch, ndaPath+"/moderation", token, map[string]string{"decision": "request_revision", "comment": "Attach NDA"}, 200)
+		send(http.MethodPost, ndaPath+"/nda-versions", token, map[string]string{"text": "Confidentiality agreement"}, 201)
+		send(http.MethodPost, ndaPath+"/submit-moderation", token, nil, 200)
+		send(http.MethodPatch, ndaPath+"/moderation", token, map[string]string{"decision": "approve"}, 200)
 		for _, kind := range []string{"internship", "practice"} {
 			input := models.InternshipInput{CompanyID: company, Title: "Admin " + kind, Summary: "Summary", ContentMarkdown: "Description", Kind: kind, Capacity: &one, FileIDs: []string{image}}
 			var program models.InternshipProgram
@@ -686,14 +711,97 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			send(http.MethodGet, "/internships/mine", token, nil, 200)
 			programPath := "/internships/" + program.ProgramID
 			input.Title = "Edited " + kind
-			send(http.MethodPut, programPath, token, input, 200)
+			send(http.MethodPut, programPath, adminToken(anotherAdmin), input, 200)
 			for _, status := range []string{"moderation", "published"} {
-				send(http.MethodPatch, programPath+"/status", token, map[string]string{"status": status}, 200)
+				send(http.MethodPatch, programPath+"/status", adminToken(anotherAdmin), map[string]string{"status": status}, 200)
+			}
+			var revised models.InternshipProgram
+			if err := json.Unmarshal(send(http.MethodPut, programPath, adminToken(anotherAdmin), input, 200), &revised); err != nil {
+				t.Fatal(err)
+			}
+			if revised.Status != "revision" || revised.CreatedBy != administrator {
+				t.Fatalf("foreign published program edit: %+v", revised)
 			}
 			if actor := id(`SELECT actor_id FROM audit_logs WHERE entity_id=$1 AND entity_type='internship'
-				AND new_data->>'status'='published'`, program.ProgramID); actor != administrator {
+				AND new_data->>'status'='published'`, program.ProgramID); actor != anotherAdmin {
 				t.Fatalf("program publisher: %s", actor)
 			}
+		}
+	})
+
+	t.Run("execution replies and common program application queue", func(t *testing.T) {
+		tokenFor := func(user, role string) string {
+			t.Helper()
+			token, _, err := pkg.CreateAccessTokenWithRoles(user, []string{role}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return token
+		}
+		studentToken := tokenFor(student, "student")
+		postComment := func(execution, parent string, expected int) models.ExecutionComment {
+			t.Helper()
+			payload, _ := json.Marshal(map[string]string{"body": "Discussion message", "parent_comment_id": parent})
+			res := request(http.MethodPost, "/executions/"+execution+"/comments", studentToken, string(payload))
+			if res.Code != expected {
+				t.Fatalf("reply: %d %s", res.Code, res.Body)
+			}
+			var comment models.ExecutionComment
+			if expected == 201 {
+				if err := json.Unmarshal(res.Body.Bytes(), &comment); err != nil {
+					t.Fatal(err)
+				}
+			}
+			return comment
+		}
+		root := postComment(teamExecution.ExecutionID, "", 201)
+		reply := postComment(teamExecution.ExecutionID, root.CommentID, 201)
+		if reply.ParentCommentID == nil || *reply.ParentCommentID != root.CommentID {
+			t.Fatalf("missing parent: %+v", reply)
+		}
+		postComment(teamExecution.ExecutionID, uuid.NewString(), 403)
+		postComment(*entry.ExecutionID, root.CommentID, 403)
+		res := request(http.MethodGet, "/executions/"+teamExecution.ExecutionID+"/comments", studentToken, "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), root.CommentID) || !strings.Contains(res.Body.String(), "parent_comment_id") {
+			t.Fatalf("list replies: %d %s", res.Code, res.Body)
+		}
+		ownCompany := id(`INSERT INTO companies(full_name,status) VALUES('Queue company','approved') RETURNING company_id`)
+		exec(`INSERT INTO company_members(company_id,user_id,permissions) VALUES($1,$2,'["manage_company"]')`, ownCompany, manager)
+		for _, kind := range []string{"internship", "practice"} {
+			program := id(`INSERT INTO internship_programs(company_id,created_by,title,summary,content_markdown,status,kind)
+            VALUES($1,$2,$3,'Summary','Description','published',$4) RETURNING program_id`, ownCompany, manager, "Queue "+kind, kind)
+			exec(`INSERT INTO internship_applications(program_id,student_id) VALUES($1,$2)`, program, student)
+		}
+		companyToken := tokenFor(manager, "company_representative")
+		res = request(http.MethodGet, "/internships/applications?company_id="+ownCompany+"&page_size=1", companyToken, "")
+		var page struct {
+			Items []models.InternshipApplication `json:"items"`
+			Total int                            `json:"total"`
+		}
+		if res.Code != 200 {
+			t.Fatalf("queue: %d %s", res.Code, res.Body)
+		}
+		if err := json.Unmarshal(res.Body.Bytes(), &page); err != nil {
+			t.Fatal(err)
+		}
+		if page.Total != 2 || len(page.Items) != 1 {
+			t.Fatalf("queue pagination: %s", res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications?company_id="+ownCompany+"&kind=practice&status=submitted&search=Queue", companyToken, "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), `"program_kind":"practice"`) || strings.Contains(res.Body.String(), `"program_kind":"internship"`) {
+			t.Fatalf("queue filters: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications", tokenFor(newUser(false), "company_representative"), "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), `"total":0`) {
+			t.Fatalf("queue isolation: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications?kind=bad", companyToken, "")
+		if res.Code != 422 {
+			t.Fatalf("invalid queue filter: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications", studentToken, "")
+		if res.Code != 403 {
+			t.Fatalf("student company queue: %d", res.Code)
 		}
 	})
 

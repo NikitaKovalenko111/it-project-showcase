@@ -480,6 +480,8 @@ func writeCaseError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.WriteError(w, http.StatusConflict, "event_round_closed", "Round is not open for submissions")
 	case errors.Is(err, cases_service.ErrRoundAlreadySubmitted):
 		pkg.WriteError(w, http.StatusConflict, "event_round_already_submitted", "Round already submitted")
+	case errors.Is(err, cases_service.ErrNDARequired):
+		pkg.WriteError(w, http.StatusConflict, "nda_version_required", "Сохраните действующую версию NDA перед отправкой на модерацию или публикацией.")
 	case errors.Is(err, cases_service.ErrEventPlanRequired):
 		pkg.WriteError(w, http.StatusUnprocessableEntity, "event_plan_required", "Configure the event plan and deadlines before moderation")
 	default:
