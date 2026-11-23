@@ -7,10 +7,10 @@ const { canCreatePublication, canEditCaseDraft, canEditProgram } = await import(
 const admin = { id: 'admin', role: 'admin' }
 const company = { id: 'rep', role: 'company', companyProfile: { companyId: 'co' } }
 
-test('admin edits only own draft or revision, not another author or published content', () => {
+test('admin moderates cases and can still edit own program drafts', () => {
   assert.equal(canCreatePublication(admin), true)
   for (const status of ['draft', 'revision']) {
-    assert.equal(canEditCaseDraft(admin, { status, createdBy: 'admin' }), true)
+    assert.equal(canEditCaseDraft(admin, { status, createdBy: 'admin' }), false)
     assert.equal(canEditProgram(admin, { status, created_by: 'admin', company_id: 'co' }), true)
   }
   assert.equal(canEditCaseDraft(admin, { status: 'draft', createdBy: 'other' }), false)

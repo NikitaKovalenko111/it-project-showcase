@@ -8,7 +8,7 @@ export function TeamDiscussion({ entries, caseId }: { entries: Execution[]; case
   return (
     <section className="team-discussion">
       <header className="feature-toolbar">
-        <h2>Обсуждение и файлы</h2>
+        <h2>Общее обсуждение</h2>
         {entries.length > 1 && (
           <label>
             Команда / участник

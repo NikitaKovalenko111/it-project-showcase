@@ -1,3 +1,4 @@
+import { InternshipApplications } from '../components/InternshipApplications'
 import { matchesSearch } from '../utils/publication'
 import { IdentityImage } from '../components/IdentityImage'
 import { formatDate } from '../utils/date'
@@ -31,6 +32,7 @@ export const CompanyApplicationsPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const [params] = useSearchParams()
   const caseFilter = params.get('caseId')
+  const programId = params.get('programId')
   useEffect(() => {
     dispatch(fetchApplicationsRequest())
   }, [dispatch])
@@ -44,7 +46,10 @@ export const CompanyApplicationsPage: React.FC = () => {
   const projects = useAppSelector((s) => s.cases.casesList)
   const kindOf = (caseId: string) =>
     projects.find((project) => project.id === caseId)?.kind || 'case'
-  const [taskKind, setTaskKind] = useState('all')
+  const [taskKind, setTaskKind] = useState(params.get('kind') || 'all')
+  const programKind = taskKind === 'practice' || taskKind === 'internship' ? taskKind : undefined
+  const showPrograms =
+    currentUser?.role === 'company' && !caseFilter && (taskKind === 'all' || !!programKind)
   const accessibleApplications = allApplications.filter(
     (app) =>
       (taskKind === 'all' || kindOf(app.caseId) === taskKind) &&
@@ -75,7 +80,7 @@ export const CompanyApplicationsPage: React.FC = () => {
     <div className="company-applications-page">
       <div className="page-header">
         <div className="page-header__content">
-          <h1>Входящие заявки и регистрации</h1>
+          <h1>Заявки студентов</h1>
         </div>
       </div>
 
@@ -86,14 +91,14 @@ export const CompanyApplicationsPage: React.FC = () => {
             className={`uust-tab ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            Все заявки ({applicationsList.length})
+            Все заявки{showPrograms ? '' : ` (${applicationsList.length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'pending' ? 'active' : ''}`}
             onClick={() => setStatusFilter('pending')}
           >
-            <Clock size={14} aria-hidden="true" /> На рассмотрении (
-            {applicationsList.filter((a) => a.status === 'pending').length})
+            <Clock size={14} aria-hidden="true" /> На рассмотрении
+            {!showPrograms && ` (${applicationsList.filter((a) => a.status === 'pending').length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'interview' ? 'active' : ''}`}
@@ -105,8 +110,9 @@ export const CompanyApplicationsPage: React.FC = () => {
             className={`uust-tab ${statusFilter === 'accepted' ? 'active' : ''}`}
             onClick={() => setStatusFilter('accepted')}
           >
-            <CheckCircle2 size={14} aria-hidden="true" /> Принятые заявки / регистрации (
-            {applicationsList.filter((a) => a.status === 'accepted').length})
+            <CheckCircle2 size={14} aria-hidden="true" /> Принятые заявки / регистрации
+            {!showPrograms &&
+              ` (${applicationsList.filter((a) => a.status === 'accepted').length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'rejected' ? 'active' : ''}`}
@@ -135,7 +141,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                 style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Студент или название кейса"
+                placeholder="Студент или название публикации"
               />
             </div>
             <label className="catalog-sort application-kind-sort">
@@ -149,7 +155,8 @@ export const CompanyApplicationsPage: React.FC = () => {
                 <option value="case">Кейсы</option>
                 <option value="hackathon">Хакатоны</option>
                 <option value="olympiad">Олимпиады</option>
-                {apiRuntime.mode !== 'live' && <option value="internship">Стажировки</option>}
+                <option value="internship">Стажировки</option>
+                <option value="practice">Практики</option>
               </select>
             </label>
           </div>
@@ -158,13 +165,15 @@ export const CompanyApplicationsPage: React.FC = () => {
 
       {error && <p role="alert">{error}</p>}
       {filteredApps.length === 0 ? (
-        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <Users size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Заявок не найдено</h3>
-          <p style={{ color: '#64748b', fontSize: '13px' }}>
-            По выбранному фильтру заявок студентов нет.
-          </p>
-        </div>
+        !showPrograms && (
+          <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+            <Users size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
+            <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Заявок не найдено</h3>
+            <p style={{ color: '#64748b', fontSize: '13px' }}>
+              По выбранному фильтру заявок студентов нет.
+            </p>
+          </div>
+        )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {
@@ -439,6 +448,15 @@ export const CompanyApplicationsPage: React.FC = () => {
             </PaginatedGrid>
           }
         </div>
+      )}
+      {showPrograms && (
+        <InternshipApplications
+          companyQueue
+          programId={programKind === params.get('kind') ? programId || undefined : undefined}
+          kind={programKind}
+          search={searchTerm}
+          status={statusFilter}
+        />
       )}
     </div>
   )

@@ -21,7 +21,7 @@ import { axiosInstance } from '../api/http'
 import { collectPages, fromCompany } from '../api/backend'
 import type { Company } from '../types/models'
 import { useAppSelector } from '../store'
-import { InternshipApplications, InternshipApply } from './InternshipApplications'
+import { InternshipApply } from './InternshipApplications'
 import { formatDate } from '../utils/date'
 import { matchesSearch } from '../utils/publication'
 import { CatalogSearch } from './CatalogSearch'
@@ -65,7 +65,8 @@ export function LiveCompanyProgram() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [showApplications, setShowApplications] = useState(false)
+  const [applicationNotice, setApplicationNotice] = useState('')
+  useEffect(() => setApplicationNotice(''), [programId])
 
   useEffect(() => {
     if (!publisher) return
@@ -134,10 +135,6 @@ export function LiveCompanyProgram() {
     }
   }, [ownCatalog, student, user?.id, reviewer, programId, admin])
 
-  useEffect(() => {
-    setShowApplications(false)
-  }, [programId])
-
   const choose = (field: string, value: string) => {
     const next = new URLSearchParams(params)
     next.set(field, value)
@@ -161,9 +158,8 @@ export function LiveCompanyProgram() {
       matchesSearch(search, item.title, item.summary, item.company_name),
   )
   const preferredCompany =
-    companies.find((item) => item.id === companyId) ||
     companies.find((item) => item.id === user?.companyProfile?.companyId) ||
-    companies[0]
+    (admin ? companies.find((item) => item.id === companyId) || companies[0] : undefined)
 
   const meta = (item: Opportunity) => (
     <div className="case-card__meta-grid opportunity-meta">
@@ -223,7 +219,7 @@ export function LiveCompanyProgram() {
         </div>
       )}
       {notice && (
-        <p role="status" className="opportunity-notice">
+        <p role="status" className="opportunity-notice inline-notice application-feedback">
           {notice}
         </p>
       )}
@@ -305,6 +301,11 @@ export function LiveCompanyProgram() {
                     {meta(selected)}
                   </div>
                   <div className="action-row">
+                    {applicationNotice && (
+                      <p className="inline-notice application-feedback" role="status">
+                        {applicationNotice}
+                      </p>
+                    )}
                     {student && applied.has(selected.program_id) && (
                       <Link className="btn btn-secondary" to="/favorites?tab=internships">
                         Заявка подана · Мои заявки
@@ -318,7 +319,9 @@ export function LiveCompanyProgram() {
                         kind={selected.kind}
                         onApplied={() => {
                           setApplied((items) => new Set([...items, selected.program_id]))
-                          setNotice('Заявка отправлена.')
+                          setApplicationNotice(
+                            'Заявка отправлена. Статус доступен в разделе «Заявки и избранное».',
+                          )
                         }}
                       />
                     )}
@@ -361,23 +364,12 @@ export function LiveCompanyProgram() {
                       ['published', 'closed', 'revision', 'moderation', 'hidden'].includes(
                         selected.status,
                       ) && (
-                        <button
-                          type="button"
+                        <Link
                           className="btn btn-secondary"
-                          aria-expanded={showApplications}
-                          onClick={() => {
-                            setShowApplications((show) => !show)
-                            setTimeout(
-                              () =>
-                                document
-                                  .getElementById('program-applications')
-                                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-                              0,
-                            )
-                          }}
+                          to={`/company-applications?kind=${selected.kind}&programId=${selected.program_id}`}
                         >
-                          {showApplications ? 'Скрыть заявки' : 'Заявки студентов'}
-                        </button>
+                          Заявки студентов
+                        </Link>
                       )}
                   </div>
                 </aside>
@@ -391,15 +383,6 @@ export function LiveCompanyProgram() {
                     )
                   }
                 />
-              )}
-              {company && showApplications && ownCatalog && (
-                <section className="opportunity-applications" id="program-applications">
-                  <h3>Заявки студентов</h3>
-                  <InternshipApplications
-                    key={selected.program_id}
-                    programId={selected.program_id}
-                  />
-                </section>
               )}
             </article>
           ) : (

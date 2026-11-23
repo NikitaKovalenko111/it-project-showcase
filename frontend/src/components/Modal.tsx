@@ -31,6 +31,7 @@ export const Modal: React.FC<
       aria-label={title}
       onCancel={(e) => {
         e.preventDefault()
+        if (e.target !== e.currentTarget) return
         if (!busy) onClose()
       }}
     >

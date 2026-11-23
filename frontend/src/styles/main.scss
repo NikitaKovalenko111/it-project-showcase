@@ -403,3 +403,104 @@ input, button, select, textarea {
 @import 'comments';
 
 @import 'qa-refinement';
+
+.case-card__cover { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; }
+
+.badge.status-recruitment-closed {
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e1cdd0;
+  background: #f8eff0;
+  color: #763f47;
+}
+
+.notifications-popover__list { overflow-x: hidden; }
+.notifications-popover__item { min-width: 0; overflow-wrap: anywhere; }
+.notifications-popover__item > * { min-width: 0; }
+
+.opportunity-filters .catalog-search,
+.favorites-page .catalog-search {
+  padding-block: 4px;
+}
+.opportunity-filters .catalog-search .input,
+.favorites-page .catalog-search .input {
+  min-height: 32px;
+  padding-block: 4px;
+}
+
+.workspace-filter-panel > .workspace-search-filter {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.workspace-search-filter .catalog-search { width: 100%; }
+.student-project-filters .uust-filter-row { align-items: center; }
+.student-project-filters .catalog-sort { flex: 1 1 240px; }
+.student-project-filters .catalog-sort .uust-select { flex: 1; }
+
+.team-management .team-form-row { align-items: end; }
+.team-management .team-form-row > .btn { min-height: 42px; }
+.team-management h4 { margin-bottom: 10px; }
+.team-project-picker { display: grid; gap: 6px; min-width: 0; }
+.team-project-picker details { position: relative; }
+.team-project-picker summary,
+.publication-competencies > summary { cursor: pointer; }
+.team-project-options {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #d9e2ee;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px #14285020;
+}
+.team-project-options > .btn { justify-content: start; white-space: normal; }
+
+.publication-dialog .publication-competencies { padding: 0; border: 0; background: none; }
+.publication-competencies__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr));
+  gap: 6px 12px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px 6px;
+}
+.publication-confirmation { width: min(440px, calc(100vw - 24px)); }
+.publication-confirmation h3 { margin: 0 0 8px; }
+.publication-confirmation p { margin: 0; }
+.opportunity-apply-dialog label.opportunity-resume-option,
+.application-modal label.opportunity-resume-option {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+.opportunity-resume-option input[type='checkbox'] { width: auto; flex: none; }
+.application-student,
+.team-management .candidate-row a { display: inline-flex; align-items: center; gap: 8px; }
+.event-plan-save { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.application-feedback {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #bcd9cd;
+  background: #eef8f2;
+  color: #245940;
+}
+.execution-reply { grid-column: 1 / -1; display: flex; gap: 12px; align-items: baseline; }
+.round-work-fields { min-width: 0; border: 0; padding: 0; margin: 0; }
+.round-work-fields[hidden] { display: none; }
+
+form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']) {
+  border-color: #bd7579;
+  background-color: #fcf5f5;
+}
+form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']):focus-visible {
+  outline-color: #bd7579;
+}

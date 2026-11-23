@@ -1,3 +1,4 @@
+import { ApiImage } from '../components/ApiImage'
 import { canEditCaseDraft } from '../utils/publicationAccess'
 import { apiClient } from '../api/client'
 import { complexityBadge } from '../utils/publication'
@@ -75,12 +76,28 @@ export const CaseDetailPage: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [detailTab, setDetailTab] = useState('comments')
   const [ndaModalOpen, setNdaModalOpen] = useState(false)
-  const [ndaAcceptedLocal, setNdaAcceptedLocal] = useState(false)
+  const [ndaGrant, setNdaGrant] = useState<{ caseId: string; status: string }>()
+  const live = apiRuntime.mode === 'live'
+  const needsNda =
+    activeCase?.id === id && activeCase?.isConfidential && currentUser?.role === 'student'
+  useEffect(() => {
+    if (!live || !needsNda || !id || !viewerId) return
+    let active = true
+    void apiClient
+      .getNdaStatus(id, viewerId)
+      .then((status) => {
+        if (active && status) setNdaGrant({ caseId: id, status })
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [id, viewerId, live, needsNda])
 
   useEffect(() => {
     setApplicationModalOpen(false)
     setApplicationNotice('')
-    setNdaAcceptedLocal(false)
+    setNdaGrant(undefined)
     setNdaModalOpen(false)
     if (id) {
       dispatch(fetchCaseByIdRequest(id))
@@ -114,10 +131,10 @@ export const CaseDetailPage: React.FC = () => {
   }
 
   const isFavorite = favorites.includes(activeCase.id)
+  const ndaStatus = ndaGrant?.caseId === activeCase.id ? ndaGrant.status : undefined
   const isNDASigned =
     !activeCase.isConfidential ||
-    ndaAcceptedCases.includes(activeCase.id) ||
-    ndaAcceptedLocal ||
+    (live ? ndaStatus === 'granted' : ndaAcceptedCases.includes(activeCase.id)) ||
     currentUser?.role !== 'student'
 
   const userApplications =
@@ -140,7 +157,16 @@ export const CaseDetailPage: React.FC = () => {
     apiRuntime.mode === 'live' &&
     activeCase.status === 'moderation' &&
     ['admin', 'curator', 'university'].includes(currentUser?.role || '')
-  const reviewFiles = `${apiRuntime.baseUrl || '/api/v1'}/cases/${activeCase.id}/review/files`
+  const baseUrl = apiRuntime.baseUrl || '/api/v1'
+  const reviewFiles = `${baseUrl}/cases/${activeCase.id}/review/files`
+  const coverSource =
+    reviewing && activeCase.coverFileId
+      ? `${reviewFiles}/${activeCase.coverFileId}`
+      : isPublished(activeCase) || apiRuntime.mode !== 'live'
+        ? activeCase.coverUrl
+        : isCompanyRepresentative && activeCase.coverFileId
+          ? `${baseUrl}/files/${activeCase.coverFileId}`
+          : undefined
 
   const instantRegistration = ['olympiad', 'hackathon'].includes(activeCase.kind || '')
   const canReviewApplications =
@@ -175,28 +201,26 @@ export const CaseDetailPage: React.FC = () => {
 
         <div className="page-actions">
           <AdminCaseActions project={activeCase} />
-          {(isCompanyRepresentative ||
-            (currentUser?.role === 'admin' && activeCase.createdBy === currentUser.id)) &&
-            activeCase.status === 'moderation' && (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={async () => {
-                  try {
-                    await apiClient.withdrawCaseModeration(activeCase.id)
-                    dispatch(fetchCaseByIdRequest(activeCase.id))
-                    setApplicationNotice('Публикация отозвана для редактирования.')
-                  } catch (cause) {
-                    setApplicationNotice((cause as Error).message)
-                  }
-                }}
-              >
-                Отозвать с модерации
-              </button>
-            )}
+          {isCompanyRepresentative && activeCase.status === 'moderation' && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={async () => {
+                try {
+                  await apiClient.withdrawCaseModeration(activeCase.id)
+                  dispatch(fetchCaseByIdRequest(activeCase.id))
+                  setApplicationNotice('Публикация отозвана для редактирования.')
+                } catch (cause) {
+                  setApplicationNotice((cause as Error).message)
+                }
+              }}
+            >
+              Отозвать с модерации
+            </button>
+          )}
           {(apiRuntime.mode === 'live'
             ? canEditCaseDraft(currentUser, activeCase) ||
               (isCompanyRepresentative && ['open', 'in_progress'].includes(activeCase.status))
-            : canManageCase(currentUser, activeCase)) && (
+            : isCompanyRepresentative) && (
             <button className="btn btn-secondary" onClick={() => setEditOpen(true)}>
               Редактировать кейс
             </button>
@@ -249,15 +273,17 @@ export const CaseDetailPage: React.FC = () => {
                 <Send size={15} /> {instantRegistration ? 'Зарегистрироваться' : 'Подать заявку'}
               </button>
             ) : (
-              <span className="badge badge-status">Приём заявок закрыт</span>
+              <span className="badge badge-status status-recruitment-closed">
+                Приём заявок закрыт
+              </span>
             )
           ) : null}
         </div>
       </div>
 
-      {activeCase.coverUrl && isPublished(activeCase) && (
-        <img
-          src={activeCase.coverUrl}
+      {coverSource && (
+        <ApiImage
+          src={coverSource}
           alt="Обложка кейса"
           style={{
             width: '100%',
@@ -269,7 +295,7 @@ export const CaseDetailPage: React.FC = () => {
         />
       )}
       {applicationNotice && (
-        <p className="form-hint" role="status">
+        <p className="inline-notice application-feedback" role="status">
           {applicationNotice}
         </p>
       )}
@@ -397,9 +423,15 @@ export const CaseDetailPage: React.FC = () => {
                       Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну
                       компании. Ознакомьтесь и подпишите электронное NDA в один клик.
                     </p>
-                    <button className="btn btn-primary" onClick={() => setNdaModalOpen(true)}>
-                      <ShieldAlert size={16} /> Ознакомиться и подписать NDA
-                    </button>
+                    {ndaStatus === 'pending' ? (
+                      <p role="status">
+                        Соглашение подписано. Доступ к ТЗ появится после подтверждения компанией.
+                      </p>
+                    ) : (
+                      <button className="btn btn-primary" onClick={() => setNdaModalOpen(true)}>
+                        <ShieldAlert size={16} /> Ознакомиться и подписать NDA
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div
@@ -831,11 +863,7 @@ export const CaseDetailPage: React.FC = () => {
                     Техническое задание: {activeCase.specificationFile.name}
                   </a>
                 ))}
-              {reviewing && activeCase.coverFileId && (
-                <FileDownload
-                  file={{ name: 'Обложка кейса', url: `${reviewFiles}/${activeCase.coverFileId}` }}
-                />
-              )}
+
               <div className="case-specification-row">
                 <span>Тип мероприятия</span>
                 <strong>
@@ -1001,7 +1029,7 @@ export const CaseDetailPage: React.FC = () => {
         caseItem={activeCase}
         isOpen={ndaModalOpen}
         onClose={() => setNdaModalOpen(false)}
-        onAccepted={() => setNdaAcceptedLocal(true)}
+        onAccepted={() => setNdaGrant({ caseId: activeCase.id, status: 'pending' })}
       />
     </div>
   )

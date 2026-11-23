@@ -1,3 +1,4 @@
+import { ExpandableText } from './ExpandableText'
 import { FileDownload } from './FileDownload'
 import React, { useEffect, useState } from 'react'
 import {
@@ -120,7 +121,7 @@ export const ExecutionDetail: React.FC<{
             ['stages', 'Контрольные точки', Clock],
             ['submission', 'Результат и оценка', FileCheck2],
             ['members', entry.teamId ? 'Проектная команда' : 'Участник', Users],
-            ['discussion', 'Обсуждение и файлы', MessageSquare],
+            ['discussion', 'Общее обсуждение', MessageSquare],
           ].map(([value, label, Icon]) => (
             <button
               key={value as string}
@@ -167,7 +168,7 @@ export const ExecutionDetail: React.FC<{
             <div className="card__body">
               {entry.submission ? (
                 <>
-                  <p className="preserve-text">{entry.submission.description}</p>
+                  <ExpandableText text={entry.submission.description} />
                   {entry.submission.demoUrl && isOptionalWebUrl(entry.submission.demoUrl) && (
                     <a href={entry.submission.demoUrl} target="_blank" rel="noreferrer">
                       Видео или демонстрация
@@ -275,7 +276,7 @@ export const ExecutionDetail: React.FC<{
                     <textarea
                       className="textarea"
                       required
-                      maxLength={20000}
+                      maxLength={10000}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />

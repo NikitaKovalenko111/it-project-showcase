@@ -30,6 +30,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const dispatch = useAppDispatch(),
     user = useAppSelector((s) => s.auth.currentUser)
   const manager = canManageCase(user, project),
+    companyManager = user?.role === 'company' && manager,
     student = user?.role === 'student',
     olympiad = project.kind === 'olympiad'
   const live = apiRuntime.mode === 'live'
@@ -141,7 +142,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
         ['submission', 'Результат и оценка'],
         ['members', own?.teamId ? 'Моя команда' : 'Участник'],
         ['teamDiscussion', 'Обсуждение команды'],
-        ['discussion', 'Обсуждение и файлы'],
+        ['discussion', 'Общее обсуждение'],
         ['results', 'Итоги'],
       ]
     : [
@@ -255,7 +256,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               className={`uust-tab ${view === 'discussion' ? 'active' : ''}`}
               onClick={() => setView('discussion')}
             >
-              Обсуждение и файлы
+              Общее обсуждение
             </button>
           )}
 
@@ -314,7 +315,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {view === 'event' && hasEventPlan && (
                 <EventPlanPanel
                   project={project}
-                  editable={live ? canSubmit && !entries.length : manager}
+                  editable={live ? canSubmit && !entries.length : companyManager}
                 />
               )}
               {view === 'plan' && (
@@ -326,7 +327,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                         (user?.role === 'company' || canEditCaseDraft(user, project)) &&
                         !finished &&
                         ['draft', 'revision', 'open', 'in_progress'].includes(project.status)
-                      : manager && !finished
+                      : companyManager && !finished
                   }
                   onOpenDeadlines={
                     live &&
@@ -346,7 +347,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                     key={entry.id}
                     project={project}
                     entry={entry}
-                    manager={manager}
+                    manager={companyManager}
                     finished={finished}
                     onChange={refresh}
                     section={
@@ -469,7 +470,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             : 'Итоги ещё не опубликованы'}
                       </h2>
                     </div>
-                    {manager && (
+                    {companyManager && (
                       <button
                         type="button"
                         className={`btn btn-sm ${ranking.complete ? 'btn-secondary' : 'btn-primary'}`}
@@ -514,7 +515,11 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                     />
                   )}
                   {liveOlympiad && (manager || student) && (
-                    <OlympiadStandings caseId={project.id} entries={entries} manager={manager} />
+                    <OlympiadStandings
+                      caseId={project.id}
+                      entries={entries}
+                      manager={companyManager}
+                    />
                   )}
                 </section>
               )}

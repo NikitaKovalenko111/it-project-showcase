@@ -526,19 +526,24 @@ export const apiClient = {
     return mockServer.toggleFavorite(caseId)
   },
 
-  async isNDAAccepted(caseId: string, userId: string): Promise<boolean> {
-    if (apiRuntime.mode === 'live') {
-      const { data } = await axiosInstance.get(`/cases/${caseId}/nda-grants`)
-      return (data.items || []).some((g: any) => g.student_id === userId && g.status === 'granted')
-    }
-    return mockServer.isNDAAccepted(caseId, userId)
+  async getNdaStatus(caseId: string, userId: string) {
+    const { data } = await axiosInstance.get<{ items: { student_id: string; status: string }[] }>(
+      `/cases/${caseId}/nda-grants`,
+    )
+    return data.items?.find((grant) => grant.student_id === userId)?.status
   },
 
-  async acceptNDA(caseId: string, userId: string): Promise<boolean> {
+  async getCaseNDA(caseId: string) {
+    return (
+      await axiosInstance.get<{ nda_version_id: string; text: string }>(`/cases/${caseId}/nda`)
+    ).data
+  },
+
+  async acceptNDA(caseId: string, userId: string, versionId?: string): Promise<boolean> {
     if (apiRuntime.mode === 'live') {
-      const { data } = await axiosInstance.get(`/cases/${caseId}/nda`)
+      if (!versionId) throw new Error('Сначала загрузите текст соглашения.')
       await axiosInstance.post(`/cases/${caseId}/nda-grants`, {
-        nda_version_id: data.nda_version_id,
+        nda_version_id: versionId,
         accepted: true,
       })
       return true

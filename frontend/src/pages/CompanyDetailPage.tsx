@@ -140,7 +140,7 @@ export const CompanyDetailPage: React.FC = () => {
             <ReportButton targetType="company" targetId={activeCompany.id} />
           )}
           <AdminCompanyActions key={activeCompany.id} company={activeCompany} />
-          {(isCompanyRepresentative || isCuratorOrAdmin) && (
+          {isCompanyRepresentative && (
             <button className="btn btn-primary btn-sm" onClick={() => setCreateCaseModalOpen(true)}>
               <Plus size={14} /> Разместить кейс от компании
             </button>

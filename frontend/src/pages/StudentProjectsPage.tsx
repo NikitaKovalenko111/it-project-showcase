@@ -165,7 +165,7 @@ export const StudentProjectsPage: React.FC = () => {
           {(!live || section === 'catalog') && (
             <ScrollToolbar>
               <div className="uust-container">
-                <div className="uust-box">
+                <div className="uust-box student-project-filters">
                   <div className="uust-filter-row">
                     <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
                       <Search

@@ -1,3 +1,5 @@
+import { IdentityImage } from './IdentityImage'
+import { apiRuntime } from '../api/runtime'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Crown } from 'lucide-react'
@@ -14,21 +16,16 @@ export const TeamMembers: React.FC<{
       .map((member) => {
         const person = students.find((s) => s.id === member.id),
           name = person?.fullName || member.name,
-          avatar = person?.avatar || member.avatar
+          avatar =
+            person?.avatar ||
+            member.avatar ||
+            (apiRuntime.mode === 'live'
+              ? `${apiRuntime.baseUrl || '/api/v1'}/students/${member.id}/photo`
+              : undefined)
         return (
           <li key={member.id}>
             <Link to={`/profile/${member.id}`} className="team-member">
-              {avatar ? (
-                <img src={avatar} alt="" />
-              ) : (
-                <span className="member-avatar" aria-hidden="true">
-                  {name
-                    .split(' ')
-                    .slice(0, 2)
-                    .map((n) => n[0])
-                    .join('')}
-                </span>
-              )}
+              <IdentityImage className="member-avatar" name={name} src={avatar} />
               <span className="team-member__info">
                 <strong>{name}</strong>
                 <small>

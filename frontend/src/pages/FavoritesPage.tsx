@@ -72,7 +72,7 @@ export const FavoritesPage: React.FC = () => {
       : [{ project, app: undefined }],
   )
   return (
-    <div>
+    <div className="favorites-page">
       <div className="page-header">
         <div className="page-header__content">
           <h1>Заявки и избранное</h1>
