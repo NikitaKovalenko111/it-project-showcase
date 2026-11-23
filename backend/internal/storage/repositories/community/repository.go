@@ -109,7 +109,7 @@ func (r *Repository) SetCommentLike(ctx context.Context, userID, commentID strin
 	return state, tx.Commit()
 }
 func (r *Repository) DeleteComment(ctx context.Context, userID, id string, admin bool) error {
-	res, err := r.db.ExecContext(ctx, `UPDATE showcase.comments SET status='deleted',body='',deleted_at=CURRENT_TIMESTAMP WHERE comment_id=$1 AND status='active' AND (author_id=$2 OR $3)`, id, userID, admin)
+	res, err := r.db.ExecContext(ctx, `UPDATE showcase.comments SET status='deleted',deleted_at=CURRENT_TIMESTAMP WHERE comment_id=$1 AND status='active' AND (author_id=$2 OR $3)`, id, userID, admin)
 	if err != nil {
 		return err
 	}

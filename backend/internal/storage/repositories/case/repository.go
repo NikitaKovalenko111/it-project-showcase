@@ -181,7 +181,7 @@ func (r *Repository) RecordView(ctx context.Context, caseID, userID string) erro
 }
 
 func (r *Repository) GetManaged(ctx context.Context, userID, caseID string, admin bool) (*models.Case, error) {
-	item, err := scanCase(r.db.QueryRowContext(ctx, caseSelect(true)+` WHERE c.case_id=$1 AND ($3 OR EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR (c.created_by=$2 AND showcase.is_active_admin($2)))`, caseID, userID, admin))
+	item, err := scanCase(r.db.QueryRowContext(ctx, caseSelect(true)+` WHERE c.case_id=$1 AND ($3 OR EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR showcase.is_active_admin($2))`, caseID, userID, admin))
 	if err != nil {
 		return nil, fmt.Errorf("get managed case: %w", err)
 	}
@@ -226,7 +226,7 @@ func (r *Repository) Update(ctx context.Context, userID, caseID string, input mo
 	defer tx.Rollback()
 	var companyID, status string
 	var version int
-	err = tx.QueryRowContext(ctx, `SELECT c.company_id,c.status,c.terms_version FROM cases c WHERE c.case_id=$1 AND (EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR (c.status IN ('draft','revision') AND (c.created_by=$2 AND showcase.is_active_admin($2)))) FOR UPDATE`, caseID, userID).Scan(&companyID, &status, &version)
+	err = tx.QueryRowContext(ctx, `SELECT c.company_id,c.status,c.terms_version FROM cases c WHERE c.case_id=$1 AND (EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR showcase.is_active_admin($2)) FOR UPDATE`, caseID, userID).Scan(&companyID, &status, &version)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAccessDenied
 	}
@@ -285,7 +285,7 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 	}
 	defer tx.Rollback()
 	var current string
-	err = tx.QueryRowContext(ctx, `SELECT c.status FROM cases c WHERE c.case_id=$1 AND (EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR ($3='moderation' AND (c.status IN ('draft','revision') AND (c.created_by=$2 AND showcase.is_active_admin($2)))) OR ($3='withdraw_moderation' AND c.status='moderation' AND (c.created_by=$2 AND showcase.is_active_admin($2)))) FOR UPDATE`, caseID, userID, next).Scan(&current)
+	err = tx.QueryRowContext(ctx, `SELECT c.status FROM cases c WHERE c.case_id=$1 AND (EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR ($3 IN ('moderation','withdraw_moderation') AND showcase.is_active_admin($2))) FOR UPDATE`, caseID, userID, next).Scan(&current)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAccessDenied
 	}
@@ -304,6 +304,9 @@ func (r *Repository) transitionByMember(ctx context.Context, userID, caseID stri
 	}
 	if next == "moderation" {
 		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
+		if err := checkCurrentNDA(ctx, tx, caseID); err != nil {
 			return nil, err
 		}
 		var ready bool
@@ -345,13 +348,22 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 		return nil, fmt.Errorf("select case moderation target: %w", err)
 	}
 	if decision != "hide" && previous != "moderation" {
-		return nil, ErrInvalidTransition
+		var allowed bool
+		if err = tx.QueryRowContext(ctx, `SELECT showcase.is_active_admin($1)`, moderatorID).Scan(&allowed); err != nil {
+			return nil, err
+		}
+		if !allowed || (decision != "request_revision" && decision != "reject") {
+			return nil, ErrInvalidTransition
+		}
 	}
 	if decision == "approve" && companyStatus != "approved" {
 		return nil, ErrInvalidTransition
 	}
 	if decision == "approve" {
 		if err := checkPublicationDeadline(ctx, tx, caseID); err != nil {
+			return nil, err
+		}
+		if err := checkCurrentNDA(ctx, tx, caseID); err != nil {
 			return nil, err
 		}
 	}
@@ -370,6 +382,22 @@ func (r *Repository) Moderate(ctx context.Context, moderatorID, caseID, decision
 		return nil, fmt.Errorf("commit case moderation: %w", err)
 	}
 	return r.GetManaged(ctx, moderatorID, caseID, true)
+}
+
+var ErrNDARequired = errors.New("current NDA version is required")
+
+func checkCurrentNDA(ctx context.Context, tx *sql.Tx, caseID string) error {
+	var ready bool
+	err := tx.QueryRowContext(ctx, `SELECT NOT c.nda_required OR EXISTS(
+		SELECT 1 FROM case_nda_versions v WHERE v.case_id=c.case_id AND v.is_current)
+		FROM cases c WHERE c.case_id=$1`, caseID).Scan(&ready)
+	if err != nil {
+		return err
+	}
+	if !ready {
+		return ErrNDARequired
+	}
+	return nil
 }
 
 func checkPublicationDeadline(ctx context.Context, tx *sql.Tx, caseID string) error {
@@ -391,7 +419,6 @@ func clearCaseRelations(ctx context.Context, tx *sql.Tx, caseID string, includeC
 		`DELETE FROM case_directions WHERE case_id=$1`,
 		`DELETE FROM case_competencies WHERE case_id=$1`,
 		`DELETE FROM case_technologies WHERE case_id=$1`,
-		`DELETE FROM case_files WHERE case_id=$1`,
 		`DELETE FROM prize_places WHERE case_reward_id IN (SELECT case_reward_id FROM case_rewards WHERE case_id=$1)`,
 		`DELETE FROM case_rewards WHERE case_id=$1`,
 	}
@@ -435,7 +462,22 @@ func writeCaseRelations(ctx context.Context, tx *sql.Tx, caseID, userID string, 
 		}
 	}
 	for _, value := range input.Files {
-		result, err := tx.ExecContext(ctx, `INSERT INTO case_files (case_id,file_id,visibility) SELECT $1,file_id,$3 FROM files WHERE file_id=$2 AND uploaded_by=$4 AND status='active'`, caseID, value.FileID, value.Visibility, userID)
+		var fileID string
+		err := tx.QueryRowContext(ctx, `SELECT f.file_id FROM files f WHERE f.file_id=$1 AND f.status='active'
+			AND (f.uploaded_by=$2 OR EXISTS(SELECT 1 FROM case_files cf WHERE cf.case_id=$3 AND cf.file_id=f.file_id))
+			FOR SHARE OF f`, value.FileID, userID, caseID).Scan(&fileID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrReferenceNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("validate case file: %w", err)
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM case_files WHERE case_id=$1`, caseID); err != nil {
+		return fmt.Errorf("clear case files: %w", err)
+	}
+	for _, value := range input.Files {
+		result, err := tx.ExecContext(ctx, `INSERT INTO case_files (case_id,file_id,visibility) SELECT $1,file_id,$3 FROM files WHERE file_id=$2 AND status='active'`, caseID, value.FileID, value.Visibility)
 		if err != nil {
 			return fmt.Errorf("attach case file: %w", err)
 		}
@@ -661,7 +703,7 @@ func (r *Repository) ReorderStages(ctx context.Context, userID, caseID string, s
 func lockMutableStages(ctx context.Context, tx *sql.Tx, userID, caseID string) error {
 	var status string
 	var allowed, hasExecutions bool
-	err := tx.QueryRowContext(ctx, `SELECT c.status,(EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR (c.status IN ('draft','revision') AND (c.created_by=$2 AND showcase.is_active_admin($2)))) FROM cases c WHERE c.case_id=$1 FOR UPDATE`, caseID, userID).Scan(&status, &allowed)
+	err := tx.QueryRowContext(ctx, `SELECT c.status,(EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') OR showcase.is_active_admin($2)) FROM cases c WHERE c.case_id=$1 FOR UPDATE`, caseID, userID).Scan(&status, &allowed)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrAccessDenied
 	}

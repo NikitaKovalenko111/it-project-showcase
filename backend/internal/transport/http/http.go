@@ -49,7 +49,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Files.StartCompanies(companies, representative)
 
 	cases := mount(api, "/cases", nil)
-	h.handlers.Cases.Start(cases, representative, manager, admin, reviewer, h.optionalAuthorization)
+	h.handlers.Cases.Start(cases, representative, manager, reviewer, h.optionalAuthorization)
 	h.handlers.Cases.StartEventPlans(cases, manager, h.optionalAuthorization)
 	h.handlers.Files.StartCases(cases, h.authorize, reviewer)
 	h.handlers.Community.StartCases(cases, h.authorize, h.optionalAuthorization)
@@ -83,7 +83,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 	h.handlers.Results.StartAwards(mount(api, "/awards", workflow))
 
 	projects := mount(api, "/student-projects", nil)
-	h.handlers.StudentProjects.Start(projects, student, admin, reviewer, h.authorize, h.optionalAuthorization)
+	h.handlers.StudentProjects.Start(projects, studentOnly, admin, reviewer, h.authorize, h.optionalAuthorization)
 	h.handlers.Files.StartStudentProjects(projects, reviewer)
 	h.handlers.Community.StartStudentProjects(projects, h.authorize, h.optionalAuthorization)
 
@@ -147,8 +147,10 @@ func mount(parent *http.ServeMux, prefix string, middleware protect) *http.Serve
 	if middleware != nil {
 		handler = middleware(handler)
 	}
+
 	parent.Handle(prefix, handler)
 	parent.Handle(prefix+"/", handler)
+
 	return child
 }
 

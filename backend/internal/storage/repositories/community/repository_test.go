@@ -32,7 +32,7 @@ func TestDeleteCommentIsSoftDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	mock.ExpectExec("UPDATE showcase.comments SET status='deleted'").WithArgs("comment", "author", false).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE showcase.comments SET status='deleted',deleted_at=CURRENT_TIMESTAMP WHERE comment_id=$1 AND status='active' AND (author_id=$2 OR $3)")).WithArgs("comment", "author", false).WillReturnResult(sqlmock.NewResult(0, 1))
 	if err = Init(db).DeleteComment(context.Background(), "author", "comment", false); err != nil {
 		t.Fatal(err)
 	}

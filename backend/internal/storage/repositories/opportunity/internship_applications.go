@@ -39,16 +39,23 @@ func (r *Repository) ApplyInternship(ctx context.Context, user, program, letter,
 	return item, err
 }
 
-func (r *Repository) ListInternshipApplications(ctx context.Context, user, program string, mine bool, limit int, offset int64) ([]models.InternshipApplication, int64, error) {
-	const filter = ` WHERE ($2 AND a.student_id=$1) OR (NOT $2 AND a.program_id=NULLIF($3,'')::uuid
+func (r *Repository) ListInternshipApplications(ctx context.Context, user, program string, mine bool, limit int, offset int64, filters ...models.InternshipApplicationFilter) ([]models.InternshipApplication, int64, error) {
+	var f models.InternshipApplicationFilter
+	if len(filters) > 0 {
+		f = filters[0]
+	}
+	const filter = ` WHERE (($2 AND a.student_id=$1) OR (NOT $2 AND ($3='' OR a.program_id=NULLIF($3,'')::uuid)
 		AND EXISTS(SELECT 1 FROM showcase.internship_programs p JOIN showcase.company_members cm ON cm.company_id=p.company_id
-		WHERE p.program_id=a.program_id AND cm.user_id=$1 AND cm.status='active' AND cm.permissions ? 'manage_company'))`
+		WHERE p.program_id=a.program_id AND cm.user_id=$1 AND cm.status='active' AND cm.permissions ? 'manage_company')))
+ AND ($6='' OR program.company_id=NULLIF($6,'')::uuid)
+ AND ($7='' OR program.kind=$7) AND ($8='' OR a.status=$8)
+ AND ($9='' OR strpos(lower(program.title || ' ' || concat_ws(' ',student.last_name,student.first_name)),lower($9))>0)`
 	rows, err := r.db.QueryContext(ctx, `SELECT a.application_id,a.program_id,a.student_id,a.cover_letter,a.resume_file_id,a.status,a.created_at,a.decided_at,
   program.title,program.kind,concat_ws(' ', student.last_name, student.first_name)
   FROM showcase.internship_applications a
   JOIN showcase.internship_programs program ON program.program_id=a.program_id
   JOIN showcase.students student ON student.user_id=a.student_id`+filter+
-		` ORDER BY a.created_at DESC,a.application_id DESC LIMIT $4 OFFSET $5`, user, mine, program, limit, offset)
+		` ORDER BY a.created_at DESC,a.application_id DESC LIMIT $4 OFFSET $5`, user, mine, program, limit, offset, f.CompanyID, f.Kind, f.Status, f.Search)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -67,7 +74,7 @@ func (r *Repository) ListInternshipApplications(ctx context.Context, user, progr
 		return nil, 0, err
 	}
 	var total int64
-	err = r.db.QueryRowContext(ctx, `SELECT count(*) FROM showcase.internship_applications a`+filter, user, mine, program).Scan(&total)
+	err = r.db.QueryRowContext(ctx, `SELECT count(*) FROM (SELECT a.application_id FROM showcase.internship_applications a JOIN showcase.internship_programs program ON program.program_id=a.program_id JOIN showcase.students student ON student.user_id=a.student_id`+filter+` LIMIT $4 OFFSET $5) filtered`, user, mine, program, int64(9223372036854775807), int64(0), f.CompanyID, f.Kind, f.Status, f.Search).Scan(&total)
 	return items, total, err
 }
 

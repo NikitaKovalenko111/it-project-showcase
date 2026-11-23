@@ -140,7 +140,11 @@ func (s *Service) Moderate(ctx context.Context, u, id, status, comment string) (
 	if !validID(id) || (status != "published" && status != "revision" && status != "hidden") {
 		return nil, ErrInvalid
 	}
-	x, e := s.repo.Moderate(ctx, u, id, status, strings.TrimSpace(comment))
+	comment = strings.TrimSpace(comment)
+	if len(comment) > 8000 || (status == "revision" && comment == "") {
+		return nil, ErrInvalid
+	}
+	x, e := s.repo.Moderate(ctx, u, id, status, comment)
 	return x, mapErr(e, false)
 }
 func (s *Service) Like(ctx context.Context, u, id string, like bool) (int, error) {

@@ -28,6 +28,16 @@ func (s *Service) ListInternshipApplications(ctx context.Context, user, program 
 	return s.repo.ListInternshipApplications(ctx, user, program, mine, limit, offset)
 }
 
+func (s *Service) ListCompanyInternshipApplications(ctx context.Context, user string, f models.InternshipApplicationFilter, limit int, offset int64) ([]models.InternshipApplication, int64, error) {
+	f.Search = strings.TrimSpace(f.Search)
+	if (f.ProgramID != "" && !id(f.ProgramID)) || (f.CompanyID != "" && !id(f.CompanyID)) ||
+		(f.Kind != "" && f.Kind != "internship" && f.Kind != "practice") ||
+		(f.Status != "" && f.Status != "submitted" && f.Status != "accepted" && f.Status != "rejected" && f.Status != "withdrawn") || utf8.RuneCountInString(f.Search) > 200 {
+		return nil, 0, ErrInvalid
+	}
+	return s.repo.ListInternshipApplications(ctx, user, f.ProgramID, false, limit, offset, f)
+}
+
 func (s *Service) DecideInternshipApplication(ctx context.Context, user, application, status string) (*models.InternshipApplication, error) {
 	if !id(application) || (status != "accepted" && status != "rejected" && status != "withdrawn") {
 		return nil, ErrInvalid

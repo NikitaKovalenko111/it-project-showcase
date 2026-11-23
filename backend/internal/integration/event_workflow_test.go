@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"database/sql"
@@ -596,6 +597,56 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			return response.Body.Bytes()
 		}
 		token := adminToken(administrator)
+		foreignInput := models.CaseInput{
+			CompanyID: company, Title: "Company owned hackathon", Summary: "Summary", FullBrief: "Brief", Type: "educational",
+			EventFormat: "hackathon", WorkFormat: "remote", ParticipationMode: "individual", AdmissionMode: "open",
+			Capacity: &one, TeamSizeMin: &one, TeamSizeMax: &one, ApplicationDeadline: &deadline, DueAt: &dueAt,
+			ResultRequirements: "Result", IPTerms: "Terms", Visibility: "public",
+			Files: []models.CaseFileInput{{FileID: taskFile, Visibility: "public"}},
+		}
+		foreign, err := cases.Create(ctx, manager, foreignInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		foreignPath := "/cases/" + foreign.CaseID
+		foreignPlan := models.EventPlan{
+			Subject: "Programming", TimeZone: "Asia/Yekaterinburg", PlatformName: "Platform", PlatformURL: "https://example.test",
+			Rounds: []models.EventRound{{Title: "Final", OpensAt: now.Add(time.Hour), DueAt: dueAt,
+				Tasks: []models.EventTask{{Title: "Task", Statement: "Problem", FileIDs: []string{taskFile}, MaxScore: 30}}}},
+		}
+		if err = cases.SetEventPlan(ctx, manager, foreign.CaseID, foreignPlan); err != nil {
+			t.Fatal(err)
+		}
+		foreignInput.Title = "Edited by administrator"
+		var edited models.Case
+		if err = json.Unmarshal(send(http.MethodPut, foreignPath, token, foreignInput, 200), &edited); err != nil {
+			t.Fatal(err)
+		}
+		if edited.CreatedBy != manager || edited.TermsVersion != 2 || len(edited.Files) != 1 || edited.Files[0].FileID != taskFile {
+			t.Fatalf("foreign case or original attachment changed: %+v", edited)
+		}
+		send(http.MethodPut, foreignPath+"/event-plan", token, foreignPlan, 204)
+		send(http.MethodPost, foreignPath+"/stages", token, models.CaseStageInput{Title: "Admin checkpoint", Ordinal: 1}, 201)
+		outsider := newUser(false)
+		unrelatedFile := id(`INSERT INTO files(storage_key,original_name,mime_type,size_bytes,checksum_sha256,uploaded_by)
+			VALUES($1,'unrelated.pdf','application/pdf',12,'test',$2) RETURNING file_id`, uuid.NewString(), outsider)
+		foreignInput.Files = []models.CaseFileInput{{FileID: unrelatedFile, Visibility: "public"}}
+		send(http.MethodPut, foreignPath, token, foreignInput, 422)
+		foreignInput.Files = []models.CaseFileInput{{FileID: taskFile, Visibility: "public"}}
+		send(http.MethodPost, foreignPath+"/submit-moderation", token, nil, 200)
+		send(http.MethodPatch, foreignPath+"/moderation", token, map[string]string{"decision": "approve"}, 200)
+		if err = json.Unmarshal(send(http.MethodPut, foreignPath, token, foreignInput, 200), &edited); err != nil {
+			t.Fatal(err)
+		}
+		if edited.Status != "revision" || edited.CreatedBy != manager {
+			t.Fatalf("published edit must create revision: %+v", edited)
+		}
+		auditActor := id(`SELECT actor_id FROM audit_logs WHERE entity_id=$1 AND new_data->>'terms_version'='3'
+			AND entity_type='case' AND action='update'`, foreign.CaseID)
+		if auditActor != administrator {
+			t.Fatalf("wrong edit author: %s", auditActor)
+		}
+
 		image := id(`INSERT INTO files(storage_key,original_name,mime_type,size_bytes,checksum_sha256,uploaded_by)
 			VALUES($1,'cover.png','image/png',12,'test',$2) RETURNING file_id`, uuid.NewString(), administrator)
 		caseInput := models.CaseInput{
@@ -614,7 +665,7 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		send(http.MethodGet, "/cases/mine", token, nil, 200)
 		casePath := "/cases/" + created.CaseID
 		caseInput.Title = "Edited admin hackathon"
-		send(http.MethodPut, casePath, adminToken(anotherAdmin), caseInput, 403)
+		send(http.MethodPut, casePath, adminToken(anotherAdmin), caseInput, 200)
 		send(http.MethodPut, casePath, token, caseInput, 200)
 		send(http.MethodPut, casePath+"/cover", token, map[string]string{"file_id": image}, 204)
 		send(http.MethodPost, casePath+"/stages", token, models.CaseStageInput{Title: "Checkpoint", Ordinal: 1}, 201)
@@ -626,6 +677,31 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		if actor := id(`SELECT moderator_id FROM case_moderation_events WHERE case_id=$1 AND decision='approve'`, created.CaseID); actor != administrator {
 			t.Fatalf("case moderator: %s", actor)
 		}
+		send(http.MethodPatch, casePath+"/moderation", token, map[string]string{"decision": "request_revision", "comment": "Update published brief"}, 200)
+		// Legacy confidential records may reach moderation without an NDA.
+		confidentialInput := foreignInput
+		confidentialInput.NDARequired = true
+		confidential, err := cases.Create(ctx, manager, confidentialInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ndaPath := "/cases/" + confidential.CaseID
+		if err := cases.SetEventPlan(ctx, manager, confidential.CaseID, foreignPlan); err != nil {
+			t.Fatal(err)
+		}
+		rejected := request(http.MethodPost, ndaPath+"/submit-moderation", token, "")
+		if rejected.Code != 409 || !strings.Contains(rejected.Body.String(), "nda_version_required") {
+			t.Fatalf("missing NDA: %d %s", rejected.Code, rejected.Body)
+		}
+		exec(`UPDATE cases SET status='moderation' WHERE case_id=$1`, confidential.CaseID)
+		rejected = request(http.MethodPatch, ndaPath+"/moderation", token, `{"decision":"approve"}`)
+		if rejected.Code != 409 {
+			t.Fatalf("legacy NDA approval: %d %s", rejected.Code, rejected.Body)
+		}
+		send(http.MethodPatch, ndaPath+"/moderation", token, map[string]string{"decision": "request_revision", "comment": "Attach NDA"}, 200)
+		send(http.MethodPost, ndaPath+"/nda-versions", token, map[string]string{"text": "Confidentiality agreement"}, 201)
+		send(http.MethodPost, ndaPath+"/submit-moderation", token, nil, 200)
+		send(http.MethodPatch, ndaPath+"/moderation", token, map[string]string{"decision": "approve"}, 200)
 		for _, kind := range []string{"internship", "practice"} {
 			input := models.InternshipInput{CompanyID: company, Title: "Admin " + kind, Summary: "Summary", ContentMarkdown: "Description", Kind: kind, Capacity: &one, FileIDs: []string{image}}
 			var program models.InternshipProgram
@@ -635,15 +711,181 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			send(http.MethodGet, "/internships/mine", token, nil, 200)
 			programPath := "/internships/" + program.ProgramID
 			input.Title = "Edited " + kind
-			send(http.MethodPut, programPath, token, input, 200)
+			send(http.MethodPut, programPath, adminToken(anotherAdmin), input, 200)
 			for _, status := range []string{"moderation", "published"} {
-				send(http.MethodPatch, programPath+"/status", token, map[string]string{"status": status}, 200)
+				send(http.MethodPatch, programPath+"/status", adminToken(anotherAdmin), map[string]string{"status": status}, 200)
+			}
+			var revised models.InternshipProgram
+			if err := json.Unmarshal(send(http.MethodPut, programPath, adminToken(anotherAdmin), input, 200), &revised); err != nil {
+				t.Fatal(err)
+			}
+			if revised.Status != "revision" || revised.CreatedBy != administrator {
+				t.Fatalf("foreign published program edit: %+v", revised)
 			}
 			if actor := id(`SELECT actor_id FROM audit_logs WHERE entity_id=$1 AND entity_type='internship'
-				AND new_data->>'status'='published'`, program.ProgramID); actor != administrator {
+				AND new_data->>'status'='published'`, program.ProgramID); actor != anotherAdmin {
 				t.Fatalf("program publisher: %s", actor)
 			}
 		}
+	})
+
+	t.Run("execution replies and common program application queue", func(t *testing.T) {
+		tokenFor := func(user, role string) string {
+			t.Helper()
+			token, _, err := pkg.CreateAccessTokenWithRoles(user, []string{role}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return token
+		}
+		studentToken := tokenFor(student, "student")
+		postComment := func(execution, parent string, expected int) models.ExecutionComment {
+			t.Helper()
+			payload, _ := json.Marshal(map[string]string{"body": "Discussion message", "parent_comment_id": parent})
+			res := request(http.MethodPost, "/executions/"+execution+"/comments", studentToken, string(payload))
+			if res.Code != expected {
+				t.Fatalf("reply: %d %s", res.Code, res.Body)
+			}
+			var comment models.ExecutionComment
+			if expected == 201 {
+				if err := json.Unmarshal(res.Body.Bytes(), &comment); err != nil {
+					t.Fatal(err)
+				}
+			}
+			return comment
+		}
+		root := postComment(teamExecution.ExecutionID, "", 201)
+		reply := postComment(teamExecution.ExecutionID, root.CommentID, 201)
+		if reply.ParentCommentID == nil || *reply.ParentCommentID != root.CommentID {
+			t.Fatalf("missing parent: %+v", reply)
+		}
+		postComment(teamExecution.ExecutionID, uuid.NewString(), 403)
+		postComment(*entry.ExecutionID, root.CommentID, 403)
+		res := request(http.MethodGet, "/executions/"+teamExecution.ExecutionID+"/comments", studentToken, "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), root.CommentID) || !strings.Contains(res.Body.String(), "parent_comment_id") {
+			t.Fatalf("list replies: %d %s", res.Code, res.Body)
+		}
+		ownCompany := id(`INSERT INTO companies(full_name,status) VALUES('Queue company','approved') RETURNING company_id`)
+		exec(`INSERT INTO company_members(company_id,user_id,permissions) VALUES($1,$2,'["manage_company"]')`, ownCompany, manager)
+		for _, kind := range []string{"internship", "practice"} {
+			program := id(`INSERT INTO internship_programs(company_id,created_by,title,summary,content_markdown,status,kind)
+            VALUES($1,$2,$3,'Summary','Description','published',$4) RETURNING program_id`, ownCompany, manager, "Queue "+kind, kind)
+			exec(`INSERT INTO internship_applications(program_id,student_id) VALUES($1,$2)`, program, student)
+		}
+		companyToken := tokenFor(manager, "company_representative")
+		res = request(http.MethodGet, "/internships/applications?company_id="+ownCompany+"&page_size=1", companyToken, "")
+		var page struct {
+			Items []models.InternshipApplication `json:"items"`
+			Total int                            `json:"total"`
+		}
+		if res.Code != 200 {
+			t.Fatalf("queue: %d %s", res.Code, res.Body)
+		}
+		if err := json.Unmarshal(res.Body.Bytes(), &page); err != nil {
+			t.Fatal(err)
+		}
+		if page.Total != 2 || len(page.Items) != 1 {
+			t.Fatalf("queue pagination: %s", res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications?company_id="+ownCompany+"&kind=practice&status=submitted&search=Queue", companyToken, "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), `"program_kind":"practice"`) || strings.Contains(res.Body.String(), `"program_kind":"internship"`) {
+			t.Fatalf("queue filters: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications", tokenFor(newUser(false), "company_representative"), "")
+		if res.Code != 200 || !strings.Contains(res.Body.String(), `"total":0`) {
+			t.Fatalf("queue isolation: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications?kind=bad", companyToken, "")
+		if res.Code != 422 {
+			t.Fatalf("invalid queue filter: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodGet, "/internships/applications", studentToken, "")
+		if res.Code != 403 {
+			t.Fatalf("student company queue: %d", res.Code)
+		}
+	})
+
+	t.Run("endpoint regressions for comments favorites consents and streaming", func(t *testing.T) {
+		token, _, err := pkg.CreateAccessTokenWithRoles(student, []string{"student"}, secret, time.Minute)
+		if err != nil {
+			t.Fatal(err)
+		}
+		community := community_repo.Init(db)
+		comment, err := community.CreateComment(ctx, student, "case", item.CaseID, nil, "Comment to delete")
+		if err != nil {
+			t.Fatal(err)
+		}
+		reply, err := community.CreateComment(ctx, other, "case", item.CaseID, &comment.CommentID, "Keep this reply")
+		if err != nil {
+			t.Fatal(err)
+		}
+		response := request(http.MethodDelete, "/comments/"+comment.CommentID, token, "")
+		if response.Code != 204 {
+			t.Fatalf("delete comment: %d %s", response.Code, response.Body)
+		}
+		var body, status string
+		var deletedAt bool
+		if err = db.QueryRowContext(ctx, `SELECT body,status,deleted_at IS NOT NULL FROM comments WHERE comment_id=$1`, comment.CommentID).Scan(&body, &status, &deletedAt); err != nil {
+			t.Fatal(err)
+		}
+		if body != "Comment to delete" || status != "deleted" || !deletedAt {
+			t.Fatalf("invalid soft delete: %q %q %v", body, status, deletedAt)
+		}
+		visible, err := community.GetComment(ctx, comment.CommentID)
+		if err != nil || visible.Body != "" || visible.Status != "deleted" {
+			t.Fatalf("deleted content leaked: %+v %v", visible, err)
+		}
+		if _, err = community.GetComment(ctx, reply.CommentID); err != nil {
+			t.Fatalf("reply lost: %v", err)
+		}
+		for _, method := range []string{http.MethodPut, http.MethodDelete} {
+			response = request(method, "/favorites/case/"+item.CaseID, token, "")
+			if response.Code != 200 || !strings.Contains(response.Body.String(), `"favorite":`) {
+				t.Fatalf("favorite: %d %s", response.Code, response.Body)
+			}
+		}
+
+		consentTeam := id(`INSERT INTO teams(name,leader_id) VALUES('Consent regression',$1) RETURNING team_id`, student)
+		exec(`INSERT INTO team_members(team_id,student_id) VALUES($1,$2),($1,$3)`, consentTeam, student, other)
+		consentApplication := id(`INSERT INTO applications(case_id,case_revision_id,submitted_by,team_id,status)
+			SELECT $1,case_revision_id,$2,$3,'consent_pending' FROM case_revisions WHERE case_id=$1 AND version_no=1 RETURNING application_id`,
+			hackathon.CaseID, student, consentTeam)
+		response = request(http.MethodPost, "/applications/"+consentApplication+"/consents", token, "")
+		if response.Code != 200 || !strings.Contains(response.Body.String(), consentApplication) {
+			t.Fatalf("consent: %d %s", response.Code, response.Body)
+		}
+
+		loggedAPI := middleware.Logger(logger)(middleware.TimeoutExcept(time.Millisecond, "/api/v1/notifications/stream")(api))
+		server := httptest.NewServer(loggedAPI)
+		defer server.Close()
+		streamCtx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		req, err := http.NewRequestWithContext(streamCtx, http.MethodGet, server.URL+"/api/v1/notifications/stream", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		stream, err := server.Client().Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer stream.Body.Close()
+		if stream.StatusCode != 200 || !strings.HasPrefix(stream.Header.Get("Content-Type"), "text/event-stream") {
+			t.Fatalf("SSE: %d %s", stream.StatusCode, stream.Header)
+		}
+		scanner := bufio.NewScanner(stream.Body)
+		waitForEvent := func(event string) {
+			t.Helper()
+			for scanner.Scan() {
+				if scanner.Text() == "event: "+event {
+					return
+				}
+			}
+			t.Fatalf("missing SSE event %s: %v", event, scanner.Err())
+		}
+		waitForEvent("connected")
+		exec(`INSERT INTO notifications(user_id,type,title,body) VALUES($1,'test','SSE regression','New event')`, student)
+		waitForEvent("notification")
 	})
 
 	t.Run("registration profile and curator directory", func(t *testing.T) {

@@ -51,6 +51,14 @@ type InternshipInput struct {
 	ApplicationDeadline *time.Time `json:"application_deadline"`
 }
 
+type InternshipApplicationFilter struct {
+	ProgramID string
+	CompanyID string
+	Kind      string
+	Status    string
+	Search    string
+}
+
 type InternshipApplication struct {
 	ProgramTitle  string     `json:"program_title,omitempty"`
 	ProgramKind   string     `json:"program_kind,omitempty"`
