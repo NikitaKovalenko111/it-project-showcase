@@ -83,8 +83,15 @@ summary.select {
   margin: 0;
 }
 
+.publication-company-field > :is(.select:disabled, .input[readonly]) {
+  background-color: var(--ui-panel);
+  border-color: var(--ui-line);
+  color: var(--ui-body);
+}
+
 @media (max-width: 360px) {
-  .analytics-filters .select {
+  .analytics-filters .select,
+  .publication-company-field .select {
     padding-inline: 10px 28px;
     background-position: right 8px center;
   }

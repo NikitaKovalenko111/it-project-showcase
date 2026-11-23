@@ -507,11 +507,12 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
       >
         <div className="modal-dialog__body">
           {formatControl}
-          <label>
+          <label className="publication-company-field">
             Компания
             <select
               className="select"
               name="company_id"
+              title={company?.name}
               required
               disabled={user?.role === 'company' || !!existingPublication || busy}
               value={companyId}
