@@ -1,0 +1,1590 @@
+[
+  {
+    "id": "syn_team_001",
+    "name": "Три сигнала",
+    "leaderId": "syn_student_001",
+    "leaderName": "Алексей Миронов",
+    "members": [
+      {
+        "id": "syn_student_001",
+        "name": "Алексей Миронов",
+        "role": "Координатор и frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.001@example.invalid",
+        "avatar": "assets/avatars/syn_student_001.png"
+      },
+      {
+        "id": "syn_student_013",
+        "name": "Даниил Лебедев",
+        "role": "Frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.013@example.invalid",
+        "avatar": "assets/avatars/syn_student_013.png"
+      },
+      {
+        "id": "syn_student_026",
+        "name": "Дарья Соколова Андреевна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.026@example.invalid",
+        "avatar": "assets/avatars/syn_student_026.png"
+      },
+      {
+        "id": "syn_student_038",
+        "name": "Елизавета Зайцева Андреевна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.038@example.invalid",
+        "avatar": "assets/avatars/syn_student_038-library.png"
+      }
+    ],
+    "createdAt": "2026-09-01T10:00:00Z",
+    "description": "Сначала собираем маленький работающий сценарий, затем добавляем проверки. 4 участника; основной созвон по вторникам вечером.",
+    "avatar": "assets/logos/syn_team_001.png"
+  },
+  {
+    "id": "syn_team_002",
+    "name": "Зелёный протокол",
+    "leaderId": "syn_student_002",
+    "leaderName": "Мария Белова",
+    "members": [
+      {
+        "id": "syn_student_002",
+        "name": "Мария Белова",
+        "role": "Координатор и backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.002@example.invalid",
+        "avatar": "assets/avatars/syn_student_002.png"
+      },
+      {
+        "id": "syn_student_014",
+        "name": "София Попова",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.014@example.invalid",
+        "avatar": "assets/avatars/syn_student_014.png"
+      },
+      {
+        "id": "syn_student_027",
+        "name": "Руслан Хакимов Алексеевич",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.027@example.invalid",
+        "avatar": "assets/avatars/syn_student_027.png"
+      }
+    ],
+    "createdAt": "2026-09-02T10:00:00Z",
+    "description": "Делаем упор на исследование задачи и понятную демонстрацию. 3 участника; основной созвон по средам после занятий.",
+    "avatar": "assets/logos/syn_team_002.png"
+  },
+  {
+    "id": "syn_team_003",
+    "name": "Тихий поиск",
+    "leaderId": "syn_student_003",
+    "leaderName": "Тимур Сафин",
+    "members": [
+      {
+        "id": "syn_student_003",
+        "name": "Тимур Сафин",
+        "role": "Координатор и аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.003@example.invalid",
+        "avatar": "assets/avatars/syn_student_003.png"
+      },
+      {
+        "id": "syn_student_015",
+        "name": "Артём Павлов",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.015@example.invalid",
+        "avatar": "assets/avatars/syn_student_015.png"
+      },
+      {
+        "id": "syn_student_028",
+        "name": "Екатерина Морозова Андреевна",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.028@example.invalid",
+        "avatar": "assets/avatars/syn_student_028.png"
+      }
+    ],
+    "createdAt": "2026-09-03T10:00:00Z",
+    "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по субботам утром.",
+    "caseId": "syn_case_003",
+    "avatar": "assets/logos/syn_team_003.png"
+  },
+  {
+    "id": "syn_team_004",
+    "name": "Окно доставки",
+    "leaderId": "syn_student_004",
+    "leaderName": "Анна Волкова",
+    "members": [
+      {
+        "id": "syn_student_004",
+        "name": "Анна Волкова",
+        "role": "Координатор и ux/ui-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.004@example.invalid",
+        "avatar": "assets/avatars/syn_student_004.png"
+      },
+      {
+        "id": "syn_student_016",
+        "name": "Виктория Кузнецова",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.016@example.invalid",
+        "avatar": "assets/avatars/syn_student_016.png"
+      },
+      {
+        "id": "syn_student_029",
+        "name": "Никита Фёдоров Алексеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.029@example.invalid",
+        "avatar": "assets/avatars/syn_student_029.png"
+      },
+      {
+        "id": "syn_student_041",
+        "name": "Алексей Миронов Сергеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.041@example.invalid",
+        "avatar": "assets/avatars/syn_student_041.jpg"
+      }
+    ],
+    "createdAt": "2026-09-01T10:00:00Z",
+    "description": "Проверяем гипотезы короткими итерациями и фиксируем решения. 4 участника; основной созвон дважды в неделю.",
+    "caseId": "syn_case_004",
+    "avatar": "assets/logos/syn_team_004.png"
+  },
+  {
+    "id": "syn_team_005",
+    "name": "Ветер перемен",
+    "leaderId": "syn_student_005",
+    "leaderName": "Максим Орлов",
+    "members": [
+      {
+        "id": "syn_student_005",
+        "name": "Максим Орлов",
+        "role": "Координатор и qa-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.005@example.invalid",
+        "avatar": "assets/avatars/syn_student_005.png"
+      },
+      {
+        "id": "syn_student_017",
+        "name": "Кирилл Семёнов",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.017@example.invalid",
+        "avatar": "assets/avatars/syn_student_017.png"
+      },
+      {
+        "id": "syn_student_030",
+        "name": "Алина Иванова Андреевна",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.030@example.invalid",
+        "avatar": "assets/avatars/syn_student_030.png"
+      }
+    ],
+    "createdAt": "2026-09-02T10:00:00Z",
+    "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по вторникам вечером.",
+    "caseId": "syn_case_005",
+    "avatar": "assets/logos/syn_team_005.png"
+  },
+  {
+    "id": "syn_team_006",
+    "name": "Кампус в фокусе",
+    "leaderId": "syn_student_006",
+    "leaderName": "Дарья Соколова",
+    "members": [
+      {
+        "id": "syn_student_006",
+        "name": "Дарья Соколова",
+        "role": "Координатор и ml-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.006@example.invalid",
+        "avatar": "assets/avatars/syn_student_006.png"
+      },
+      {
+        "id": "syn_student_018",
+        "name": "Елизавета Зайцева",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.018@example.invalid",
+        "avatar": "assets/avatars/syn_student_018.png"
+      },
+      {
+        "id": "syn_student_031",
+        "name": "Илья Новиков Алексеевич",
+        "role": "DevOps-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.031@example.invalid",
+        "avatar": "assets/avatars/syn_student_031.png"
+      }
+    ],
+    "createdAt": "2026-09-03T10:00:00Z",
+    "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон по средам после занятий.",
+    "caseId": "syn_case_006",
+    "avatar": "assets/logos/syn_team_006.png"
+  },
+  {
+    "id": "syn_team_007",
+    "name": "Чистая проба",
+    "leaderId": "syn_student_007",
+    "leaderName": "Руслан Хакимов",
+    "members": [
+      {
+        "id": "syn_student_007",
+        "name": "Руслан Хакимов",
+        "role": "Координатор и devops-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.007@example.invalid",
+        "avatar": "assets/avatars/syn_student_007.png"
+      },
+      {
+        "id": "syn_student_019",
+        "name": "Андрей Громов",
+        "role": "DevOps-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.019@example.invalid",
+        "avatar": "assets/avatars/syn_student_019.png"
+      },
+      {
+        "id": "syn_student_032",
+        "name": "Полина Сергеева Андреевна",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.032@example.invalid",
+        "avatar": "assets/avatars/syn_student_032.png"
+      },
+      {
+        "id": "syn_student_044",
+        "name": "Анна Волкова Викторовна",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.044@example.invalid",
+        "avatar": "assets/avatars/syn_student_044-library.png"
+      }
+    ],
+    "createdAt": "2026-09-01T10:00:00Z",
+    "description": "Сначала собираем маленький работающий сценарий, затем добавляем проверки. 4 участника; основной созвон по субботам утром.",
+    "caseId": "syn_case_007",
+    "avatar": "assets/logos/syn_team_007.png"
+  },
+  {
+    "id": "syn_team_008",
+    "name": "Удобный шаг",
+    "leaderId": "syn_student_008",
+    "leaderName": "Екатерина Морозова",
+    "members": [
+      {
+        "id": "syn_student_008",
+        "name": "Екатерина Морозова",
+        "role": "Координатор и мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.008@example.invalid",
+        "avatar": "assets/avatars/syn_student_008.png"
+      },
+      {
+        "id": "syn_student_020",
+        "name": "Ксения Фролова",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.020@example.invalid",
+        "avatar": "assets/avatars/syn_student_020.png"
+      },
+      {
+        "id": "syn_student_033",
+        "name": "Даниил Лебедев Алексеевич",
+        "role": "Системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.033@example.invalid",
+        "avatar": "assets/avatars/syn_student_033.jpg"
+      }
+    ],
+    "createdAt": "2026-09-02T10:00:00Z",
+    "description": "Делаем упор на исследование задачи и понятную демонстрацию. 3 участника; основной созвон дважды в неделю.",
+    "caseId": "syn_case_008",
+    "avatar": "assets/logos/syn_team_008.png"
+  },
+  {
+    "id": "syn_team_009",
+    "name": "Право доступа",
+    "leaderId": "syn_student_009",
+    "leaderName": "Никита Фёдоров",
+    "members": [
+      {
+        "id": "syn_student_009",
+        "name": "Никита Фёдоров",
+        "role": "Координатор и системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.009@example.invalid",
+        "avatar": "assets/avatars/syn_student_009.png"
+      },
+      {
+        "id": "syn_student_021",
+        "name": "Алексей Миронов Алексеевич",
+        "role": "Системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.021@example.invalid",
+        "avatar": "assets/avatars/syn_student_021.png"
+      },
+      {
+        "id": "syn_student_034",
+        "name": "София Попова Андреевна",
+        "role": "Разработчик IoT",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.034@example.invalid",
+        "avatar": "assets/avatars/syn_student_034.png"
+      }
+    ],
+    "createdAt": "2026-09-03T10:00:00Z",
+    "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по вторникам вечером.",
+    "avatar": "assets/logos/syn_team_009.png"
+  },
+  {
+    "id": "syn_team_010",
+    "name": "Архивные пиксели",
+    "leaderId": "syn_student_010",
+    "leaderName": "Алина Иванова",
+    "members": [
+      {
+        "id": "syn_student_010",
+        "name": "Алина Иванова",
+        "role": "Координатор и разработчик iot",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.010@example.invalid",
+        "avatar": "assets/avatars/syn_student_010.png"
+      },
+      {
+        "id": "syn_student_022",
+        "name": "Мария Белова Андреевна",
+        "role": "Разработчик IoT",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.022@example.invalid",
+        "avatar": "assets/avatars/syn_student_022.png"
+      },
+      {
+        "id": "syn_student_035",
+        "name": "Артём Павлов Алексеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.035@example.invalid",
+        "avatar": "assets/avatars/syn_student_035.jpg"
+      },
+      {
+        "id": "syn_student_047",
+        "name": "Руслан Хакимов Сергеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.047@example.invalid",
+        "avatar": "assets/avatars/syn_student_047.jpg"
+      }
+    ],
+    "createdAt": "2026-09-01T10:00:00Z",
+    "description": "Проверяем гипотезы короткими итерациями и фиксируем решения. 4 участника; основной созвон по средам после занятий.",
+    "avatar": "assets/logos/syn_team_010.png"
+  },
+  {
+    "id": "syn_team_011",
+    "name": "Точный реестр",
+    "leaderId": "syn_student_011",
+    "leaderName": "Илья Новиков",
+    "members": [
+      {
+        "id": "syn_student_011",
+        "name": "Илья Новиков",
+        "role": "Координатор и разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.011@example.invalid",
+        "avatar": "assets/avatars/syn_student_011.png"
+      },
+      {
+        "id": "syn_student_023",
+        "name": "Тимур Сафин Алексеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.023@example.invalid",
+        "avatar": "assets/avatars/syn_student_023.png"
+      },
+      {
+        "id": "syn_student_036",
+        "name": "Виктория Кузнецова Андреевна",
+        "role": "Инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.036@example.invalid",
+        "avatar": "assets/avatars/syn_student_036-library.png"
+      }
+    ],
+    "createdAt": "2026-09-02T10:00:00Z",
+    "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по субботам утром.",
+    "caseId": "syn_case_011",
+    "avatar": "assets/logos/syn_team_011.png"
+  },
+  {
+    "id": "syn_team_012",
+    "name": "Робот и карта",
+    "leaderId": "syn_student_012",
+    "leaderName": "Полина Сергеева",
+    "members": [
+      {
+        "id": "syn_student_012",
+        "name": "Полина Сергеева",
+        "role": "Координатор и инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.012@example.invalid",
+        "avatar": "assets/avatars/syn_student_012.png"
+      },
+      {
+        "id": "syn_student_024",
+        "name": "Анна Волкова Андреевна",
+        "role": "Инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.024@example.invalid",
+        "avatar": "assets/avatars/syn_student_024.png"
+      },
+      {
+        "id": "syn_student_037",
+        "name": "Кирилл Семёнов Алексеевич",
+        "role": "Frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.037@example.invalid",
+        "avatar": "assets/avatars/syn_student_037.jpg"
+      }
+    ],
+    "createdAt": "2026-09-03T10:00:00Z",
+    "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон дважды в неделю.",
+    "caseId": "syn_case_012",
+    "avatar": "assets/logos/syn_team_012.png"
+  },
+  {
+    "id": "syn_team_013",
+    "name": "Без лишних кликов",
+    "leaderId": "syn_student_013",
+    "leaderName": "Даниил Лебедев",
+    "members": [
+      {
+        "id": "syn_student_013",
+        "name": "Даниил Лебедев",
+        "role": "Координатор и frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.013@example.invalid",
+        "avatar": "assets/avatars/syn_student_013.png"
+      },
+      {
+        "id": "syn_student_025",
+        "name": "Максим Орлов Алексеевич",
+        "role": "Frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.025@example.invalid",
+        "avatar": "assets/avatars/syn_student_025.png"
+      },
+      {
+        "id": "syn_student_038",
+        "name": "Елизавета Зайцева Андреевна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.038@example.invalid",
+        "avatar": "assets/avatars/syn_student_038-library.png"
+      },
+      {
+        "id": "syn_student_050",
+        "name": "Алина Иванова Викторовна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.050@example.invalid",
+        "avatar": "assets/avatars/syn_student_050-library.png"
+      }
+    ],
+    "description": "Сначала собираем маленький работающий сценарий, затем добавляем проверки. 4 участника; основной созвон по вторникам вечером.",
+    "createdAt": "2026-11-13T10:00:00Z",
+    "avatar": "assets/logos/syn_team_013.png"
+  },
+  {
+    "id": "syn_team_014",
+    "name": "Шестой корпус",
+    "leaderId": "syn_student_014",
+    "leaderName": "София Попова",
+    "members": [
+      {
+        "id": "syn_student_014",
+        "name": "София Попова",
+        "role": "Координатор и backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.014@example.invalid",
+        "avatar": "assets/avatars/syn_student_014.png"
+      },
+      {
+        "id": "syn_student_026",
+        "name": "Дарья Соколова Андреевна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.026@example.invalid",
+        "avatar": "assets/avatars/syn_student_026.png"
+      },
+      {
+        "id": "syn_student_039",
+        "name": "Андрей Громов Алексеевич",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.039@example.invalid",
+        "avatar": "assets/avatars/syn_student_039.jpg"
+      }
+    ],
+    "description": "Делаем упор на исследование задачи и понятную демонстрацию. 3 участника; основной созвон по средам после занятий.",
+    "createdAt": "2026-11-14T10:00:00Z",
+    "avatar": "assets/logos/syn_team_014.png"
+  },
+  {
+    "id": "syn_team_015",
+    "name": "Точка сборки",
+    "leaderId": "syn_student_015",
+    "leaderName": "Артём Павлов",
+    "members": [
+      {
+        "id": "syn_student_015",
+        "name": "Артём Павлов",
+        "role": "Координатор и аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.015@example.invalid",
+        "avatar": "assets/avatars/syn_student_015.png"
+      },
+      {
+        "id": "syn_student_027",
+        "name": "Руслан Хакимов Алексеевич",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.027@example.invalid",
+        "avatar": "assets/avatars/syn_student_027.png"
+      },
+      {
+        "id": "syn_student_040",
+        "name": "Ксения Фролова Андреевна",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.040@example.invalid",
+        "avatar": "assets/avatars/syn_student_040-library.png"
+      }
+    ],
+    "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по субботам утром.",
+    "createdAt": "2026-11-15T10:00:00Z",
+    "avatar": "assets/logos/syn_team_015.png"
+  },
+  {
+    "id": "syn_team_016",
+    "name": "Чистый контракт",
+    "leaderId": "syn_student_016",
+    "leaderName": "Виктория Кузнецова",
+    "members": [
+      {
+        "id": "syn_student_016",
+        "name": "Виктория Кузнецова",
+        "role": "Координатор и ux/ui-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.016@example.invalid",
+        "avatar": "assets/avatars/syn_student_016.png"
+      },
+      {
+        "id": "syn_student_028",
+        "name": "Екатерина Морозова Андреевна",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.028@example.invalid",
+        "avatar": "assets/avatars/syn_student_028.png"
+      },
+      {
+        "id": "syn_student_041",
+        "name": "Алексей Миронов Сергеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.041@example.invalid",
+        "avatar": "assets/avatars/syn_student_041.jpg"
+      },
+      {
+        "id": "syn_student_053",
+        "name": "Даниил Лебедев Сергеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.053@example.invalid",
+        "avatar": "assets/avatars/syn_student_053.jpg"
+      }
+    ],
+    "description": "Проверяем гипотезы короткими итерациями и фиксируем решения. 4 участника; основной созвон дважды в неделю.",
+    "createdAt": "2026-11-16T10:00:00Z",
+    "avatar": "assets/logos/syn_team_016.png"
+  },
+  {
+    "id": "syn_team_017",
+    "name": "Ночная смена",
+    "leaderId": "syn_student_017",
+    "leaderName": "Кирилл Семёнов",
+    "members": [
+      {
+        "id": "syn_student_017",
+        "name": "Кирилл Семёнов",
+        "role": "Координатор и qa-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.017@example.invalid",
+        "avatar": "assets/avatars/syn_student_017.png"
+      },
+      {
+        "id": "syn_student_029",
+        "name": "Никита Фёдоров Алексеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.029@example.invalid",
+        "avatar": "assets/avatars/syn_student_029.png"
+      },
+      {
+        "id": "syn_student_042",
+        "name": "Мария Белова Викторовна",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.042@example.invalid",
+        "avatar": "assets/avatars/syn_student_042-library.png"
+      }
+    ],
+    "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по вторникам вечером.",
+    "createdAt": "2026-11-17T10:00:00Z",
+    "avatar": "assets/logos/syn_team_017.png"
+  },
+  {
+    "id": "syn_team_018",
+    "name": "Граф зависимостей",
+    "leaderId": "syn_student_018",
+    "leaderName": "Елизавета Зайцева",
+    "members": [
+      {
+        "id": "syn_student_018",
+        "name": "Елизавета Зайцева",
+        "role": "Координатор и ml-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.018@example.invalid",
+        "avatar": "assets/avatars/syn_student_018.png"
+      },
+      {
+        "id": "syn_student_030",
+        "name": "Алина Иванова Андреевна",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.030@example.invalid",
+        "avatar": "assets/avatars/syn_student_030.png"
+      },
+      {
+        "id": "syn_student_043",
+        "name": "Тимур Сафин Сергеевич",
+        "role": "DevOps-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.043@example.invalid",
+        "avatar": "assets/avatars/syn_student_043.jpg"
+      }
+    ],
+    "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон по средам после занятий.",
+    "createdAt": "2026-11-18T10:00:00Z",
+    "avatar": "assets/logos/syn_team_018.png"
+  },
+  {
+    "id": "syn_team_019",
+    "name": "Тёплый старт",
+    "leaderId": "syn_student_019",
+    "leaderName": "Андрей Громов",
+    "members": [
+      {
+        "id": "syn_student_019",
+        "name": "Андрей Громов",
+        "role": "Координатор и devops-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.019@example.invalid",
+        "avatar": "assets/avatars/syn_student_019.png"
+      },
+      {
+        "id": "syn_student_031",
+        "name": "Илья Новиков Алексеевич",
+        "role": "DevOps-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.031@example.invalid",
+        "avatar": "assets/avatars/syn_student_031.png"
+      },
+      {
+        "id": "syn_student_044",
+        "name": "Анна Волкова Викторовна",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.044@example.invalid",
+        "avatar": "assets/avatars/syn_student_044-library.png"
+      },
+      {
+        "id": "syn_student_056",
+        "name": "Виктория Кузнецова Викторовна",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.056@example.invalid",
+        "avatar": "assets/avatars/syn_student_056.jpg"
+      }
+    ],
+    "description": "Сначала собираем маленький работающий сценарий, затем добавляем проверки. 4 участника; основной созвон по субботам утром.",
+    "createdAt": "2026-11-19T10:00:00Z",
+    "avatar": "assets/logos/syn_team_019.png"
+  },
+  {
+    "id": "syn_team_020",
+    "name": "Пакет принят",
+    "leaderId": "syn_student_020",
+    "leaderName": "Ксения Фролова",
+    "members": [
+      {
+        "id": "syn_student_020",
+        "name": "Ксения Фролова",
+        "role": "Координатор и мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.020@example.invalid",
+        "avatar": "assets/avatars/syn_student_020.png"
+      },
+      {
+        "id": "syn_student_032",
+        "name": "Полина Сергеева Андреевна",
+        "role": "Мобильный разработчик",
+        "competencies": [
+          "Flutter",
+          "Dart",
+          "SQLite",
+          "REST API"
+        ],
+        "email": "student.032@example.invalid",
+        "avatar": "assets/avatars/syn_student_032.png"
+      },
+      {
+        "id": "syn_student_045",
+        "name": "Максим Орлов Сергеевич",
+        "role": "Системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.045@example.invalid",
+        "avatar": "assets/avatars/syn_student_045.jpg"
+      }
+    ],
+    "description": "Делаем упор на исследование задачи и понятную демонстрацию. 3 участника; основной созвон дважды в неделю.",
+    "createdAt": "2026-11-20T10:00:00Z",
+    "avatar": "assets/logos/syn_team_020.png"
+  },
+  {
+    "id": "syn_team_021",
+    "name": "Контрольная группа",
+    "leaderId": "syn_student_021",
+    "leaderName": "Алексей Миронов Алексеевич",
+    "members": [
+      {
+        "id": "syn_student_021",
+        "name": "Алексей Миронов Алексеевич",
+        "role": "Координатор и системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.021@example.invalid",
+        "avatar": "assets/avatars/syn_student_021.png"
+      },
+      {
+        "id": "syn_student_033",
+        "name": "Даниил Лебедев Алексеевич",
+        "role": "Системный аналитик",
+        "competencies": [
+          "BPMN",
+          "UML",
+          "SQL"
+        ],
+        "email": "student.033@example.invalid",
+        "avatar": "assets/avatars/syn_student_033.jpg"
+      },
+      {
+        "id": "syn_student_046",
+        "name": "Дарья Соколова Викторовна",
+        "role": "Разработчик IoT",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.046@example.invalid",
+        "avatar": "assets/avatars/syn_student_046-library.png"
+      }
+    ],
+    "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по вторникам вечером.",
+    "createdAt": "2026-11-01T10:00:00Z",
+    "avatar": "assets/logos/syn_team_021.png"
+  },
+  {
+    "id": "syn_team_022",
+    "name": "За кадром",
+    "leaderId": "syn_student_022",
+    "leaderName": "Мария Белова Андреевна",
+    "members": [
+      {
+        "id": "syn_student_022",
+        "name": "Мария Белова Андреевна",
+        "role": "Координатор и разработчик iot",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.022@example.invalid",
+        "avatar": "assets/avatars/syn_student_022.png"
+      },
+      {
+        "id": "syn_student_034",
+        "name": "София Попова Андреевна",
+        "role": "Разработчик IoT",
+        "competencies": [
+          "Python",
+          "MQTT",
+          "C++",
+          "Grafana"
+        ],
+        "email": "student.034@example.invalid",
+        "avatar": "assets/avatars/syn_student_034.png"
+      },
+      {
+        "id": "syn_student_047",
+        "name": "Руслан Хакимов Сергеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.047@example.invalid",
+        "avatar": "assets/avatars/syn_student_047.jpg"
+      },
+      {
+        "id": "syn_student_059",
+        "name": "Андрей Громов Сергеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.059@example.invalid",
+        "avatar": "assets/avatars/syn_student_059.jpg"
+      }
+    ],
+    "description": "Проверяем гипотезы короткими итерациями и фиксируем решения. 4 участника; основной созвон по средам после занятий.",
+    "createdAt": "2026-11-02T10:00:00Z",
+    "avatar": "assets/logos/syn_team_022.png"
+  },
+  {
+    "id": "syn_team_023",
+    "name": "Плавный скролл",
+    "leaderId": "syn_student_023",
+    "leaderName": "Тимур Сафин Алексеевич",
+    "members": [
+      {
+        "id": "syn_student_023",
+        "name": "Тимур Сафин Алексеевич",
+        "role": "Координатор и разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.023@example.invalid",
+        "avatar": "assets/avatars/syn_student_023.png"
+      },
+      {
+        "id": "syn_student_035",
+        "name": "Артём Павлов Алексеевич",
+        "role": "Разработчик игр",
+        "competencies": [
+          "Godot",
+          "GDScript",
+          "Blender"
+        ],
+        "email": "student.035@example.invalid",
+        "avatar": "assets/avatars/syn_student_035.jpg"
+      },
+      {
+        "id": "syn_student_048",
+        "name": "Екатерина Морозова Викторовна",
+        "role": "Инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.048@example.invalid",
+        "avatar": "assets/avatars/syn_student_048-library.png"
+      }
+    ],
+    "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по субботам утром.",
+    "createdAt": "2026-11-03T10:00:00Z",
+    "avatar": "assets/logos/syn_team_023.png"
+  },
+  {
+    "id": "syn_team_024",
+    "name": "Два коммита",
+    "leaderId": "syn_student_024",
+    "leaderName": "Анна Волкова Андреевна",
+    "members": [
+      {
+        "id": "syn_student_024",
+        "name": "Анна Волкова Андреевна",
+        "role": "Координатор и инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.024@example.invalid",
+        "avatar": "assets/avatars/syn_student_024.png"
+      },
+      {
+        "id": "syn_student_036",
+        "name": "Виктория Кузнецова Андреевна",
+        "role": "Инженер компьютерного зрения",
+        "competencies": [
+          "Python",
+          "OpenCV",
+          "PyTorch",
+          "NumPy"
+        ],
+        "email": "student.036@example.invalid",
+        "avatar": "assets/avatars/syn_student_036-library.png"
+      },
+      {
+        "id": "syn_student_049",
+        "name": "Никита Фёдоров Сергеевич",
+        "role": "Frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.049@example.invalid",
+        "avatar": "assets/avatars/syn_student_049.jpg"
+      }
+    ],
+    "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон дважды в неделю.",
+    "createdAt": "2026-11-04T10:00:00Z",
+    "avatar": "assets/logos/syn_team_024.png"
+  },
+  {
+    "id": "syn_team_025",
+    "name": "Северный мост",
+    "leaderId": "syn_student_025",
+    "leaderName": "Максим Орлов Алексеевич",
+    "members": [
+      {
+        "id": "syn_student_025",
+        "name": "Максим Орлов Алексеевич",
+        "role": "Координатор и frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.025@example.invalid",
+        "avatar": "assets/avatars/syn_student_025.png"
+      },
+      {
+        "id": "syn_student_037",
+        "name": "Кирилл Семёнов Алексеевич",
+        "role": "Frontend-разработчик",
+        "competencies": [
+          "React",
+          "TypeScript",
+          "CSS"
+        ],
+        "email": "student.037@example.invalid",
+        "avatar": "assets/avatars/syn_student_037.jpg"
+      },
+      {
+        "id": "syn_student_050",
+        "name": "Алина Иванова Викторовна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.050@example.invalid",
+        "avatar": "assets/avatars/syn_student_050-library.png"
+      },
+      {
+        "id": "syn_student_002",
+        "name": "Мария Белова",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.002@example.invalid",
+        "avatar": "assets/avatars/syn_student_002.png"
+      }
+    ],
+    "description": "Сначала собираем маленький работающий сценарий, затем добавляем проверки. 4 участника; основной созвон по вторникам вечером.",
+    "createdAt": "2026-11-05T10:00:00Z",
+    "avatar": "assets/logos/syn_team_025.png"
+  },
+  {
+    "id": "syn_team_026",
+    "name": "Всё по плану",
+    "leaderId": "syn_student_026",
+    "leaderName": "Дарья Соколова Андреевна",
+    "members": [
+      {
+        "id": "syn_student_026",
+        "name": "Дарья Соколова Андреевна",
+        "role": "Координатор и backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.026@example.invalid",
+        "avatar": "assets/avatars/syn_student_026.png"
+      },
+      {
+        "id": "syn_student_038",
+        "name": "Елизавета Зайцева Андреевна",
+        "role": "Backend-разработчик",
+        "competencies": [
+          "Go",
+          "PostgreSQL",
+          "Docker",
+          "OpenAPI"
+        ],
+        "email": "student.038@example.invalid",
+        "avatar": "assets/avatars/syn_student_038-library.png"
+      },
+      {
+        "id": "syn_student_051",
+        "name": "Илья Новиков Сергеевич",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.051@example.invalid",
+        "avatar": "assets/avatars/syn_student_051.jpg"
+      }
+    ],
+    "description": "Делаем упор на исследование задачи и понятную демонстрацию. 3 участника; основной созвон по средам после занятий.",
+    "createdAt": "2026-11-06T10:00:00Z",
+    "avatar": "assets/logos/syn_team_026.png"
+  },
+  {
+    "id": "syn_team_027",
+    "name": "Нулевая очередь",
+    "leaderId": "syn_student_027",
+    "leaderName": "Руслан Хакимов Алексеевич",
+    "members": [
+      {
+        "id": "syn_student_027",
+        "name": "Руслан Хакимов Алексеевич",
+        "role": "Координатор и аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.027@example.invalid",
+        "avatar": "assets/avatars/syn_student_027.png"
+      },
+      {
+        "id": "syn_student_039",
+        "name": "Андрей Громов Алексеевич",
+        "role": "Аналитик данных",
+        "competencies": [
+          "Python",
+          "pandas",
+          "SQL"
+        ],
+        "email": "student.039@example.invalid",
+        "avatar": "assets/avatars/syn_student_039.jpg"
+      },
+      {
+        "id": "syn_student_052",
+        "name": "Полина Сергеева Викторовна",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.052@example.invalid",
+        "avatar": "assets/avatars/syn_student_052-library.png"
+      }
+    ],
+    "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по субботам утром.",
+    "createdAt": "2026-11-07T10:00:00Z",
+    "avatar": "assets/logos/syn_team_027.png"
+  },
+  {
+    "id": "syn_team_028",
+    "name": "Второй подход",
+    "leaderId": "syn_student_028",
+    "leaderName": "Екатерина Морозова Андреевна",
+    "members": [
+      {
+        "id": "syn_student_028",
+        "name": "Екатерина Морозова Андреевна",
+        "role": "Координатор и ux/ui-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.028@example.invalid",
+        "avatar": "assets/avatars/syn_student_028.png"
+      },
+      {
+        "id": "syn_student_040",
+        "name": "Ксения Фролова Андреевна",
+        "role": "UX/UI-дизайнер",
+        "competencies": [
+          "Figma",
+          "UX-исследования",
+          "HTML",
+          "CSS"
+        ],
+        "email": "student.040@example.invalid",
+        "avatar": "assets/avatars/syn_student_040-library.png"
+      },
+      {
+        "id": "syn_student_053",
+        "name": "Даниил Лебедев Сергеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.053@example.invalid",
+        "avatar": "assets/avatars/syn_student_053.jpg"
+      },
+      {
+        "id": "syn_student_005",
+        "name": "Максим Орлов",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.005@example.invalid",
+        "avatar": "assets/avatars/syn_student_005.png"
+      }
+    ],
+    "description": "Проверяем гипотезы короткими итерациями и фиксируем решения. 4 участника; основной созвон дважды в неделю.",
+    "createdAt": "2026-11-08T10:00:00Z",
+    "avatar": "assets/logos/syn_team_028.png"
+  },
+  {
+    "id": "syn_team_029",
+    "name": "Уточним требования",
+    "leaderId": "syn_student_029",
+    "leaderName": "Никита Фёдоров Алексеевич",
+    "members": [
+      {
+        "id": "syn_student_029",
+        "name": "Никита Фёдоров Алексеевич",
+        "role": "Координатор и qa-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.029@example.invalid",
+        "avatar": "assets/avatars/syn_student_029.png"
+      },
+      {
+        "id": "syn_student_041",
+        "name": "Алексей Миронов Сергеевич",
+        "role": "QA-инженер",
+        "competencies": [
+          "Python",
+          "pytest",
+          "HTTP"
+        ],
+        "email": "student.041@example.invalid",
+        "avatar": "assets/avatars/syn_student_041.jpg"
+      },
+      {
+        "id": "syn_student_054",
+        "name": "София Попова Викторовна",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.054@example.invalid",
+        "avatar": "assets/avatars/syn_student_054-library.png"
+      }
+    ],
+    "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по вторникам вечером.",
+    "createdAt": "2026-11-09T10:00:00Z",
+    "avatar": "assets/logos/syn_team_029.png"
+  },
+  {
+    "id": "syn_team_030",
+    "name": "Пятница без багов",
+    "leaderId": "syn_student_030",
+    "leaderName": "Алина Иванова Андреевна",
+    "members": [
+      {
+        "id": "syn_student_030",
+        "name": "Алина Иванова Андреевна",
+        "role": "Координатор и ml-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.030@example.invalid",
+        "avatar": "assets/avatars/syn_student_030.png"
+      },
+      {
+        "id": "syn_student_042",
+        "name": "Мария Белова Викторовна",
+        "role": "ML-инженер",
+        "competencies": [
+          "Python",
+          "scikit-learn",
+          "NumPy",
+          "FastAPI"
+        ],
+        "email": "student.042@example.invalid",
+        "avatar": "assets/avatars/syn_student_042-library.png"
+      },
+      {
+        "id": "syn_student_055",
+        "name": "Артём Павлов Сергеевич",
+        "role": "DevOps-инженер",
+        "competencies": [
+          "Linux",
+          "Docker",
+          "Prometheus"
+        ],
+        "email": "student.055@example.invalid",
+        "avatar": "assets/avatars/syn_student_055.jpg"
+      }
+    ],
+    "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон по средам после занятий.",
+    "createdAt": "2026-11-10T10:00:00Z",
+    "avatar": "assets/logos/syn_team_030.png"
+  }
+]

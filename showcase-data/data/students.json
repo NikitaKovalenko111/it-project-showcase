@@ -1,0 +1,2864 @@
+[
+  {
+    "id": "syn_student_001",
+    "username": "syn_student_001",
+    "fullName": "Алексей Миронов",
+    "email": "student.001@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПИ-101",
+      "bio": "Развиваюсь как frontend-разработчик. Интересуют доступные интерфейсы и сложные формы. Собрал календарь консультаций с управлением с клавиатуры. В команде беру на себя реализация интерфейса, состояния загрузки и регрессионные проверки. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "доступные интерфейсы и сложные формы",
+        "Промышленный мониторинг"
+      ],
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS"
+      ],
+      "techStack": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алексей Миронов.pdf",
+        "url": "documents/resumes/syn_student_001.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_001.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_001.png"
+  },
+  {
+    "id": "syn_student_002",
+    "username": "syn_student_002",
+    "fullName": "Мария Белова",
+    "email": "student.002@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ИВТ-201",
+      "bio": "Развиваюсь как backend-разработчик. Интересуют надёжные API и очереди событий. Реализовала идемпотентный приём заявок и журнал повторов. В команде беру на себя контракты API, транзакции и обработка конфликтов. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "надёжные API и очереди событий",
+        "Агротехнологии"
+      ],
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "techStack": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Мария Белова.pdf",
+        "url": "documents/resumes/syn_student_002.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_002.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_002.png"
+  },
+  {
+    "id": "syn_student_003",
+    "username": "syn_student_003",
+    "fullName": "Тимур Сафин",
+    "email": "student.003@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПМИ-301",
+      "bio": "Развиваюсь как аналитик данных. Интересуют качество данных и объяснимые метрики. Подготовил правила качества каталога и разбор ошибочных строк. В команде беру на себя профилирование входа, контрольные расчёты и визуализация. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "качество данных и объяснимые метрики",
+        "Библиотечные сервисы"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "SQL"
+      ],
+      "techStack": [
+        "Python",
+        "pandas",
+        "SQL",
+        "Plotly"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Тимур Сафин.pdf",
+        "url": "documents/resumes/syn_student_003.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_003.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_003.png"
+  },
+  {
+    "id": "syn_student_004",
+    "username": "syn_student_004",
+    "fullName": "Анна Волкова",
+    "email": "student.004@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПИ-401",
+      "bio": "Развиваюсь как ux/ui-дизайнер. Интересуют исследования и понятные пользовательские сценарии. Спроектировала запись на оборудование и проверил сценарий переноса. В команде беру на себя карта пути пользователя, прототипы и библиотека состояний. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "исследования и понятные пользовательские сценарии",
+        "Городская логистика"
+      ],
+      "skills": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "techStack": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Анна Волкова.pdf",
+        "url": "documents/resumes/syn_student_004.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_004.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_004.png"
+  },
+  {
+    "id": "syn_student_005",
+    "username": "syn_student_005",
+    "fullName": "Максим Орлов",
+    "email": "student.005@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ИВТ-101",
+      "bio": "Развиваюсь как qa-инженер. Интересуют граничные случаи и воспроизводимые проверки. Составил матрицу прав для четырёх ролей и негативные проверки API. В команде беру на себя тест-дизайн, автоматизация и отчёты о дефектах. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "граничные случаи и воспроизводимые проверки",
+        "Возобновляемая энергетика"
+      ],
+      "skills": [
+        "Python",
+        "pytest",
+        "HTTP"
+      ],
+      "techStack": [
+        "Python",
+        "pytest",
+        "HTTP",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Максим Орлов.pdf",
+        "url": "documents/resumes/syn_student_005.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_005.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_005.png"
+  },
+  {
+    "id": "syn_student_006",
+    "username": "syn_student_006",
+    "fullName": "Дарья Соколова",
+    "email": "student.006@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПМИ-201",
+      "bio": "Развиваюсь как ml-инженер. Интересуют базовые модели и проверка качества на отложенных данных. Сравнила классификатор обращений с базовым поиском по словам. В команде беру на себя подготовка выборки, оценка ошибок и сервис предсказаний. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "базовые модели и проверка качества на отложенных данных",
+        "Университетские сервисы"
+      ],
+      "skills": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "techStack": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Дарья Соколова.pdf",
+        "url": "documents/resumes/syn_student_006.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_006.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_006.png"
+  },
+  {
+    "id": "syn_student_007",
+    "username": "syn_student_007",
+    "fullName": "Руслан Хакимов",
+    "email": "student.007@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПИ-301",
+      "bio": "Развиваюсь как devops-инженер. Интересуют наблюдаемость и воспроизводимые окружения. Настроил стенд с метриками и проверил отказ зависимости. В команде беру на себя окружение, журналы, панели и инструкция восстановления. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "наблюдаемость и воспроизводимые окружения",
+        "Мониторинг воды"
+      ],
+      "skills": [
+        "Linux",
+        "Docker",
+        "Prometheus"
+      ],
+      "techStack": [
+        "Linux",
+        "Docker",
+        "Prometheus",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Руслан Хакимов.pdf",
+        "url": "documents/resumes/syn_student_007.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_007.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_007.png"
+  },
+  {
+    "id": "syn_student_008",
+    "username": "syn_student_008",
+    "fullName": "Екатерина Морозова",
+    "email": "student.008@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ИВТ-401",
+      "bio": "Развиваюсь как мобильный разработчик. Интересуют офлайн-сценарии и синхронизация. Сделала каталог велопарковок с очередью изменений без сети. В команде беру на себя локальное хранение, синхронизация и мобильная навигация. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "офлайн-сценарии и синхронизация",
+        "Цифровая доступность"
+      ],
+      "skills": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "techStack": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Екатерина Морозова.pdf",
+        "url": "documents/resumes/syn_student_008.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_008.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_008.png"
+  },
+  {
+    "id": "syn_student_009",
+    "username": "syn_student_009",
+    "fullName": "Никита Фёдоров",
+    "email": "student.009@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПМИ-101",
+      "bio": "Развиваюсь как системный аналитик. Интересуют процессы, состояния и контракты интеграций. Описал маршрут согласования и сценарии возврата документа. В команде беру на себя матрица ответственности, словарь состояний и контракт данных. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "процессы, состояния и контракты интеграций",
+        "Информационная безопасность"
+      ],
+      "skills": [
+        "BPMN",
+        "UML",
+        "SQL"
+      ],
+      "techStack": [
+        "BPMN",
+        "UML",
+        "SQL",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Никита Фёдоров.pdf",
+        "url": "documents/resumes/syn_student_009.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_009.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_009.png"
+  },
+  {
+    "id": "syn_student_010",
+    "username": "syn_student_010",
+    "fullName": "Алина Иванова",
+    "email": "student.010@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПИ-201",
+      "bio": "Развиваюсь как разработчик iot. Интересуют телеметрия и работа с потерей связи. Собрала панель измерений с разделением простоя и потери связи. В команде беру на себя приём сигналов, единицы измерения и журнал предупреждений. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "телеметрия и работа с потерей связи",
+        "Цифровое наследие"
+      ],
+      "skills": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "techStack": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алина Иванова.pdf",
+        "url": "documents/resumes/syn_student_010.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_010.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_010.png"
+  },
+  {
+    "id": "syn_student_011",
+    "username": "syn_student_011",
+    "fullName": "Илья Новиков",
+    "email": "student.011@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ИВТ-301",
+      "bio": "Развиваюсь как разработчик игр. Интересуют игровые механики и короткие завершённые сценарии. Разработал игру о сортировке с объяснением спорных решений. В команде беру на себя механика, прогресс игрока и обучение без длинных инструкций. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "игровые механики и короткие завершённые сценарии",
+        "Научная инфраструктура"
+      ],
+      "skills": [
+        "Godot",
+        "GDScript",
+        "Blender"
+      ],
+      "techStack": [
+        "Godot",
+        "GDScript",
+        "Blender",
+        "Git"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Илья Новиков.pdf",
+        "url": "documents/resumes/syn_student_011.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_011.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_011.png"
+  },
+  {
+    "id": "syn_student_012",
+    "username": "syn_student_012",
+    "fullName": "Полина Сергеева",
+    "email": "student.012@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПМИ-401",
+      "bio": "Развиваюсь как инженер компьютерного зрения. Интересуют обработка изображений и разбор ошибок. Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров. В команде беру на себя обработка изображений, разметка и сравнение результатов. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "обработка изображений и разбор ошибок",
+        "Учебная робототехника"
+      ],
+      "skills": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "techStack": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Полина Сергеева.pdf",
+        "url": "documents/resumes/syn_student_012.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003",
+      "files": [
+        {
+          "name": "Проектный семинар.pdf",
+          "url": "documents/certificates/syn_student_012.pdf"
+        }
+      ]
+    },
+    "avatar": "assets/avatars/syn_student_012.png"
+  },
+  {
+    "id": "syn_student_013",
+    "username": "syn_student_013",
+    "fullName": "Даниил Лебедев",
+    "email": "student.013@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПИ-101",
+      "bio": "Развиваюсь как frontend-разработчик. Интересуют доступные интерфейсы и сложные формы. Собрал календарь консультаций с управлением с клавиатуры. В команде беру на себя реализация интерфейса, состояния загрузки и регрессионные проверки. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "доступные интерфейсы и сложные формы",
+        "Облачная инфраструктура"
+      ],
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS"
+      ],
+      "techStack": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Даниил Лебедев.pdf",
+        "url": "documents/resumes/syn_student_013.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_013.png"
+  },
+  {
+    "id": "syn_student_014",
+    "username": "syn_student_014",
+    "fullName": "София Попова",
+    "email": "student.014@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ИВТ-201",
+      "bio": "Развиваюсь как backend-разработчик. Интересуют надёжные API и очереди событий. Реализовала идемпотентный приём заявок и журнал повторов. В команде беру на себя контракты API, транзакции и обработка конфликтов. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "надёжные API и очереди событий",
+        "Тестирование ПО"
+      ],
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "techStack": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме София Попова.pdf",
+        "url": "documents/resumes/syn_student_014.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_014.png"
+  },
+  {
+    "id": "syn_student_015",
+    "username": "syn_student_015",
+    "fullName": "Артём Павлов",
+    "email": "student.015@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПМИ-301",
+      "bio": "Развиваюсь как аналитик данных. Интересуют качество данных и объяснимые метрики. Подготовил правила качества каталога и разбор ошибочных строк. В команде беру на себя профилирование входа, контрольные расчёты и визуализация. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "качество данных и объяснимые метрики",
+        "Городские сервисы"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "SQL"
+      ],
+      "techStack": [
+        "Python",
+        "pandas",
+        "SQL",
+        "Plotly"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Артём Павлов.pdf",
+        "url": "documents/resumes/syn_student_015.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_015.png"
+  },
+  {
+    "id": "syn_student_016",
+    "username": "syn_student_016",
+    "fullName": "Виктория Кузнецова",
+    "email": "student.016@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПИ-401",
+      "bio": "Развиваюсь как ux/ui-дизайнер. Интересуют исследования и понятные пользовательские сценарии. Спроектировала запись на оборудование и проверил сценарий переноса. В команде беру на себя карта пути пользователя, прототипы и библиотека состояний. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "исследования и понятные пользовательские сценарии",
+        "Качество данных"
+      ],
+      "skills": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "techStack": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Виктория Кузнецова.pdf",
+        "url": "documents/resumes/syn_student_016.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_016.png"
+  },
+  {
+    "id": "syn_student_017",
+    "username": "syn_student_017",
+    "fullName": "Кирилл Семёнов",
+    "email": "student.017@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ИВТ-101",
+      "bio": "Развиваюсь как qa-инженер. Интересуют граничные случаи и воспроизводимые проверки. Составил матрицу прав для четырёх ролей и негативные проверки API. В команде беру на себя тест-дизайн, автоматизация и отчёты о дефектах. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "граничные случаи и воспроизводимые проверки",
+        "Социальные технологии"
+      ],
+      "skills": [
+        "Python",
+        "pytest",
+        "HTTP"
+      ],
+      "techStack": [
+        "Python",
+        "pytest",
+        "HTTP",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Кирилл Семёнов.pdf",
+        "url": "documents/resumes/syn_student_017.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_017.png"
+  },
+  {
+    "id": "syn_student_018",
+    "username": "syn_student_018",
+    "fullName": "Елизавета Зайцева",
+    "email": "student.018@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПМИ-201",
+      "bio": "Развиваюсь как ml-инженер. Интересуют базовые модели и проверка качества на отложенных данных. Сравнила классификатор обращений с базовым поиском по словам. В команде беру на себя подготовка выборки, оценка ошибок и сервис предсказаний. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "базовые модели и проверка качества на отложенных данных",
+        "Музейные технологии"
+      ],
+      "skills": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "techStack": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Елизавета Зайцева.pdf",
+        "url": "documents/resumes/syn_student_018.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_018.png"
+  },
+  {
+    "id": "syn_student_019",
+    "username": "syn_student_019",
+    "fullName": "Андрей Громов",
+    "email": "student.019@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПИ-301",
+      "bio": "Развиваюсь как devops-инженер. Интересуют наблюдаемость и воспроизводимые окружения. Настроил стенд с метриками и проверил отказ зависимости. В команде беру на себя окружение, журналы, панели и инструкция восстановления. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "наблюдаемость и воспроизводимые окружения",
+        "Образовательные игры"
+      ],
+      "skills": [
+        "Linux",
+        "Docker",
+        "Prometheus"
+      ],
+      "techStack": [
+        "Linux",
+        "Docker",
+        "Prometheus",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Андрей Громов.pdf",
+        "url": "documents/resumes/syn_student_019.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_019.png"
+  },
+  {
+    "id": "syn_student_020",
+    "username": "syn_student_020",
+    "fullName": "Ксения Фролова",
+    "email": "student.020@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ИВТ-401",
+      "bio": "Развиваюсь как мобильный разработчик. Интересуют офлайн-сценарии и синхронизация. Сделала каталог велопарковок с очередью изменений без сети. В команде беру на себя локальное хранение, синхронизация и мобильная навигация. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "офлайн-сценарии и синхронизация",
+        "Документооборот"
+      ],
+      "skills": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "techStack": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Ксения Фролова.pdf",
+        "url": "documents/resumes/syn_student_020.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_020.png"
+  },
+  {
+    "id": "syn_student_021",
+    "username": "syn_student_021",
+    "fullName": "Алексей Миронов Алексеевич",
+    "email": "student.021@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПМИ-101",
+      "bio": "Развиваюсь как системный аналитик. Интересуют процессы, состояния и контракты интеграций. Описал маршрут согласования и сценарии возврата документа. В команде беру на себя матрица ответственности, словарь состояний и контракт данных. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "процессы, состояния и контракты интеграций",
+        "Прикладная наука"
+      ],
+      "skills": [
+        "BPMN",
+        "UML",
+        "SQL"
+      ],
+      "techStack": [
+        "BPMN",
+        "UML",
+        "SQL",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алексей Миронов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_021.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_021.png"
+  },
+  {
+    "id": "syn_student_022",
+    "username": "syn_student_022",
+    "fullName": "Мария Белова Андреевна",
+    "email": "student.022@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПИ-201",
+      "bio": "Развиваюсь как разработчик iot. Интересуют телеметрия и работа с потерей связи. Собрала панель измерений с разделением простоя и потери связи. В команде беру на себя приём сигналов, единицы измерения и журнал предупреждений. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "телеметрия и работа с потерей связи",
+        "Языковые технологии"
+      ],
+      "skills": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "techStack": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Мария Белова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_022.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_022.png"
+  },
+  {
+    "id": "syn_student_023",
+    "username": "syn_student_023",
+    "fullName": "Тимур Сафин Алексеевич",
+    "email": "student.023@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ИВТ-301",
+      "bio": "Развиваюсь как разработчик игр. Интересуют игровые механики и короткие завершённые сценарии. Разработал игру о сортировке с объяснением спорных решений. В команде беру на себя механика, прогресс игрока и обучение без длинных инструкций. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "игровые механики и короткие завершённые сценарии",
+        "Измерительные системы"
+      ],
+      "skills": [
+        "Godot",
+        "GDScript",
+        "Blender"
+      ],
+      "techStack": [
+        "Godot",
+        "GDScript",
+        "Blender",
+        "Git"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Тимур Сафин Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_023.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_023.png"
+  },
+  {
+    "id": "syn_student_024",
+    "username": "syn_student_024",
+    "fullName": "Анна Волкова Андреевна",
+    "email": "student.024@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПМИ-401",
+      "bio": "Развиваюсь как инженер компьютерного зрения. Интересуют обработка изображений и разбор ошибок. Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров. В команде беру на себя обработка изображений, разметка и сравнение результатов. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "обработка изображений и разбор ошибок",
+        "Оптимизация и моделирование"
+      ],
+      "skills": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "techStack": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Анна Волкова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_024.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_024.png"
+  },
+  {
+    "id": "syn_student_025",
+    "username": "syn_student_025",
+    "fullName": "Максим Орлов Алексеевич",
+    "email": "student.025@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПИ-101",
+      "bio": "Развиваюсь как frontend-разработчик. Интересуют доступные интерфейсы и сложные формы. Собрал календарь консультаций с управлением с клавиатуры. В команде беру на себя реализация интерфейса, состояния загрузки и регрессионные проверки. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "доступные интерфейсы и сложные формы",
+        "Промышленный мониторинг"
+      ],
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS"
+      ],
+      "techStack": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Максим Орлов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_025.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_025.png"
+  },
+  {
+    "id": "syn_student_026",
+    "username": "syn_student_026",
+    "fullName": "Дарья Соколова Андреевна",
+    "email": "student.026@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ИВТ-201",
+      "bio": "Развиваюсь как backend-разработчик. Интересуют надёжные API и очереди событий. Реализовала идемпотентный приём заявок и журнал повторов. В команде беру на себя контракты API, транзакции и обработка конфликтов. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "надёжные API и очереди событий",
+        "Агротехнологии"
+      ],
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "techStack": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Дарья Соколова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_026.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_026.png"
+  },
+  {
+    "id": "syn_student_027",
+    "username": "syn_student_027",
+    "fullName": "Руслан Хакимов Алексеевич",
+    "email": "student.027@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПМИ-301",
+      "bio": "Развиваюсь как аналитик данных. Интересуют качество данных и объяснимые метрики. Подготовил правила качества каталога и разбор ошибочных строк. В команде беру на себя профилирование входа, контрольные расчёты и визуализация. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "качество данных и объяснимые метрики",
+        "Библиотечные сервисы"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "SQL"
+      ],
+      "techStack": [
+        "Python",
+        "pandas",
+        "SQL",
+        "Plotly"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Руслан Хакимов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_027.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_027.png"
+  },
+  {
+    "id": "syn_student_028",
+    "username": "syn_student_028",
+    "fullName": "Екатерина Морозова Андреевна",
+    "email": "student.028@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПИ-401",
+      "bio": "Развиваюсь как ux/ui-дизайнер. Интересуют исследования и понятные пользовательские сценарии. Спроектировала запись на оборудование и проверил сценарий переноса. В команде беру на себя карта пути пользователя, прототипы и библиотека состояний. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "исследования и понятные пользовательские сценарии",
+        "Городская логистика"
+      ],
+      "skills": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "techStack": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Екатерина Морозова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_028.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_028.png"
+  },
+  {
+    "id": "syn_student_029",
+    "username": "syn_student_029",
+    "fullName": "Никита Фёдоров Алексеевич",
+    "email": "student.029@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ИВТ-101",
+      "bio": "Развиваюсь как qa-инженер. Интересуют граничные случаи и воспроизводимые проверки. Составил матрицу прав для четырёх ролей и негативные проверки API. В команде беру на себя тест-дизайн, автоматизация и отчёты о дефектах. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "граничные случаи и воспроизводимые проверки",
+        "Возобновляемая энергетика"
+      ],
+      "skills": [
+        "Python",
+        "pytest",
+        "HTTP"
+      ],
+      "techStack": [
+        "Python",
+        "pytest",
+        "HTTP",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Никита Фёдоров Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_029.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_029.png"
+  },
+  {
+    "id": "syn_student_030",
+    "username": "syn_student_030",
+    "fullName": "Алина Иванова Андреевна",
+    "email": "student.030@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПМИ-201",
+      "bio": "Развиваюсь как ml-инженер. Интересуют базовые модели и проверка качества на отложенных данных. Сравнила классификатор обращений с базовым поиском по словам. В команде беру на себя подготовка выборки, оценка ошибок и сервис предсказаний. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "базовые модели и проверка качества на отложенных данных",
+        "Университетские сервисы"
+      ],
+      "skills": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "techStack": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алина Иванова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_030.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_030.png"
+  },
+  {
+    "id": "syn_student_031",
+    "username": "syn_student_031",
+    "fullName": "Илья Новиков Алексеевич",
+    "email": "student.031@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПИ-301",
+      "bio": "Развиваюсь как devops-инженер. Интересуют наблюдаемость и воспроизводимые окружения. Настроил стенд с метриками и проверил отказ зависимости. В команде беру на себя окружение, журналы, панели и инструкция восстановления. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "наблюдаемость и воспроизводимые окружения",
+        "Мониторинг воды"
+      ],
+      "skills": [
+        "Linux",
+        "Docker",
+        "Prometheus"
+      ],
+      "techStack": [
+        "Linux",
+        "Docker",
+        "Prometheus",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Илья Новиков Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_031.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_031.png"
+  },
+  {
+    "id": "syn_student_032",
+    "username": "syn_student_032",
+    "fullName": "Полина Сергеева Андреевна",
+    "email": "student.032@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ИВТ-401",
+      "bio": "Развиваюсь как мобильный разработчик. Интересуют офлайн-сценарии и синхронизация. Сделала каталог велопарковок с очередью изменений без сети. В команде беру на себя локальное хранение, синхронизация и мобильная навигация. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "офлайн-сценарии и синхронизация",
+        "Цифровая доступность"
+      ],
+      "skills": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "techStack": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Полина Сергеева Андреевна.pdf",
+        "url": "documents/resumes/syn_student_032.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_032.png"
+  },
+  {
+    "id": "syn_student_033",
+    "username": "syn_student_033",
+    "fullName": "Даниил Лебедев Алексеевич",
+    "email": "student.033@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПМИ-101",
+      "bio": "Развиваюсь как системный аналитик. Интересуют процессы, состояния и контракты интеграций. Описал маршрут согласования и сценарии возврата документа. В команде беру на себя матрица ответственности, словарь состояний и контракт данных. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "процессы, состояния и контракты интеграций",
+        "Информационная безопасность"
+      ],
+      "skills": [
+        "BPMN",
+        "UML",
+        "SQL"
+      ],
+      "techStack": [
+        "BPMN",
+        "UML",
+        "SQL",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Даниил Лебедев Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_033.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_033.jpg"
+  },
+  {
+    "id": "syn_student_034",
+    "username": "syn_student_034",
+    "fullName": "София Попова Андреевна",
+    "email": "student.034@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПИ-201",
+      "bio": "Развиваюсь как разработчик iot. Интересуют телеметрия и работа с потерей связи. Собрала панель измерений с разделением простоя и потери связи. В команде беру на себя приём сигналов, единицы измерения и журнал предупреждений. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "телеметрия и работа с потерей связи",
+        "Цифровое наследие"
+      ],
+      "skills": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "techStack": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме София Попова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_034.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_034.png"
+  },
+  {
+    "id": "syn_student_035",
+    "username": "syn_student_035",
+    "fullName": "Артём Павлов Алексеевич",
+    "email": "student.035@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ИВТ-301",
+      "bio": "Развиваюсь как разработчик игр. Интересуют игровые механики и короткие завершённые сценарии. Разработал игру о сортировке с объяснением спорных решений. В команде беру на себя механика, прогресс игрока и обучение без длинных инструкций. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "игровые механики и короткие завершённые сценарии",
+        "Научная инфраструктура"
+      ],
+      "skills": [
+        "Godot",
+        "GDScript",
+        "Blender"
+      ],
+      "techStack": [
+        "Godot",
+        "GDScript",
+        "Blender",
+        "Git"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Артём Павлов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_035.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_035.jpg"
+  },
+  {
+    "id": "syn_student_036",
+    "username": "syn_student_036",
+    "fullName": "Виктория Кузнецова Андреевна",
+    "email": "student.036@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПМИ-401",
+      "bio": "Развиваюсь как инженер компьютерного зрения. Интересуют обработка изображений и разбор ошибок. Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров. В команде беру на себя обработка изображений, разметка и сравнение результатов. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "обработка изображений и разбор ошибок",
+        "Учебная робототехника"
+      ],
+      "skills": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "techStack": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Виктория Кузнецова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_036.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_036-library.png"
+  },
+  {
+    "id": "syn_student_037",
+    "username": "syn_student_037",
+    "fullName": "Кирилл Семёнов Алексеевич",
+    "email": "student.037@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПИ-101",
+      "bio": "Развиваюсь как frontend-разработчик. Интересуют доступные интерфейсы и сложные формы. Собрал календарь консультаций с управлением с клавиатуры. В команде беру на себя реализация интерфейса, состояния загрузки и регрессионные проверки. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "доступные интерфейсы и сложные формы",
+        "Облачная инфраструктура"
+      ],
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS"
+      ],
+      "techStack": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Кирилл Семёнов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_037.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_037.jpg"
+  },
+  {
+    "id": "syn_student_038",
+    "username": "syn_student_038",
+    "fullName": "Елизавета Зайцева Андреевна",
+    "email": "student.038@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ИВТ-201",
+      "bio": "Развиваюсь как backend-разработчик. Интересуют надёжные API и очереди событий. Реализовала идемпотентный приём заявок и журнал повторов. В команде беру на себя контракты API, транзакции и обработка конфликтов. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "надёжные API и очереди событий",
+        "Тестирование ПО"
+      ],
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "techStack": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Елизавета Зайцева Андреевна.pdf",
+        "url": "documents/resumes/syn_student_038.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_038-library.png"
+  },
+  {
+    "id": "syn_student_039",
+    "username": "syn_student_039",
+    "fullName": "Андрей Громов Алексеевич",
+    "email": "student.039@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПМИ-301",
+      "bio": "Развиваюсь как аналитик данных. Интересуют качество данных и объяснимые метрики. Подготовил правила качества каталога и разбор ошибочных строк. В команде беру на себя профилирование входа, контрольные расчёты и визуализация. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "качество данных и объяснимые метрики",
+        "Городские сервисы"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "SQL"
+      ],
+      "techStack": [
+        "Python",
+        "pandas",
+        "SQL",
+        "Plotly"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Андрей Громов Алексеевич.pdf",
+        "url": "documents/resumes/syn_student_039.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_039.jpg"
+  },
+  {
+    "id": "syn_student_040",
+    "username": "syn_student_040",
+    "fullName": "Ксения Фролова Андреевна",
+    "email": "student.040@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПИ-401",
+      "bio": "Развиваюсь как ux/ui-дизайнер. Интересуют исследования и понятные пользовательские сценарии. Спроектировала запись на оборудование и проверил сценарий переноса. В команде беру на себя карта пути пользователя, прототипы и библиотека состояний. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "исследования и понятные пользовательские сценарии",
+        "Качество данных"
+      ],
+      "skills": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "techStack": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Ксения Фролова Андреевна.pdf",
+        "url": "documents/resumes/syn_student_040.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_040-library.png"
+  },
+  {
+    "id": "syn_student_041",
+    "username": "syn_student_041",
+    "fullName": "Алексей Миронов Сергеевич",
+    "email": "student.041@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ИВТ-101",
+      "bio": "Развиваюсь как qa-инженер. Интересуют граничные случаи и воспроизводимые проверки. Составил матрицу прав для четырёх ролей и негативные проверки API. В команде беру на себя тест-дизайн, автоматизация и отчёты о дефектах. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "граничные случаи и воспроизводимые проверки",
+        "Социальные технологии"
+      ],
+      "skills": [
+        "Python",
+        "pytest",
+        "HTTP"
+      ],
+      "techStack": [
+        "Python",
+        "pytest",
+        "HTTP",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алексей Миронов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_041.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_041.jpg"
+  },
+  {
+    "id": "syn_student_042",
+    "username": "syn_student_042",
+    "fullName": "Мария Белова Викторовна",
+    "email": "student.042@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПМИ-201",
+      "bio": "Развиваюсь как ml-инженер. Интересуют базовые модели и проверка качества на отложенных данных. Сравнила классификатор обращений с базовым поиском по словам. В команде беру на себя подготовка выборки, оценка ошибок и сервис предсказаний. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "базовые модели и проверка качества на отложенных данных",
+        "Музейные технологии"
+      ],
+      "skills": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "techStack": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Мария Белова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_042.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_042-library.png"
+  },
+  {
+    "id": "syn_student_043",
+    "username": "syn_student_043",
+    "fullName": "Тимур Сафин Сергеевич",
+    "email": "student.043@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ПИ-301",
+      "bio": "Развиваюсь как devops-инженер. Интересуют наблюдаемость и воспроизводимые окружения. Настроил стенд с метриками и проверил отказ зависимости. В команде беру на себя окружение, журналы, панели и инструкция восстановления. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "наблюдаемость и воспроизводимые окружения",
+        "Образовательные игры"
+      ],
+      "skills": [
+        "Linux",
+        "Docker",
+        "Prometheus"
+      ],
+      "techStack": [
+        "Linux",
+        "Docker",
+        "Prometheus",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Тимур Сафин Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_043.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_043.jpg"
+  },
+  {
+    "id": "syn_student_044",
+    "username": "syn_student_044",
+    "fullName": "Анна Волкова Викторовна",
+    "email": "student.044@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ИВТ-401",
+      "bio": "Развиваюсь как мобильный разработчик. Интересуют офлайн-сценарии и синхронизация. Сделала каталог велопарковок с очередью изменений без сети. В команде беру на себя локальное хранение, синхронизация и мобильная навигация. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "офлайн-сценарии и синхронизация",
+        "Документооборот"
+      ],
+      "skills": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "techStack": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 84,
+      "verifiedProjectsCount": 1,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Анна Волкова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_044.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_044-library.png"
+  },
+  {
+    "id": "syn_student_045",
+    "username": "syn_student_045",
+    "fullName": "Максим Орлов Сергеевич",
+    "email": "student.045@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 1,
+      "group": "ПМИ-101",
+      "bio": "Развиваюсь как системный аналитик. Интересуют процессы, состояния и контракты интеграций. Описал маршрут согласования и сценарии возврата документа. В команде беру на себя матрица ответственности, словарь состояний и контракт данных. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "процессы, состояния и контракты интеграций",
+        "Прикладная наука"
+      ],
+      "skills": [
+        "BPMN",
+        "UML",
+        "SQL"
+      ],
+      "techStack": [
+        "BPMN",
+        "UML",
+        "SQL",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Максим Орлов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_045.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_045.jpg"
+  },
+  {
+    "id": "syn_student_046",
+    "username": "syn_student_046",
+    "fullName": "Дарья Соколова Викторовна",
+    "email": "student.046@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Бакалавриат",
+      "course": 2,
+      "group": "ПИ-201",
+      "bio": "Развиваюсь как разработчик iot. Интересуют телеметрия и работа с потерей связи. Собрала панель измерений с разделением простоя и потери связи. В команде беру на себя приём сигналов, единицы измерения и журнал предупреждений. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "телеметрия и работа с потерей связи",
+        "Языковые технологии"
+      ],
+      "skills": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "techStack": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Дарья Соколова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_046.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_046-library.png"
+  },
+  {
+    "id": "syn_student_047",
+    "username": "syn_student_047",
+    "fullName": "Руслан Хакимов Сергеевич",
+    "email": "student.047@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Бакалавриат",
+      "course": 3,
+      "group": "ИВТ-301",
+      "bio": "Развиваюсь как разработчик игр. Интересуют игровые механики и короткие завершённые сценарии. Разработал игру о сортировке с объяснением спорных решений. В команде беру на себя механика, прогресс игрока и обучение без длинных инструкций. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "игровые механики и короткие завершённые сценарии",
+        "Измерительные системы"
+      ],
+      "skills": [
+        "Godot",
+        "GDScript",
+        "Blender"
+      ],
+      "techStack": [
+        "Godot",
+        "GDScript",
+        "Blender",
+        "Git"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Руслан Хакимов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_047.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_047.jpg"
+  },
+  {
+    "id": "syn_student_048",
+    "username": "syn_student_048",
+    "fullName": "Екатерина Морозова Викторовна",
+    "email": "student.048@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Бакалавриат",
+      "course": 4,
+      "group": "ПМИ-401",
+      "bio": "Развиваюсь как инженер компьютерного зрения. Интересуют обработка изображений и разбор ошибок. Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров. В команде беру на себя обработка изображений, разметка и сравнение результатов. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "обработка изображений и разбор ошибок",
+        "Оптимизация и моделирование"
+      ],
+      "skills": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "techStack": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Екатерина Морозова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_048.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_048-library.png"
+  },
+  {
+    "id": "syn_student_049",
+    "username": "syn_student_049",
+    "fullName": "Никита Фёдоров Сергеевич",
+    "email": "student.049@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как frontend-разработчик. Интересуют доступные интерфейсы и сложные формы. Собрал календарь консультаций с управлением с клавиатуры. В команде беру на себя реализация интерфейса, состояния загрузки и регрессионные проверки. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "доступные интерфейсы и сложные формы",
+        "Промышленный мониторинг"
+      ],
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS"
+      ],
+      "techStack": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Никита Фёдоров Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_049.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_049.jpg"
+  },
+  {
+    "id": "syn_student_050",
+    "username": "syn_student_050",
+    "fullName": "Алина Иванова Викторовна",
+    "email": "student.050@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как backend-разработчик. Интересуют надёжные API и очереди событий. Реализовала идемпотентный приём заявок и журнал повторов. В команде беру на себя контракты API, транзакции и обработка конфликтов. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "надёжные API и очереди событий",
+        "Агротехнологии"
+      ],
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "techStack": [
+        "Go",
+        "PostgreSQL",
+        "Docker",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Алина Иванова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_050.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_050-library.png"
+  },
+  {
+    "id": "syn_student_051",
+    "username": "syn_student_051",
+    "fullName": "Илья Новиков Сергеевич",
+    "email": "student.051@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как аналитик данных. Интересуют качество данных и объяснимые метрики. Подготовил правила качества каталога и разбор ошибочных строк. В команде беру на себя профилирование входа, контрольные расчёты и визуализация. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "качество данных и объяснимые метрики",
+        "Библиотечные сервисы"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "SQL"
+      ],
+      "techStack": [
+        "Python",
+        "pandas",
+        "SQL",
+        "Plotly"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Илья Новиков Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_051.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_051.jpg"
+  },
+  {
+    "id": "syn_student_052",
+    "username": "syn_student_052",
+    "fullName": "Полина Сергеева Викторовна",
+    "email": "student.052@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как ux/ui-дизайнер. Интересуют исследования и понятные пользовательские сценарии. Спроектировала запись на оборудование и проверил сценарий переноса. В команде беру на себя карта пути пользователя, прототипы и библиотека состояний. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "исследования и понятные пользовательские сценарии",
+        "Городская логистика"
+      ],
+      "skills": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "techStack": [
+        "Figma",
+        "UX-исследования",
+        "HTML",
+        "CSS"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Полина Сергеева Викторовна.pdf",
+        "url": "documents/resumes/syn_student_052.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_052-library.png"
+  },
+  {
+    "id": "syn_student_053",
+    "username": "syn_student_053",
+    "fullName": "Даниил Лебедев Сергеевич",
+    "email": "student.053@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как qa-инженер. Интересуют граничные случаи и воспроизводимые проверки. Составил матрицу прав для четырёх ролей и негативные проверки API. В команде беру на себя тест-дизайн, автоматизация и отчёты о дефектах. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "граничные случаи и воспроизводимые проверки",
+        "Возобновляемая энергетика"
+      ],
+      "skills": [
+        "Python",
+        "pytest",
+        "HTTP"
+      ],
+      "techStack": [
+        "Python",
+        "pytest",
+        "HTTP",
+        "Playwright"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Даниил Лебедев Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_053.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_053.jpg"
+  },
+  {
+    "id": "syn_student_054",
+    "username": "syn_student_054",
+    "fullName": "София Попова Викторовна",
+    "email": "student.054@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как ml-инженер. Интересуют базовые модели и проверка качества на отложенных данных. Сравнила классификатор обращений с базовым поиском по словам. В команде беру на себя подготовка выборки, оценка ошибок и сервис предсказаний. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "базовые модели и проверка качества на отложенных данных",
+        "Университетские сервисы"
+      ],
+      "skills": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "techStack": [
+        "Python",
+        "scikit-learn",
+        "NumPy",
+        "FastAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме София Попова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_054.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_054-library.png"
+  },
+  {
+    "id": "syn_student_055",
+    "username": "syn_student_055",
+    "fullName": "Артём Павлов Сергеевич",
+    "email": "student.055@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как devops-инженер. Интересуют наблюдаемость и воспроизводимые окружения. Настроил стенд с метриками и проверил отказ зависимости. В команде беру на себя окружение, журналы, панели и инструкция восстановления. Ищу первую практику с наставником. Доступно 6 часов в неделю.",
+      "interests": [
+        "наблюдаемость и воспроизводимые окружения",
+        "Мониторинг воды"
+      ],
+      "skills": [
+        "Linux",
+        "Docker",
+        "Prometheus"
+      ],
+      "techStack": [
+        "Linux",
+        "Docker",
+        "Prometheus",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Артём Павлов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_055.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_055.jpg"
+  },
+  {
+    "id": "syn_student_056",
+    "username": "syn_student_056",
+    "fullName": "Виктория Кузнецова Викторовна",
+    "email": "student.056@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как мобильный разработчик. Интересуют офлайн-сценарии и синхронизация. Сделала каталог велопарковок с очередью изменений без сети. В команде беру на себя локальное хранение, синхронизация и мобильная навигация. Ищу небольшой продуктовый проект. Доступно 8 часов в неделю.",
+      "interests": [
+        "офлайн-сценарии и синхронизация",
+        "Цифровая доступность"
+      ],
+      "skills": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "techStack": [
+        "Flutter",
+        "Dart",
+        "SQLite",
+        "REST API"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Виктория Кузнецова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_056.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_056.jpg"
+  },
+  {
+    "id": "syn_student_057",
+    "username": "syn_student_057",
+    "fullName": "Кирилл Семёнов Сергеевич",
+    "email": "student.057@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как системный аналитик. Интересуют процессы, состояния и контракты интеграций. Описал маршрут согласования и сценарии возврата документа. В команде беру на себя матрица ответственности, словарь состояний и контракт данных. Ищу команду на хакатон. Доступно 10 часов в неделю.",
+      "interests": [
+        "процессы, состояния и контракты интеграций",
+        "Информационная безопасность"
+      ],
+      "skills": [
+        "BPMN",
+        "UML",
+        "SQL"
+      ],
+      "techStack": [
+        "BPMN",
+        "UML",
+        "SQL",
+        "OpenAPI"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Кирилл Семёнов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_057.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_057.jpg"
+  },
+  {
+    "id": "syn_student_058",
+    "username": "syn_student_058",
+    "fullName": "Елизавета Зайцева Викторовна",
+    "email": "student.058@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Программная инженерия",
+      "educationalProgram": "Программная инженерия",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как разработчик iot. Интересуют телеметрия и работа с потерей связи. Собрала панель измерений с разделением простоя и потери связи. В команде беру на себя приём сигналов, единицы измерения и журнал предупреждений. Ищу задачу с измеримым результатом. Доступно 12 часов в неделю.",
+      "interests": [
+        "телеметрия и работа с потерей связи",
+        "Цифровое наследие"
+      ],
+      "skills": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "techStack": [
+        "Python",
+        "MQTT",
+        "C++",
+        "Grafana"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Елизавета Зайцева Викторовна.pdf",
+        "url": "documents/resumes/syn_student_058.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_001"
+    },
+    "avatar": "assets/avatars/syn_student_058.jpg"
+  },
+  {
+    "id": "syn_student_059",
+    "username": "syn_student_059",
+    "fullName": "Андрей Громов Сергеевич",
+    "email": "student.059@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Информатика и вычислительная техника",
+      "educationalProgram": "Информатика и вычислительная техника",
+      "educationLevel": "Магистратура",
+      "course": 1,
+      "group": "МИ-101",
+      "bio": "Развиваюсь как разработчик игр. Интересуют игровые механики и короткие завершённые сценарии. Разработал игру о сортировке с объяснением спорных решений. В команде беру на себя механика, прогресс игрока и обучение без длинных инструкций. Ищу стажировку с код-ревью. Доступно 14 часов в неделю.",
+      "interests": [
+        "игровые механики и короткие завершённые сценарии",
+        "Научная инфраструктура"
+      ],
+      "skills": [
+        "Godot",
+        "GDScript",
+        "Blender"
+      ],
+      "techStack": [
+        "Godot",
+        "GDScript",
+        "Blender",
+        "Git"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Андрей Громов Сергеевич.pdf",
+        "url": "documents/resumes/syn_student_059.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_002"
+    },
+    "avatar": "assets/avatars/syn_student_059.jpg"
+  },
+  {
+    "id": "syn_student_060",
+    "username": "syn_student_060",
+    "fullName": "Ксения Фролова Викторовна",
+    "email": "student.060@example.invalid",
+    "role": "student",
+    "isBlocked": false,
+    "createdAt": "2026-09-01T09:00:00Z",
+    "studentProfile": {
+      "university": "Уфимский университет науки и технологий (УУНиТ)",
+      "institute": "Институт информатики, математики и робототехники",
+      "fieldOfStudy": "Прикладная математика и информатика",
+      "educationalProgram": "Прикладная математика и информатика",
+      "educationLevel": "Магистратура",
+      "course": 2,
+      "group": "МИ-201",
+      "bio": "Развиваюсь как инженер компьютерного зрения. Интересуют обработка изображений и разбор ошибок. Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров. В команде беру на себя обработка изображений, разметка и сравнение результатов. Ищу исследовательскую задачу. Доступно 16 часов в неделю.",
+      "interests": [
+        "обработка изображений и разбор ошибок",
+        "Учебная робототехника"
+      ],
+      "skills": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "techStack": [
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "NumPy"
+      ],
+      "githubUrl": "",
+      "phone": "",
+      "rating": 0,
+      "verifiedProjectsCount": 0,
+      "winsCount": 0,
+      "resume": {
+        "name": "Резюме Ксения Фролова Викторовна.pdf",
+        "url": "documents/resumes/syn_student_060.pdf",
+        "public": true
+      },
+      "curatorId": "syn_curator_003"
+    },
+    "avatar": "assets/avatars/syn_student_060.jpg"
+  }
+]

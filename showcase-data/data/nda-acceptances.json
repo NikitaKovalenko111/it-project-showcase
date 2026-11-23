@@ -1,0 +1,20 @@
+[
+  {
+    "caseId": "syn_case_017",
+    "userId": "syn_student_041",
+    "acceptedAt": "2026-11-23T09:30:00Z",
+    "materialsPolicyUrl": "documents/examples/materials-policy.pdf"
+  },
+  {
+    "caseId": "syn_case_017",
+    "userId": "syn_student_032",
+    "acceptedAt": "2026-11-23T09:30:00Z",
+    "materialsPolicyUrl": "documents/examples/materials-policy.pdf"
+  },
+  {
+    "caseId": "syn_case_017",
+    "userId": "syn_student_018",
+    "acceptedAt": "2026-11-23T09:30:00Z",
+    "materialsPolicyUrl": "documents/examples/materials-policy.pdf"
+  }
+]

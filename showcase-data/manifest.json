@@ -1,0 +1,34 @@
+{
+  "version": "0.2",
+  "createdAt": "2026-11-23",
+  "updatedAt": "2026-11-23",
+  "scope": "Контент витрины IT-проектов: компании, архив мероприятий и концепции новых заданий.",
+  "idNamespace": "syn_",
+  "counts": {
+    "companies": 36,
+    "students": 60,
+    "cases": 75,
+    "projects": 24,
+    "programs": 24,
+    "teams": 12,
+    "applications": 48,
+    "milestones": 48,
+    "submissions": 7,
+    "evaluations": 4,
+    "comments": 48
+  },
+  "realOrganizationsAdded": 12,
+  "historicalEvents": 7,
+  "publishedCaseSummaries": 4,
+  "newHackathonConcepts": 16,
+  "reviewStatus": "editorial_review",
+  "sourceModels": [
+    "frontend/src/types/models.ts",
+    "frontend/src/api/opportunities.ts"
+  ],
+  "photos": 7,
+  "inputCsvFiles": 8,
+  "inputJsonFiles": 3,
+  "inputCsvRows": 506,
+  "provenanceFile": "sources/content-provenance.json"
+}

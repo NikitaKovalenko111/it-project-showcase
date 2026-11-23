@@ -1,0 +1,34 @@
+[
+  {
+    "caseId": "syn_internship_case_001",
+    "programId": "syn_program_001"
+  },
+  {
+    "caseId": "syn_internship_case_002",
+    "programId": "syn_program_003"
+  },
+  {
+    "caseId": "syn_internship_case_003",
+    "programId": "syn_program_005"
+  },
+  {
+    "caseId": "syn_internship_case_004",
+    "programId": "syn_program_007"
+  },
+  {
+    "caseId": "syn_internship_case_005",
+    "programId": "syn_program_009"
+  },
+  {
+    "caseId": "syn_internship_case_006",
+    "programId": "syn_program_011"
+  },
+  {
+    "caseId": "syn_internship_case_007",
+    "programId": "syn_program_013"
+  },
+  {
+    "caseId": "syn_internship_case_008",
+    "programId": "syn_program_015"
+  }
+]

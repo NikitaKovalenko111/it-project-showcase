@@ -1,0 +1,86 @@
+{
+  "project_id": "integration_launch",
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "Согласовать контракт",
+      "days": 1,
+      "dependsOn": [],
+      "owner": "analyst"
+    },
+    {
+      "id": "t2",
+      "title": "Подготовить схему данных",
+      "days": 2,
+      "dependsOn": [
+        "t1"
+      ],
+      "owner": "backend"
+    },
+    {
+      "id": "t3",
+      "title": "Спроектировать формы",
+      "days": 2,
+      "dependsOn": [
+        "t1"
+      ],
+      "owner": "designer"
+    },
+    {
+      "id": "t4",
+      "title": "Реализовать API",
+      "days": 3,
+      "dependsOn": [
+        "t2"
+      ],
+      "owner": "backend"
+    },
+    {
+      "id": "t5",
+      "title": "Собрать интерфейс",
+      "days": 3,
+      "dependsOn": [
+        "t3"
+      ],
+      "owner": "frontend"
+    },
+    {
+      "id": "t6",
+      "title": "Проверить интеграцию",
+      "days": 2,
+      "dependsOn": [
+        "t4",
+        "t5"
+      ],
+      "owner": "qa"
+    },
+    {
+      "id": "t7",
+      "title": "Подготовить миграцию",
+      "days": 1,
+      "dependsOn": [
+        "t4"
+      ],
+      "owner": "backend"
+    },
+    {
+      "id": "t8",
+      "title": "Провести демонстрацию",
+      "days": 1,
+      "dependsOn": [
+        "t6",
+        "t7"
+      ],
+      "owner": "team"
+    }
+  ],
+  "changes": [
+    {
+      "taskId": "t4",
+      "field": "days",
+      "oldValue": 3,
+      "newValue": 5
+    }
+  ],
+  "calendar": "Последовательные рабочие дни; параллельность разрешена только разным владельцам."
+}

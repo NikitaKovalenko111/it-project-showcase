@@ -1,0 +1,56 @@
+[
+  {
+    "studentId": "syn_student_001",
+    "path": "assets/avatars/syn_student_001.png",
+    "method": "built-in image_gen",
+    "prompt": "One 21-year-old male undergraduate, dark short hair, navy overshirt, university courtyard, natural editorial portrait, no text."
+  },
+  {
+    "studentId": "syn_student_002",
+    "path": "assets/avatars/syn_student_002.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 20. shoulder-length dark brown hair, thoughtful friendly expression, wearing a forest green knit sweater. Head and shoulders, face centered, breathing room for circular crop. Softly blurred campus courtyard with trees, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_003",
+    "path": "assets/avatars/syn_student_003.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 21. straight dark hair with a side part, natural open smile, wearing a cream hoodie. Head and shoulders, face centered, breathing room for circular crop. Softly blurred campus courtyard with trees, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_004",
+    "path": "assets/avatars/syn_student_004.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 22. wavy chestnut hair tied loosely, calm confident expression, wearing a charcoal crewneck. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_005",
+    "path": "assets/avatars/syn_student_005.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 19. short light brown hair, relaxed slight smile, wearing a pale blue shirt. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_006",
+    "path": "assets/avatars/syn_student_006.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 20. short dark bob haircut, subtle round glasses, thoughtful friendly expression, wearing a burgundy cardigan. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_007",
+    "path": "assets/avatars/syn_student_007.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 21. black textured hair, natural open smile, wearing a beige denim jacket. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_008",
+    "path": "assets/avatars/syn_student_008.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 22. long dark blond hair, calm confident expression, wearing a black t-shirt. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_009",
+    "path": "assets/avatars/syn_student_009.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 19. dark blond slightly tousled hair, relaxed slight smile, wearing a soft lavender sweater. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  }
+]
