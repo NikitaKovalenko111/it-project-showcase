@@ -1,9 +1,8 @@
 import { createId } from '../utils/id'
-import { buildPrograms, buildProgramApplications } from './fixtures/programs'
 import { axiosInstance } from './http'
 import { apiRuntime } from './runtime'
 import { collectNumbered } from './backend'
-import { mockServer } from './mockServer'
+import { mockOpportunityFixtures, mockServer } from './mockRuntime'
 import type { User } from '../types/models'
 import { canEditProgram } from '../utils/publicationAccess'
 
@@ -37,7 +36,7 @@ export type OpportunityApplication = {
 }
 
 const live = apiRuntime.mode === 'live'
-const seed = buildPrograms()
+let programFixtures: Opportunity[] | undefined
 function read<T>(key: string, fallback: T): T {
   const data = localStorage.getItem('showcase_curated_v1_' + key)
   return data ? JSON.parse(data) : structuredClone(fallback)
@@ -46,6 +45,8 @@ function save<T>(key: string, data: T) {
   localStorage.setItem('showcase_curated_v1_' + key, JSON.stringify(data))
 }
 const programs = () => {
+  const { buildPrograms } = mockOpportunityFixtures()
+  const seed = (programFixtures ??= buildPrograms())
   const rows = read('opportunities', seed)
   if (!read('program_details_20261114_v2', false)) {
     const legacy = buildPrograms(false)
@@ -61,7 +62,10 @@ const programs = () => {
   return rows
 }
 const applications = () =>
-  read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
+  read<OpportunityApplication[]>(
+    'opportunity_applications',
+    mockOpportunityFixtures().buildProgramApplications(),
+  )
 function actor() {
   const session = JSON.parse(localStorage.getItem('uust_current_user') || 'null') as User | null
   const user = session && mockServer.getUserById(session.id)

@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { loginRequest, loginSuccess } from '../store/actions'
-import { mockServer } from '../api/mockServer'
 import {
   Landmark,
   Settings,

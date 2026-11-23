@@ -21,7 +21,6 @@ import { useAppDispatch, useAppSelector } from '../store'
 import { updateUserProfileRequest } from '../store/actions'
 import { InviteStudentModal } from '../components/modals/InviteStudentModal'
 import { participatesInCase } from '../utils/access'
-import { mockServer } from '../api/mockServer'
 import {
   ArrowLeft,
   Award,

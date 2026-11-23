@@ -16,7 +16,7 @@ import {
 } from './backend'
 import { getProjectCatalog, projectCategoryCode } from './studentProjectCatalog'
 import { apiRuntime, tokenStore } from './runtime'
-import { mockServer } from './mockServer'
+import { mockServer } from './mockRuntime'
 import {
   AuditLog,
   CaseApplication,

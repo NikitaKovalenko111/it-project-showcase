@@ -1,5 +1,5 @@
 import { apiRuntime } from '../api/runtime'
-import { mockServer } from '../api/mockServer'
+import { mockServer } from '../api/mockRuntime'
 import { createId } from '../utils/id'
 import { IdentityImage } from './IdentityImage'
 import { Link } from 'react-router-dom'

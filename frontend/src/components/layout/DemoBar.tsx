@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { switchUserRequest } from '../../store/actions'
-import { mockServer } from '../../api/mockServer'
+import { mockServer } from '../../api/mockRuntime'
 import {
   Building2,
   GraduationCap,

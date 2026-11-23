@@ -1,5 +1,5 @@
 import { apiRuntime } from './runtime'
-import { mockServer } from './mockServer'
+import { mockServer } from './mockRuntime'
 import { canManageCase } from '../utils/access'
 import { axiosInstance } from './http'
 

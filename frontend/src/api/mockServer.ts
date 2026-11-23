@@ -2409,13 +2409,3 @@ export const createMockServer = (): MockServer =>
         structuredClone(Reflect.apply(value, target, structuredClone(args)))
     },
   })
-
-let lazyMock: MockServer | undefined
-export const mockServer = new Proxy({} as MockServer, {
-  get(_target, key) {
-    return (...args: unknown[]) => {
-      lazyMock ||= createMockServer()
-      return Reflect.apply((lazyMock as any)[key], lazyMock, args)
-    }
-  },
-})

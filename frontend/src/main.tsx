@@ -1,6 +1,7 @@
 import { SelectMenus } from './components/SelectMenus'
 import { restoreMockFiles } from './utils/mockFiles'
-import { apiRuntime } from './api/runtime'
+import { isMockMode } from './api/runtime'
+import { loadMockRuntime } from './api/mockRuntime'
 import { AutoSizeTextareas } from './components/AutoSizeTextareas'
 import { ConfirmProvider } from './components/ConfirmProvider'
 import React from 'react'
@@ -12,7 +13,8 @@ import { App } from './App'
 import './styles/main.scss'
 
 async function start() {
-  if (apiRuntime.mode === 'mock') {
+  if (isMockMode) {
+    await loadMockRuntime()
     try {
       await restoreMockFiles()
     } catch (error) {

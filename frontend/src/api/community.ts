@@ -4,7 +4,8 @@ import { axiosInstance } from './http'
 import { apiClient } from './client'
 import { apiRuntime } from './runtime'
 import type { SystemNotification } from '../types/models'
-import { mockServer, MockServer } from './mockServer'
+import { mockServer } from './mockRuntime'
+import type { MockServer } from './mockServer'
 
 type CommunityMethod =
   | 'getSharedPlan'

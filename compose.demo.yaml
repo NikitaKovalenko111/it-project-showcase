@@ -40,7 +40,12 @@ services:
     ports:
       - "127.0.0.1:${SHOWCASE_DEMO_PORT:-13006}:3005"
     volumes:
-      - ./backend/demo/config.yaml:/server/config/config.yaml:ro
+      - type: bind
+        source: ./backend/demo/config.demo.yaml
+        target: /server/config/config.yaml
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,7 +55,6 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_MODE: live
         VITE_API_URL: /api/v1
     ports:
       - "127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-3006}:80"
