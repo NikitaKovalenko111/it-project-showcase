@@ -40,7 +40,17 @@ func (r *Repository) SetEventPlan(ctx context.Context, user, caseID string, plan
 	for _, round := range plan.Rounds {
 		for _, task := range round.Tasks {
 			for _, file := range task.FileIDs {
-				if err = verifyEventFile(ctx, tx, file, user); err != nil {
+				var fileID string
+				err = tx.QueryRowContext(ctx, `SELECT f.file_id FROM files f WHERE f.file_id=$1 AND f.status='active'
+					AND (f.uploaded_by=$2 OR EXISTS(
+						SELECT 1 FROM event_plans p CROSS JOIN LATERAL jsonb_array_elements(p.plan->'rounds') r
+						CROSS JOIN LATERAL jsonb_array_elements(r->'tasks') t
+						WHERE p.case_id=$3 AND t->'file_ids' @> jsonb_build_array(f.file_id::text)))
+					FOR SHARE OF f`, file, user, caseID).Scan(&fileID)
+				if errors.Is(err, sql.ErrNoRows) {
+					return ErrAccessDenied
+				}
+				if err != nil {
 					return err
 				}
 			}

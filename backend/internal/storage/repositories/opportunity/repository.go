@@ -309,6 +309,7 @@ func (r *Repository) UpdateInternshipStatusByRole(ctx context.Context, user, id,
 		published_at=CASE WHEN $3='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END
 		WHERE p.program_id=$1 AND (
 			(($5 OR $6) AND p.status='moderation' AND $3 IN ('published','revision'))
+			OR ($5 AND $3='revision' AND p.status<>'revision')
 			OR ($5 AND p.status IN ('published','closed') AND $3='hidden')
 			OR ($5 AND p.created_by=$2 AND ((p.status IN ('draft','revision') AND $3='moderation') OR (p.status='moderation' AND $3='draft')))
 			OR (EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=p.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
@@ -629,7 +630,7 @@ func (r *Repository) CreateNDAVersion(ctx context.Context, user, caseID, text, f
 	}
 	defer tx.Rollback()
 	var allowed bool
-	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM showcase.cases c WHERE c.case_id=$1 AND c.status='draft' AND ((c.created_by=$2 AND showcase.is_active_admin($2)) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, caseID, user).Scan(&allowed)
+	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM showcase.cases c WHERE c.case_id=$1 AND c.status='draft' AND (showcase.is_active_admin($2) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')))`, caseID, user).Scan(&allowed)
 	if e != nil || !allowed {
 		return nil, ErrForbidden
 	}
@@ -681,7 +682,7 @@ func (r *Repository) AcceptNDA(ctx context.Context, user, caseID, versionID stri
 	return nil
 }
 func (r *Repository) SetCaseCover(ctx context.Context, user, caseID, fileID string) error {
-	res, e := audit.Exec(ctx, r.db, `UPDATE showcase.cases c SET cover_file_id=$3 WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND ((c.created_by=$2 AND showcase.is_active_admin($2)) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')) AND EXISTS(SELECT 1 FROM showcase.files f WHERE f.file_id=$3 AND f.uploaded_by=$2 AND f.status='active' AND f.mime_type LIKE 'image/%')`, caseID, user, fileID)
+	res, e := audit.Exec(ctx, r.db, `UPDATE showcase.cases c SET cover_file_id=$3 WHERE c.case_id=$1 AND c.status IN ('draft','revision') AND (showcase.is_active_admin($2) OR EXISTS(SELECT 1 FROM showcase.company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')) AND EXISTS(SELECT 1 FROM showcase.files f WHERE f.file_id=$3 AND f.uploaded_by=$2 AND f.status='active' AND f.mime_type LIKE 'image/%')`, caseID, user, fileID)
 	if e != nil {
 		return e
 	}

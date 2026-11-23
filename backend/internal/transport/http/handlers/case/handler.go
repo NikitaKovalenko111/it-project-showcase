@@ -26,7 +26,7 @@ type Handler struct{ service *cases_service.Service }
 
 func Init(service *cases_service.Service) *Handler { return &Handler{service: service} }
 
-func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, reviewer, optionalAuthorization func(http.Handler) http.Handler) {
+func (h *Handler) Start(mux *http.ServeMux, representative, manager, reviewer, optionalAuthorization func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
 	mux.Handle("GET /mine", manager(http.HandlerFunc(h.ListMine)))
 	mux.HandleFunc("GET /{case_id}", h.Get)
@@ -44,9 +44,9 @@ func (h *Handler) Start(mux *http.ServeMux, representative, manager, admin, revi
 	mux.Handle("PATCH /{case_id}/stages/{stage_id}", manager(http.HandlerFunc(h.UpdateStage)))
 	mux.Handle("PUT /{case_id}/stages/order", manager(http.HandlerFunc(h.ReorderStages)))
 	mux.Handle("PUT /{case_id}/stages", manager(http.HandlerFunc(h.SavePlan)))
-	mux.Handle("PATCH /{case_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
-	mux.Handle("PATCH /{case_id}/stages/{stage_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
-	mux.Handle("PATCH /{case_id}/rounds/{round_id}/deadline", representative(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("PATCH /{case_id}/deadline", manager(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("PATCH /{case_id}/stages/{stage_id}/deadline", manager(http.HandlerFunc(h.ChangeDeadline)))
+	mux.Handle("PATCH /{case_id}/rounds/{round_id}/deadline", manager(http.HandlerFunc(h.ChangeDeadline)))
 	mux.Handle("GET /{case_id}/deadline-history", manager(http.HandlerFunc(h.ListDeadlineChanges)))
 	mux.Handle("DELETE /{case_id}/stages/{stage_id}", manager(http.HandlerFunc(h.DeleteStage)))
 	mux.HandleFunc("/", shared.NotFound)

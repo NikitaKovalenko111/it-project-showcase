@@ -596,6 +596,56 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			return response.Body.Bytes()
 		}
 		token := adminToken(administrator)
+		foreignInput := models.CaseInput{
+			CompanyID: company, Title: "Company owned hackathon", Summary: "Summary", FullBrief: "Brief", Type: "educational",
+			EventFormat: "hackathon", WorkFormat: "remote", ParticipationMode: "individual", AdmissionMode: "open",
+			Capacity: &one, TeamSizeMin: &one, TeamSizeMax: &one, ApplicationDeadline: &deadline, DueAt: &dueAt,
+			ResultRequirements: "Result", IPTerms: "Terms", Visibility: "public",
+			Files: []models.CaseFileInput{{FileID: taskFile, Visibility: "public"}},
+		}
+		foreign, err := cases.Create(ctx, manager, foreignInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		foreignPath := "/cases/" + foreign.CaseID
+		foreignPlan := models.EventPlan{
+			Subject: "Programming", TimeZone: "Asia/Yekaterinburg", PlatformName: "Platform", PlatformURL: "https://example.test",
+			Rounds: []models.EventRound{{Title: "Final", OpensAt: now.Add(time.Hour), DueAt: dueAt,
+				Tasks: []models.EventTask{{Title: "Task", Statement: "Problem", FileIDs: []string{taskFile}, MaxScore: 30}}}},
+		}
+		if err = cases.SetEventPlan(ctx, manager, foreign.CaseID, foreignPlan); err != nil {
+			t.Fatal(err)
+		}
+		foreignInput.Title = "Edited by administrator"
+		var edited models.Case
+		if err = json.Unmarshal(send(http.MethodPut, foreignPath, token, foreignInput, 200), &edited); err != nil {
+			t.Fatal(err)
+		}
+		if edited.CreatedBy != manager || edited.TermsVersion != 2 || len(edited.Files) != 1 || edited.Files[0].FileID != taskFile {
+			t.Fatalf("foreign case or original attachment changed: %+v", edited)
+		}
+		send(http.MethodPut, foreignPath+"/event-plan", token, foreignPlan, 204)
+		send(http.MethodPost, foreignPath+"/stages", token, models.CaseStageInput{Title: "Admin checkpoint", Ordinal: 1}, 201)
+		outsider := newUser(false)
+		unrelatedFile := id(`INSERT INTO files(storage_key,original_name,mime_type,size_bytes,checksum_sha256,uploaded_by)
+			VALUES($1,'unrelated.pdf','application/pdf',12,'test',$2) RETURNING file_id`, uuid.NewString(), outsider)
+		foreignInput.Files = []models.CaseFileInput{{FileID: unrelatedFile, Visibility: "public"}}
+		send(http.MethodPut, foreignPath, token, foreignInput, 422)
+		foreignInput.Files = []models.CaseFileInput{{FileID: taskFile, Visibility: "public"}}
+		send(http.MethodPost, foreignPath+"/submit-moderation", token, nil, 200)
+		send(http.MethodPatch, foreignPath+"/moderation", token, map[string]string{"decision": "approve"}, 200)
+		if err = json.Unmarshal(send(http.MethodPut, foreignPath, token, foreignInput, 200), &edited); err != nil {
+			t.Fatal(err)
+		}
+		if edited.Status != "revision" || edited.CreatedBy != manager {
+			t.Fatalf("published edit must create revision: %+v", edited)
+		}
+		auditActor := id(`SELECT actor_id FROM audit_logs WHERE entity_id=$1 AND new_data->>'terms_version'='3'
+			AND entity_type='case' AND action='update'`, foreign.CaseID)
+		if auditActor != administrator {
+			t.Fatalf("wrong edit author: %s", auditActor)
+		}
+
 		image := id(`INSERT INTO files(storage_key,original_name,mime_type,size_bytes,checksum_sha256,uploaded_by)
 			VALUES($1,'cover.png','image/png',12,'test',$2) RETURNING file_id`, uuid.NewString(), administrator)
 		caseInput := models.CaseInput{
@@ -614,7 +664,7 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		send(http.MethodGet, "/cases/mine", token, nil, 200)
 		casePath := "/cases/" + created.CaseID
 		caseInput.Title = "Edited admin hackathon"
-		send(http.MethodPut, casePath, adminToken(anotherAdmin), caseInput, 403)
+		send(http.MethodPut, casePath, adminToken(anotherAdmin), caseInput, 200)
 		send(http.MethodPut, casePath, token, caseInput, 200)
 		send(http.MethodPut, casePath+"/cover", token, map[string]string{"file_id": image}, 204)
 		send(http.MethodPost, casePath+"/stages", token, models.CaseStageInput{Title: "Checkpoint", Ordinal: 1}, 201)

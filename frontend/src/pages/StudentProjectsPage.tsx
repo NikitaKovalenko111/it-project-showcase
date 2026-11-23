@@ -1,4 +1,3 @@
-import { StudentProjectCover } from '../components/StudentProjectCover'
 import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
 import { getProjectCatalog, type ProjectCatalog } from '../api/studentProjectCatalog'
@@ -307,7 +306,7 @@ export const StudentProjectsPage: React.FC = () => {
               {catalogProjects.map((item) => (
                 <div key={item.id} className="student-project-card">
                   <div className="student-project-card__image-wrap">
-                    <StudentProjectCover project={item} viewer={currentUser} />
+                    {item.coverImage && <img src={item.coverImage} alt={item.title} />}
                     <span className="category-tag">{item.category}</span>
                     <button
                       onClick={(e) => handleLike(e, item.id)}

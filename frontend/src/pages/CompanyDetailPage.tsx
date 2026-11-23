@@ -464,9 +464,6 @@ export const CompanyDetailPage: React.FC = () => {
                   {filteredCases.map((c) => (
                     <div key={c.id} className="case-card">
                       <div className="case-card__top-accent" />
-                      {c.coverUrl && (
-                        <img className="case-card__cover" src={c.coverUrl} alt="" loading="lazy" />
-                      )}
                       <div className="card__body">
                         <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                           {c.direction && (

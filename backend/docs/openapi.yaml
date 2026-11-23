@@ -589,6 +589,7 @@ paths:
     put:
       tags: [Cases]
       operationId: updateCase
+      description: Управляющий представитель или admin редактирует кейс. Admin может редактировать чужой кейс. Статусы draft, revision, published. Изменение published создаёт revision. Автор и компания сохраняются.
       description: После выхода из draft критерии оценки менять нельзя.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CaseID'}]

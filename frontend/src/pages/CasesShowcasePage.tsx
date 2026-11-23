@@ -399,10 +399,6 @@ export const CasesShowcasePage: React.FC = () => {
                   }`}
                 />
 
-                {item.coverUrl && (
-                  <img className="case-card__cover" src={item.coverUrl} alt="" loading="lazy" />
-                )}
-
                 {currentUser?.role === 'student' && (
                   <button
                     className={`case-card__fav-btn ${isFav ? 'favorited' : ''}`}

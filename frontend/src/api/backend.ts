@@ -117,12 +117,7 @@ export function fromCase(d: any): CaseProject {
         : undefined,
     olympiadRules: kind === 'olympiad' ? d.evaluation_rules : undefined,
     coverFileId: d.cover_file_id || undefined,
-    coverUrl:
-      d.cover_file_id &&
-      d.visibility === 'public' &&
-      ['published', 'in_progress', 'completed'].includes(d.status)
-        ? `/api/v1/cases/${d.case_id}/cover`
-        : undefined,
+    coverUrl: d.cover_file_id ? `/api/v1/cases/${d.case_id}/cover` : undefined,
     specificationFile: specification
       ? {
           name: specification.original_name,

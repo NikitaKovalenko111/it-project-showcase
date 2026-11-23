@@ -244,12 +244,18 @@ func (r *Repository) Moderate(ctx context.Context, moderator, id, status, commen
 	}
 	defer tx.Rollback()
 	var old string
-	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 AND visibility='public' AND status<>'draft' FOR UPDATE`, id).Scan(&old)
+	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 AND (visibility='public' AND status<>'draft' OR showcase.is_active_admin($2)) FOR UPDATE`, id, moderator).Scan(&old)
 	if err != nil {
 		return nil, err
 	}
 	if old != "moderation" && status != "hidden" {
-		return nil, ErrTransition
+		var allowed bool
+		if err = tx.QueryRowContext(ctx, `SELECT showcase.is_active_admin($1)`, moderator).Scan(&allowed); err != nil {
+			return nil, err
+		}
+		if !allowed || status != "revision" {
+			return nil, ErrTransition
+		}
 	}
 	_, err = tx.ExecContext(ctx, `UPDATE student_projects SET status=$2,moderation_comment=NULLIF($3,''),published_at=CASE WHEN $2='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END WHERE project_id=$1`, id, status, comment)
 	if err == nil {

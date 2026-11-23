@@ -39,9 +39,9 @@ type statusRequest struct {
 
 func (h *Handler) StartApplications(mux *http.ServeMux) {
 	mux.HandleFunc("GET /", h.List)
-	mux.HandleFunc("POST /", h.Create)
+	mux.Handle("POST /", middleware.RequireAnyRole("student")(http.HandlerFunc(h.Create)))
 	mux.HandleFunc("GET /{application_id}", h.Get)
-	mux.HandleFunc("POST /{application_id}/consents", h.Consent)
+	mux.Handle("POST /{application_id}/consents", middleware.RequireAnyRole("student")(http.HandlerFunc(h.Consent)))
 	mux.HandleFunc("PATCH /{application_id}/status", h.SetStatus)
 	mux.HandleFunc("/", shared.NotFound)
 }

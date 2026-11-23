@@ -211,9 +211,6 @@ export const HomePage: React.FC = () => {
             {myCompanyCases.map((c) => (
               <div key={c.id} className="case-card">
                 <div className="case-card__top-accent" />
-                {c.coverUrl && (
-                  <img className="case-card__cover" src={c.coverUrl} alt="" loading="lazy" />
-                )}
                 <div className="card__body">
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                     {c.direction && <span className="badge badge-direction">{c.direction}</span>}
@@ -589,9 +586,6 @@ export const HomePage: React.FC = () => {
           {activeCases.map((c) => (
             <div key={c.id} className="case-card">
               <div className="case-card__top-accent" />
-              {c.coverUrl && (
-                <img className="case-card__cover" src={c.coverUrl} alt="" loading="lazy" />
-              )}
               <div className="card__body">
                 <div className="case-card__company">
                   <img src={c.companyLogo || '/demo/company.svg'} alt="" />
