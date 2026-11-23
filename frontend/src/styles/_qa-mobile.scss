@@ -21,7 +21,6 @@
 .modal-dialog__body > label { display: flex; flex-direction: column; gap: 8px; }
 .modal-dialog__body :is(label, .form-group) :is(input, select, textarea) { margin: 0; }
 .modal-dialog__body { gap: 18px; }
-.modal-dialog__body label:has(> input[type=checkbox]), .modal-dialog__body label:has(> input[type=radio]) { flex-direction: row; align-items: flex-start; }
 textarea.textarea, .modal-dialog__body textarea:not(.w-md-editor-text-input) { min-height: 128px; line-height: 24px; padding: 12px; resize: vertical; }
 textarea { box-sizing: border-box; }
 .modal-dialog[aria-labelledby="application-title"] .form-group { margin: 0; }

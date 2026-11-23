@@ -632,24 +632,6 @@ textarea:disabled {
   color: #5b6977;
   font-size: 13px;
 }
-.modal-dialog .modal-dialog__body .opportunity-resume-option {
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-  gap: 8px;
-  line-height: 1.5;
-  cursor: pointer;
-}
-.opportunity-resume-option input[type='checkbox'] {
-  flex: none;
-  width: 17px;
-  height: 17px;
-  margin: 2px 0 0;
-}
-.opportunity-resume-option span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
 .catalog-search {
   border-color: var(--ui-line);
   border-radius: 12px;
@@ -1194,19 +1176,8 @@ textarea:disabled {
   border-radius: 10px;
 }
 .auth-consent label {
-  display: flex;
-  align-items: start;
-  gap: 10px;
   font-size: 13px;
-  line-height: 1.6;
   color: #566675;
-  cursor: pointer;
-}
-.auth-consent input {
-  flex: none;
-  margin-top: 4px;
-  width: 17px;
-  height: 17px;
 }
 .auth-demo {
   border-top: 1px solid var(--ui-line);

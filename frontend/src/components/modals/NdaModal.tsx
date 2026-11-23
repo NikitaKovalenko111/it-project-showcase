@@ -138,10 +138,6 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
           <div style={{ marginTop: '16px' }}>
             <label
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: 600,
                 color: 'var(--ui-ink)',

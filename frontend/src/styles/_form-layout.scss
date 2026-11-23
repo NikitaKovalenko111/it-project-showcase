@@ -1,0 +1,91 @@
+.form-action-row {
+  --form-control-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 12px;
+  min-width: 0;
+}
+
+.form-action-row__field {
+  display: grid;
+  flex: 1 1 18rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.form-action-row__field .select,
+.form-action-row > .btn {
+  min-height: var(--form-control-height);
+  max-width: 100%;
+}
+
+.form-action-row > .btn {
+  flex: none;
+  margin: 0;
+  white-space: normal;
+}
+
+.visibility-settings > .form-action-row__field {
+  flex-grow: 0;
+}
+
+.visibility-settings > :is(span, p) {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.teams-panel .team-management > :is(.feature-toolbar, p, label, h4, .pagination) {
+  margin: 0;
+}
+
+.team-management .request-list:empty {
+  display: none;
+}
+
+summary.select {
+  align-content: center;
+  cursor: pointer;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+:is(.modal-dialog, .auth-consent, .resume-upload, .catalog-multiselect__options)
+  label:has(> input:is([type='checkbox'], [type='radio'])) {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+:is(.modal-dialog, .auth-consent, .resume-upload, .catalog-multiselect__options)
+  label
+  > input:is([type='checkbox'], [type='radio']) {
+  align-self: flex-start;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  min-height: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--ui-brand-text);
+}
+
+.opportunity-apply-dialog .modal-dialog__body > label {
+  margin: 0;
+}
+
+@media (max-width: 360px) {
+  .analytics-filters .select {
+    padding-inline: 10px 28px;
+    background-position: right 8px center;
+  }
+}

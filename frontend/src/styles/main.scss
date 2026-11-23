@@ -53,7 +53,6 @@ input, button, select, textarea {
 // Sprint 5: spacing and alignment within the approved design.
 .comments-panel { padding: 24px; }
 .team-project { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.team-form-row { align-items: end; }
 .team-management.modal-dialog { padding: 24px; max-height: 90vh; overflow-y: auto; }
 .teams-panel .team-card { padding-top: 20px; h3 { margin-bottom: 16px; } }
 .pagination { flex-wrap: wrap; gap: 12px 28px; }
@@ -79,7 +78,7 @@ input, button, select, textarea {
 .workspace-files__download { font-weight: 600; overflow-wrap: anywhere; }
 
 .analytics-filter-panel { padding: 16px 18px; margin-bottom: 22px; }
-.analytics-filter-panel .analytics-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); margin: 12px 0 0; padding: 0; }
+.analytics-filter-panel .analytics-filters { margin: 12px 0 0; padding: 0; }
 .analytics-filter-panel .feature-toolbar { justify-content: space-between; }
 .analytics-filter-panel h2 { font-size: 16px; }
 .analytics-report-header, .report-section .feature-toolbar { flex-wrap: wrap; gap: 12px; }
@@ -130,7 +129,6 @@ input, button, select, textarea {
 .publication-dialog fieldset p { margin: 0; }
 .publication-upload { padding: 16px; border: 1px dashed var(--ui-control-line); border-radius: 10px; background: var(--ui-brand-surface); }
 .publication-upload input { width: 100%; min-width: 0; box-sizing: border-box; }
-.publication-dialog label:has(> input[type=checkbox]) { flex-direction: row; align-items: center; }
 @media(max-width:600px) { .application-links { grid-template-columns: 1fr; } }
 
 .password-field { position: relative; width: 100%; min-width: 0; }
@@ -159,7 +157,6 @@ input, button, select, textarea {
 .feedback-attachment small { display: block; }
 .feedback-attachment pre { max-height: 180px; overflow: auto; white-space: pre-wrap; }
 
-.resume-upload .resume-visibility { display: flex; align-items: center; gap: 8px; }
 .opportunity-filters { display: flex; align-items: end; gap: 16px; flex-wrap: wrap; }
 .opportunity-filters .catalog-search { flex: 1 1 260px; margin: 0; }
 .opportunity-detail { margin-top: 18px; display: grid; gap: 16px; }
@@ -436,13 +433,7 @@ input, button, select, textarea {
 .student-project-filters .catalog-sort { flex: 1 1 240px; }
 .student-project-filters .catalog-sort .uust-select { flex: 1; }
 
-.team-management .team-form-row { align-items: end; }
-.team-management .team-form-row > .btn { min-height: 42px; }
-.team-management h4 { margin-bottom: 10px; }
-.team-project-picker { display: grid; gap: 6px; min-width: 0; }
 .team-project-picker details { position: relative; }
-.team-project-picker summary,
-.publication-competencies > summary { cursor: pointer; line-height: 1.5; overflow-wrap: anywhere; }
 .team-project-options {
   position: absolute;
   z-index: 2;
@@ -468,7 +459,6 @@ input, button, select, textarea {
   overflow: auto;
   padding: 12px 6px;
 }
-.publication-competencies__options input[type='checkbox'] { flex: none; }
 .publication-confirmation { width: min(440px, calc(100vw - 24px)); }
 .publication-confirmation h3 { margin: 0 0 8px; }
 .publication-confirmation p { margin: 0; }
@@ -497,3 +487,4 @@ form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']):focus
 
 @import 'visual-system';
 @import 'interaction-states';
+@import 'form-layout';

@@ -225,15 +225,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
             <div className="form-group">
               <label>Формат участия в проекте:</label>
               <div className="participation-options">
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ fontWeight: 500 }}>
                   <input
                     type="radio"
                     name="applicantType"
@@ -246,15 +238,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                   />
                   Индивидуально (Студент: {currentUser?.fullName})
                 </label>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ fontWeight: 500 }}>
                   <input
                     type="radio"
                     name="applicantType"
@@ -389,10 +373,6 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                   </p>
                   <label
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
                       fontSize: '12px',
                       fontWeight: 600,
                       color: 'var(--ui-ink)',

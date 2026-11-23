@@ -638,7 +638,7 @@ select option {
   font-weight: 400;
   line-height: 1.5;
 }
-.opportunity-apply-dialog form label {
+.opportunity-apply-dialog form label:not(:has(> input[type='checkbox'])) {
   display: grid;
   gap: 6px;
   font-size: 14px;
@@ -1193,8 +1193,6 @@ select option {
 .team-management > .feature-toolbar .close-btn { position:static; display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; padding:0; margin-left:auto; border:0; background:transparent; color:var(--ui-muted); }
 .team-management > p { margin:0 0 18px; }
 .attached-tabs > .uust-box::before { left:0; right:0; width:auto; }
-.visibility-settings { align-items:center; gap:12px; }
-.visibility-settings > select, .visibility-settings > .btn { height:40px; min-height:40px; box-sizing:border-box; }
 .profile-toolbar:empty { display:none; }
 .evaluation-body { padding-top:18px !important; }
 .evaluation-body > :first-child { margin-top:0; }
@@ -1206,16 +1204,13 @@ select option {
 .execution-comments > .comment-compose { margin-bottom:22px; }
 .execution-comments .comment-item { padding:16px 0; }
 .execution-comments .comment-item > p { margin:8px 0 0 48px; }
-@media(max-width:600px) { .visibility-settings { flex-wrap:wrap; } .execution-comments > .comments-heading { flex-wrap:wrap; } }
+@media(max-width:600px) { .execution-comments > .comments-heading { flex-wrap:wrap; } }
 
 .attached-tabs > .uust-box::before { clip-path:none; max-width:none; }
 .student-invite-dialog .modal-dialog__body { display:flex; flex-direction:column; gap:18px; }
 .student-invite-dialog .modal-dialog__body .form-group { margin:0; }
 
-.visibility-settings > label { display:inline-flex; align-items:center; gap:10px; margin:0; }
-.visibility-settings > label > select { height:40px; min-height:40px; box-sizing:border-box; }
-
-.teams-panel .modal-dialog.team-management { display:block; padding:20px; background:#fff; }
+.teams-panel .modal-dialog.team-management { padding:20px; background:var(--ui-paper); }
 .teams-panel .team-management > .feature-toolbar { width:100%; box-sizing:border-box; flex-wrap:nowrap; margin-bottom:8px; }
 .teams-panel .team-management > .feature-toolbar h3 { min-width:0; margin:0; overflow-wrap:anywhere; }
 .teams-panel .team-management > .feature-toolbar .close-btn { flex:0 0 36px; width:36px; height:36px; min-width:36px; min-height:36px; border-radius:6px; }
@@ -1333,12 +1328,11 @@ select option {
 .catalog-multiselect .catalog-multiselect__search { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
 .catalog-multiselect__search input { min-width: 0; }
 .catalog-multiselect__options { max-height: 210px; overflow-y: auto; display: grid; gap: 2px; }
-.catalog-multiselect .catalog-multiselect__options label { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0; cursor: pointer; border-radius: 5px; }
+.catalog-multiselect .catalog-multiselect__options label { padding: 8px; margin: 0; border-radius: 5px; }
 .catalog-multiselect__options label:hover { background: var(--ui-brand-surface); }
-.catalog-multiselect .catalog-multiselect__options input[type=checkbox], .modal-dialog label.nda-checkbox-field input[type=checkbox] { width: 17px; height: 17px; min-height: 0; flex: 0 0 17px; margin: 0; padding: 0; accent-color: var(--ui-brand-text); }
 .catalog-multiselect__selected { display: flex; gap: 6px; flex-wrap: wrap; }
 .catalog-multiselect__selected button { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--ui-control-line); background: var(--ui-brand-surface); color: var(--ui-brand-text); padding: 5px 8px; border-radius: 6px; cursor: pointer; }
-.modal-dialog label.nda-checkbox-field { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; margin: 0; padding: 12px 0; width: fit-content; }
+.modal-dialog label.nda-checkbox-field { margin: 0; padding: 12px 0; width: fit-content; }
 .role-capability-note, .invitation-context-note { color: var(--ui-muted); line-height: 1.6; padding: 12px 16px; background: var(--ui-brand-surface); border-radius: 8px; }
 @media (max-width: 700px) {
   .workspace-filter-panel { grid-template-columns: minmax(0,1fr); }
@@ -1346,5 +1340,3 @@ select option {
   .joined-filter-panel > .uust-tabs-row { padding-inline: 10px; }
 }
 @media (max-width: 440px) { .student-directory-grid { grid-template-columns: minmax(0,1fr); } }
-
-.catalog-multiselect .catalog-multiselect__search, .catalog-multiselect .catalog-multiselect__options label, .modal-dialog label.nda-checkbox-field { flex-direction: row; }
