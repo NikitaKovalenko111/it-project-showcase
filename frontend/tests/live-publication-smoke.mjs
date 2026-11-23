@@ -163,7 +163,15 @@ try {
   assert.equal(await run(() => document.activeElement.getAttribute('aria-invalid')), 'true')
   await until(
     () =>
-      run(() => getComputedStyle(document.activeElement).backgroundColor === 'rgb(252, 245, 245)'),
+      run(() => {
+        const swatch = document.createElement('span')
+        swatch.style.backgroundColor = getComputedStyle(document.documentElement)
+          .getPropertyValue('--ui-danger-surface')
+          .trim()
+        return (
+          getComputedStyle(document.activeElement).backgroundColor === swatch.style.backgroundColor
+        )
+      }),
     'Invalid input color did not update',
   )
   assert.equal(

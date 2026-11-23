@@ -124,7 +124,7 @@ export const CaseDetailPage: React.FC = () => {
 
   if (!activeCase || activeCase.id !== id) {
     return (
-      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ui-muted)' }}>
         Загрузка кейса...
       </div>
     )
@@ -238,8 +238,8 @@ export const CaseDetailPage: React.FC = () => {
             >
               <Bookmark
                 size={18}
-                fill={isFavorite ? '#d94326' : 'none'}
-                color={isFavorite ? '#d94326' : '#64748b'}
+                fill={isFavorite ? 'var(--ui-danger-accent)' : 'none'}
+                color={isFavorite ? 'var(--ui-danger-accent)' : 'var(--ui-muted)'}
               />
             </button>
           )}
@@ -320,7 +320,7 @@ export const CaseDetailPage: React.FC = () => {
                   className="case-company-logo"
                 />
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1b5e91' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ui-brand-text)' }}>
                     {activeCase.companyName}
                   </div>
                   <div
@@ -345,7 +345,7 @@ export const CaseDetailPage: React.FC = () => {
                 style={{
                   fontSize: '22px',
                   fontWeight: 800,
-                  color: '#0f2b48',
+                  color: 'var(--ui-ink)',
                   margin: '0 0 14px',
                   lineHeight: 1.3,
                 }}
@@ -356,7 +356,7 @@ export const CaseDetailPage: React.FC = () => {
               <p
                 style={{
                   fontSize: '14px',
-                  color: '#334155',
+                  color: 'var(--ui-body)',
                   lineHeight: 1.6,
                   marginBottom: '20px',
                 }}
@@ -367,7 +367,7 @@ export const CaseDetailPage: React.FC = () => {
               {/* Full Technical Specification Section */}
               <div
                 style={{
-                  borderTop: '1px solid #e2e8f0',
+                  borderTop: '1px solid var(--ui-line)',
                   paddingTop: '20px',
                   marginTop: '10px',
                 }}
@@ -380,14 +380,16 @@ export const CaseDetailPage: React.FC = () => {
                     marginBottom: '14px',
                   }}
                 >
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f2b48' }}>
+                  <h3
+                    style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--ui-ink)' }}
+                  >
                     Полное техническое задание (ТЗ)
                   </h3>
                   {activeCase.isConfidential && isNDASigned && (
                     <span
                       style={{
                         fontSize: '11px',
-                        color: '#16805b',
+                        color: 'var(--ui-success)',
                         fontWeight: 600,
                         display: 'flex',
                         alignItems: 'center',
@@ -402,22 +404,26 @@ export const CaseDetailPage: React.FC = () => {
                 {!isNDASigned ? (
                   <div
                     style={{
-                      background: '#fffbeb',
-                      border: '1px solid #fcd34d',
+                      background: 'var(--ui-warning-surface)',
+                      border: '1px solid var(--ui-warning-accent)',
                       borderRadius: '8px',
                       padding: '24px',
                       textAlign: 'center',
                     }}
                   >
-                    <FileLock2 size={40} color="#e11d48" style={{ margin: '0 auto 12px' }} />
-                    <h4 style={{ margin: '0 0 6px', color: '#9f1239' }}>
+                    <FileLock2
+                      size={40}
+                      color="var(--ui-danger-accent)"
+                      style={{ margin: '0 auto 12px' }}
+                    />
+                    <h4 style={{ margin: '0 0 6px', color: 'var(--ui-danger)' }}>
                       Доступ ограничен: требуется подписать соглашение о неразглашении (NDA)
                     </h4>
                     <p
                       style={{
                         margin: '0 0 16px',
                         fontSize: '12px',
-                        color: '#881337',
+                        color: 'var(--ui-danger)',
                         maxWidth: '500px',
                         marginInline: 'auto',
                       }}
@@ -439,13 +445,13 @@ export const CaseDetailPage: React.FC = () => {
                   <div
                     data-color-mode="light"
                     style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
+                      background: 'var(--ui-panel)',
+                      border: '1px solid var(--ui-line)',
                       borderRadius: '8px',
                       padding: '20px',
                       fontSize: '13px',
                       lineHeight: '1.7',
-                      color: '#1e293b',
+                      color: 'var(--ui-ink)',
                     }}
                   >
                     <MDEditor.Markdown
@@ -468,10 +474,10 @@ export const CaseDetailPage: React.FC = () => {
               >
                 <div
                   style={{
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '16px',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ui-line)',
                   }}
                 >
                   <h4
@@ -479,22 +485,29 @@ export const CaseDetailPage: React.FC = () => {
                       fontSize: '13px',
                       fontWeight: 700,
                       margin: '0 0 8px',
-                      color: '#0f2b48',
+                      color: 'var(--ui-ink)',
                     }}
                   >
                     <ClipboardList size={14} aria-hidden="true" /> Требования к результату:
                   </h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '12px',
+                      color: 'var(--ui-body)',
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {activeCase.resultRequirements}
                   </p>
                 </div>
 
                 <div
                   style={{
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '16px',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ui-line)',
                   }}
                 >
                   <h4
@@ -502,12 +515,19 @@ export const CaseDetailPage: React.FC = () => {
                       fontSize: '13px',
                       fontWeight: 700,
                       margin: '0 0 8px',
-                      color: '#0f2b48',
+                      color: 'var(--ui-ink)',
                     }}
                   >
                     <Scale size={14} aria-hidden="true" /> Порядок оценки:
                   </h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '12px',
+                      color: 'var(--ui-body)',
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {activeCase.evaluationOrder}
                   </p>
                 </div>
@@ -547,7 +567,7 @@ export const CaseDetailPage: React.FC = () => {
                 style={{ padding: 0 }}
               >
                 {applicationsList.length === 0 ? (
-                  <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+                  <div style={{ padding: '32px', textAlign: 'center', color: 'var(--ui-icon)' }}>
                     Заявок на данный кейс пока не поступало
                   </div>
                 ) : (
@@ -556,7 +576,7 @@ export const CaseDetailPage: React.FC = () => {
                       key={app.id}
                       style={{
                         padding: '18px 20px',
-                        borderBottom: '1px solid #f1f5f9',
+                        borderBottom: '1px solid var(--ui-soft)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '10px',
@@ -577,10 +597,10 @@ export const CaseDetailPage: React.FC = () => {
                             className="candidate-avatar"
                           />
                           <div>
-                            <strong style={{ fontSize: '14px', color: '#1e293b' }}>
+                            <strong style={{ fontSize: '14px', color: 'var(--ui-ink)' }}>
                               {app.studentName}
                             </strong>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                               {app.applicantType === 'team'
                                 ? `Команда: ${app.teamName}`
                                 : 'Индивидуальная заявка'}{' '}
@@ -612,8 +632,8 @@ export const CaseDetailPage: React.FC = () => {
                         style={{
                           margin: '4px 0',
                           fontSize: '12px',
-                          color: '#334155',
-                          background: '#f8fafc',
+                          color: 'var(--ui-body)',
+                          background: 'var(--ui-panel)',
                           padding: '10px 12px',
                           borderRadius: '6px',
                         }}
@@ -631,7 +651,7 @@ export const CaseDetailPage: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
-                              color: '#1b5e91',
+                              color: 'var(--ui-brand-text)',
                               fontWeight: 600,
                             }}
                           >
@@ -647,7 +667,7 @@ export const CaseDetailPage: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
-                              color: '#1b5e91',
+                              color: 'var(--ui-brand-text)',
                               fontWeight: 600,
                             }}
                           >
@@ -693,7 +713,7 @@ export const CaseDetailPage: React.FC = () => {
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card__header">
               <h3 style={{ margin: 0, fontSize: '15px' }}>Вознаграждение и фонд</h3>
-              <Award size={18} color="#d97706" />
+              <Award size={18} color="var(--ui-warning)" />
             </div>
             <div className="card__body">
               {activeCase.rewardType === 'contest' && (
@@ -702,7 +722,7 @@ export const CaseDetailPage: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       textTransform: 'uppercase',
-                      color: '#64748b',
+                      color: 'var(--ui-muted)',
                       fontWeight: 700,
                     }}
                   >
@@ -712,7 +732,7 @@ export const CaseDetailPage: React.FC = () => {
                     style={{
                       fontSize: '26px',
                       fontWeight: 800,
-                      color: '#0f2b48',
+                      color: 'var(--ui-ink)',
                       margin: '4px 0 12px',
                     }}
                   >
@@ -725,8 +745,8 @@ export const CaseDetailPage: React.FC = () => {
                         <div
                           key={pp.place}
                           style={{
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--ui-panel)',
+                            border: '1px solid var(--ui-line)',
                             borderRadius: '8px',
                             padding: '10px 12px',
                           }}
@@ -738,22 +758,24 @@ export const CaseDetailPage: React.FC = () => {
                               gap: '6px',
                               fontWeight: 700,
                               fontSize: '12px',
-                              color: '#0f2b48',
+                              color: 'var(--ui-ink)',
                             }}
                           >
-                            <Trophy size={14} color="#d97706" /> {pp.place} место
+                            <Trophy size={14} color="var(--ui-warning)" /> {pp.place} место
                           </div>
                           <div
                             style={{
                               fontSize: '12px',
                               fontWeight: 600,
-                              color: '#16805b',
+                              color: 'var(--ui-success)',
                               marginTop: '2px',
                             }}
                           >
                             {pp.reward}
                           </div>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          <div
+                            style={{ fontSize: '11px', color: 'var(--ui-muted)', marginTop: '2px' }}
+                          >
                             Критерий:{' '}
                             {pp.criteria.length > 120 ? (
                               <details>
@@ -777,7 +799,7 @@ export const CaseDetailPage: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       textTransform: 'uppercase',
-                      color: '#64748b',
+                      color: 'var(--ui-muted)',
                       fontWeight: 700,
                     }}
                   >
@@ -787,13 +809,13 @@ export const CaseDetailPage: React.FC = () => {
                     style={{
                       fontSize: '26px',
                       fontWeight: 800,
-                      color: '#16805b',
+                      color: 'var(--ui-success)',
                       margin: '4px 0 8px',
                     }}
                   >
                     {activeCase.rewardAmount?.toLocaleString('ru-RU')} ₽
                   </div>
-                  <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: 'var(--ui-body)', margin: 0 }}>
                     {activeCase.rewardDescription}
                   </p>
                 </div>
@@ -810,7 +832,7 @@ export const CaseDetailPage: React.FC = () => {
                   <span className="badge badge-reward-educational" style={{ marginBottom: '8px' }}>
                     Образовательный проект
                   </span>
-                  <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: 'var(--ui-body)', margin: 0 }}>
                     {activeCase.rewardDescription ||
                       'Сертификат от компании, рекомендательное письмо и подтверждение в портфолио.'}
                   </p>
@@ -822,9 +844,9 @@ export const CaseDetailPage: React.FC = () => {
                   style={{
                     marginTop: '14px',
                     paddingTop: '12px',
-                    borderTop: '1px solid #f1f5f9',
+                    borderTop: '1px solid var(--ui-soft)',
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: 'var(--ui-muted)',
                   }}
                 >
                   Статус выплаты:{' '}
@@ -913,7 +935,7 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               )}
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ui-muted)', display: 'block' }}>
                   Формат работы:
                 </span>
                 <strong style={{ fontSize: '13px', textTransform: 'capitalize' }}>
@@ -922,23 +944,23 @@ export const CaseDetailPage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ui-muted)', display: 'block' }}>
                   Длительность:
                 </span>
                 <strong style={{ fontSize: '13px' }}>{activeCase.duration || 'Не указана'}</strong>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ui-muted)', display: 'block' }}>
                   Крайний срок (Дедлайн):
                 </span>
-                <strong style={{ fontSize: '13px', color: '#b45309' }}>
+                <strong style={{ fontSize: '13px', color: 'var(--ui-warning)' }}>
                   {formatDate(activeCase.deadlineDate)}
                 </strong>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ui-muted)', display: 'block' }}>
                   Размер команды:
                 </span>
                 <strong style={{ fontSize: '13px' }}>
@@ -952,7 +974,7 @@ export const CaseDetailPage: React.FC = () => {
                 <span
                   style={{
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: 'var(--ui-muted)',
                     display: 'block',
                     marginBottom: '6px',
                   }}
@@ -965,12 +987,12 @@ export const CaseDetailPage: React.FC = () => {
                     <span
                       key={comp}
                       style={{
-                        background: '#f1f5f9',
+                        background: 'var(--ui-soft)',
                         padding: '3px 8px',
                         borderRadius: '4px',
                         fontSize: '11px',
                         fontWeight: 600,
-                        color: '#334155',
+                        color: 'var(--ui-body)',
                       }}
                     >
                       {comp}

@@ -1,0 +1,172 @@
+// Shared interaction states keep the hit area and neighboring layout steady.
+:where(
+  .uust-tab,
+  .tab-btn,
+  .uust-pill,
+  .quick-tag,
+  .topbar-isu__hamburger,
+  .topbar-isu__icon-btn,
+  .profile-status-pill,
+  .profile-status-option,
+  .logout-btn-isu,
+  .sidebar__close,
+  .case-card__fav-btn,
+  .team-member,
+  .comment-like,
+  .catalog-multiselect__options label,
+  .select-menu button,
+  .file-remove,
+  .icon-delete,
+  .attachment-preview__button,
+  .achievement-preview,
+  .team-project-picker summary,
+  .publication-competencies > summary
+) {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.card__header,
+.card__footer,
+.modal-dialog__header {
+  gap: 12px;
+}
+
+.card__header > :is(h2, h3, h4),
+.modal-dialog__header > :is(h2, h3, h4) {
+  margin: 0;
+}
+
+.card__header > *,
+.modal-dialog__header > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.modal-dialog__header .close-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.notification-item,
+.notifications-popover__item {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:is(.action-row, .detail-actions, .page-actions) > .btn {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.feature-toolbar > :is(input, select, label) {
+  max-width: 100%;
+}
+
+.student-project-meta,
+.profile-case-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.student-project-meta {
+  margin-bottom: 12px;
+}
+
+.comments-panel .comment-item .comment-like {
+  padding-inline: 8px;
+  border-radius: 6px;
+}
+
+:is(.section-tabs, .tabs-bar) .tab-counter {
+  color: var(--ui-brand-text);
+}
+
+@media (hover: hover) {
+  .uust-tabs-row .uust-tab:not(.active):not(:disabled):hover,
+  .section-tabs .tab-btn:not(.active):not(:disabled):hover,
+  .tabs-bar .tab-btn:not(.active):not(:disabled):hover,
+  .quick-tag:not(.active):not(:disabled):hover,
+  .quick-tag-bar .quick-chip:not(.active):not(:disabled):hover {
+    background: var(--ui-brand-surface);
+    color: var(--ui-brand-text);
+    border-color: var(--ui-brand-line);
+  }
+
+  .uust-tabs-row .uust-tab.active:not(:disabled):hover,
+  .section-tabs .tab-btn.active:not(:disabled):hover,
+  .tabs-bar .tab-btn.active:not(:disabled):hover {
+    background: var(--ui-navy-raised);
+    color: var(--ui-on-dark);
+    border-color: var(--ui-navy-raised);
+  }
+
+  .sidebar__link-isu.active:hover {
+    background: var(--ui-brand-hover) !important;
+  }
+
+  .case-card__fav-btn:not(:disabled):hover,
+  .modal-dialog__header .close-btn:not(:disabled):hover,
+  .sidebar__close:hover {
+    background-color: var(--ui-brand-selected);
+    border-color: var(--ui-brand-line);
+    color: var(--ui-brand-text);
+    box-shadow: none;
+  }
+
+  .case-card__fav-btn.favorited:not(:disabled):hover {
+    background-color: var(--ui-danger-surface);
+    border-color: var(--ui-danger-line);
+    color: var(--ui-danger);
+  }
+
+  .comments-panel .comment-item .comment-like:not(:disabled):hover {
+    background-color: var(--ui-brand-surface);
+    color: var(--ui-brand-text);
+  }
+
+  .comments-panel .comment-item .comment-like[aria-pressed='true']:not(:disabled):hover,
+  .file-remove:not(:disabled):hover {
+    background-color: var(--ui-danger-surface);
+    color: var(--ui-danger);
+  }
+
+  .attachment-preview__button:hover,
+  .achievement-preview:hover {
+    border-color: var(--ui-brand-muted);
+    box-shadow: 0 0 0 2px var(--ui-brand-line);
+  }
+
+  .team-project-picker summary:hover,
+  .publication-competencies > summary:hover {
+    background-color: var(--ui-brand-surface);
+    border-color: var(--ui-brand-line);
+  }
+
+  .data-table tbody tr:hover td {
+    background-color: var(--ui-brand-surface);
+  }
+
+  .main-content :is(a[href]:not([class]), .comment-author):hover,
+  .text-toggle:hover,
+  .entity-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.17em;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-dialog__header .close-btn {
+    width: 44px;
+    height: 44px;
+  }
+}

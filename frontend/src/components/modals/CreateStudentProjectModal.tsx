@@ -124,10 +124,10 @@ export const CreateStudentProjectModal: React.FC<CreateStudentProjectModalProps>
       >
         <div className="modal-dialog__header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FolderGit2 size={22} color="#1b5e91" />
+            <FolderGit2 size={22} color="var(--ui-brand-text)" />
             <div>
               <h3 id="student-project-dialog-title">Публикация студенческого проекта</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
+              <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--ui-muted)' }}>
                 Проект появится в открытой витрине после одобрения куратором
               </p>
             </div>

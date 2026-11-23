@@ -83,7 +83,7 @@ export const CompanyDetailPage: React.FC = () => {
   }
   if (!activeCompany || activeCompany.id !== id) {
     return (
-      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ui-muted)' }}>
         Загрузка карточки компании...
       </div>
     )
@@ -181,9 +181,9 @@ export const CompanyDetailPage: React.FC = () => {
             <h1>{activeCompany.name}</h1>
 
             <div
+              className="company-hero__meta"
               style={{
                 fontSize: '13px',
-                color: '#b9d4f6',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -197,15 +197,7 @@ export const CompanyDetailPage: React.FC = () => {
           </div>
 
           {isCompanyRepresentative && (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => setIsEditing(!isEditing)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-              }}
-            >
+            <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
               <Edit3 size={14} /> {isEditing ? 'Отмена' : 'Редактировать описание'}
             </button>
           )}
@@ -213,12 +205,12 @@ export const CompanyDetailPage: React.FC = () => {
 
         <div className="company-hero__desc">
           {isEditing ? (
-            <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '16px', borderRadius: '8px' }}>
+            <div className="company-description-edit">
               <textarea
                 className="textarea"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                style={{ minHeight: '90px', background: '#ffffff', color: '#1a2233' }}
+                style={{ minHeight: '90px', background: '#ffffff', color: 'var(--ui-ink)' }}
               />
               <button
                 className="btn btn-primary btn-sm mt-2"
@@ -362,14 +354,14 @@ export const CompanyDetailPage: React.FC = () => {
             style={{
               fontSize: '15px',
               fontWeight: 700,
-              color: '#0c1938',
+              color: 'var(--ui-ink)',
               margin: '0 0 12px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
             }}
           >
-            <Code2 size={16} color="#3a75b4" /> Технологический стек и специализация:
+            <Code2 size={16} color="var(--ui-brand)" /> Технологический стек и специализация:
           </h3>
           <div className="tech-cloud">
             {activeCompany.techStack.map((tech) => (
@@ -457,7 +449,7 @@ export const CompanyDetailPage: React.FC = () => {
               </div>
 
               {filteredCases.length === 0 ? (
-                <div style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ padding: '36px', textAlign: 'center', color: 'var(--ui-muted)' }}>
                   На данный момент у компании нет открытых кейсов.
                 </div>
               ) : (
@@ -503,8 +495,8 @@ export const CompanyDetailPage: React.FC = () => {
                               key={tech}
                               style={{
                                 fontSize: '11px',
-                                background: '#f1f5f9',
-                                color: '#475569',
+                                background: 'var(--ui-soft)',
+                                color: 'var(--ui-body)',
                                 padding: '2px 7px',
                                 borderRadius: '4px',
                                 fontFamily: 'monospace',
@@ -517,7 +509,7 @@ export const CompanyDetailPage: React.FC = () => {
                       </div>
 
                       <div className="case-card__footer-bar">
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                           Заявок: <strong>{c.applicationsCount}</strong>
                         </span>
                         <Link to={`/cases/${c.id}`} className="btn btn-primary btn-sm">
@@ -546,7 +538,12 @@ export const CompanyDetailPage: React.FC = () => {
           {activeTab === 'mentors' && (
             <div>
               <h3
-                style={{ fontSize: '16px', fontWeight: 700, color: '#0c1938', margin: '0 0 14px' }}
+                style={{
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: 'var(--ui-ink)',
+                  margin: '0 0 14px',
+                }}
               >
                 Наставники и эксперты от предприятия
               </h3>
@@ -562,30 +559,26 @@ export const CompanyDetailPage: React.FC = () => {
                   style={{
                     display: 'flex',
                     gap: '14px',
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '16px',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ui-line)',
                   }}
                 >
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                    alt=""
-                    style={{
-                      width: '50px',
-                      height: '50px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
+                  <IdentityImage
+                    name={activeCompany.contactPerson || activeCompany.name}
+                    className="company-contact-avatar"
                   />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#0c1938' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ui-ink)' }}>
                       {activeCompany.contactPerson}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#3a75b4', fontWeight: 600 }}>
+                    <div
+                      style={{ fontSize: '12px', color: 'var(--ui-brand-text)', fontWeight: 600 }}
+                    >
                       Ведущий архитектор R&D
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)', marginTop: '4px' }}>
                       Экспертиза: SCADA, Python, Архитектура распределенных систем
                     </div>
                   </div>
@@ -595,30 +588,26 @@ export const CompanyDetailPage: React.FC = () => {
                   style={{
                     display: 'flex',
                     gap: '14px',
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '16px',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ui-line)',
                   }}
                 >
-                  <img
-                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
-                    alt=""
-                    style={{
-                      width: '50px',
-                      height: '50px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
+                  <IdentityImage
+                    name="Ахметова Лилия Фаритовна"
+                    className="company-contact-avatar"
                   />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#0c1938' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ui-ink)' }}>
                       Ахметова Лилия Фаритовна
                     </div>
-                    <div style={{ fontSize: '12px', color: '#3a75b4', fontWeight: 600 }}>
+                    <div
+                      style={{ fontSize: '12px', color: 'var(--ui-brand-text)', fontWeight: 600 }}
+                    >
                       Team Lead AI & Data Engineering
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)', marginTop: '4px' }}>
                       Экспертиза: Компьютерное зрение, PyTorch, MLOps, выпускница
                     </div>
                   </div>

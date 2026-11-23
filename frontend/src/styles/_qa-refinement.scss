@@ -13,20 +13,14 @@
   box-shadow: none;
 }
 .btn-primary {
-  background: #315e94;
-  border: 1px solid #315e94;
-}
-.btn-primary:hover {
-  background: #274f80;
+  background: var(--ui-brand-text);
+  border: 1px solid var(--ui-brand-text);
 }
 .btn-danger {
-  background: #fff1f0;
-  border: 1px solid #efb7b1;
-  color: #ba3830;
+  background: var(--ui-danger-surface);
+  border: 1px solid var(--ui-danger-line);
+  color: var(--ui-danger-accent);
   box-shadow: none;
-}
-.btn-danger:hover {
-  background: #ffe2df;
 }
 .case-card:hover,
 .company-card:hover,
@@ -186,7 +180,7 @@
   display: none;
 }
 :is(.input, .select, .textarea, select, input, textarea):focus-visible {
-  outline: 2px solid #7293bd;
+  outline: 2px solid var(--ui-muted);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -201,7 +195,7 @@ select option {
     14px system-ui,
     sans-serif;
   background: #fff;
-  color: #24354a;
+  color: var(--ui-ink);
 }
 :is(.registration-form, .profile-edit-form, .publication-dialog) .form-group {
   margin-bottom: 0;
@@ -281,8 +275,8 @@ select option {
   grid-column: 1 / -1;
 }
 .catalog-search:focus-within {
-  border-color: #7293bd;
-  outline: 2px solid #7293bd;
+  border-color: var(--ui-muted);
+  outline: 2px solid var(--ui-muted);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -411,17 +405,20 @@ select option {
   max-width: 180px;
 }
 .attachment-preview__button {
-  display: block;
-  border: 1px solid #dce4ed;
+  display: grid;
+  place-items: center;
+  width: min(100%, 162px);
+  min-height: 102px;
+  border: 1px solid var(--ui-line);
   border-radius: 8px;
   padding: 0;
   overflow: hidden;
   cursor: zoom-in;
-  background: #f5f8fc;
+  background: var(--ui-brand-surface);
 }
 .attachment-preview img {
   display: block;
-  width: 160px;
+  width: 100%;
   height: 100px;
   object-fit: cover;
 }
@@ -515,10 +512,10 @@ select option {
   inset: auto;
   margin: 0;
   padding: 5px;
-  border: 1px solid #cad7e6;
+  border: 1px solid var(--ui-control-line);
   border-radius: 10px;
   background: #fff;
-  box-shadow: 0 8px 24px #14284124;
+  box-shadow: 0 8px 24px #182c4724;
   overflow: auto;
   box-sizing: border-box;
 }
@@ -531,7 +528,7 @@ select option {
   border: 0;
   padding: 9px 10px;
   border-radius: 6px;
-  color: #24354a;
+  color: var(--ui-ink);
   background: white;
   font-family: inherit;
   font-size: 14px;
@@ -539,14 +536,14 @@ select option {
   cursor: pointer;
 }
 .select-menu button[aria-selected='true'] {
-  background: #eaf1f9;
-  color: #214e83;
+  background: var(--ui-brand-surface);
+  color: var(--ui-brand-text);
   font-weight: 600;
 }
 .select-menu button:hover,
 .select-menu button:focus-visible {
-  background: #eef4fa;
-  outline: 2px solid #7b9ac0;
+  background: var(--ui-brand-surface);
+  outline: 2px solid var(--ui-icon);
   outline-offset: -2px;
 }
 .select-menu button:disabled {
@@ -909,7 +906,7 @@ select option {
 .uust-tabs-row .uust-tab:focus {
   box-shadow: none;
   filter: none;
-  background: #315b90;
+  background: var(--ui-brand-text);
 }
 .uust-tabs-row .uust-tab {
   box-shadow: none;
@@ -929,9 +926,9 @@ select option {
   align-items: center;
   gap: 4px;
   padding: 0 8px;
-  border: 1px solid #cbd8e8;
+  border: 1px solid var(--ui-control-line);
   border-radius: 8px;
-  background: #f3f7fc;
+  background: var(--ui-brand-surface);
   height: 36px;
 }
 .comments-heading .comment-sort-control select {
@@ -947,10 +944,10 @@ select option {
 }
 .comments-heading .comment-sort-control svg {
   flex: none;
-  color: #315b90;
+  color: var(--ui-brand-text);
 }
 .comments-heading .comment-sort-control:focus-within {
-  outline: 2px solid #7293bd;
+  outline: 2px solid var(--ui-muted);
   outline-offset: 2px;
 }
 .comments-heading .comment-sort-control select:focus-visible {
@@ -958,13 +955,13 @@ select option {
 }
 .team-card .expandable-text {
   margin: 8px 0 14px;
-  color: #64748b;
+  color: var(--ui-muted);
 }
 .team-card .expandable-text__body.is-collapsed {
   max-height: 6.6em;
 }
 .team-card .text-toggle {
-  color: #315b90;
+  color: var(--ui-brand-text);
   padding-top: 8px;
 }
 .uust-filter-row .uust-input,
@@ -1079,7 +1076,7 @@ select option {
   padding: 14px 16px;
 }
 .curator-deadline time {
-  color: #315b90;
+  color: var(--ui-brand-text);
   white-space: nowrap;
 }
 .curator-deadline strong {
@@ -1161,14 +1158,14 @@ select option {
 .expandable-text--card {
   min-width: 0;
   margin: 0 0 14px;
-  color: #52647c;
+  color: var(--ui-muted);
   font-size: 12.5px;
 }
 .expandable-text--card .expandable-text__body.is-collapsed {
   max-height: 6.6em;
 }
 .expandable-text--card .text-toggle {
-  color: #345c90;
+  color: var(--ui-brand-text);
   font-size: 12px;
   text-align: left;
 }
@@ -1179,9 +1176,9 @@ select option {
 .curator-progress-table th:nth-child(2) { width: 27%; }
 .curator-progress-table th:last-child { width: 150px; }
 .curator-progress-table td { vertical-align: middle; overflow-wrap: anywhere; }
-.curator-progress-table small { display: block; margin-top: 6px; color: #65778e; font-size: 12px; }
+.curator-progress-table small { display: block; margin-top: 6px; color: var(--ui-muted); font-size: 12px; }
 .curator-stage-progress { display: flex; align-items: center; gap: 10px; }
-.curator-stage-progress progress { width: 84px; height: 7px; accent-color: #3b6ca4; }
+.curator-stage-progress progress { width: 84px; height: 7px; accent-color: var(--ui-brand-text); }
 .curator-stage-progress span { white-space: nowrap; font-size: 12px; }
 @media (max-width: 1150px) {
   .curator-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1193,7 +1190,7 @@ select option {
 /* Review annotations: consistent modal and form geometry. */
 .team-management > .feature-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:10px; }
 .team-management > .feature-toolbar h3 { margin:0; }
-.team-management > .feature-toolbar .close-btn { position:static; display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; padding:0; margin-left:auto; border:0; background:transparent; color:#65758b; }
+.team-management > .feature-toolbar .close-btn { position:static; display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; padding:0; margin-left:auto; border:0; background:transparent; color:var(--ui-muted); }
 .team-management > p { margin:0 0 18px; }
 .attached-tabs > .uust-box::before { left:0; right:0; width:auto; }
 .visibility-settings { align-items:center; gap:12px; }
@@ -1243,7 +1240,7 @@ select option {
 .curator-deadline-card { padding:16px; display:flex; flex-direction:column; gap:12px; min-width:0; }
 .curator-deadline-card__meta { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .curator-deadline-card h3 { font-size:15px; margin:0; overflow-wrap:anywhere; }
-.curator-deadline-card p { font-size:12px; color:#65758b; margin:0; }
+.curator-deadline-card p { font-size:12px; color:var(--ui-muted); margin:0; }
 .curator-deadline-card > .btn { margin-top:auto; align-self:flex-end; }
 @media(max-width:1000px) { .curator-deadlines.curator-deadlines--compact { grid-template-columns:minmax(0,1fr); } }
 
@@ -1252,15 +1249,15 @@ select option {
 
 /* Joined program tabs sit inside one continuous panel rather than over rounded corners. */
 .program-page .program-catalog > .uust-tabs-row {
-  background:#fff; border:1.5px solid rgba(37,88,148,.35); border-bottom:0;
+  background:#fff; border:1.5px solid rgba(40, 94, 151, .35); border-bottom:0;
   border-radius:12px 12px 0 0; padding:10px 14px 0; margin:0; gap:6px;
 }
 .program-page .program-catalog > .uust-tabs-row > .uust-tab {
   margin:0; padding:10px 18px; min-height:40px; border-radius:8px 8px 0 0;
 }
 .program-page .program-catalog > .uust-box {
-  border-top:1px solid #dce4ed; border-radius:0 0 12px 12px; padding:14px;
-  margin:0; box-shadow:0 6px 16px rgba(11,23,54,.04);
+  border-top:1px solid var(--ui-line); border-radius:0 0 12px 12px; padding:14px;
+  margin:0; box-shadow:0 6px 16px rgba(24, 44, 71, .04);
 }
 .program-page .program-catalog > .uust-box::before { display:none; }
 .program-catalog .opportunity-filters { margin-bottom:0; }
@@ -1275,7 +1272,7 @@ select option {
 .curator-agenda-cards .case-card__meta-grid { grid-template-columns:minmax(0,1fr); gap:8px; }
 
 .home-page .curator-agenda-cards .case-card__company { min-height:0; padding-right:0; }
-.curator-agenda-cards .tech-tag { font-size:11px; background:#f1f5f9; color:#475569; padding:2px 7px; border-radius:4px; font-family:monospace; }
+.curator-agenda-cards .tech-tag { font-size:11px; background:var(--ui-soft); color:var(--ui-body); padding:2px 7px; border-radius:4px; font-family:monospace; }
 
 
 /* Legal details contain only requisites; keep one deliberate gap below the heading. */
@@ -1289,18 +1286,27 @@ select option {
 .student-project-actions:has(.student-project-edit) > :last-child { margin-left: 0; }
 .student-project-gallery { display: flex; flex-wrap: wrap; gap: 12px; }
 .student-project-gallery .attachment-preview { width: 180px; max-width: 100%; }
+.student-project-gallery .attachment-preview__button { width: 100%; min-height: 132px; }
 .student-project-gallery img { width: 100%; height: 130px; object-fit: contain; }
 .favorites-empty > .btn { align-self: center; width: auto; max-width: 100%; flex: 0 0 auto; }
 .achievement-download { display: block; font-size: 12px; margin-top: 8px; overflow-wrap: anywhere; }
 
-.achievement-preview { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.achievement-preview { display: grid; place-items: center; width: 100%; min-height: 190px; padding: 0; border: 0; background: var(--ui-panel); cursor: zoom-in; }
+:is(.attachment-preview__button, .achievement-preview) > :is(.image-loading, .image-unavailable) {
+  min-width: 0;
+  max-width: 100%;
+  padding: 10px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
 
 /* Consistent filter controls and tabs connected to their content. */
-.joined-filter-panel { border: 1px solid #cedaeb; border-radius: 12px; background: #fff; overflow: hidden; }
+.joined-filter-panel { border: 1px solid var(--ui-control-line); border-radius: 12px; background: #fff; overflow: hidden; }
 .joined-filter-panel > .uust-tabs-row { margin: 0; padding: 12px 16px 0; min-height: 0; height: auto; gap: 6px; align-items: flex-end; }
 .joined-filter-panel > .uust-tabs-row::after { display: none; }
 .joined-filter-panel > .uust-tabs-row .uust-tab { margin: 0; transform: none; min-height: 40px; padding: 9px 14px; border-radius: 8px 8px 0 0; }
-.joined-filter-panel > .uust-box { margin: 0; border: 0; border-top: 1px solid #dce4ed; border-radius: 0; box-shadow: none; padding: 16px; min-height: 0; }
+.joined-filter-panel > .uust-box { margin: 0; border: 0; border-top: 1px solid var(--ui-line); border-radius: 0; box-shadow: none; padding: 16px; min-height: 0; }
 .joined-filter-panel > .uust-box::before { display: none; }
 .workspace-filter-panel { display: grid; grid-template-columns: minmax(180px, 240px) minmax(260px, 540px); gap: 16px; align-items: end; }
 .workspace-filter-panel:not(:has(.workspace-status-filter)) { grid-template-columns: minmax(0, 720px); }
@@ -1320,21 +1326,20 @@ select option {
 .student-project-fields > label { margin: 0; display: grid; gap: 7px; }
 .catalog-multiselect { display: grid; gap: 7px; min-width: 0; }
 .catalog-multiselect__label { font-weight: 600; }
-.catalog-multiselect > details { border: 1px solid #ccd9ea; border-radius: 7px; background: #fff; }
+.catalog-multiselect > details { border: 1px solid var(--ui-control-line); border-radius: 7px; background: #fff; }
 .catalog-multiselect summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 12px; cursor: pointer; list-style: none; }
 .catalog-multiselect summary::-webkit-details-marker { display: none; }
-.catalog-multiselect__menu { padding: 10px; border-top: 1px solid #dce4ed; }
+.catalog-multiselect__menu { padding: 10px; border-top: 1px solid var(--ui-line); }
 .catalog-multiselect .catalog-multiselect__search { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
 .catalog-multiselect__search input { min-width: 0; }
 .catalog-multiselect__options { max-height: 210px; overflow-y: auto; display: grid; gap: 2px; }
 .catalog-multiselect .catalog-multiselect__options label { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0; cursor: pointer; border-radius: 5px; }
-.catalog-multiselect__options label:hover { background: #edf3fa; }
-.catalog-multiselect .catalog-multiselect__options input[type=checkbox], .modal-dialog label.nda-checkbox-field input[type=checkbox] { width: 17px; height: 17px; min-height: 0; flex: 0 0 17px; margin: 0; padding: 0; accent-color: #315b90; }
+.catalog-multiselect__options label:hover { background: var(--ui-brand-surface); }
+.catalog-multiselect .catalog-multiselect__options input[type=checkbox], .modal-dialog label.nda-checkbox-field input[type=checkbox] { width: 17px; height: 17px; min-height: 0; flex: 0 0 17px; margin: 0; padding: 0; accent-color: var(--ui-brand-text); }
 .catalog-multiselect__selected { display: flex; gap: 6px; flex-wrap: wrap; }
-.catalog-multiselect__selected button { display: inline-flex; gap: 6px; align-items: center; border: 1px solid #cbd9eb; background: #eef4fb; color: #254d7d; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+.catalog-multiselect__selected button { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--ui-control-line); background: var(--ui-brand-surface); color: var(--ui-brand-text); padding: 5px 8px; border-radius: 6px; cursor: pointer; }
 .modal-dialog label.nda-checkbox-field { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; margin: 0; padding: 12px 0; width: fit-content; }
-.role-capability-note, .invitation-context-note { color: #526780; line-height: 1.6; padding: 12px 16px; background: #eef4fb; border-radius: 8px; }
-.project-cover-placeholder { display: block; width: 100%; height: 100%; min-height: 80px; background: linear-gradient(135deg,#102544,#315b90); border-radius: inherit; }
+.role-capability-note, .invitation-context-note { color: var(--ui-muted); line-height: 1.6; padding: 12px 16px; background: var(--ui-brand-surface); border-radius: 8px; }
 @media (max-width: 700px) {
   .workspace-filter-panel { grid-template-columns: minmax(0,1fr); }
   .student-directory-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

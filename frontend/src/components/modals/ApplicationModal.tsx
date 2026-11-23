@@ -205,7 +205,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
             <h3 id="application-title">
               {registration ? 'Регистрация на мероприятие' : 'Подача заявки на выполнение кейса'}
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--ui-muted)' }}>
               Кейс: <strong>{caseItem.title}</strong> ({caseItem.companyName})
             </p>
           </div>
@@ -356,15 +356,15 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                       type="checkbox"
                       checked={attachSavedResume}
                       onChange={(event) => setAttachSavedResume(event.target.checked)}
-                    />{' '}
+                    />
                     <span>Приложить резюме из профиля ({savedResume.name})</span>
                   </label>
                 )}
                 {/* IP Rights Notice */}
                 <div
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
+                    background: 'var(--ui-panel)',
+                    border: '1px solid var(--ui-line)',
                     borderRadius: '8px',
                     padding: '14px',
                     marginTop: '16px',
@@ -378,12 +378,12 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                       marginBottom: '6px',
                     }}
                   >
-                    <ShieldAlert size={16} color="#1b5e91" />
-                    <strong style={{ fontSize: '12px', color: '#0f2b48' }}>
+                    <ShieldAlert size={16} color="var(--ui-brand-text)" />
+                    <strong style={{ fontSize: '12px', color: 'var(--ui-ink)' }}>
                       Права на результаты интеллектуальной деятельности (РИД):
                     </strong>
                   </div>
-                  <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#475569' }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--ui-body)' }}>
                     {getIpRightsText(caseItem.ipRights)} Передача исключительных прав не
                     осуществляется автоматически фактом регистрации в Системе.
                   </p>
@@ -395,7 +395,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                       cursor: 'pointer',
                       fontSize: '12px',
                       fontWeight: 600,
-                      color: '#1e293b',
+                      color: 'var(--ui-ink)',
                     }}
                   >
                     <input

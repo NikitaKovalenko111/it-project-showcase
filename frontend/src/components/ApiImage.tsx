@@ -1,4 +1,4 @@
-import { useEffect, useState, type ImgHTMLAttributes } from 'react'
+import { useEffect, useState, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
 
@@ -29,11 +29,16 @@ export function useImageUrl(src?: string) {
   return protectedUrl ? (image.source === src ? image : { source: src }) : { source: src, url: src }
 }
 
-export function ApiImage({ src, alt, ...props }: ImgHTMLAttributes<HTMLImageElement>) {
+export function ApiImage({
+  src,
+  alt,
+  fallback,
+  ...props
+}: ImgHTMLAttributes<HTMLImageElement> & { fallback?: ReactNode }) {
   const image = useImageUrl(src)
   const [failed, setFailed] = useState<string>()
   if (image.failed || (src && failed === src))
-    return <span className="image-unavailable">{alt || 'Изображение недоступно'}</span>
+    return fallback ?? <span className="image-unavailable">{alt || 'Изображение недоступно'}</span>
   if (!image.url)
     return (
       <span className="image-loading" role="status">
