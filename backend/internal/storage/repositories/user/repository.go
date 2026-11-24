@@ -158,7 +158,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 
 	err := r.db.QueryRowContext(ctx, `
 		SELECT
-			u.user_id, u.username, u.email, u.status, u.last_login_at, u.created_at, u.updated_at, u.avatar_file_id,
+			u.user_id, u.username, u.email, u.status, u.last_login_at, u.created_at, u.updated_at, u.avatar_file_id,COALESCE(u.full_name,''),u.experience_and_interests,u.help_topics,
 			COALESCE(s.last_name, ''), COALESCE(s.first_name, ''), COALESCE(s.patronymic, ''),
 			COALESCE(s.institute_name, ''), COALESCE(s.study_direction, ''), COALESCE(s.program_name, ''),
 			COALESCE(s.course, 0), COALESCE(s.group_name, ''), COALESCE(s.phone, ''), COALESCE(s.bio, ''),
@@ -170,7 +170,7 @@ func (r *UsersRepo) GetUserByID(ctx context.Context, userID string) (*models.Use
 		LEFT JOIN students s ON s.user_id = u.user_id
 		WHERE u.user_id = $1
 	`, userID).Scan(
-		&user.UserID, &user.Username, &user.Email, &user.Status, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt, &user.AvatarFileID,
+		&user.UserID, &user.Username, &user.Email, &user.Status, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt, &user.AvatarFileID, &user.FullName, &user.ExperienceAndInterests, &user.HelpTopics,
 		&profile.LastName, &profile.FirstName, &profile.Patronymic,
 		&profile.Institute, &profile.Direction, &profile.Program,
 		&profile.Course, &profile.GroupName, &profile.Phone, &profile.Bio,

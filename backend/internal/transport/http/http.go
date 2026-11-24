@@ -40,6 +40,7 @@ func (h *HTTP) Start(mux *http.ServeMux) {
 
 	users := mount(api, "/users", nil)
 	h.handlers.Users.Start(users, admin)
+	h.handlers.Users.StartRepresentativeProfile(users, representative)
 	h.handlers.Files.StartUsers(users, h.authorize, h.optionalAuthorization)
 
 	h.handlers.Catalogs.Start(mount(api, "/catalogs", nil), admin)

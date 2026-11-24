@@ -1,6 +1,7 @@
 package models
 
 type StudentRegistration struct {
+	FullName              string
 	RequestedRole         string
 	EducationLevel        string
 	Username              string
@@ -53,6 +54,7 @@ type StudentProfileUpdate struct {
 }
 
 type UserListItem struct {
+	FullName          string   `json:"full_name"`
 	UserID            string   `json:"user_id"`
 	Username          string   `json:"username"`
 	Email             string   `json:"email"`

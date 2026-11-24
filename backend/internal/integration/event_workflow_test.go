@@ -565,9 +565,16 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			var result struct {
 				UserID string `json:"user_id"`
 			}
-			data := send(http.MethodPost, "/auth/register", "", map[string]string{"username": name, "email": name + "@example.test", "password": "Example12345", "role": "company_representative", "consent_version": "1"}, 201)
+			data := send(http.MethodPost, "/auth/register", "", map[string]string{"username": name, "email": name + "@example.test", "password": "Example12345", "role": "company_representative", "consent_version": "1", "full_name": " Петров Пётр Петрович "}, 201)
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatal(err)
+			}
+			var fullName string
+			if err := db.QueryRowContext(ctx, `SELECT full_name FROM users WHERE user_id=$1`, result.UserID).Scan(&fullName); err != nil {
+				t.Fatal(err)
+			}
+			if fullName != "Петров Пётр Петрович" {
+				t.Fatalf("representative name: %q", fullName)
 			}
 			return result.UserID
 		}
@@ -576,8 +583,74 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			send(http.MethodPatch, "/users/"+user+"/role-request", adminToken, map[string]string{"status": "approved"}, 204)
 		}
 		firstRep, secondRep := register(), register()
+		var listed struct {
+			Items []models.UserListItem `json:"items"`
+		}
+		dataBefore := send(http.MethodGet, "/users?page_size=100", adminToken, nil, 200)
+		if err := json.Unmarshal(dataBefore, &listed); err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, u := range listed.Items {
+			if u.UserID == firstRep {
+				found = u.FullName == "Петров Пётр Петрович"
+			}
+		}
+		if !found {
+			t.Fatal("moderator cannot see applicant names")
+		}
 		approve(firstRep)
 		firstToken, secondToken := tokenFor(firstRep, "company_representative"), tokenFor(secondRep, "company_representative")
+		meData := send(http.MethodGet, "/auth/me", firstToken, nil, 200)
+		var me struct {
+			FullName string          `json:"full_name"`
+			Student  json.RawMessage `json:"student"`
+		}
+		if err := json.Unmarshal(meData, &me); err != nil {
+			t.Fatal(err)
+		}
+		if me.FullName != "Петров Пётр Петрович" || len(me.Student) != 0 {
+			t.Fatalf("representative /me: %s", meData)
+		}
+		profilePath := "/users/me/representative-profile"
+		var rp models.RepresentativeProfile
+		if err := json.Unmarshal(send(http.MethodGet, profilePath, firstToken, nil, 200), &rp); err != nil {
+			t.Fatal(err)
+		}
+		if rp.UserID != firstRep || rp.ExperienceAndInterests != "" || rp.HelpTopics != "" {
+			t.Fatalf("initial profile: %+v", rp)
+		}
+		send(http.MethodPatch, profilePath, firstToken, map[string]string{"experience_and_interests": "  Разработка Go\nИнтересуюсь базами данных  ", "help_topics": " Go, SQL "}, 200)
+		if err := json.Unmarshal(send(http.MethodGet, profilePath, firstToken, nil, 200), &rp); err != nil {
+			t.Fatal(err)
+		}
+		if rp.ExperienceAndInterests != "Разработка Go\nИнтересуюсь базами данных" || rp.HelpTopics != "Go, SQL" {
+			t.Fatalf("saved profile: %+v", rp)
+		}
+		send(http.MethodPatch, profilePath, firstToken, map[string]string{"help_topics": strings.Repeat("Я", 2001)}, 422)
+		send(http.MethodPatch, profilePath, firstToken, map[string]string{}, 422)
+		send(http.MethodPatch, profilePath, firstToken, map[string]string{"user_id": secondRep, "help_topics": "Injected"}, 400)
+		send(http.MethodPatch, profilePath, tokenFor(student, "student"), map[string]string{"help_topics": "Injected"}, 403)
+		send(http.MethodGet, profilePath, adminToken, nil, 403)
+		if err := json.Unmarshal(send(http.MethodPatch, profilePath, firstToken, map[string]string{"experience_and_interests": ""}, 200), &rp); err != nil {
+			t.Fatal(err)
+		}
+		if rp.ExperienceAndInterests != "" || rp.HelpTopics != "Go, SQL" {
+			t.Fatalf("clear or partial update failed: %+v", rp)
+		}
+		var profileMe map[string]any
+		if err := json.Unmarshal(send(http.MethodGet, "/auth/me", firstToken, nil, 200), &profileMe); err != nil {
+			t.Fatal(err)
+		}
+		if profileMe["experience_and_interests"] != "" || profileMe["help_topics"] != "Go, SQL" {
+			t.Fatalf("/me profile: %+v", profileMe)
+		}
+		var storedExperience, storedTopics string
+		if err := db.QueryRowContext(ctx, `SELECT experience_and_interests,help_topics FROM users WHERE user_id=$1`, firstRep).Scan(&storedExperience, &storedTopics); err != nil || storedExperience != "" || storedTopics != "Go, SQL" {
+			t.Fatalf("persisted profile: %q %q %v", storedExperience, storedTopics, err)
+		}
+
+		send(http.MethodPost, "/auth/register", "", map[string]string{"role": "company_representative", "username": "noname", "email": "noname@example.test", "password": "Example12345", "consent_version": "1"}, 422)
 		var company models.Company
 		data := send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Pipeline " + uuid.NewString(), "position": "Director", "inn": "7707083893"}, 201)
 		if err := json.Unmarshal(data, &company); err != nil {
