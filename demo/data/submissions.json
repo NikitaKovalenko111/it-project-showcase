@@ -1,0 +1,257 @@
+[
+  {
+    "id": "syn_submission_001",
+    "caseId": "syn_case_002",
+    "authorName": "Алексей Миронов",
+    "description": "Результат по теме «Расследование простоев линии»: Временная шкала простоев с причинами и выгрузкой CSV. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_001-1.png",
+      "assets/screenshots/syn_project_001-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_002.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_002.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_001.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      },
+      {
+        "name": "Материалы решения.zip",
+        "url": "documents/archives/project-delivery.zip",
+        "mimeType": "application/zip",
+        "kind": "archive"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "studentId": "syn_student_001",
+    "presentationUrl": "documents/presentations/syn_project_001.pdf",
+    "documentationUrl": "documents/reports/syn_case_002.pdf"
+  },
+  {
+    "id": "syn_submission_002",
+    "caseId": "syn_case_003",
+    "authorName": "Тихий поиск",
+    "description": "Результат по теме «Планировщик полива теплицы»: Симулятор полива с ручным подтверждением и журналом решений. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_002-1.png",
+      "assets/screenshots/syn_project_002-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_003.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_003.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_002.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_003",
+    "presentationUrl": "documents/presentations/syn_project_002.pdf",
+    "documentationUrl": "documents/reports/syn_case_003.pdf"
+  },
+  {
+    "id": "syn_submission_003",
+    "caseId": "syn_case_004",
+    "authorName": "Окно доставки",
+    "description": "Результат по теме «Учёт партий рассады»: Каталог партий с QR-метками и историей перемещений. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_002-1.png",
+      "assets/screenshots/syn_project_002-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_004.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_004.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_002.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_004",
+    "presentationUrl": "documents/presentations/syn_project_002.pdf",
+    "documentationUrl": "documents/reports/syn_case_004.pdf"
+  },
+  {
+    "id": "syn_submission_004",
+    "caseId": "syn_case_005",
+    "authorName": "Ветер перемен",
+    "description": "Результат по теме «Бронирование редких изданий»: Каталог экземпляров, очередь бронирования и календарь получения. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_003-1.png",
+      "assets/screenshots/syn_project_003-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_005.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_005.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_003.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_005",
+    "acceptedAt": "2026-11-21T10:00:00Z",
+    "presentationUrl": "documents/presentations/syn_project_003.pdf",
+    "documentationUrl": "documents/reports/syn_case_005.pdf"
+  },
+  {
+    "id": "syn_submission_005",
+    "caseId": "syn_case_006",
+    "authorName": "Кампус в фокусе",
+    "description": "Результат по теме «Поиск по оцифрованным описям»: Поиск с подсветкой совпадений и фильтрами по фонду. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_003-1.png",
+      "assets/screenshots/syn_project_003-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_006.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_006.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_003.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_006",
+    "acceptedAt": "2026-11-21T10:00:00Z",
+    "presentationUrl": "documents/presentations/syn_project_003.pdf",
+    "documentationUrl": "documents/reports/syn_case_006.pdf"
+  },
+  {
+    "id": "syn_submission_006",
+    "caseId": "syn_case_007",
+    "authorName": "Чистая проба",
+    "description": "Результат по теме «Доставка с временными окнами»: API маршрута с объяснением невыполнимых заказов. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_004-1.png",
+      "assets/screenshots/syn_project_004-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_007.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_007.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_004.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_007",
+    "acceptedAt": "2026-11-21T10:00:00Z",
+    "presentationUrl": "documents/presentations/syn_project_004.pdf",
+    "documentationUrl": "documents/reports/syn_case_007.pdf"
+  },
+  {
+    "id": "syn_submission_007",
+    "caseId": "syn_case_008",
+    "authorName": "Удобный шаг",
+    "description": "Результат по теме «Согласование складских возвратов»: Реестр возвратов с актом расхождений и маршрутом согласования. Инструкция воспроизведения и отчёт о проверках обязательны. Материалы включают отчёт и план проверки.",
+    "repoUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_004-1.png",
+      "assets/screenshots/syn_project_004-2.png"
+    ],
+    "attachedFiles": [
+      {
+        "name": "Отчёт по проекту.pdf",
+        "url": "documents/reports/syn_case_008.pdf",
+        "mimeType": "application/pdf",
+        "kind": "report"
+      },
+      {
+        "name": "Постановка задачи.pdf",
+        "url": "documents/briefs/syn_case_008.pdf",
+        "mimeType": "application/pdf",
+        "kind": "specification"
+      },
+      {
+        "name": "Описание проекта.md",
+        "url": "documents/portfolios/syn_project_004.md",
+        "mimeType": "text/markdown",
+        "kind": "documentation"
+      }
+    ],
+    "submittedAt": "2026-11-18T12:00:00Z",
+    "teamId": "syn_team_008",
+    "acceptedAt": "2026-11-21T10:00:00Z",
+    "presentationUrl": "documents/presentations/syn_project_004.pdf",
+    "documentationUrl": "documents/reports/syn_case_008.pdf"
+  }
+]

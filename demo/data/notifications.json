@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "syn_notification_001",
+    "userId": "syn_student_001",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Мониторинг перегрева насосов»: участие подтверждено",
+    "read": true,
+    "link": "/cases/syn_case_001",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_002",
+    "userId": "syn_student_001",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": true,
+    "link": "/cases/syn_case_001",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_003",
+    "userId": "syn_student_002",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Журнал отбора проб»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_014",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_004",
+    "userId": "syn_student_002",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_002",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_005",
+    "userId": "syn_student_003",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Планировщик полива теплицы»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_003",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_006",
+    "userId": "syn_student_003",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": false,
+    "link": "/cases/syn_case_003",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_007",
+    "userId": "syn_student_004",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Учёт партий рассады»: участие подтверждено",
+    "read": true,
+    "link": "/cases/syn_case_004",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_008",
+    "userId": "syn_student_004",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_004",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_009",
+    "userId": "syn_student_005",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Бронирование редких изданий»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_005",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_010",
+    "userId": "syn_student_005",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": true,
+    "link": "/cases/syn_case_005",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_011",
+    "userId": "syn_student_006",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Поиск по оцифрованным описям»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_006",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_012",
+    "userId": "syn_student_006",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_006",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_013",
+    "userId": "syn_student_007",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Доставка с временными окнами»: участие подтверждено",
+    "read": true,
+    "link": "/cases/syn_case_007",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_014",
+    "userId": "syn_student_007",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": false,
+    "link": "/cases/syn_case_007",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_015",
+    "userId": "syn_student_008",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Согласование складских возвратов»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_008",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_016",
+    "userId": "syn_student_008",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_008",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_017",
+    "userId": "syn_student_009",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Реестр лабораторного оборудования»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_021",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_018",
+    "userId": "syn_student_009",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": true,
+    "link": "/cases/syn_case_009",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_019",
+    "userId": "syn_student_010",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Расписание поверки приборов»: предлагается встреча",
+    "read": true,
+    "link": "/cases/syn_case_022",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_020",
+    "userId": "syn_student_010",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_010",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_021",
+    "userId": "syn_student_011",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Календарь консультаций»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_011",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_022",
+    "userId": "syn_student_011",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": false,
+    "link": "/cases/syn_case_011",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_023",
+    "userId": "syn_student_012",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Поиск свободных аудиторий»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_case_012",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_024",
+    "userId": "syn_student_012",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_012",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_025",
+    "userId": "syn_student_013",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Распределение лабораторных смен»: заявка отклонена",
+    "read": true,
+    "link": "/cases/syn_case_047",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_026",
+    "userId": "syn_student_013",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": true,
+    "link": "/cases/syn_case_013",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_027",
+    "userId": "syn_student_014",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Балансировка учебных команд»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_case_048",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_028",
+    "userId": "syn_student_014",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_014",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_029",
+    "userId": "syn_student_015",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Стажировка: data science — ЭнергоМозаика»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_internship_case_003",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_030",
+    "userId": "syn_student_015",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": false,
+    "link": "/cases/syn_case_015",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_031",
+    "userId": "syn_student_016",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Маршрут без ступеней»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_extra_case_001",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_032",
+    "userId": "syn_student_016",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_016",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_033",
+    "userId": "syn_student_017",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Реестр лабораторного оборудования»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_021",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_034",
+    "userId": "syn_student_017",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": true,
+    "link": "/cases/syn_case_017",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_035",
+    "userId": "syn_student_018",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Расписание поверки приборов»: нужно уточнение",
+    "read": false,
+    "link": "/cases/syn_case_022",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_036",
+    "userId": "syn_student_018",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_018",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_037",
+    "userId": "syn_student_019",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Навигация робота в симуляторе»: заявка отклонена",
+    "read": true,
+    "link": "/cases/syn_case_023",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_038",
+    "userId": "syn_student_019",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": false,
+    "link": "/cases/syn_case_019",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_039",
+    "userId": "syn_student_020",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Пульт оператора роботостенда»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_case_024",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_040",
+    "userId": "syn_student_020",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_020",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_041",
+    "userId": "syn_student_021",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Наставник для команды»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_extra_case_007",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_042",
+    "userId": "syn_student_021",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": true,
+    "link": "/cases/syn_case_021",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_043",
+    "userId": "syn_student_022",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Ремонт по заявке»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_extra_case_008",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_044",
+    "userId": "syn_student_022",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_022",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_045",
+    "userId": "syn_student_023",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Офлайн-карта велопарковок»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_029",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_046",
+    "userId": "syn_student_023",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": false,
+    "link": "/cases/syn_case_023",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_047",
+    "userId": "syn_student_024",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Сопровождение посетителя»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_033",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_048",
+    "userId": "syn_student_024",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_024",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_049",
+    "userId": "syn_student_025",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Офлайн-карта велопарковок»: заявка отклонена",
+    "read": true,
+    "link": "/cases/syn_case_029",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_050",
+    "userId": "syn_student_025",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": true,
+    "link": "/cases/syn_case_025",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_051",
+    "userId": "syn_student_026",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Сообщения о неисправных фонарях»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_case_030",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_052",
+    "userId": "syn_student_026",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_026",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_053",
+    "userId": "syn_student_027",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Качество товарного каталога»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_031",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_054",
+    "userId": "syn_student_027",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": false,
+    "link": "/cases/syn_case_027",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_055",
+    "userId": "syn_student_028",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Наблюдаемость сервиса заявок»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_case_025",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_056",
+    "userId": "syn_student_028",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_028",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_057",
+    "userId": "syn_student_029",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Играй и объясняй»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_hackathon_004",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_058",
+    "userId": "syn_student_029",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": true,
+    "link": "/cases/syn_case_029",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_059",
+    "userId": "syn_student_030",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Поиск аномалий эксперимента",
+    "read": false,
+    "link": "/cases/syn_case_042",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_060",
+    "userId": "syn_student_030",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_030",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_061",
+    "userId": "syn_student_031",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Доступная навигация в здании»: нужно уточнение",
+    "read": true,
+    "link": "/cases/syn_case_034",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_062",
+    "userId": "syn_student_031",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": false,
+    "link": "/cases/syn_case_031",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_063",
+    "userId": "syn_student_032",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Матрица прав учебного API»: заявка отклонена",
+    "read": false,
+    "link": "/cases/syn_case_017",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_064",
+    "userId": "syn_student_032",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_032",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_065",
+    "userId": "syn_student_033",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Анализ вибраций учебного двигателя",
+    "read": false,
+    "link": "/cases/syn_case_045",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_066",
+    "userId": "syn_student_033",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": true,
+    "link": "/cases/syn_case_033",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_067",
+    "userId": "syn_student_034",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Поиск по учебной базе знаний»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_case_043",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_068",
+    "userId": "syn_student_034",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_034",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_069",
+    "userId": "syn_student_035",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Лимиты затрат тестового кластера»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_026",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_070",
+    "userId": "syn_student_035",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": false,
+    "link": "/cases/syn_case_035",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_071",
+    "userId": "syn_student_036",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Стажировка: базы данных — Реестр Лабораторий»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_internship_case_006",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_072",
+    "userId": "syn_student_036",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_036",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_073",
+    "userId": "syn_student_037",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Маршрут без ступеней",
+    "read": true,
+    "link": "/cases/syn_extra_case_001",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_074",
+    "userId": "syn_student_037",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": true,
+    "link": "/cases/syn_case_037",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_075",
+    "userId": "syn_student_038",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Виртуальная витрина экспоната»: заявка отклонена",
+    "read": false,
+    "link": "/cases/syn_case_035",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_076",
+    "userId": "syn_student_038",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_038",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_077",
+    "userId": "syn_student_039",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Жизненный цикл сессий»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_case_018",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_078",
+    "userId": "syn_student_039",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": false,
+    "link": "/cases/syn_case_039",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_079",
+    "userId": "syn_student_040",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Тихий кампус",
+    "read": true,
+    "link": "/cases/syn_extra_case_004",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_080",
+    "userId": "syn_student_040",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_040",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_081",
+    "userId": "syn_student_041",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Матрица прав учебного API»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_017",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_082",
+    "userId": "syn_student_041",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": true,
+    "link": "/cases/syn_case_041",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_083",
+    "userId": "syn_student_042",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Жизненный цикл сессий»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_018",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_084",
+    "userId": "syn_student_042",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_042",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_085",
+    "userId": "syn_student_043",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Выравнивание архивных сканов»: заявка отклонена",
+    "read": true,
+    "link": "/cases/syn_case_019",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_086",
+    "userId": "syn_student_043",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": false,
+    "link": "/cases/syn_case_043",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_087",
+    "userId": "syn_student_044",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Разметка рукописных карточек»: нужно уточнение",
+    "read": false,
+    "link": "/cases/syn_case_020",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_088",
+    "userId": "syn_student_044",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_case_044",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_089",
+    "userId": "syn_student_045",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Аудиомаршрут по выставке»: заявка отозвана",
+    "read": false,
+    "link": "/cases/syn_case_036",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_090",
+    "userId": "syn_student_045",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": true,
+    "link": "/cases/syn_case_045",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_091",
+    "userId": "syn_student_046",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Выравнивание архивных сканов»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_case_019",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_092",
+    "userId": "syn_student_046",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_case_046",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_093",
+    "userId": "syn_student_047",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Тур по лаборатории",
+    "read": false,
+    "link": "/cases/syn_extra_case_011",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_094",
+    "userId": "syn_student_047",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": false,
+    "link": "/cases/syn_case_047",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_095",
+    "userId": "syn_student_048",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Найди лабораторную ошибку",
+    "read": false,
+    "link": "/cases/syn_extra_case_012",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_096",
+    "userId": "syn_student_048",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_case_048",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_097",
+    "userId": "syn_student_049",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Наблюдаемость сервиса заявок»: заявка на рассмотрении",
+    "read": true,
+    "link": "/cases/syn_case_025",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_098",
+    "userId": "syn_student_049",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": true,
+    "link": "/cases/syn_extra_case_001",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_099",
+    "userId": "syn_student_050",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Лимиты затрат тестового кластера»: предлагается встреча",
+    "read": false,
+    "link": "/cases/syn_case_026",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_100",
+    "userId": "syn_student_050",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_extra_case_002",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_101",
+    "userId": "syn_student_051",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Проверки корзины учебного магазина»: заявка отклонена",
+    "read": false,
+    "link": "/cases/syn_case_027",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_102",
+    "userId": "syn_student_051",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": false,
+    "link": "/cases/syn_extra_case_003",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_103",
+    "userId": "syn_student_052",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Тестирование импорта таблиц»: нужно уточнение",
+    "read": true,
+    "link": "/cases/syn_case_028",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_104",
+    "userId": "syn_student_052",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_extra_case_004",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_105",
+    "userId": "syn_student_053",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Разметка рукописных карточек»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_020",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_106",
+    "userId": "syn_student_053",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": true,
+    "link": "/cases/syn_extra_case_005",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_107",
+    "userId": "syn_student_054",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Играй и объясняй",
+    "read": false,
+    "link": "/cases/syn_hackathon_004",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_108",
+    "userId": "syn_student_054",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_extra_case_006",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_109",
+    "userId": "syn_student_055",
+    "type": "new_case",
+    "title": "Новое задание по вашему направлению",
+    "message": "Стажировка: iot — Термослед",
+    "read": true,
+    "link": "/cases/syn_internship_case_001",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_110",
+    "userId": "syn_student_055",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Спасибо за уточнение, добавили проверку в план.",
+    "read": false,
+    "link": "/cases/syn_extra_case_007",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_111",
+    "userId": "syn_student_056",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Стажировка: мобильная разработка — Город На Ладони»: участие подтверждено",
+    "read": false,
+    "link": "/cases/syn_internship_case_008",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_112",
+    "userId": "syn_student_056",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "На первом этапе достаточно основного сценария и инструкции запуска.",
+    "read": false,
+    "link": "/cases/syn_extra_case_008",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_113",
+    "userId": "syn_student_057",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Сопровождение посетителя»: заявка на рассмотрении",
+    "read": false,
+    "link": "/cases/syn_case_033",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_114",
+    "userId": "syn_student_057",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Покажите пример ошибочного ввода на следующей встрече.",
+    "read": true,
+    "link": "/cases/syn_extra_case_009",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_115",
+    "userId": "syn_student_058",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Доступная навигация в здании»: предлагается встреча",
+    "read": true,
+    "link": "/cases/syn_case_034",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_116",
+    "userId": "syn_student_058",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Можно начать с небольшого набора, затем увеличить объём.",
+    "read": false,
+    "link": "/cases/syn_extra_case_010",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_117",
+    "userId": "syn_student_059",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Виртуальная витрина экспоната»: заявка отклонена",
+    "read": false,
+    "link": "/cases/syn_case_035",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_118",
+    "userId": "syn_student_059",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Запишите ограничения в отчёт, чтобы их было видно на защите.",
+    "read": false,
+    "link": "/cases/syn_extra_case_011",
+    "createdAt": "2026-11-24T09:00:00Z"
+  },
+  {
+    "id": "syn_notification_119",
+    "userId": "syn_student_060",
+    "type": "application_status",
+    "title": "Обновление заявки",
+    "message": "«Аудиомаршрут по выставке»: нужно уточнение",
+    "read": false,
+    "link": "/cases/syn_case_036",
+    "createdAt": "2026-11-24T08:00:00Z"
+  },
+  {
+    "id": "syn_notification_120",
+    "userId": "syn_student_060",
+    "type": "new_comment",
+    "title": "Ответ на ваш вопрос",
+    "message": "Предлагаю вынести вопросы по формату данных в отдельную заметку.",
+    "read": false,
+    "link": "/cases/syn_extra_case_012",
+    "createdAt": "2026-11-24T09:00:00Z"
+  }
+]

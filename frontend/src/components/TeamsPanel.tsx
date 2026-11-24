@@ -1,0 +1,750 @@
+import { UserAvatar } from './UserAvatar'
+import { ExpandableText } from './ExpandableText'
+import { matchesSearch } from '../utils/publication'
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { UserPlus, Users, X } from 'lucide-react'
+import { apiClient } from '../api/client'
+import { apiRuntime } from '../api/runtime'
+import { communityApi, teamRecruitmentApi } from '../api/community'
+import { teamInvitationIssue } from '../api/teamRecruitment'
+import { useAppDispatch, useAppSelector } from '../store'
+import { fetchTeamsRequest } from '../store/actions'
+import { CaseProject, ProjectTeam, TeamRequest, TeamSeeker, User } from '../types/models'
+import { CreateTeamModal } from './modals/CreateTeamModal'
+import { PaginatedGrid } from './PaginatedGrid'
+import { TeamMembers } from './TeamMembers'
+
+export const TeamsPanel: React.FC<{
+  caseId?: string
+  searchMode?: boolean
+  initialView?: 'teams' | 'requests'
+  invitationId?: string
+}> = ({ caseId, searchMode = false, initialView, invitationId }) => {
+  const user = useAppSelector((s) => s.auth.currentUser),
+    dispatch = useAppDispatch()
+  const live = apiRuntime.mode === 'live'
+  const [teams, setTeams] = useState<ProjectTeam[]>([]),
+    [students, setStudents] = useState<User[]>([])
+  const [requests, setRequests] = useState<TeamRequest[]>([]),
+    [seekers, setSeekers] = useState<TeamSeeker[]>([]),
+    [cases, setCases] = useState<CaseProject[]>([])
+  const [selected, setSelected] = useState(''),
+    [query, setQuery] = useState(''),
+    [inviteMessage, setInviteMessage] = useState('')
+  const [candidateFeedback, setCandidateFeedback] = useState<Record<string, string>>({})
+  const [sentInvitations, setSentInvitations] = useState<Record<string, boolean>>({})
+  const [recruitmentFeedback, setRecruitmentFeedback] = useState<{
+    message: string
+    error?: boolean
+  }>()
+  const [savedSeeker, setSavedSeeker] = useState<string>()
+  const [about, setAbout] = useState(''),
+    [stack, setStack] = useState(''),
+    [preferredCase, setPreferredCase] = useState(''),
+    [filterCase, setFilterCase] = useState(caseId || '')
+  const stackItems = stack
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  const seekerValue = JSON.stringify(
+    apiRuntime.mode === 'live' ? [about.trim()] : [about.trim(), preferredCase, stackItems],
+  )
+  const [projectQuery, setProjectQuery] = useState('')
+  const [teamQuery, setTeamQuery] = useState(''),
+    [view, setView] = useState(initialView || 'teams'),
+    [direction, setDirection] = useState('incoming')
+  const [highlightedInvitation, setHighlightedInvitation] = useState(invitationId)
+  const [create, setCreate] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(''),
+    [notice, setNotice] = useState(''),
+    [loading, setLoading] = useState(true)
+  const refresh = async () => {
+    const [t, s, r, q, c] = await Promise.all([
+      apiClient.getTeams(),
+      apiClient.getStudents(),
+      communityApi.getTeamRequests(),
+      communityApi.getSeekers(),
+      apiClient.getCases(),
+    ])
+    setTeams(t)
+    setStudents(s)
+    setRequests(r)
+    setSeekers(q)
+    setCases(c)
+    return q
+  }
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    refresh()
+      .then((q) => {
+        if (!active) return
+        const own =
+          q.find((s) => s.studentId === user?.id && !s.caseId) ||
+          q.find((s) => s.studentId === user?.id)
+        setSavedSeeker(
+          own
+            ? JSON.stringify(
+                apiRuntime.mode === 'live'
+                  ? [own.message.trim()]
+                  : [own.message.trim(), own.caseId || '', own.techStack],
+              )
+            : undefined,
+        )
+        setAbout(own?.message || '')
+        setStack(own?.techStack.join(', ') || '')
+        setPreferredCase(own?.caseId || '')
+      })
+      .catch((e) => {
+        if (active) setError(e.message)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [user?.id, caseId])
+  const act = async (fn: () => Promise<unknown>, success = 'Изменения сохранены') => {
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await fn()
+      await refresh()
+      dispatch(fetchTeamsRequest())
+      setNotice(success)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+  const mine = teams.filter(
+      (t) => t.leaderId === user?.id || t.members.some((m) => m.id === user?.id),
+    ),
+    led = mine.filter((t) => t.leaderId === user?.id)
+  const managed = led.find((t) => t.id === selected)
+  const incoming = (r: TeamRequest) =>
+    r.kind === 'invitation' ? r.studentId === user?.id : led.some((t) => t.id === r.teamId)
+  const filteredRequests = requests.filter((r) =>
+    direction === 'incoming' ? incoming(r) : r.senderId === user?.id,
+  )
+  const displayedRequests = highlightedInvitation
+    ? filteredRequests.filter((request) => request.id === highlightedInvitation)
+    : filteredRequests
+  const pending = (t: ProjectTeam, id: string) =>
+    sentInvitations[t.id + ':' + id] ||
+    requests.some((r) => r.teamId === t.id && r.studentId === id && r.status === 'pending')
+  const recruitable = cases.filter(
+    (c) => c.participationFormat !== 'individual' && c.status === 'open',
+  )
+  const shown = searchMode
+    ? teams.filter(
+        (t) =>
+          !t.caseId &&
+          t.leaderId !== user?.id &&
+          !t.members.some((m) => m.id === user?.id) &&
+          matchesSearch(teamQuery, t.name) &&
+          (live ? t.recruitmentOpen : !filterCase || t.recruitingCaseId === filterCase),
+      )
+    : caseId
+      ? teams.filter((t) => t.caseId === caseId || t.recruitingCaseId === caseId)
+      : mine
+  const candidates = seekers.filter(
+    (s) =>
+      s.studentId !== user?.id &&
+      (!managed?.recruitingCaseId || !s.caseId || s.caseId === managed.recruitingCaseId),
+  )
+  if (!user) return null
+  if (user.role !== 'student')
+    return (
+      <section className="card teams-panel">
+        <h2>Команды проекта</h2>
+        <PaginatedGrid pageSize={6} className="teams-grid">
+          {shown.map((t) => (
+            <article className="team-card" key={t.id}>
+              <h3>{t.name}</h3>
+              <TeamMembers members={t.members} leaderId={t.leaderId} students={students} />
+            </article>
+          ))}
+        </PaginatedGrid>
+        {!shown.length && <p className="empty-state">Команд пока нет.</p>}
+      </section>
+    )
+  return (
+    <section className="teams-panel">
+      {!searchMode && (
+        <>
+          <div className="team-panel-header">
+            <h2>{view === 'requests' ? 'Заявки и приглашения' : 'Составы команд'}</h2>
+            <button className="btn btn-primary btn-sm" onClick={() => setCreate(true)}>
+              <Users size={16} /> Создать команду
+            </button>
+          </div>
+          {!initialView && (
+            <nav className="tabs-bar team-navigation" aria-label="Мои команды">
+              <button
+                className={`tab-btn ${view === 'teams' ? 'active' : ''}`}
+                onClick={() => setView('teams')}
+              >
+                Составы команд
+              </button>
+              <button
+                className={`tab-btn ${view === 'requests' ? 'active' : ''}`}
+                onClick={() => {
+                  setView('requests')
+                  setSelected('')
+                }}
+              >
+                Заявки и приглашения
+              </button>
+            </nav>
+          )}
+        </>
+      )}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p className="inline-notice" role="status">
+          {notice}
+        </p>
+      )}
+      {loading ? (
+        <p role="status">Загрузка команд…</p>
+      ) : (
+        <>
+          {searchMode && (
+            <>
+              <form
+                className="seeker-form"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (busy || !about.trim() || seekerValue === savedSeeker) return
+                  act(async () => {
+                    await communityApi.saveSeeker(
+                      preferredCase || undefined,
+                      about.trim(),
+                      stackItems,
+                    )
+                    setSavedSeeker(seekerValue)
+                  }, 'Анкета опубликована. Капитаны видят её в списке кандидатов и могут пригласить вас.')
+                }}
+              >
+                <div>
+                  <h2>Ваша анкета «Ищу команду»</h2>
+                  <p>
+                    Расскажите о себе и желаемой роли. Можно искать команду без привязки к заданию.
+                  </p>
+                </div>
+                <label>
+                  О себе и желаемой роли
+                  <textarea
+                    className="textarea"
+                    required
+                    maxLength={2000}
+                    value={about}
+                    onChange={(e) => setAbout(e.target.value)}
+                    placeholder="Что умеете, какую задачу хотите взять и когда готовы участвовать"
+                  />
+                </label>
+                {apiRuntime.mode !== 'live' && (
+                  <div className="team-form-row">
+                    <label>
+                      Навыки и технологии
+                      <input
+                        className="input"
+                        maxLength={500}
+                        value={stack}
+                        onChange={(e) => setStack(e.target.value)}
+                        placeholder="React, Python, дизайн"
+                      />
+                    </label>
+                    <label>
+                      Предпочтительный проект · необязательно
+                      <select
+                        className="select"
+                        value={preferredCase}
+                        onChange={(e) => setPreferredCase(e.target.value)}
+                      >
+                        <option value="">Любой проект</option>
+                        {recruitable.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
+                <button
+                  className="btn btn-primary btn-sm"
+                  disabled={busy || !about.trim() || seekerValue === savedSeeker}
+                >
+                  {savedSeeker !== undefined ? 'Обновить анкету' : 'Опубликовать анкету'}
+                </button>
+              </form>
+              <label className="team-search-field">
+                Поиск команды
+                <input
+                  className="input"
+                  value={teamQuery}
+                  onChange={(e) => setTeamQuery(e.target.value)}
+                  placeholder="Название команды"
+                />
+              </label>
+              <div className="team-search-toolbar">
+                <div>
+                  <h2>Команды, в которые можно вступить</h2>
+                  <p>
+                    Отправьте кандидатуру капитану. В состав вы попадёте после его подтверждения.
+                  </p>
+                </div>
+                {!live && (
+                  <label>
+                    Проект
+                    <select
+                      className="select"
+                      value={filterCase}
+                      onChange={(e) => setFilterCase(e.target.value)}
+                    >
+                      <option value="">Все проекты</option>
+                      {recruitable.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
+            </>
+          )}
+          {(searchMode || view === 'teams') && (
+            <>
+              <PaginatedGrid pageSize={6} className="teams-grid">
+                {shown.map((t) => {
+                  const member = t.leaderId === user.id || t.members.some((m) => m.id === user.id),
+                    isPending = pending(t, user.id)
+                  return (
+                    <article className="team-card" key={t.id}>
+                      <header>
+                        <h3>{t.name}</h3>
+                        <span className="badge badge-direction">{t.members.length} участн.</span>
+                      </header>
+                      {t.description && <ExpandableText compact text={t.description} />}
+                      {t.recruitingCaseId && (
+                        <p className="team-project">
+                          Набор: {cases.find((c) => c.id === t.recruitingCaseId)?.title || 'Проект'}
+                        </p>
+                      )}
+                      {live && t.recruitmentOpen && <p className="team-project">Набор открыт</p>}
+                      <TeamMembers members={t.members} leaderId={t.leaderId} students={students} />
+                      <footer>
+                        {!searchMode && t.leaderId === user.id ? (
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setSelected(t.id)
+                              setRecruitmentFeedback(undefined)
+                              setFilterCase(t.recruitingCaseId || '')
+                            }}
+                          >
+                            <UserPlus size={16} /> Пригласить участников
+                          </button>
+                        ) : searchMode && !member ? (
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={busy || isPending}
+                            onClick={() =>
+                              act(
+                                () =>
+                                  communityApi.requestTeam(
+                                    t.id,
+                                    user.id,
+                                    'application',
+                                    about.trim() || 'Хочу присоединиться к вашей команде',
+                                  ),
+                                'Кандидатура отправлена капитану. Ответ появится в разделе заявок.',
+                              )
+                            }
+                          >
+                            {isPending ? 'Заявка отправлена' : 'Отправить кандидатуру'}
+                          </button>
+                        ) : (
+                          <small>
+                            {member ? 'Вы в составе команды' : 'Приглашениями управляет капитан'}
+                          </small>
+                        )}
+                      </footer>
+                    </article>
+                  )
+                })}
+              </PaginatedGrid>
+              {!shown.length && (
+                <div className="empty-state">
+                  <Users size={28} />
+                  <p>
+                    {searchMode
+                      ? 'Сейчас нет команд с открытым набором. Опубликуйте анкету — капитан сможет пригласить вас.'
+                      : 'Вы пока не состоите в командах. Создайте команду или примите приглашение.'}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+          {!searchMode && view === 'teams' && managed && (
+            <div className="modal-backdrop">
+              <section
+                className="modal-dialog team-management"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Приглашение участников"
+              >
+                <div className="feature-toolbar">
+                  <h3>Набор в «{managed.name}»</h3>
+                  <button
+                    type="button"
+                    className="close-btn"
+                    aria-label="Закрыть окно"
+                    onClick={() => setSelected('')}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <p>Вы капитан. Приглашённый студент появится в составе только после согласия.</p>
+                {live && (
+                  <div>
+                    <div className="action-row">
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        disabled={busy}
+                        onClick={async () => {
+                          const open = !managed.recruitmentOpen
+                          setBusy(true)
+                          setRecruitmentFeedback(undefined)
+                          try {
+                            await teamRecruitmentApi.setOpen(managed, open)
+                            setTeams((current) =>
+                              current.map((team) =>
+                                team.id === managed.id ? { ...team, recruitmentOpen: open } : team,
+                              ),
+                            )
+                            dispatch(fetchTeamsRequest())
+                            setRecruitmentFeedback({
+                              message: open
+                                ? 'Набор открыт. Команда доступна в поиске.'
+                                : 'Набор закрыт.',
+                            })
+                          } catch (cause) {
+                            setRecruitmentFeedback({
+                              message: (cause as Error).message,
+                              error: true,
+                            })
+                          } finally {
+                            setBusy(false)
+                          }
+                        }}
+                      >
+                        {managed.recruitmentOpen ? 'Закрыть набор' : 'Открыть набор'}
+                      </button>
+                    </div>
+                    <p className="form-hint">Открытый набор показывает команду в поиске команд.</p>
+                    {recruitmentFeedback && (
+                      <p
+                        role={recruitmentFeedback.error ? 'alert' : 'status'}
+                        className={recruitmentFeedback.error ? 'form-error' : 'form-hint'}
+                      >
+                        {recruitmentFeedback.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {!live && !managed.caseId && (
+                  <div className="form-action-row">
+                    <div className="form-action-row__field team-project-picker">
+                      <span>Для какого проекта набираете команду</span>
+                      <details>
+                        <summary className="select">
+                          {recruitable.find((item) => item.id === filterCase)?.title ||
+                            'Выберите проект'}
+                        </summary>
+                        <div className="team-project-options">
+                          <input
+                            className="input"
+                            type="search"
+                            aria-label="Поиск проекта"
+                            placeholder="Введите название проекта"
+                            value={projectQuery}
+                            onChange={(event) => setProjectQuery(event.target.value)}
+                          />
+                          {recruitable
+                            .filter((item) => matchesSearch(projectQuery, item.title))
+                            .map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={(event) => {
+                                  setFilterCase(item.id)
+                                  setProjectQuery('')
+                                  const menu = event.currentTarget.closest('details')
+                                  if (menu) {
+                                    menu.open = false
+                                    menu.querySelector('summary')?.focus()
+                                  }
+                                }}
+                              >
+                                {item.title}
+                              </button>
+                            ))}
+                          {!recruitable.some((item) => matchesSearch(projectQuery, item.title)) && (
+                            <p>Проекты не найдены.</p>
+                          )}
+                        </div>
+                      </details>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      disabled={busy || !recruitable.some((item) => item.id === filterCase)}
+                      onClick={() =>
+                        act(
+                          () => communityApi.linkTeamToCase(managed.id, filterCase),
+                          'Набор на проект открыт. Команда доступна в поиске.',
+                        )
+                      }
+                    >
+                      Открыть набор
+                    </button>
+                  </div>
+                )}
+                {!live && (
+                  <label>
+                    Сообщение к приглашению
+                    <textarea
+                      className="textarea"
+                      maxLength={2000}
+                      value={inviteMessage}
+                      onChange={(e) => setInviteMessage(e.target.value)}
+                    />
+                  </label>
+                )}
+                <label>
+                  Поиск студента по имени или email
+                  <input
+                    className="input"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Введите имя или email"
+                  />
+                </label>
+                <h4>{query.trim() ? 'Результаты поиска' : 'Кандидаты, которые ищут команду'}</h4>
+                <PaginatedGrid className="request-list">
+                  {(query.trim()
+                    ? students.filter((s) => matchesSearch(query, s.fullName, s.email))
+                    : students.filter((s) => candidates.some((c) => c.studentId === s.id))
+                  )
+                    .filter((s) => s.id !== user.id && !managed.members.some((m) => m.id === s.id))
+                    .map((s) => {
+                      const invitationIssue = live
+                        ? teamInvitationIssue(managed.id, s.id)
+                        : undefined
+                      return (
+                        <article className="candidate-row" key={s.id}>
+                          <div>
+                            <Link to={`/profile/${s.id}`}>
+                              <UserAvatar
+                                userId={s.id}
+                                className="member-avatar"
+                                name={s.fullName}
+                                src={s.avatar}
+                              />
+                              <strong>{s.fullName}</strong>
+                            </Link>
+                            <p>
+                              {candidates.find((c) => c.studentId === s.id)?.message || s.email}
+                            </p>
+                            {invitationIssue && <p className="form-hint">{invitationIssue}</p>}
+                          </div>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={busy || !!invitationIssue || pending(managed, s.id)}
+                            onClick={async () => {
+                              const key = managed.id + ':' + s.id
+                              setBusy(true)
+                              setCandidateFeedback((current) => ({ ...current, [key]: '' }))
+                              try {
+                                await communityApi.requestTeam(
+                                  managed.id,
+                                  s.id,
+                                  'invitation',
+                                  inviteMessage.trim() || 'Приглашаем в нашу команду',
+                                )
+                                setSentInvitations((current) => ({ ...current, [key]: true }))
+                              } catch (cause) {
+                                const error = cause as Error & { code?: string }
+                                if (error.code === 'team_invitation_conflict') {
+                                  setSentInvitations((current) => ({ ...current, [key]: true }))
+                                }
+                                setCandidateFeedback((current) => ({
+                                  ...current,
+                                  [key]: error.message,
+                                }))
+                              } finally {
+                                setBusy(false)
+                              }
+                            }}
+                          >
+                            {pending(managed, s.id) ? 'Приглашение отправлено' : 'Пригласить'}
+                          </button>
+                          {candidateFeedback[managed.id + ':' + s.id] && (
+                            <p role="alert" className="form-error">
+                              {candidateFeedback[managed.id + ':' + s.id]}
+                            </p>
+                          )}
+                        </article>
+                      )
+                    })}
+                </PaginatedGrid>
+                {!query.trim() && !candidates.length && (
+                  <p className="empty-state">
+                    Анкет пока нет. Найдите участника по имени или email.
+                  </p>
+                )}
+              </section>
+            </div>
+          )}
+          {!searchMode && view === 'requests' && (
+            <>
+              <div className="action-row request-directions">
+                <button
+                  className={`btn ${direction === 'incoming' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                  onClick={() => setDirection('incoming')}
+                >
+                  Входящие
+                </button>
+                <button
+                  className={`btn ${direction === 'outgoing' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                  onClick={() => {
+                    setHighlightedInvitation(undefined)
+                    setDirection('outgoing')
+                  }}
+                >
+                  Исходящие
+                </button>
+              </div>
+              {highlightedInvitation && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setHighlightedInvitation(undefined)}
+                >
+                  Все входящие
+                </button>
+              )}
+              {highlightedInvitation && !displayedRequests.length && (
+                <p>Это приглашение уже обработано или недоступно.</p>
+              )}
+              {!highlightedInvitation && !displayedRequests.length && (
+                <div className="empty-state request-empty">
+                  <UserPlus size={28} />
+                  <h3>
+                    {direction === 'incoming'
+                      ? 'Входящих заявок и приглашений пока нет'
+                      : 'Исходящих заявок и приглашений пока нет'}
+                  </h3>
+                  <p>
+                    {direction === 'incoming'
+                      ? 'Здесь появятся приглашения в команды и заявки в команды, где вы капитан.'
+                      : 'Здесь можно отслеживать отправленные кандидатуры и приглашения участников.'}
+                  </p>
+                </div>
+              )}
+              <PaginatedGrid className="request-list">
+                {displayedRequests.map((r) => {
+                  const isIncoming = incoming(r)
+                  const personId = r.kind === 'invitation' && isIncoming ? r.senderId : r.studentId
+                  const personName =
+                    r.studentName || students.find((s) => s.id === personId)?.fullName
+                  return (
+                    <article className="team-request" key={r.id}>
+                      <div className="feature-toolbar">
+                        <h3>{teams.find((t) => t.id === r.teamId)?.name}</h3>
+                        <span className="badge badge-direction">
+                          {
+                            {
+                              pending: 'Ожидает ответа',
+                              accepted: 'Принято',
+                              rejected: 'Отклонено',
+                            }[r.status]
+                          }
+                        </span>
+                      </div>
+                      <p>
+                        {r.kind === 'invitation' ? 'Приглашение в команду' : 'Заявка на вступление'}{' '}
+                        ·{' '}
+                        {personId ? (
+                          <Link className="profile-link" to={`/profile/${personId}`}>
+                            {personName ||
+                              (r.kind === 'invitation' && isIncoming
+                                ? 'Профиль отправителя'
+                                : 'Профиль студента')}
+                          </Link>
+                        ) : (
+                          'Участник'
+                        )}
+                      </p>
+                      <p className="preserve-text">{r.message}</p>
+                      {isIncoming && r.status === 'pending' && (
+                        <div className="action-row">
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={busy}
+                            onClick={() =>
+                              act(
+                                () => communityApi.decideTeamRequest(r.id, 'accepted'),
+                                r.kind === 'invitation'
+                                  ? 'Вы присоединились к команде.'
+                                  : 'Участник добавлен в состав команды.',
+                              )
+                            }
+                          >
+                            Принять
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={busy}
+                            onClick={() =>
+                              act(() => communityApi.decideTeamRequest(r.id, 'rejected'))
+                            }
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      )}
+                    </article>
+                  )
+                })}
+              </PaginatedGrid>
+            </>
+          )}
+        </>
+      )}
+      {create && (
+        <CreateTeamModal
+          isOpen
+          onClose={() => {
+            setCreate(false)
+            refresh().catch((e) => setError(e.message))
+          }}
+        />
+      )}
+    </section>
+  )
+}

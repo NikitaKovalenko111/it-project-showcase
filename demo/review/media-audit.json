@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-24",
+  "studentPortraits": 60,
+  "uniqueStudentPortraits": 60,
+  "companyLogos": 36,
+  "companyCovers": 36,
+  "uniqueCompanyCovers": 36,
+  "replacedPortraits": [
+    36,
+    40,
+    46,
+    48,
+    49,
+    54
+  ],
+  "criteria": "Visible clothing; no ethnicity or nationality classification."
+}

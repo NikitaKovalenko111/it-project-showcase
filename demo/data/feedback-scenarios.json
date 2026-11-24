@@ -1,0 +1,38 @@
+[
+  {
+    "id": "syn_feedback_001",
+    "authorId": "syn_student_001",
+    "subject": "Повтор загрузки при обрыве соединения",
+    "message": "При загрузке отчёта после краткого обрыва соединения появляется повторный индикатор отправки.\nШаги: выбрать PDF, начать загрузку, временно отключить сеть, восстановить соединение.\nОжидается: одна запись и понятное сообщение о повторной попытке.\nПриложения: изображение экрана и журнал client-session.log.\n",
+    "status": "pending",
+    "attachments": [
+      {
+        "name": "Экран.png",
+        "url": "documents/examples/interface.png"
+      },
+      {
+        "name": "Сеанс.log",
+        "url": "documents/examples/client-session.log"
+      },
+      {
+        "name": "Описание.txt",
+        "url": "documents/examples/feedback-description.txt"
+      }
+    ],
+    "createdAt": "2026-11-24T09:30:00Z"
+  },
+  {
+    "id": "syn_feedback_002",
+    "authorId": "syn_student_002",
+    "subject": "Предложение по описанию этапов",
+    "message": "Добавить рядом с дедлайном перечень ожидаемых материалов и формат демонстрации.",
+    "status": "accepted",
+    "attachments": [
+      {
+        "name": "Материалы проекта.pdf",
+        "url": "documents/examples/materials-policy.pdf"
+      }
+    ],
+    "createdAt": "2026-11-23T10:00:00Z"
+  }
+]

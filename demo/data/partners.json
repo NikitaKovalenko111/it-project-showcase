@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ПАО «Газпром нефть»",
+    "website": "https://www.gazprom-neft.ru/",
+    "logo": "assets/logos/gazprom-neft-uust.png",
+    "officialLogo": "https://uust.ru/unit/media/uploads/subdivuploads/1/%D0%A2%D0%9E%D0%9F-%D0%98%D0%A2/%D0%93%D0%B0%D0%B7%D0%BF%D1%80%D0%BE%D0%BC%20-%20%D0%BB%D0%BE%D0%B3%D0%BE.png"
+  },
+  {
+    "name": "ООО «Инносети»",
+    "company": "syn_company_026",
+    "logo": "assets/logos/innoseti.png",
+    "officialLogo": "https://static.tildacdn.com/tild3564-3462-4362-a232-636465626636/545b3bc6-90df-48e0-b.svg"
+  },
+  {
+    "name": "IBS",
+    "company": "syn_company_025",
+    "logo": "assets/logos/ibs-brand.png",
+    "officialLogo": "https://uust.ru/unit/media/uploads/subdivuploads/1/%D0%A2%D0%9E%D0%9F-%D0%98%D0%A2/IBSlogo.jpeg"
+  },
+  {
+    "name": "АО «Форт Диалог»",
+    "company": "syn_company_029",
+    "logo": "assets/logos/fort-uust.png",
+    "officialLogo": "https://uust.ru/unit/media/uploads/subdivuploads/1/%D0%A2%D0%9E%D0%9F-%D0%98%D0%A2/%D0%A4%D0%BE%D1%80%D1%82-%D0%B4%D0%B8%D0%B0%D0%BB%D0%BE%D0%B3-%D0%BB%D0%BE%D0%B3%D0%BE.png"
+  },
+  {
+    "name": "ООО «Актион-диджитал»",
+    "company": "syn_company_028",
+    "logo": "assets/logos/action-official.png",
+    "officialLogo": "https://hdst.ru/wp-content/uploads/2021/11/og_logo-1-1.png"
+  }
+]

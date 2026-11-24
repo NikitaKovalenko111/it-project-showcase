@@ -1,0 +1,23 @@
+[
+  {
+    "files": [
+      "executors.json",
+      "dispatch-events.json"
+    ],
+    "relatedCaseIds": [
+      "syn_concept_003"
+    ],
+    "sourceType": "authored_example",
+    "note": "Собственный входной пример для новой концепции; не исходный датасет компании «Инносети»."
+  },
+  {
+    "files": [
+      "project-dependencies.json"
+    ],
+    "relatedCaseIds": [
+      "syn_historical_case_002"
+    ],
+    "sourceType": "authored_example",
+    "note": "Самостоятельный граф для иллюстрации формата; не файл прошедшего хакатона."
+  }
+]

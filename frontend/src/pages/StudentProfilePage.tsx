@@ -1,0 +1,950 @@
+import { StudentProjectCover } from '../components/StudentProjectCover'
+import { ExpandableText } from '../components/ExpandableText'
+import { ProfileAvatarUpload } from '../components/ProfileAvatarUpload'
+import { UserAvatar } from '../components/UserAvatar'
+import { CompanyLogo } from '../components/CompanyLogo'
+import { isOptionalWebUrl, isPhoneValid } from '../utils/validation'
+import { ResumeUpload } from '../components/ResumeUpload'
+import { FileDownload } from '../components/FileDownload'
+import { apiRuntime } from '../api/runtime'
+import { apiClient } from '../api/client'
+import { axiosInstance } from '../api/http'
+import type { User as ProfileUser } from '../types/models'
+import { AdminUserActions } from '../components/AdminUserActions'
+import { communityApi } from '../api/community'
+import { PaginatedGrid } from '../components/PaginatedGrid'
+import { PortfolioFiles } from '../components/PortfolioFiles'
+import { EducationLevel } from '../types/models'
+import { TeamsPanel } from '../components/TeamsPanel'
+import { ReportButton } from '../components/ReportButton'
+import React, { useState, useEffect } from 'react'
+import { useParams, Link, Navigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../store'
+import { updateUserProfileRequest } from '../store/actions'
+import { InviteStudentModal } from '../components/modals/InviteStudentModal'
+import { participatesInCase } from '../utils/access'
+import {
+  ArrowLeft,
+  Award,
+  Bookmark,
+  CheckCircle2,
+  Edit3,
+  ExternalLink,
+  FolderGit2,
+  Github,
+  Globe,
+  GraduationCap,
+  Layers,
+  Mail,
+  Phone,
+  Save,
+  Send,
+  ShieldCheck,
+  Star,
+  Trophy,
+  User,
+  Users,
+} from 'lucide-react'
+
+const editableProfileLink = (url?: string) => url || ''
+
+export const StudentProfilePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
+  const dispatch = useAppDispatch()
+  const { currentUser, allUsers, loading, error } = useAppSelector((state) => state.auth)
+  const { casesList } = useAppSelector((state) => state.cases)
+  const { projectsList } = useAppSelector((state) => state.studentProjects)
+
+  const { studentsList, teamsList } = useAppSelector((state) => state.students)
+
+  // Resolve only the requested student; never substitute another person's profile.
+  const targetId = id === 'me' ? currentUser?.id : id
+  const [remoteProfile, setRemoteProfile] = useState<ProfileUser>()
+  const [profileError, setProfileError] = useState('')
+  useEffect(() => {
+    if (apiRuntime.mode !== 'live' || !targetId || targetId === currentUser?.id) return
+    let active = true
+    setProfileError('')
+    apiClient
+      .getStudentById(targetId)
+      .then((u) => {
+        if (active) setRemoteProfile(u)
+      })
+      .catch((e) => {
+        if (active) setProfileError(e.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [targetId, currentUser?.id])
+  const targetUser =
+    (currentUser?.id === targetId ? currentUser : undefined) ||
+    (remoteProfile?.id === targetId ? remoteProfile : undefined) ||
+    [...(currentUser ? [currentUser] : []), ...allUsers, ...studentsList].find(
+      (u) => u.id === targetId,
+    )
+  const isOwnProfile = !!currentUser && currentUser.id === targetUser?.id
+  const student = targetUser?.studentProfile
+  const [statistics, setStatistics] = useState<{
+    id: string
+    rating?: number
+    awards?: number
+    ratingUnavailable?: boolean
+  }>()
+  const studentId = student ? targetUser?.id : undefined
+  useEffect(() => {
+    if (apiRuntime.mode !== 'live' || !studentId) return
+    let active = true
+    let revision = 0
+    const refresh = async () => {
+      const request = ++revision
+      const [ratingResponse, portfolioResponse] = await Promise.allSettled([
+        axiosInstance.get<{ rating: number }>(`/students/${studentId}/rating`),
+        axiosInstance.get<{ student?: { rating: number }; awards?: { award_id: string }[] }>(
+          `/students/${studentId}/portfolio`,
+        ),
+      ])
+      if (!active || request !== revision) return
+      const portfolio =
+        portfolioResponse.status === 'fulfilled' ? portfolioResponse.value.data : undefined
+      const rated =
+        ratingResponse.status === 'fulfilled' ? ratingResponse.value.data.rating : undefined
+      const rating = Number.isFinite(rated) ? rated : portfolio?.student?.rating
+      setStatistics({
+        id: studentId,
+        rating,
+        awards: portfolio
+          ? new Set(portfolio.awards?.map((award) => award.award_id)).size
+          : undefined,
+        ratingUnavailable: !Number.isFinite(rating),
+      })
+    }
+    void refresh()
+    window.addEventListener('focus', refresh)
+    return () => {
+      active = false
+      window.removeEventListener('focus', refresh)
+    }
+  }, [studentId, currentUser?.id])
+  const profileStatistics = statistics?.id === studentId ? statistics : undefined
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [editError, setEditError] = useState('')
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
+
+  // Edit fields
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | ''>(
+    student?.educationLevel || '',
+  )
+  const [identity, setIdentity] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    institute: '',
+    fieldOfStudy: '',
+    educationalProgram: '',
+    course: 1,
+    group: '',
+  })
+  const [bio, setBio] = useState(student?.bio || '')
+  const [skills, setSkills] = useState(student?.skills.join(', ') || '')
+  const [techStack, setTechStack] = useState(student?.techStack.join(', ') || '')
+  const [githubUrl, setGithubUrl] = useState(editableProfileLink(student?.githubUrl))
+  const [portfolioUrl, setPortfolioUrl] = useState(editableProfileLink(student?.portfolioUrl))
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!targetUser) return
+    const form = e.currentTarget as HTMLFormElement
+    setEditError('')
+    if (!form.checkValidity()) {
+      const field = form.querySelector<HTMLInputElement>(':invalid')
+      setEditError(
+        `Проверьте поле «${field?.labels?.[0]?.textContent?.trim() || 'Обязательное поле'}».`,
+      )
+      field?.focus()
+      return
+    }
+    if (
+      identity.fullName.trim().split(/\s+/).length < 2 ||
+      [identity.institute, identity.group, identity.fieldOfStudy].some((value) => !value.trim())
+    ) {
+      setEditError('Укажите фамилию и имя, институт, направление и группу.')
+      return
+    }
+    if (!isPhoneValid(identity.phone)) {
+      setEditError('Укажите телефон из 7–15 цифр.')
+      return
+    }
+    if (![githubUrl, portfolioUrl].every(isOptionalWebUrl)) {
+      setEditError('Укажите ссылки с http:// или https://.')
+      return
+    }
+
+    const updatedUser = {
+      ...targetUser,
+      fullName: identity.fullName.trim(),
+      email: identity.email.trim(),
+      studentProfile: {
+        ...targetUser.studentProfile!,
+        phone: identity.phone.trim(),
+        institute: identity.institute,
+        fieldOfStudy: identity.fieldOfStudy,
+        educationalProgram: identity.educationalProgram,
+        course: identity.course,
+        group: identity.group,
+        bio,
+        educationLevel: educationLevel || undefined,
+        skills: skills
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        techStack: techStack
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        githubUrl: githubUrl.trim(),
+        portfolioUrl: portfolioUrl.trim(),
+      },
+    }
+
+    dispatch(updateUserProfileRequest(updatedUser))
+  }
+
+  useEffect(() => {
+    setIsEditing(false)
+    setIdentity({
+      fullName: targetUser?.fullName || '',
+      email: targetUser?.email || '',
+      phone: student?.phone || '',
+      institute: student?.institute || '',
+      fieldOfStudy: student?.fieldOfStudy || '',
+      educationalProgram: student?.educationalProgram || '',
+      course: student?.course || 1,
+      group: student?.group || '',
+    })
+    setEducationLevel(student?.educationLevel || '')
+    setBio(student?.bio || '')
+    setSkills(student?.skills.join(', ') || '')
+    setTechStack(student?.techStack.join(', ') || '')
+    setGithubUrl(editableProfileLink(student?.githubUrl))
+    setPortfolioUrl(editableProfileLink(student?.portfolioUrl))
+  }, [targetId, student])
+
+  const [achievements, setAchievements] = useState<
+    { caseId: string; score: number; maxScore: number }[]
+  >([])
+  const [achievementError, setAchievementError] = useState('')
+  const completedKey = casesList
+    .filter((c) => c.status === 'completed')
+    .map((c) => c.id)
+    .join(',')
+  useEffect(() => {
+    let active = true
+    setAchievements([])
+    setAchievementError('')
+    if (targetId)
+      communityApi
+        .getStudentAchievements(targetId)
+        .then((items) => {
+          if (active) setAchievements(items)
+        })
+        .catch((e) => {
+          if (active) setAchievementError(e.message)
+        })
+    return () => {
+      active = false
+    }
+  }, [targetId, completedKey])
+  if (targetId === currentUser?.id && currentUser?.role !== 'student') {
+    return (
+      <Navigate
+        replace
+        to={
+          currentUser?.role === 'company' && currentUser.companyProfile?.companyId
+            ? `/company/${currentUser.companyProfile.companyId}`
+            : '/account'
+        }
+      />
+    )
+  }
+  if (!targetUser?.studentProfile)
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        {profileError || 'Профиль студента не найден или загружается.'}
+      </div>
+    )
+
+  // Verified cases where student participated and received review
+  const verifiedCases = casesList.filter((c) => achievements.some((a) => a.caseId === c.id))
+
+  // Student's own projects
+  const ownProjects = projectsList.filter((p) => p.authorId === targetUser.id)
+
+  return (
+    <div>
+      {achievementError && <p role="alert">{achievementError}</p>}
+      <div className="page-actions page-actions--top profile-toolbar">
+        {!isOwnProfile && (
+          <Link className="btn btn-secondary btn-sm profile-back" to="/students-search">
+            <ArrowLeft size={18} /> Назад к студентам
+          </Link>
+        )}
+        {isOwnProfile && (
+          <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
+            <Edit3 size={14} /> {isEditing ? 'Отменить редактирование' : 'Редактировать профиль'}
+          </button>
+        )}
+        <AdminUserActions key={targetUser.id} user={targetUser} />
+        {currentUser?.role === 'company' && (
+          <button className="btn btn-primary btn-sm" onClick={() => setInviteModalOpen(true)}>
+            <Send size={14} /> Пригласить в кейс / на стажировку
+          </button>
+        )}
+
+        {!isOwnProfile && <ReportButton targetType="user" targetId={targetUser.id} />}
+      </div>
+      {/* Profile Header Banner */}
+      <div
+        className="card profile-banner"
+        style={{
+          borderRadius: '8px',
+          overflow: 'hidden',
+          marginBottom: '24px',
+        }}
+      >
+        <div
+          className="profile-banner-body"
+          style={{
+            padding: '32px 36px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '28px',
+            flexWrap: 'wrap',
+          }}
+        >
+          {isOwnProfile && currentUser ? (
+            <ProfileAvatarUpload user={currentUser} />
+          ) : (
+            <UserAvatar
+              userId={targetUser.id}
+              src={targetUser.avatar}
+              name={targetUser.fullName}
+              className="profile-avatar"
+            />
+          )}
+
+          <div style={{ flex: 1, minWidth: 'min(280px, 100%)' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}
+            >
+              {achievements.length > 0 && (
+                <span
+                  style={{
+                    background: 'var(--ui-success-surface)',
+                    border: '1px solid var(--ui-success-line)',
+                    color: 'var(--ui-success)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Подтверждённое портфолио
+                </span>
+              )}
+              <span style={{ fontSize: '12px', color: 'var(--ui-brand-text)' }}>
+                Курс {student?.course || 3}
+              </span>
+            </div>
+
+            <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 6px' }}>
+              {targetUser.fullName}
+            </h1>
+
+            <div
+              style={{
+                fontSize: '13px',
+                color: 'var(--ui-muted)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              }}
+            >
+              <div>{student?.institute || 'Институт информатики, математики и робототехники'}</div>
+              <div>
+                Направление:{' '}
+                <strong>{student?.fieldOfStudy || '09.03.04 Программная инженерия'}</strong> (Группа{' '}
+                {student?.group || 'Группа не указана'})
+              </div>
+            </div>
+          </div>
+
+          {/* Rating Widget */}
+          <div
+            style={{
+              background: 'var(--ui-paper)',
+              border: '1px solid var(--ui-line)',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                color: 'var(--ui-warning-accent)',
+                marginBottom: '2px',
+              }}
+            >
+              <Star size={18} fill="var(--ui-warning-accent)" />
+              <strong style={{ fontSize: '24px', color: 'var(--ui-ink)' }}>
+                {(apiRuntime.mode === 'live'
+                  ? profileStatistics?.rating
+                  : student?.rating
+                )?.toLocaleString('ru-RU') ?? '—'}
+              </strong>
+            </div>
+            <span style={{ fontSize: '11px', color: 'var(--ui-icon)' }}>Рейтинг студента</span>
+            {profileStatistics?.ratingUnavailable && (
+              <div className="form-hint" role="status">
+                Не удалось загрузить рейтинг.
+              </div>
+            )}
+            <div style={{ fontSize: '10px', color: 'var(--ui-brand-text)', marginTop: '4px' }}>
+              {apiRuntime.mode === 'live'
+                ? `Наград: ${profileStatistics?.awards ?? '—'}`
+                : `Побед в конкурсах: ${student?.winsCount ?? 0}`}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {isOwnProfile ? (
+        <ResumeUpload key={`resume-${targetUser.id}`} editable={isEditing} />
+      ) : student?.resume?.public ? (
+        <section className="resume-upload">
+          <h3>Резюме (CV)</h3>
+          <FileDownload file={student.resume} />
+        </section>
+      ) : null}
+      {/* Edit Form if editing */}
+      {isEditing && (
+        <div className="card" style={{ marginBottom: '24px' }}>
+          <div className="card__header">
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Редактирование профиля</h3>
+          </div>
+          <form className="profile-edit-form" noValidate onSubmit={handleSaveProfile}>
+            {(editError || error) && (
+              <p className="form-error" role="alert">
+                {editError || error}
+              </p>
+            )}
+            <div className="card__body">
+              <div className="responsive-grid">
+                <label>
+                  Фамилия и имя
+                  <input
+                    className="input"
+                    required
+                    value={identity.fullName}
+                    onChange={(e) => setIdentity({ ...identity, fullName: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    className="input"
+                    type="email"
+                    required
+                    value={identity.email}
+                    onChange={(e) => setIdentity({ ...identity, email: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Телефон
+                  <input
+                    className="input"
+                    type="tel"
+                    value={identity.phone}
+                    onChange={(e) => setIdentity({ ...identity, phone: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Институт
+                  <input
+                    className="input"
+                    required
+                    value={identity.institute}
+                    onChange={(e) => setIdentity({ ...identity, institute: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Направление
+                  <input
+                    className="input"
+                    required
+                    value={identity.fieldOfStudy}
+                    onChange={(e) => setIdentity({ ...identity, fieldOfStudy: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Образовательная программа
+                  <input
+                    className="input"
+                    value={identity.educationalProgram}
+                    onChange={(e) =>
+                      setIdentity({ ...identity, educationalProgram: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Курс
+                  <input
+                    className="input"
+                    required
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={identity.course}
+                    onChange={(e) => setIdentity({ ...identity, course: +e.target.value })}
+                  />
+                </label>
+                <label>
+                  Группа
+                  <input
+                    className="input"
+                    required
+                    value={identity.group}
+                    onChange={(e) => setIdentity({ ...identity, group: e.target.value })}
+                  />
+                </label>
+              </div>
+              <label>
+                Уровень обучения
+                <select
+                  className="select"
+                  value={educationLevel}
+                  onChange={(e) => setEducationLevel(e.target.value as EducationLevel)}
+                >
+                  <option value="">Не указан</option>
+                  {['Бакалавриат', 'Специалитет', 'Магистратура', 'Аспирантура'].map((level) => (
+                    <option key={level}>{level}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="form-group">
+                <label htmlFor="profile-bio">О себе (краткое описание):</label>
+                <textarea
+                  id="profile-bio"
+                  className="textarea"
+                  maxLength={2000}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  style={{ minHeight: '70px' }}
+                />
+              </div>
+
+              <div
+                className="responsive-grid"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+              >
+                <div className="form-group">
+                  <label htmlFor="profile-skills">Компетенции (через запятую):</label>
+                  <input
+                    id="profile-skills"
+                    type="text"
+                    className="input"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="profile-tech">Стек технологий (через запятую):</label>
+                  <input
+                    id="profile-tech"
+                    type="text"
+                    className="input"
+                    value={techStack}
+                    onChange={(e) => setTechStack(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div
+                className="responsive-grid"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+              >
+                <div className="form-group">
+                  <label htmlFor="profile-github">Ссылка на GitHub:</label>
+                  <input
+                    id="profile-github"
+                    type="url"
+                    className="input"
+                    pattern="https?://.*"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="profile-portfolio">Ссылка на портфолио:</label>
+                  <input
+                    id="profile-portfolio"
+                    type="url"
+                    className="input"
+                    pattern="https?://.*"
+                    value={portfolioUrl}
+                    onChange={(e) => setPortfolioUrl(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="card__footer">
+              <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                <Save size={14} /> {loading ? 'Сохранение…' : 'Сохранить изменения'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Grid: Left - Verified Projects & Own Projects, Right - Competencies & Contacts */}
+      <div
+        className="responsive-detail-grid"
+        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}
+      >
+        {/* Left Column */}
+        <div>
+          {/* SECTION 1: VERIFIED CASES BY COMPANIES */}
+          <div className="card" style={{ marginBottom: '24px' }}>
+            <div className="card__header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={20} color="var(--ui-success)" />
+                <h3 style={{ margin: 0, fontSize: '16px' }}>Выполненные кейсы компаний</h3>
+              </div>
+              <span className="badge badge-verified">
+                Подтверждённых кейсов: {verifiedCases.length}
+              </span>
+            </div>
+
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              {verifiedCases.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--ui-icon)' }}>
+                  Пока нет подтверждённых кейсов
+                </div>
+              ) : (
+                <PaginatedGrid className="paginated-stack">
+                  {verifiedCases.map((c) => (
+                    <div
+                      key={c.id}
+                      style={{
+                        background: 'var(--ui-panel)',
+                        border: '1px solid var(--ui-line)',
+                        borderRadius: '8px',
+                        padding: '18px 20px',
+                      }}
+                    >
+                      <div className="profile-case-meta" style={{ marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CompanyLogo
+                            src={c.companyLogo}
+                            name={c.companyName}
+                            className="profile-case-company-logo"
+                          />
+                          <strong style={{ fontSize: '13px', color: 'var(--ui-ink)' }}>
+                            {c.companyName}
+                          </strong>
+                        </div>
+
+                        <span
+                          style={{
+                            background: 'var(--ui-success-surface)',
+                            color: 'var(--ui-success)',
+                            border: '1px solid var(--ui-success-line)',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <CheckCircle2 size={13} color="var(--ui-success)" /> Отметка: Проект
+                          подтверждён компанией
+                        </span>
+                      </div>
+
+                      <Link to={`/cases/${c.id}`}>
+                        <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: 'var(--ui-ink)' }}>
+                          {c.title}
+                        </h4>
+                      </Link>
+
+                      <p
+                        style={{
+                          margin: '0 0 12px',
+                          fontSize: '12px',
+                          color: 'var(--ui-body)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {c.shortDescription}
+                      </p>
+
+                      <div
+                        className="profile-case-meta"
+                        style={{ fontSize: '11px', color: 'var(--ui-muted)' }}
+                      >
+                        <span>Направление: {c.direction}</span>
+                        <Link to={`/cases/${c.id}/workspace`} className="btn btn-secondary btn-sm">
+                          Смотреть результаты решения →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </PaginatedGrid>
+              )}
+            </div>
+          </div>
+
+          {/* SECTION 2: STUDENT'S OWN PROJECTS */}
+          <div className="card">
+            <div className="card__header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FolderGit2 size={20} color="var(--ui-brand-text)" />
+                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                  Собственные проекты студента ({ownProjects.length})
+                </h3>
+              </div>
+            </div>
+
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
+              {ownProjects.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--ui-icon)' }}>
+                  Нет опубликованных студенческих проектов
+                </div>
+              ) : (
+                <PaginatedGrid className="paginated-stack">
+                  {ownProjects.map((p) => (
+                    <div className="profile-project" key={p.id}>
+                      <StudentProjectCover project={p} variant="thumbnail" />
+                      <div className="profile-project__text">
+                        <span className="badge badge-direction">{p.category}</span>
+                        <Link to={`/student-projects/${p.id}`}>
+                          <h4>{p.title}</h4>
+                        </Link>
+                        <p>{p.shortDescription}</p>
+                      </div>
+                    </div>
+                  ))}
+                </PaginatedGrid>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Bio, Tech Stack, Competencies, External Links */}
+        <div>
+          {/* Bio Card */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <div className="card__header">
+              <h3 style={{ margin: 0, fontSize: '15px' }}>О себе и интересы</h3>
+            </div>
+            <div className="card__body">
+              <ExpandableText text={student?.bio || 'Описание пока не заполнено.'} />
+
+              <div style={{ marginBottom: '14px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--ui-muted)',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Профессиональные интересы:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {(student?.interests || ['Веб-разработка', 'ML', 'Архитектура']).map((int) => (
+                    <span
+                      key={int}
+                      style={{
+                        background: 'var(--ui-brand-surface)',
+                        color: 'var(--ui-brand-text)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {int}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Competencies & Tech Stack */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <div className="card__header">
+              <h3 style={{ margin: 0, fontSize: '15px' }}>Компетенции и стек</h3>
+            </div>
+            <div className="card__body">
+              <div style={{ marginBottom: '14px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--ui-muted)',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Ключевые компетенции:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {(student?.skills || ['React', 'Python', 'FastAPI']).map((s) => (
+                    <span
+                      key={s}
+                      style={{
+                        background: 'var(--ui-soft)',
+                        color: 'var(--ui-body)',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--ui-muted)',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Технологический стек:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {(student?.techStack || ['React', 'TypeScript', 'Docker']).map((ts) => (
+                    <span
+                      key={ts}
+                      style={{
+                        background: 'var(--ui-panel)',
+                        border: '1px solid var(--ui-line)',
+                        color: 'var(--ui-ink)',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {ts}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* External Links */}
+          <div className="card">
+            <div className="card__header">
+              <h3 style={{ margin: 0, fontSize: '15px' }}>Контакты и профили</h3>
+            </div>
+            <div
+              className="card__body"
+              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+            >
+              {editableProfileLink(student?.githubUrl) &&
+                /^https?:\/\//i.test(student.githubUrl) && (
+                  <a
+                    href={student.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Github size={15} /> GitHub профиль
+                  </a>
+                )}
+
+              {editableProfileLink(student?.portfolioUrl) &&
+                /^https?:\/\//i.test(student.portfolioUrl) && (
+                  <a
+                    href={student.portfolioUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Globe size={15} /> Внешнее веб-портфолио
+                  </a>
+                )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: 'var(--ui-body)',
+                  marginTop: '4px',
+                }}
+              >
+                <Mail size={14} color="var(--ui-muted)" /> {targetUser.email}
+              </div>
+
+              {targetUser.phone && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    color: 'var(--ui-body)',
+                  }}
+                >
+                  <Phone size={14} color="var(--ui-muted)" /> {targetUser.phone}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal for inviting student */}
+      <InviteStudentModal
+        student={targetUser}
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+      />
+      <PortfolioFiles
+        key={`portfolio-${targetUser.id}`}
+        user={targetUser}
+        editable={isOwnProfile}
+      />
+    </div>
+  )
+}

@@ -1,0 +1,28 @@
+log_level: "dev"
+http_server:
+    http_address: ":3005"
+    http_timeout: 4s
+    http_idle_timeout: 60s
+    cors_allowed_origins:
+      - "http://localhost:5173"
+jwt:
+    jwt_access_secret: "aaaaaaaaaaaaaaaaa"
+    jwt_refresh_secret: "rrrrrrrrrrrrrrrrr"
+    access_token_ttl: "1m"
+    refresh_token_ttl: "1h"
+    session_cleanup_interval: "30m"
+object_storage:
+    endpoint: "localhost:9000"
+    access_key: "test-access"
+    secret_key: "test-secret"
+    bucket: "test-bucket"
+    use_ssl: false
+    region: "us-east-1"
+    max_file_size: 20971520
+postgres:
+  db_host: "localhost"
+  db_user: "postgres"
+  db_port: 1234
+  db_pass: "pass"
+  db_name: "database"
+  ssl_mode: "disable"

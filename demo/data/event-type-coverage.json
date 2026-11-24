@@ -1,0 +1,107 @@
+[
+  {
+    "kind": "olympiad",
+    "caseId": "syn_olympiad_001",
+    "title": "SQL: запрос имеет значение"
+  },
+  {
+    "kind": "olympiad",
+    "caseId": "syn_olympiad_002",
+    "title": "Алгоритм и доказательство"
+  },
+  {
+    "kind": "olympiad",
+    "caseId": "syn_olympiad_003",
+    "title": "Качество API: найди граничный случай"
+  },
+  {
+    "kind": "olympiad",
+    "caseId": "syn_olympiad_004",
+    "title": "Данные без утечки"
+  },
+  {
+    "kind": "hackathon",
+    "caseId": "syn_hackathon_001",
+    "title": "Кампус за 36 часов"
+  },
+  {
+    "kind": "hackathon",
+    "caseId": "syn_hackathon_002",
+    "title": "Город видит данные"
+  },
+  {
+    "kind": "hackathon",
+    "caseId": "syn_hackathon_003",
+    "title": "Интеграция без потерь"
+  },
+  {
+    "kind": "hackathon",
+    "caseId": "syn_hackathon_004",
+    "title": "Играй и объясняй"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_001",
+    "title": "Стажировка: iot — Термослед"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_002",
+    "title": "Стажировка: fullstack — БиблиоМаршрут"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_003",
+    "title": "Стажировка: data science — ЭнергоМозаика"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_004",
+    "title": "Стажировка: iot — АкваКонтекст"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_005",
+    "title": "Стажировка: информационная безопасность — Вектор Доступа"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_006",
+    "title": "Стажировка: базы данных — Реестр Лабораторий"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_007",
+    "title": "Стажировка: devops — Облачный След"
+  },
+  {
+    "kind": "internship",
+    "caseId": "syn_internship_case_008",
+    "title": "Стажировка: мобильная разработка — Город На Ладони"
+  },
+  {
+    "kind": "case",
+    "caseId": "syn_extra_case_001",
+    "title": "Маршрут без ступеней"
+  },
+  {
+    "kind": "practice",
+    "programId": "syn_program_002",
+    "title": "Практика: автоматизация — АгроРитм"
+  },
+  {
+    "kind": "practice",
+    "programId": "syn_program_004",
+    "title": "Практика: backend — Маршрутная Сетка"
+  },
+  {
+    "kind": "practice",
+    "programId": "syn_program_006",
+    "title": "Практика: frontend — Кампус Навигатор"
+  },
+  {
+    "kind": "practice",
+    "programId": "syn_program_008",
+    "title": "Практика: ux/ui — Такт Интерфейса"
+  }
+]

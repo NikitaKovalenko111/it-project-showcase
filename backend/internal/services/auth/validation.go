@@ -1,0 +1,185 @@
+package auth_service
+
+import (
+	"net/mail"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+
+	"it-project-showcase/backend/internal/models"
+	"it-project-showcase/backend/pkg"
+)
+
+const (
+	minUsernameLength = 3
+	maxUsernameLength = 32
+	minPasswordLength = 8
+	maxPasswordLength = 72
+	maxEmailLength    = 254
+	maxShortText      = 150
+	maxBioLength      = 2000
+)
+
+var phonePattern = regexp.MustCompile(`^\+?[0-9(). -]+$`)
+
+var usernamePattern = regexp.MustCompile(`^[a-z0-9._-]+$`)
+
+type ValidationError struct {
+	Field   string
+	Code    string
+	Message string
+}
+
+func (e *ValidationError) Error() string { return e.Message }
+
+func ValidateRegisterRequest(input models.StudentRegistration) error {
+	if input.RequestedRole != "" && input.RequestedRole != "student" && input.RequestedRole != "company_representative" && input.RequestedRole != "university_staff" {
+		return validationError("role", "invalid_role", "Role cannot be selected during public registration")
+	}
+	if err := validateUsername(input.Username); err != nil {
+		return err
+	}
+	if err := validateEmail(input.Email); err != nil {
+		return err
+	}
+	if err := validatePassword(input.Password); err != nil {
+		return err
+	}
+	if strings.TrimSpace(input.ConsentVersion) == "" || utf8.RuneCountInString(input.ConsentVersion) > 50 {
+		return validationError("consent_version", "invalid_consent", "consent_version is required and must be at most 50 characters")
+	}
+
+	if input.RequestedRole == "company_representative" && strings.TrimSpace(input.FullName) == "" {
+		return validationError("full_name", "required", "full_name is required")
+	}
+	if (input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff") && utf8.RuneCountInString(input.FullName) > 500 {
+		return validationError("full_name", "too_long", "full_name must be at most 500 characters")
+	}
+	if input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff" {
+		return nil
+	}
+	if !strings.HasSuffix(strings.ToLower(input.Email), "@stud.uust.ru") {
+		return validationError("email", "student_domain_required", "Для регистрации студента укажите почту на домене @stud.uust.ru")
+	}
+	return ValidateStudentProfile(input)
+}
+
+func ValidateStudentProfile(input models.StudentRegistration) error {
+	if err := validateEmail(input.Email); err != nil {
+		return err
+	}
+	checks := []struct {
+		field string
+		value string
+		max   int
+	}{
+		{"last_name", input.LastName, maxShortText},
+		{"first_name", input.FirstName, maxShortText},
+		{"institute", input.Institute, maxShortText},
+		{"direction", input.Direction, maxShortText},
+		{"group_name", input.GroupName, maxShortText},
+	}
+	for _, check := range checks {
+		if strings.TrimSpace(check.value) == "" {
+			return validationError(check.field, "required", check.field+" is required")
+		}
+		if utf8.RuneCountInString(check.value) > check.max {
+			return validationError(check.field, "too_long", check.field+" is too long")
+		}
+	}
+	if strings.EqualFold(strings.TrimSpace(input.Direction), "Не указано") {
+		return validationError("direction", "required", "Enter the study direction")
+	}
+	for _, field := range []struct{ name, value string }{
+		{"patronymic", input.Patronymic}, {"program", input.Program}, {"phone", input.Phone}, {"education_level", input.EducationLevel},
+	} {
+		if utf8.RuneCountInString(field.value) > maxShortText {
+			return validationError(field.name, "too_long", field.name+" is too long")
+		}
+	}
+	if input.Phone != "" {
+		digits := 0
+		for _, c := range input.Phone {
+			if c >= '0' && c <= '9' {
+				digits++
+			}
+		}
+		if !phonePattern.MatchString(input.Phone) || digits < 7 || digits > 15 {
+			return validationError("phone", "invalid_format", "Укажите телефон из 7–15 цифр")
+		}
+	}
+	if input.Course < 1 || input.Course > 8 {
+		return validationError("course", "out_of_range", "course must be between 1 and 8")
+	}
+	if utf8.RuneCountInString(input.Bio) > maxBioLength {
+		return validationError("bio", "too_long", "bio is too long")
+	}
+	for _, values := range [][]string{input.ProfessionalInterests, input.Competencies, input.Technologies} {
+		if len(values) > 50 {
+			return validationError("profile", "too_many_items", "profile lists may contain at most 50 items")
+		}
+		for _, value := range values {
+			if strings.TrimSpace(value) == "" || utf8.RuneCountInString(value) > maxShortText {
+				return validationError("profile", "invalid_item", "Каждый элемент списка должен содержать от 1 до 150 символов")
+			}
+		}
+	}
+	if len(input.Links) > 50 {
+		return validationError("links", "too_many_items", "At most 50 links are allowed")
+	}
+	for index, link := range input.Links {
+		if strings.TrimSpace(link.Kind) == "" {
+			return validationError("links", "invalid_link", "link kind is required")
+		}
+		if !pkg.IsWebURL(link.URL) {
+			return validationError("links", "invalid_link", "link at index "+strconv.Itoa(index)+" must be an http or https URL")
+		}
+	}
+	return nil
+}
+
+func validateUsername(value string) error {
+	length := utf8.RuneCountInString(value)
+	if length < minUsernameLength || length > maxUsernameLength {
+		return validationError("username", "invalid_length", "username must be between 3 and 32 characters")
+	}
+	if !usernamePattern.MatchString(value) {
+		return validationError("username", "invalid_format", "username may contain only lowercase Latin letters, digits, dots, underscores, and hyphens")
+	}
+	return nil
+}
+
+func validateEmail(value string) error {
+	if len(value) > maxEmailLength {
+		return validationError("email", "too_long", "email is too long")
+	}
+	address, err := mail.ParseAddress(value)
+	if err != nil || address.Address != value {
+		return validationError("email", "invalid_format", "email has an invalid format")
+	}
+	return nil
+}
+
+func validatePassword(value string) error {
+	if len(value) < minPasswordLength || len(value) > maxPasswordLength {
+		return validationError("password", "invalid_length", "password must be between 8 and 72 characters")
+	}
+	var letter, digit bool
+	for _, character := range value {
+		if unicode.IsSpace(character) || unicode.IsControl(character) {
+			return validationError("password", "invalid_format", "password must not contain spaces or control characters")
+		}
+		letter = letter || unicode.IsLetter(character)
+		digit = digit || unicode.IsDigit(character)
+	}
+	if !letter || !digit {
+		return validationError("password", "weak_password", "password must contain at least one letter and one digit")
+	}
+	return nil
+}
+
+func validationError(field, code, message string) error {
+	return &ValidationError{Field: field, Code: code, Message: message}
+}

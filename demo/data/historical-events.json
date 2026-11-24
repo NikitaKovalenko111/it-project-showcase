@@ -1,0 +1,141 @@
+[
+  {
+    "id": "syn_event_001",
+    "title": "UFA_HACK 2024",
+    "startDate": "2024-03-29",
+    "endDate": "2024-03-30",
+    "city": "Уфа",
+    "venue": "Дом Евразийского НОЦ, Уфа, ул. Кирова, 15",
+    "organizerId": "syn_company_033",
+    "sourceUrls": [
+      "https://uust.ru/events/get/respublikanskij-hakaton-ufa_hack-2024/",
+      "https://uust.ru/iimrt/publications/news/get/bugbusters-2-mesto-v-kejse-ot-ufanet-ml/"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_002",
+    "title": "Всем в IT! — 2023",
+    "startDate": "2023-10-13",
+    "endDate": "2023-10-14",
+    "city": "Уфа",
+    "venue": "БГПУ им. М. Акмуллы, Уфа",
+    "organizerId": "syn_company_034",
+    "sourceUrls": [
+      "https://bspu.ru/files/155975",
+      "https://bspu.ru/unit/318/news/26623"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_003",
+    "title": "Всем в IT!-2 — 2024",
+    "startDate": "2024-05-16",
+    "endDate": "2024-05-17",
+    "city": "Уфа",
+    "venue": "БГПУ им. М. Акмуллы, Уфа",
+    "organizerId": "syn_company_034",
+    "sourceUrls": [
+      "https://bspu.ru/files/181899",
+      "https://sp.urfu.ru/chu/2024/cert.pdf"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_004",
+    "title": "БизGame — 2024",
+    "startDate": "2024-12-12",
+    "endDate": "2024-12-13",
+    "city": "Уфа",
+    "venue": "Уфа",
+    "organizerId": "syn_company_035",
+    "sourceUrls": [
+      "https://uust.ru/matem/publications/news/get/itogi-hakatona-bizgame/"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_005",
+    "title": "Всем в IT!-4 — 2026",
+    "startDate": "2026-04-16",
+    "endDate": "2026-04-17",
+    "city": "Уфа",
+    "venue": "Уфа, ул. Чернышевского, 49/1, корпус 10",
+    "organizerId": "syn_company_034",
+    "sourceUrls": [
+      "https://bspu.ru/unit/318/news/41631",
+      "https://bspu.ru/index.php/unit/106/news/42148"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_006",
+    "title": "ТОП-ИТ. Программируем будущее — бизнес-хакатон 2026",
+    "startDate": "2026-09-25",
+    "endDate": "2026-10-01",
+    "city": "Уфа",
+    "venue": "УУНиТ, Уфа; Центр СПАРКС и учебные аудитории",
+    "organizerId": "syn_company_033",
+    "sourceUrls": [
+      "https://uust.ru/it-training-center/it_festival2026/",
+      "https://uust.ru/it-training-center/publications/news/get/studenty-top-it-reshali-realnye-zadachi-it-kompani/"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Начало проектного трека — 25 сентября; весь фестиваль открылся 24 сентября, защиты — 1 октября.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  },
+  {
+    "id": "syn_event_007",
+    "title": "GameJam@Ufa2024",
+    "startDate": "2024-09-13",
+    "endDate": "2024-09-21",
+    "city": "Уфа",
+    "venue": "Межвузовский кампус, Центр СПАРКС, Уфа, ул. Заки Валиди, 32/2",
+    "organizerId": "syn_company_033",
+    "sourceUrls": [
+      "https://uust.ru/news/get/v-uunit-projdet-pervyj-chempionat-po-gejm-razrabotke-gamejamufa2024/",
+      "https://uust.ru/news/get/centr-sparks-stanovitsya-habom-krupnyh-sostyazanij-i-podgotovki-ajtishnikov/"
+    ],
+    "datePrecision": "day",
+    "dateNote": "Даты мероприятия взяты из программы или сообщения о проведении.",
+    "unknownFields": [
+      "Точные критерии жюри",
+      "Полный пакет заданий",
+      "Неуказанные в источнике условия участия"
+    ]
+  }
+]

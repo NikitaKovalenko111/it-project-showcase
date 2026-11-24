@@ -1,0 +1,73 @@
+// Sass aliases used by existing components.
+$primary-navy: #223b57;
+$primary-navy-dark: #19334f;
+$primary-blue: #3a75b4;
+$primary-blue-hover: #285b92;
+$primary-blue-light: #78a5d0;
+$primary-blue-subtle: #eaf3fb;
+
+$uust-tab-active: #3a75b4;
+$uust-tab-inactive: #78a5d0;
+$uust-accent-red: #ac4a60;
+$uust-accent-red-hover: #9a384e;
+$uust-pill-purple: #8ba4bd;
+
+$accent-cyan: #6c9987;
+$accent-cyan-light: #e8f2ed;
+$accent-amber: #805719;
+$accent-amber-light: #faf0dc;
+$accent-emerald: #467d61;
+$accent-emerald-light: #e7f2ec;
+$accent-coral: #ac4a60;
+$accent-coral-light: #faecf0;
+$accent-purple: #316aa6;
+$accent-purple-light: #e8f2fb;
+$accent-gold: #967035;
+
+$bg-main: #eaf2fa;
+$bg-surface: #ffffff;
+$bg-surface-glass: rgba(255, 255, 255, 0.96);
+$bg-subtle: #f8fbfe;
+$bg-sidebar: #eaf2fa;
+
+$text-dark: #182c47;
+$text-body: #354b65;
+$text-muted: #526983;
+$text-light: #526983;
+$text-on-dark: #ffffff;
+
+$border-color: #8b9eb4;
+$border-glass: rgba(187, 209, 231, 0.8);
+$border-focus: #3a75b4;
+
+// Elevation
+$shadow-sm: 0 1px 3px rgba(24, 44, 71, 0.05);
+$shadow-md: 0 3px 10px rgba(24, 44, 71, 0.07);
+$shadow-lg: 0 8px 20px rgba(24, 44, 71, 0.09);
+$shadow-xl: 0 12px 30px rgba(24, 44, 71, 0.12);
+$shadow-glow-blue: 0 4px 14px rgba(58, 117, 180, 0.22);
+$shadow-glow-coral: 0 4px 14px rgba(172, 74, 96, 0.25);
+$shadow-card-hover: 0 8px 24px -4px rgba(24, 44, 71, 0.1), 0 2px 6px -1px rgba(24, 44, 71, 0.04);
+
+// Shared surfaces and active states
+$gradient-uust-hero: #e8f2fb;
+$gradient-sidebar: #eaf2fa;
+$gradient-coral-active: #3a75b4;
+$gradient-blue-active: #3a75b4;
+
+// Reduced border radius - clean, strict, realistic academic UI
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-xl: 10px;
+$radius-full: 9999px;
+
+$transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out,
+  box-shadow 150ms ease-out;
+
+// Breakpoints
+$bp-mobile: 480px;
+$bp-tablet: 768px;
+$bp-laptop: 1024px;
+$bp-desktop: 1280px;
+$bp-wide: 1536px;

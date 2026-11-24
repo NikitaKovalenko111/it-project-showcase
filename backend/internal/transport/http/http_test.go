@@ -1,0 +1,210 @@
+package transport
+
+import (
+	"encoding/json"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	"it-project-showcase/backend/internal/middleware"
+	"it-project-showcase/backend/internal/models"
+	opportunities_service "it-project-showcase/backend/internal/services/opportunities"
+	"it-project-showcase/backend/internal/transport/http/handlers"
+	auth_handler "it-project-showcase/backend/internal/transport/http/handlers/auth"
+	documentation_handler "it-project-showcase/backend/internal/transport/http/handlers/documentation"
+	opportunity_handler "it-project-showcase/backend/internal/transport/http/handlers/opportunity"
+	system_handler "it-project-showcase/backend/internal/transport/http/handlers/system"
+	"it-project-showcase/backend/pkg"
+)
+
+func TestRightsMatrixRoleBoundaries(t *testing.T) {
+	const secret = "matrix-test-secret"
+	mux := http.NewServeMux()
+	Init(&handlers.Handlers{}, middleware.Authorization(secret, slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	tests := []struct {
+		name, role, method, path, body string
+		want                           int
+	}{
+		{"admin keeps case creation", "admin", "POST", "/cases", "{", 400},
+		{"admin keeps case editing route", "admin", "PUT", "/cases/example", "{", 400},
+		{"admin keeps program creation", "admin", "POST", "/internships", "{", 400},
+		{"staff cannot create case", "university_staff", "POST", "/cases", "{", 403},
+		{"staff cannot edit case", "university_staff", "PUT", "/cases/example", "{", 403},
+		{"staff cannot select applicants", "university_staff", "PATCH", "/applications/example/status", "{", 403},
+		{"admin cannot submit application", "admin", "POST", "/applications", "{", 403},
+		{"company cannot submit application", "company_representative", "POST", "/applications", "{", 403},
+		{"staff cannot submit application", "university_staff", "POST", "/applications", "{", 403},
+		{"student can reach application validation", "student", "POST", "/applications", "{", 400},
+		{"admin cannot create student project", "admin", "POST", "/student-projects", "{", 403},
+		{"company cannot create student project", "company_representative", "POST", "/student-projects", "{", 403},
+		{"staff cannot create student project", "university_staff", "POST", "/student-projects", "{", 403},
+		{"student can reach project validation", "student", "POST", "/student-projects", "{", 400},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			token, _, err := pkg.CreateAccessTokenWithRoles("matrix-user", []string{test.role}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(test.method, "/api/v1"+test.path, strings.NewReader(test.body))
+			req.Header.Set("Authorization", "Bearer "+token)
+			res := httptest.NewRecorder()
+			mux.ServeHTTP(res, req)
+			if res.Code != test.want {
+				t.Fatalf("status %d, want %d, body %s", res.Code, test.want, res.Body.String())
+			}
+		})
+	}
+}
+
+func TestRoutesUseAPIVersionPrefix(t *testing.T) {
+	handlerSet := &handlers.Handlers{
+		System: system_handler.Init(),
+		Auth:   auth_handler.Init(nil),
+	}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	tests := []struct {
+		name       string
+		path       string
+		wantStatus int
+	}{
+		{name: "versioned health", path: "/api/v1/system/health", wantStatus: http.StatusOK},
+		{name: "unversioned health", path: "/system/health", wantStatus: http.StatusNotFound},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, test.path, nil)
+			recorder := httptest.NewRecorder()
+			mux.ServeHTTP(recorder, request)
+			if recorder.Code != test.wantStatus {
+				t.Fatalf("status = %d, want %d", recorder.Code, test.wantStatus)
+			}
+		})
+	}
+}
+
+func TestSwaggerDocumentationRoutes(t *testing.T) {
+	handlerSet := &handlers.Handlers{
+		System:        system_handler.Init(),
+		Auth:          auth_handler.Init(nil),
+		Documentation: documentation_handler.Init(),
+	}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	for _, test := range []struct {
+		path        string
+		contentType string
+	}{
+		{path: "/api/v1/docs", contentType: "text/html"},
+		{path: "/api/v1/docs/openapi.yaml", contentType: "application/yaml"},
+	} {
+		request := httptest.NewRequest(http.MethodGet, test.path, nil)
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusOK {
+			t.Errorf("GET %s status = %d", test.path, recorder.Code)
+		}
+		if got := recorder.Header().Get("Content-Type"); !strings.Contains(got, test.contentType) {
+			t.Errorf("GET %s content type = %q", test.path, got)
+		}
+	}
+}
+
+func TestLogoutRouteIsProtected(t *testing.T) {
+	handlerSet := &handlers.Handlers{
+		System: system_handler.Init(),
+		Auth:   auth_handler.Init(nil),
+	}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestCompanyCreationWithoutTrailingSlashIsProtected(t *testing.T) {
+	handlerSet := &handlers.Handlers{System: system_handler.Init(), Auth: auth_handler.Init(nil)}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/companies", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestSelfAssignmentRequiresCuratorRole(t *testing.T) {
+	const secret = "test-secret"
+	handlerSet := &handlers.Handlers{Opportunities: opportunity_handler.Init(opportunities_service.Init(nil))}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization(secret, slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	for _, test := range []struct {
+		role string
+		want int
+	}{
+		{want: http.StatusUnauthorized},
+		{role: "student", want: http.StatusForbidden},
+		{role: "mentor", want: http.StatusForbidden},
+		{role: "university_staff", want: http.StatusNotFound},
+	} {
+		t.Run(test.role, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodPut, "/api/v1/students/bad-id/curator/self", nil)
+			if test.role != "" {
+				token, _, err := pkg.CreateAccessTokenWithRoles("curator", []string{test.role}, secret, time.Minute)
+				if err != nil {
+					t.Fatal(err)
+				}
+				request.Header.Set("Authorization", "Bearer "+token)
+			}
+			recorder := httptest.NewRecorder()
+			mux.ServeHTTP(recorder, request)
+			if recorder.Code != test.want {
+				t.Fatalf("status = %d, want %d, body = %s", recorder.Code, test.want, recorder.Body.String())
+			}
+		})
+	}
+}
+
+func TestUnknownAPIRouteReturnsJSONError(t *testing.T) {
+	handlerSet := &handlers.Handlers{
+		System: system_handler.Init(),
+		Auth:   auth_handler.Init(nil),
+	}
+	mux := http.NewServeMux()
+	Init(handlerSet, middleware.Authorization("secret", slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/unknown", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusNotFound)
+	}
+	if contentType := recorder.Header().Get("Content-Type"); contentType != "application/json" {
+		t.Fatalf("content type = %q, want application/json", contentType)
+	}
+
+	var response models.ErrorResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&response); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if response.Error.Code != "route_not_found" {
+		t.Fatalf("error code = %q, want route_not_found", response.Error.Code)
+	}
+}

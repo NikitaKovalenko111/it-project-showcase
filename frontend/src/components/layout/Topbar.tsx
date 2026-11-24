@@ -1,0 +1,328 @@
+import React, { useState, useRef, useEffect } from 'react'
+import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../../store'
+import {
+  fetchNotificationsRequest,
+  markAllNotificationsReadRequest,
+  markNotificationReadRequest,
+} from '../../store/actions'
+import { apiRuntime } from '../../api/runtime'
+import { watchNotifications } from '../../api/notificationStream'
+import { hasApprovedCompany } from '../../utils/access'
+import {
+  Building2,
+  GraduationCap,
+  Landmark,
+  Settings,
+  Bell,
+  CheckCheck,
+  ClipboardList,
+  Menu,
+  Layers,
+  FolderOpen,
+  Star,
+} from 'lucide-react'
+
+interface TopbarProps {
+  onToggleSidebar: () => void
+  sidebarExpanded: boolean
+}
+
+export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded }) => {
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const caseId = useMatch('/cases/:id/*')?.params.id
+  const { currentUser } = useAppSelector((state) => state.auth)
+  const userId = currentUser?.id
+  const limitedCompany =
+    apiRuntime.mode === 'live' &&
+    currentUser?.role === 'company' &&
+    !hasApprovedCompany(currentUser)
+  const { notificationsList, unreadCount } = useAppSelector((state) => state.notifications)
+  const { favorites, activeCase, casesList } = useAppSelector((state) => state.cases)
+  const { teamsList } = useAppSelector((state) => state.students)
+  const { applicationsList } = useAppSelector((state) => state.applications)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const infoRef = useRef<HTMLDivElement>(null)
+  const infoButtonRef = useRef<HTMLButtonElement>(null)
+  const project = caseId
+    ? activeCase?.id === caseId
+      ? activeCase
+      : casesList.find((item) => item.id === caseId)
+    : undefined
+  const ownTeams =
+    currentUser?.role === 'student'
+      ? teamsList.filter(
+          (team) =>
+            team.leaderId === currentUser.id ||
+            team.members.some((member) => member.id === currentUser.id),
+        )
+      : []
+  const projectTeams = project
+    ? ownTeams.filter(
+        (team) =>
+          team.caseId === project.id ||
+          applicationsList.some(
+            (application) =>
+              application.caseId === project.id &&
+              application.teamId === team.id &&
+              application.status === 'accepted',
+          ),
+      )
+    : ownTeams
+
+  useEffect(() => setShowInfo(false), [pathname])
+  useEffect(() => {
+    if (apiRuntime.mode === 'live' && userId && currentUser?.role === 'company')
+      return watchNotifications(() => dispatch(fetchNotificationsRequest(userId)))
+  }, [userId, currentUser?.role, dispatch])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setShowNotifications(false)
+      }
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) {
+        setShowInfo(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleMarkAllRead = () => {
+    if (currentUser) {
+      dispatch(markAllNotificationsReadRequest(currentUser.id))
+    }
+  }
+
+  const handleNotificationClick = (id: string) => {
+    dispatch(markNotificationReadRequest(id))
+    const notification = notificationsList.find((item) => item.id === id)
+    if (notification?.link?.startsWith('/') && !notification.link.startsWith('//')) {
+      navigate(notification.link)
+      setShowNotifications(false)
+    }
+  }
+
+  return (
+    <header className="topbar-isu">
+      <div className="topbar-isu__left">
+        <button
+          className="topbar-isu__hamburger"
+          onClick={onToggleSidebar}
+          aria-label="Переключить боковое меню"
+          aria-controls="main-sidebar"
+          aria-expanded={sidebarExpanded}
+          title="Свернуть / развернуть меню"
+        >
+          <Menu size={18} />
+        </button>
+
+        {/* Official UUST Date Header matching photo */}
+        <div className="topbar-isu__date">
+          <span className="date-dot" />
+          <span>
+            Сегодня:{' '}
+            {new Intl.DateTimeFormat('ru-RU', {
+              timeZone: 'Asia/Yekaterinburg',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              weekday: 'long',
+            }).format(new Date())}
+          </span>
+        </div>
+        <span className="topbar-isu__mobile-brand">Витрина IT-проектов</span>
+      </div>
+
+      <div className="topbar-isu__right">
+        {/* Chat / Messages Icon */}
+        {!limitedCompany && (
+          <button
+            className="topbar-isu__icon-btn"
+            title="Активные проекты"
+            aria-label="Активные проекты"
+            onClick={() => navigate('/workspace')}
+          >
+            <Layers size={17} />
+          </button>
+        )}
+
+        {/* Role-specific Quick Action in Header */}
+        {currentUser?.role === 'student' && (
+          <Link
+            to="/favorites"
+            className="topbar-isu__icon-btn"
+            title={`Избранные кейсы (${favorites.length})`}
+          >
+            <Star size={17} />
+          </Link>
+        )}
+
+        {currentUser?.role === 'company' && !limitedCompany && (
+          <Link
+            to="/company-applications"
+            className="topbar-isu__icon-btn"
+            title={`Входящие заявки студентов (${applicationsList.filter((a) => ['pending', 'need_info', 'interview'].includes(a.status)).length})`}
+          >
+            <ClipboardList size={17} />
+          </Link>
+        )}
+
+        {/* Notifications Popover */}
+        <div className="notifications-wrap" ref={popoverRef}>
+          <button
+            className="topbar-isu__icon-btn"
+            onClick={() => {
+              if (!showNotifications && userId) dispatch(fetchNotificationsRequest(userId))
+              setShowNotifications(!showNotifications)
+            }}
+            title="Системные уведомления"
+          >
+            <Bell size={17} />
+            {unreadCount > 0 && <span className="topbar-isu__red-dot" />}
+          </button>
+
+          {showNotifications && (
+            <div className="notifications-popover">
+              <div className="notifications-popover__header">
+                <h4>Уведомления ({unreadCount})</h4>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--ui-brand-text)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <CheckCheck size={14} /> Прочитать все
+                  </button>
+                )}
+              </div>
+
+              <div className="notifications-popover__list">
+                {notificationsList.length === 0 ? (
+                  <div
+                    style={{
+                      padding: '24px',
+                      textAlign: 'center',
+                      color: 'var(--ui-icon)',
+                      fontSize: '12px',
+                    }}
+                  >
+                    Нет новых уведомлений
+                  </div>
+                ) : (
+                  notificationsList.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`notifications-popover__item ${!notif.read ? 'unread' : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleNotificationClick(notif.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          handleNotificationClick(notif.id)
+                        }
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div className="notif-title">{notif.title}</div>
+                        <div className="notif-desc">{notif.message}</div>
+                        {notif.link?.startsWith('/teams?invitation=') && (
+                          <div className="notif-title">Перейти к приглашению</div>
+                        )}
+                        <div className="notif-time">
+                          {new Date(notif.createdAt).toLocaleDateString('ru-RU')}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div
+          className="topbar-isu__more-wrap"
+          ref={infoRef}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && showInfo) {
+              setShowInfo(false)
+              infoButtonRef.current?.focus()
+            }
+          }}
+        >
+          <button
+            ref={infoButtonRef}
+            type="button"
+            className="topbar-isu__icon-btn"
+            onClick={() => setShowInfo(!showInfo)}
+            aria-expanded={showInfo}
+            aria-controls="topbar-project-info"
+            aria-label="Проекты и команды"
+            title="Проекты и команды"
+          >
+            <FolderOpen size={17} />
+          </button>
+
+          {showInfo && (
+            <section
+              id="topbar-project-info"
+              className="topbar-isu__menu-dropdown project-info-popover"
+              aria-label="Проекты и команды"
+            >
+              <div className="dropdown-title">Проекты и команды</div>
+              <div className="project-info-popover__body">
+                {project && (
+                  <div>
+                    <Link to={`/cases/${project.id}`} onClick={() => setShowInfo(false)}>
+                      <strong>{project.title}</strong>
+                    </Link>
+                    <small>{project.companyName}</small>
+                  </div>
+                )}
+                {projectTeams.length > 0 && (
+                  <ul>
+                    {projectTeams.slice(0, 3).map((team) => (
+                      <li key={team.id}>
+                        {team.name}{' '}
+                        <small>
+                          {team.members.length} чел.
+                          {team.caseId && casesList.find((item) => item.id === team.caseId)
+                            ? ` · ${casesList.find((item) => item.id === team.caseId)?.title}`
+                            : ''}{' '}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link to="/workspace" onClick={() => setShowInfo(false)}>
+                  Открыть список проектов
+                </Link>
+                {currentUser?.role === 'student' && (
+                  <Link to="/teams" onClick={() => setShowInfo(false)}>
+                    Мои команды
+                  </Link>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </header>
+  )
+}

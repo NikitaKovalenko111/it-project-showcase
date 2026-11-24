@@ -1,0 +1,104 @@
+[
+  {
+    "executor_id": "executor_1",
+    "skills": [
+      "billing",
+      "integration"
+    ],
+    "capacity": 2,
+    "online": true
+  },
+  {
+    "executor_id": "executor_2",
+    "skills": [
+      "support",
+      "billing"
+    ],
+    "capacity": 3,
+    "online": true
+  },
+  {
+    "executor_id": "executor_3",
+    "skills": [
+      "integration"
+    ],
+    "capacity": 4,
+    "online": true
+  },
+  {
+    "executor_id": "executor_4",
+    "skills": [
+      "support"
+    ],
+    "capacity": 2,
+    "online": true
+  },
+  {
+    "executor_id": "executor_5",
+    "skills": [
+      "billing",
+      "integration"
+    ],
+    "capacity": 3,
+    "online": true
+  },
+  {
+    "executor_id": "executor_6",
+    "skills": [
+      "support",
+      "billing"
+    ],
+    "capacity": 4,
+    "online": true
+  },
+  {
+    "executor_id": "executor_7",
+    "skills": [
+      "integration"
+    ],
+    "capacity": 2,
+    "online": true
+  },
+  {
+    "executor_id": "executor_8",
+    "skills": [
+      "support"
+    ],
+    "capacity": 3,
+    "online": true
+  },
+  {
+    "executor_id": "executor_9",
+    "skills": [
+      "billing",
+      "integration"
+    ],
+    "capacity": 4,
+    "online": true
+  },
+  {
+    "executor_id": "executor_10",
+    "skills": [
+      "support",
+      "billing"
+    ],
+    "capacity": 2,
+    "online": true
+  },
+  {
+    "executor_id": "executor_11",
+    "skills": [
+      "integration"
+    ],
+    "capacity": 3,
+    "online": true
+  },
+  {
+    "executor_id": "executor_12",
+    "skills": [
+      "support"
+    ],
+    "capacity": 4,
+    "online": false
+  }
+]
