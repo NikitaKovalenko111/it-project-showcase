@@ -50,6 +50,13 @@ func ValidateRegisterRequest(input models.StudentRegistration) error {
 	if strings.TrimSpace(input.ConsentVersion) == "" || utf8.RuneCountInString(input.ConsentVersion) > 50 {
 		return validationError("consent_version", "invalid_consent", "consent_version is required and must be at most 50 characters")
 	}
+
+	if input.RequestedRole == "company_representative" && strings.TrimSpace(input.FullName) == "" {
+		return validationError("full_name", "required", "full_name is required")
+	}
+	if (input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff") && utf8.RuneCountInString(input.FullName) > 500 {
+		return validationError("full_name", "too_long", "full_name must be at most 500 characters")
+	}
 	if input.RequestedRole == "company_representative" || input.RequestedRole == "university_staff" {
 		return nil
 	}

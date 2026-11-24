@@ -43,6 +43,7 @@ func Init(sessionRepo *session_repo.SessionRepo, userRepo *users_repo.UsersRepo,
 }
 
 func (s *AuthService) RegisterUser(ctx context.Context, input models.StudentRegistration) (string, error) {
+	input.FullName = strings.TrimSpace(input.FullName)
 	input.Username = strings.ToLower(strings.TrimSpace(input.Username))
 	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
 	input.LastName = strings.TrimSpace(input.LastName)

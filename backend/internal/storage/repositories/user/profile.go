@@ -17,7 +17,7 @@ func (r *UsersRepo) RegisterRoleApplicant(ctx context.Context, input models.Stud
 	}
 	defer tx.Rollback()
 	var id string
-	if err = tx.QueryRowContext(ctx, `INSERT INTO users(username,email,password_hash) VALUES($1,$2,$3) RETURNING user_id`, input.Username, input.Email, hash).Scan(&id); err != nil {
+	if err = tx.QueryRowContext(ctx, `INSERT INTO users(username,email,password_hash,full_name) VALUES($1,$2,$3,NULLIF($4,'')) RETURNING user_id`, input.Username, input.Email, hash, input.FullName).Scan(&id); err != nil {
 		return "", err
 	}
 	if _, err = tx.ExecContext(ctx, `INSERT INTO user_consents(user_id,consent_type,version) VALUES($1,'personal_data',$2)`, id, input.ConsentVersion); err != nil {
@@ -111,7 +111,7 @@ func (r *UsersRepo) SetRole(ctx context.Context, actor, userID, role string) err
 }
 
 func (r *UsersRepo) ListUsers(ctx context.Context, limit int, offset int64) ([]models.UserListItem, int64, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT u.user_id,u.username,u.email,u.status,q.role_code,q.status,
+	rows, err := r.db.QueryContext(ctx, `SELECT u.user_id,u.username,u.email,u.status,q.role_code,q.status,COALESCE(u.full_name,''),
 		COALESCE((SELECT jsonb_agg(r.code ORDER BY r.code) FROM user_roles ur JOIN roles r ON r.role_id=ur.role_id WHERE ur.user_id=u.user_id),'[]'::jsonb)
 		FROM users u LEFT JOIN role_requests q ON q.user_id=u.user_id ORDER BY u.created_at DESC,u.user_id DESC LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
@@ -122,7 +122,7 @@ func (r *UsersRepo) ListUsers(ctx context.Context, limit int, offset int64) ([]m
 	for rows.Next() {
 		var item models.UserListItem
 		var roles []byte
-		if err := rows.Scan(&item.UserID, &item.Username, &item.Email, &item.Status, &item.RequestedRole, &item.RoleRequestStatus, &roles); err != nil {
+		if err := rows.Scan(&item.UserID, &item.Username, &item.Email, &item.Status, &item.RequestedRole, &item.RoleRequestStatus, &item.FullName, &roles); err != nil {
 			return nil, 0, err
 		}
 		if err := json.Unmarshal(roles, &item.Roles); err != nil {
