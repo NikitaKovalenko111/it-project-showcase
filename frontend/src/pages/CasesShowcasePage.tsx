@@ -24,6 +24,7 @@ import {
 import { visibleCasesFor } from '../utils/access'
 import { canReceiveApplications } from '../utils/recruiting'
 import { canCreatePublication } from '../utils/publicationAccess'
+import type { CaseProject } from '../types/models'
 import { selectShowcaseCases, ShowcaseSort } from '../utils/showcase'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
@@ -134,25 +135,31 @@ export const CasesShowcasePage: React.FC = () => {
     canCreatePublication(currentUser) ||
     (apiRuntime.mode !== 'live' && currentUser?.role === 'university')
 
-  const getRewardBadge = (c: any) => {
-    if (c.rewardType === 'contest') {
+  const getRewardBadge = (c: CaseProject) => {
+    if (c.rewardType === 'contest' || c.prizeFund != null) {
       return (
         <span className="badge badge-reward-contest">
-          <Award size={13} /> Конкурсный • Фонд {c.prizeFund?.toLocaleString('ru-RU')} ₽
+          <Award size={13} />
+          {c.prizeFund != null
+            ? `Конкурсный • Фонд ${c.prizeFund.toLocaleString('ru-RU')} ₽`
+            : 'Конкурсный'}
         </span>
       )
     }
     if (c.rewardType === 'monetary') {
       return (
         <span className="badge badge-reward-monetary">
-          <RussianRuble size={13} /> {c.rewardAmount?.toLocaleString('ru-RU')} ₽ за результат
+          <RussianRuble size={13} />
+          {c.rewardAmount != null
+            ? `${c.rewardAmount.toLocaleString('ru-RU')} ₽ за результат`
+            : 'Денежное вознаграждение'}
         </span>
       )
     }
     if (c.rewardType === 'educational') {
       return (
         <span className="badge badge-reward-educational">
-          <GraduationCap size={14} aria-hidden="true" /> Зачет практики + Сертификат
+          <GraduationCap size={14} aria-hidden="true" /> Образовательный проект
         </span>
       )
     }
@@ -404,7 +411,7 @@ export const CasesShowcasePage: React.FC = () => {
               <div key={item.id} className="case-card">
                 <div
                   className={`case-card__top-accent ${
-                    item.rewardType === 'contest'
+                    item.rewardType === 'contest' || item.prizeFund != null
                       ? 'case-card__top-accent--contest'
                       : item.direction.includes('Интеллект') || item.direction.includes('зрение')
                         ? 'case-card__top-accent--ai'

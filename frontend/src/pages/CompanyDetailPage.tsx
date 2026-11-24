@@ -1,6 +1,5 @@
 import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
-import { localCompany } from '../api/localShowcase'
 import { matchesSearch } from '../utils/publication'
 import { formatDate } from '../utils/date'
 import { AdminCompanyActions } from '../components/AdminCompanyActions'
@@ -118,8 +117,6 @@ export const CompanyDetailPage: React.FC = () => {
           : b.publishedAt.localeCompare(a.publishedAt),
     )
 
-  const cover = localCompany(activeCompany.id)?.cover
-
   return (
     <div>
       {saveError && <p role="alert">{saveError}</p>}
@@ -154,7 +151,6 @@ export const CompanyDetailPage: React.FC = () => {
 
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
-        {cover && <img src={cover} alt="" className="company-hero__cover" />}
         <div className="company-hero__top">
           <CompanyLogo
             company={activeCompany}

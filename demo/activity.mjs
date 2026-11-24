@@ -1,4 +1,3 @@
-export const semesterFund = 150_000
 
 export const earlyProjectDates = {
   syn_petproject_001: '2025-10-14',

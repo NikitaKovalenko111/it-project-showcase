@@ -5,13 +5,13 @@
 Из корня репозитория в Windows PowerShell 5.1 или PowerShell 7:
 
 ```powershell
-./backend/demo/seed.ps1
+./demo/basic/seed.ps1
 ```
 
 В Bash из корня репозитория выполните ту же загрузку командой:
 
 ```bash
-bash backend/demo/seed.sh
+bash demo/basic/seed.sh
 ```
 
 Для Bash-версии нужны Docker с Compose, `curl` и Node.js.
@@ -68,4 +68,4 @@ bash backend/demo/seed.sh
 | `demo.student17`, `demo.student18` | Физико-технический институт | 03.03.01 Прикладные математика и физика |
 | `demo.student19`, `demo.student20` | Институт природы и человека | 05.03.03 Картография и геоинформатика |
 
-Для добавления этих аккаунтов в уже запущенную демобазу повторно выполните `./backend/demo/seed.ps1` или `bash backend/demo/seed.sh` из корня репозитория.
+Для добавления этих аккаунтов в уже запущенную демобазу повторно выполните `./demo/basic/seed.ps1` или `bash demo/basic/seed.sh` из корня репозитория.

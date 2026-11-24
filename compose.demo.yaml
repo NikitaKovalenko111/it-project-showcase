@@ -41,7 +41,7 @@ services:
       - "127.0.0.1:${SHOWCASE_DEMO_PORT:-13006}:3005"
     volumes:
       - type: bind
-        source: ./backend/demo/config.demo.yaml
+        source: ./demo/config.demo.yaml
         target: /server/config/config.yaml
         read_only: true
         bind:

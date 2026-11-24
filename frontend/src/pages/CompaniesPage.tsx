@@ -1,6 +1,5 @@
 import { ExpandableText } from '../components/ExpandableText'
 import { CompanyLogo } from '../components/CompanyLogo'
-import { localCompany } from '../api/localShowcase'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
@@ -94,14 +93,6 @@ export const CompaniesPage: React.FC = () => {
               {filteredCompanies.map((comp) => (
                 <div key={comp.id} className="case-card">
                   <div className="case-card__top-accent" />
-                  {localCompany(comp.id)?.cover && (
-                    <img
-                      src={localCompany(comp.id)!.cover}
-                      alt=""
-                      className="company-directory-cover"
-                      loading="lazy"
-                    />
-                  )}
                   <div className="card__body">
                     <div
                       style={{
@@ -111,7 +102,10 @@ export const CompaniesPage: React.FC = () => {
                         marginBottom: '14px',
                       }}
                     >
-                      <CompanyLogo company={comp} className="company-card__logo" />
+                      <CompanyLogo
+                        company={comp}
+                        className="company-card__logo"
+                      />
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Link to={`/company/${comp.id}`}>

@@ -8,7 +8,6 @@ import {
   StudentProject,
   ProjectMilestone,
 } from '../types/models'
-import { localCompany, localRepresentative } from './localShowcase'
 // Backend DTOs are intentionally converted at the API boundary.
 export function fromUser(d: any): User {
   const s = d.student
@@ -30,7 +29,7 @@ export function fromUser(d: any): User {
       : s?.photo_file_id
         ? `/api/v1/users/${d.user_id}/avatar?v=${s.photo_file_id}`
         : undefined,
-    fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : (localRepresentative(d.user_id) || d.username),
+    fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
     role:
       (['admin', 'company_representative', 'company', 'curator', 'university', 'student'].find(
         (r) => d.roles?.includes(r),
@@ -337,11 +336,10 @@ export const fromComment = (d: any): ProjectComment => ({
   id: d.comment_id,
   caseId: d.resource_id,
   authorId: d.author_id,
-  authorName: localRepresentative(d.author_id) || d.author_name || '',
+  authorName: d.author_name || '',
   authorAvatar: d.author_photo_file_id
     ? `/api/v1/users/${d.author_id}/avatar?v=${d.author_photo_file_id}`
     : undefined,
-  authorRole: localRepresentative(d.author_id) ? 'company' : 'student',
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
   parentId: d.parent_comment_id || undefined,
   createdAt: d.created_at,

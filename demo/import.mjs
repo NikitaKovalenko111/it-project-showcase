@@ -1,12 +1,11 @@
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { earlyProjectDates, feedback, milestones as demoAchievements, reviews, semesterFund } from './activity.mjs'
+import { existsSync, readFileSync } from 'node:fs'
+import { earlyProjectDates, feedback, milestones as demoAchievements, reviews } from './activity.mjs'
 import { demoCompanyCases } from './company-cases.mjs'
 import { companyPrograms, companyQuestions } from './company-engagement.mjs'
 import { companyDemoCoverage } from './company-demo-coverage.mjs'
-import { basename, extname, join } from 'node:path'
-import { tmpdir } from 'node:os'
+import { basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -61,6 +60,16 @@ function loginName(user) {
   return aliases[user.username] ?? (user.companyProfile ? companyLogin(user.companyProfile.companyName) : user.username)
 }
 const users = read('users')
+const admin = id(users.find((user) => user.role === 'admin').id)
+statements.push(`DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM users WHERE username='demo.admin' AND user_id<>${sql(admin)}::uuid)
+  THEN RAISE EXCEPTION 'This database already has demo.admin from a different seed. Use a separate demo Compose project.'; END IF;
+END $$`)
+const studentVariants = new Map([
+  ['syn_student_057', { institute: 'Физико-технический институт', phone: '+70000000057' }],
+  ['syn_student_058', { institute: 'Институт электротехнического инжиниринга', phone: '+70000000058' }],
+  ['syn_student_059', { institute: 'Физико-технический институт', github: 'https://code.example.test/demo/student59' }],
+])
 for (const user of users) {
   const userId = id(user.id)
   statements.push(`INSERT INTO users(user_id,username,email,group_name,password_hash,status,created_at)
@@ -74,7 +83,6 @@ for (const user of users) {
   }
 }
 
-const admin = id(users.find((user) => user.role === 'admin').id)
 const students = read('students')
 const studentDetails = new Map(read('student-details').map((detail) => [detail.studentId, detail]))
 const educationLevels = { Бакалавриат: 'bachelor', Специалитет: 'specialist', Магистратура: 'master', Аспирантура: 'postgraduate' }
@@ -82,6 +90,7 @@ for (const student of students) {
   const profile = student.studentProfile
   const detail = studentDetails.get(student.id)
   const educationLevel = educationLevels[profile.educationLevel]
+  const variant = studentVariants.get(student.id)
   const bio = detail ? [
     `${detail.specialization}. ${detail.city}.`,
     profile.bio,
@@ -91,14 +100,22 @@ for (const student of students) {
   const [first, last, ...middle] = student.fullName.split(' ')
   const studentId = id(student.id)
   insert('students', 'user_id,first_name,last_name,patronymic,institute_name,study_direction,program_name,education_level,course,group_name,phone,bio,professional_interests,competencies,technologies,links,created_at', [[
-    studentId, first, last, middle.join(' ') || null, profile.institute, profile.fieldOfStudy, profile.educationalProgram, educationLevel,
-    profile.course, profile.group, profile.phone || null, bio, profile.interests, profile.skills, profile.techStack,
-    profile.githubUrl ? [{ kind: 'github', url: profile.githubUrl }] : [], student.createdAt,
+    studentId, first, last, middle.join(' ') || null, variant?.institute ?? profile.institute, profile.fieldOfStudy, profile.educationalProgram, educationLevel,
+    profile.course, profile.group, variant?.phone ?? (profile.phone || null), bio, profile.interests, profile.skills, profile.techStack,
+    variant?.github || profile.githubUrl ? [{ kind: 'github', url: variant?.github ?? profile.githubUrl }] : [], student.createdAt,
   ]])
   statements.push(`UPDATE students SET
     education_level=COALESCE(NULLIF(education_level,''),${sql(educationLevel)}),
     bio=CASE WHEN NULLIF(btrim(bio),'') IS NULL OR bio=${sql(profile.bio)} THEN ${sql(bio)} ELSE bio END
     WHERE user_id=${sql(studentId)} AND (NULLIF(education_level,'') IS NULL OR NULLIF(btrim(bio),'') IS NULL OR bio=${sql(profile.bio)})`)
+  if (variant) {
+    statements.push(`UPDATE students SET
+      institute_name=CASE WHEN institute_name=${sql(profile.institute)} THEN ${sql(variant.institute ?? profile.institute)} ELSE institute_name END,
+      phone=COALESCE(NULLIF(phone,''),${sql(variant.phone)}),
+      links=CASE WHEN links='[]'::jsonb AND ${sql(Boolean(variant.github))}
+        THEN ${sql(variant.github ? [{ kind: 'github', url: variant.github }] : [])}::jsonb ELSE links END
+      WHERE user_id=${sql(studentId)}`)
+  }
   if (profile.curatorId) insert('student_curators', 'student_id,curator_id,assigned_by', [[studentId, id(profile.curatorId), admin]])
 }
 const companies = read('companies')
@@ -193,6 +210,17 @@ for (const item of cases) {
     ]])
   }
   statements.push(`UPDATE cases SET status=${sql(status)} WHERE case_id=${sql(caseId)} AND NOT EXISTS (SELECT 1 FROM existing_cases WHERE case_id=${sql(caseId)})`)
+  const rewards = [
+    { field: 'amount', amount: item.rewardAmount, kind: 'money', label: 'Денежное вознаграждение' },
+    { field: 'prize_fund', amount: item.prizeFund, kind: 'prize', label: 'Призовой фонд' },
+  ]
+  for (const { field, amount, kind, label } of rewards) {
+    if (amount == null) continue
+    statements.push(`INSERT INTO case_rewards(case_reward_id,case_id,kind,description,currency,${field})
+      SELECT ${[id(`${item.id}:reward:${kind}`), caseId, kind, item.rewardDescription || label, 'RUB', amount].map(sql).join(',')}
+      WHERE NOT EXISTS (SELECT 1 FROM case_rewards r WHERE r.case_id=${sql(caseId)} AND r.${field} IS NOT NULL)
+      ON CONFLICT DO NOTHING`)
+  }
 }
 
 const projects = [...read('projects'), ...read('demo-pet-projects')]
@@ -263,7 +291,7 @@ for (const [index, student] of students.entries()) {
   const submissionId = id(`${key}:submission`)
   const reviewer = companyOwners.get(item.companyId) ?? admin
   const nomination = resultNominations[Math.floor(index / completedDemoCases.length)]
-  demoResults.set(student.id, { executionId, reviewer, date: item.deadlineDate })
+  demoResults.set(student.id, { executionId, submissionId, reviewer, date: item.deadlineDate })
   insert('applications', 'application_id,case_id,case_revision_id,submitted_by,student_id,status,entry_kind,submitted_at', [[
     applicationId, caseId, revisionId, studentId, studentId, 'accepted', item.kind === 'hackathon' ? 'registration' : 'application', item.publishedAt,
   ]])
@@ -445,15 +473,17 @@ for (const [index, project] of visibleProjects.entries()) {
 insert('feedback_messages', 'feedback_id,author_id,body,created_at', feedback.map((body, index) =>
   [id(`demo-feedback:${index}`), id(activityStudents[index * 3].id), body, `2026-11-${12 + index * 2}T15:30:00Z`]))
 
-const prizeCase = cases.find((item) => item.companyId === 'syn_company_001' && item.isModerated && item.status === 'in_progress')
-if (prizeCase) {
-  const rewardId = id('demo-semester-prize:2026-fall')
-  insert('case_rewards', 'case_reward_id,case_id,kind,description,currency,prize_fund', [[
-    rewardId, id(prizeCase.id), 'prize', 'Демонстрационный призовой фонд осеннего семестра 2026', 'RUB', semesterFund,
-  ]])
-  insert('prize_places', 'prize_place_id,case_reward_id,place_no,amount', [75000, 50000, 25000].map((amount, index) =>
-    [id(`demo-semester-prize:${index + 1}`), rewardId, index + 1, amount]))
-}
+// Remove the prize created for this educational case by older imports.
+const legacyPrize = `r.case_reward_id=${sql(id('demo-semester-prize:2026-fall'))}
+  AND r.case_id=${sql(id('syn_case_001'))} AND r.kind='prize'
+  AND r.description='Демонстрационный призовой фонд осеннего семестра 2026'`
+const legacyPlaces = [1, 2, 3].map((place) => sql(id(`demo-semester-prize:${place}`))).join(',')
+statements.push(
+  `DELETE FROM prize_places p USING case_rewards r
+    WHERE p.case_reward_id=r.case_reward_id AND p.prize_place_id IN (${legacyPlaces}) AND ${legacyPrize}`,
+  `DELETE FROM case_rewards r WHERE ${legacyPrize}
+    AND NOT EXISTS (SELECT 1 FROM prize_places p WHERE p.case_reward_id=r.case_reward_id)`,
+)
 
 const addedPrograms = [...companyPrograms, ...companyCoverage.newPrograms]
   .filter((program) => companyOwners.has(program.company_id) && companiesWithCases.has(program.company_id))
@@ -512,7 +542,8 @@ for (const [index, program] of addedPrograms.entries()) {
     'internship_program', programId, appliedDate,
   ]])
 }
-for (const team of read('teams')) {
+const teams = read('teams')
+for (const team of teams) {
   insert('teams', 'team_id,name,leader_id,description,created_at', [[id(team.id), team.name, id(team.leaderId), team.description, team.createdAt]])
   insert('team_members', 'team_id,student_id,joined_at', team.members.map((member) => [id(team.id), id(member.id), team.createdAt]))
 }
@@ -587,7 +618,12 @@ stageIds('imported_student_ids', 'user_id', activityStudents.map((student) => st
 stageIds('imported_case_ids', 'case_id', cases.map((item) => item.id))
 stageIds('imported_project_ids', 'project_id', projects.map((project) => project.id))
 stageIds('imported_program_ids', 'program_id', programs.map((program) => program.program_id))
-statements.push(readFileSync(new URL('fill-empty-engagement.sql', import.meta.url), 'utf8'), 'COMMIT')
+stageIds('imported_team_ids', 'team_id', teams.map((team) => team.id))
+statements.push(
+  readFileSync(new URL('fill-empty-engagement.sql', import.meta.url), 'utf8'),
+  readFileSync(new URL('coverage.sql', import.meta.url), 'utf8'),
+  'COMMIT',
+)
 const compose = ['compose', '--project-directory', root, '-f', `${root}/compose.demo.yaml`]
 function docker(args, input) {
   const result = spawnSync('docker', [...compose, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'inherit'] })
@@ -598,7 +634,7 @@ function query(input) {
   return docker(['exec', '-T', 'postgres', 'env', 'PGCLIENTENCODING=UTF8', 'psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-U', 'showcase_demo', '-d', 'showcase_demo'], input)
 }
 query(`${statements.join(';\n')};\n`)
-console.log(`Imported showcase-data: ${users.length} accounts, ${companies.length} companies, ${cases.length} cases, ${projects.length} projects, ${programs.length} programs.`)
+console.log(`Imported core demo fixtures: ${users.length} accounts, ${companies.length} companies, ${cases.length} cases, ${projects.length} projects, ${programs.length} programs. Additional scenarios applied.`)
 
 const mapping = docker(['port', 'api', '3005'])
 if (!/^127\.0\.0\.1:\d+$/.test(mapping)) throw new Error('The demo API must use a loopback port.')
@@ -628,28 +664,6 @@ const companyLogos = new Map(query(`SELECT c.company_id,f.checksum_sha256 FROM s
   JOIN showcase.files f ON f.file_id=c.logo_file_id WHERE f.status='active';`).split(/\r?\n/).filter(Boolean).map((line) => line.split('|')))
 const formatId = (value) => value.replace(/^(........)(....)(....)(....)(............)$/, '$1-$2-$3-$4-$5')
 
-const temp = mkdtempSync(join(tmpdir(), 'showcase-media-'))
-try {
-  const presentation = { companies: {}, representatives: {} }
-  for (const company of companies) {
-    const companyId = formatId(id(company.id))
-    const filename = `${companyId}${extname(company.coverImage)}`
-    copyFileSync(new URL(company.coverImage, import.meta.url), join(temp, filename))
-    presentation.companies[companyId] = { name: company.shortName || company.name, cover: `/showcase-media/${filename}` }
-  }
-  for (const user of users.filter((item) => item.role !== 'student')) {
-    presentation.representatives[formatId(id(user.id))] = user.companyProfile
-      ? `${user.fullName} · ${user.companyProfile.companyName}`
-      : user.fullName
-  }
-  writeFileSync(join(temp, 'catalog.json'), JSON.stringify(presentation))
-  docker(['exec', '-T', 'frontend', 'mkdir', '-p', '/usr/share/nginx/html/showcase-media'])
-  docker(['cp', `${temp}/.`, 'frontend:/usr/share/nginx/html/showcase-media'])
-} finally {
-  // Only the temporary directory created by mkdtempSync above is removed.
-  rmSync(temp, { recursive: true, force: true })
-}
-
 const assets = []
 let adminToken
 const studentSessions = new Map()
@@ -673,6 +687,66 @@ async function studentAsset(student, path, filename) {
   return existingFiles.get(key)
 }
 const mediaChanges = []
+const adminAccount = users.find((user) => user.role === 'admin')
+const ndaCases = new Set(query(`SELECT case_id FROM showcase.cases WHERE nda_required;`).split(/\r?\n/))
+const caseAttachments = new Map(read('attachments')
+  .filter((item) => item.kind === 'specification' && item.entityId && existsSync(new URL(item.path, import.meta.url)))
+  .map((item) => [item.entityId, item.path]))
+for (const item of cases) {
+  const company = companies.find((entry) => entry.id === item.companyId)
+  const cover = [item.coverUrl, company?.coverImage].find((path) => path && existsSync(new URL(path, import.meta.url)))
+  const specification = caseAttachments.get(item.id) ?? 'documents/examples/materials-policy.pdf'
+  assets.push(async () => {
+    const caseId = sql(id(item.id))
+    if (cover) {
+      const file = await studentAsset(adminAccount, cover)
+      mediaChanges.push(`UPDATE showcase.cases SET cover_file_id=${sql(file)} WHERE case_id=${caseId} AND cover_file_id IS NULL`)
+    }
+    const file = await studentAsset(adminAccount, specification)
+    mediaChanges.push(`INSERT INTO showcase.case_files(case_id,file_id,visibility)
+      VALUES (${caseId},${sql(file)},${sql(item.isConfidential ? 'participants' : 'public')}) ON CONFLICT DO NOTHING`)
+    if (ndaCases.has(formatId(id(item.id)))) {
+      const restrictedFile = await studentAsset(adminAccount, 'documents/examples/materials-policy.txt')
+      mediaChanges.push(`INSERT INTO showcase.case_files(case_id,file_id,visibility)
+        VALUES (${caseId},${sql(restrictedFile)},'participants') ON CONFLICT DO NOTHING`)
+    }
+  })
+}
+
+for (const program of programs) {
+  const contributor = users.find((user) => id(user.id) === companyOwners.get(program.company_id))
+  if (!contributor) continue
+  assets.push(async () => {
+    const file = await studentAsset(contributor, 'documents/examples/application-note.txt')
+    mediaChanges.push(`INSERT INTO showcase.internship_files(program_id,file_id)
+      VALUES (${sql(id(program.program_id))},${sql(file)}) ON CONFLICT DO NOTHING`)
+  })
+}
+
+for (const student of activityStudents.slice(0, 8)) {
+  assets.push(async () => {
+    const file = await studentAsset(student, 'documents/examples/project-readme.md', 'project-readme.txt')
+    const submission = demoResults.get(student.id).submissionId
+    mediaChanges.push(`INSERT INTO showcase.submission_files(submission_id,file_id,kind,ordinal)
+      VALUES (${sql(submission)},${sql(file)},'documentation',1) ON CONFLICT DO NOTHING`)
+  })
+}
+
+const feedbackAuthor = [...activityStudents].sort((a, b) => loginName(a).localeCompare(loginName(b), 'en'))[0]
+assets.push(async () => {
+  const file = await studentAsset(feedbackAuthor, 'documents/examples/feedback-description.txt')
+  mediaChanges.push(`INSERT INTO showcase.feedback_files(feedback_id,file_id,ordinal)
+    SELECT feedback_id,${sql(file)},1 FROM showcase.feedback_messages
+    WHERE feedback_id=md5('coverage:feedback:reviewing')::uuid AND author_id=${sql(id(feedbackAuthor.id))}
+    ON CONFLICT DO NOTHING`)
+})
+assets.push(async () => {
+  const file = await studentAsset(adminAccount, 'documents/sample-inputs/telemetry.csv', 'telemetry.txt')
+  mediaChanges.push(`UPDATE showcase.event_plans
+    SET plan=jsonb_set(plan,'{rounds,0,tasks,0,file_ids}',jsonb_build_array(${sql(file)}::uuid))
+    WHERE plan#>'{rounds,0,tasks,0,file_ids}'='[]'::jsonb
+      AND plan#>>'{rounds,0,round_id}'=md5('coverage:round:'||case_id||':1')::uuid::text`)
+})
 const accountsWithAvatars = new Set(query(`SELECT u.user_id FROM showcase.users u
   JOIN showcase.files f ON f.file_id=u.avatar_file_id WHERE f.status='active';`).split(/\r?\n/))
 for (const user of users.filter((item) => item.role !== 'student' && !item.isBlocked)) {
@@ -821,4 +895,4 @@ if (companyCoverage.newCases.length) {
 }
 if (mediaChanges.length) query(`BEGIN;\n${mediaChanges.join(';\n')};\nCOMMIT;`)
 if (failures.length) throw new AggregateError(failures, 'Some demo media uploads failed')
-console.log(`Finished ${assets.length} media tasks and published ${companies.length} company covers.`)
+console.log(`Finished ${assets.length} media tasks.`)

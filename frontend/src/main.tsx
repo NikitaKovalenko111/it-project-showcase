@@ -2,7 +2,6 @@ import { SelectMenus } from './components/SelectMenus'
 import { restoreMockFiles } from './utils/mockFiles'
 import { isMockMode } from './api/runtime'
 import { loadMockRuntime } from './api/mockRuntime'
-import { loadLocalShowcase } from './api/localShowcase'
 import { AutoSizeTextareas } from './components/AutoSizeTextareas'
 import { ConfirmProvider } from './components/ConfirmProvider'
 import React from 'react'
@@ -21,8 +20,6 @@ async function start() {
     } catch (error) {
       console.warn('Не удалось восстановить вложения демоверсии.', error)
     }
-  } else {
-    await loadLocalShowcase()
   }
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

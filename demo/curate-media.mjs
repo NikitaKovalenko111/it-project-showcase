@@ -18,7 +18,7 @@ for (const [index, company] of companies.entries()) {
   const selection = selections[index]
   const sourcePath = `assets/photos/${selection}.jpg`
   if (selection.startsWith('demo-')) {
-    copyFileSync(new URL(`../backend/demo/media/${selection.slice(5)}.jpg`, import.meta.url), new URL(sourcePath, import.meta.url))
+    copyFileSync(new URL(`./basic/media/${selection.slice(5)}.jpg`, import.meta.url), new URL(sourcePath, import.meta.url))
   }
   copyFileSync(new URL(sourcePath, import.meta.url), new URL(company.coverImage, import.meta.url))
   const assignment = assignments.find((item) => item.entityType === 'company' && item.entityId === company.id)

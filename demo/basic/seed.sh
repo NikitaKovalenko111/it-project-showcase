@@ -94,7 +94,7 @@ SQL
 temp=$(mktemp -d)
 trap 'rm -f -- "$temp/demo-result.txt" "$temp/demo-resume.pdf" "$temp/verified-download"; rmdir -- "$temp"' EXIT
 printf '%s' 'Демонстрационный отчёт. Маршруты проверены на 40 синтетических заявках. Итоговый отчёт по ETL содержит 92 балла из 100.' > "$temp/demo-result.txt"
-cp -- "$root/frontend/public/demo/documents/resume-1.pdf" "$temp/demo-resume.pdf"
+cp -- "$demo_dir/media/resume-1.pdf" "$temp/demo-resume.pdf"
 
 session=$(login demo.student1)
 read -r student1_id student1_token <<< "${session%$'\r'}"

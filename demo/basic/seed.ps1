@@ -117,7 +117,7 @@ $temp = Join-Path ([IO.Path]::GetTempPath()) ('showcase-demo-' + [guid]::NewGuid
 [IO.Directory]::CreateDirectory($temp) | Out-Null
 try {
     [IO.File]::WriteAllText((Join-Path $temp 'demo-result.txt'), "Демонстрационный отчёт. Маршруты проверены на 40 синтетических заявках. Итоговый отчёт по ETL содержит 92 балла из 100.")
-    Copy-Item -LiteralPath (Join-Path $root 'frontend/public/demo/documents/resume-1.pdf') -Destination (Join-Path $temp 'demo-resume.pdf')
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'media/resume-1.pdf') -Destination (Join-Path $temp 'demo-resume.pdf')
     foreach ($name in ('demo-result.txt', 'demo-resume.pdf')) {
         $query = "SELECT file_id FROM showcase.files WHERE uploaded_by='$($login.user_id)' AND original_name='$name' AND status='active' LIMIT 1"
         $fileId = docker compose @composeArgs exec -T postgres psql -X -A -t -U showcase_demo -d showcase_demo -c $query

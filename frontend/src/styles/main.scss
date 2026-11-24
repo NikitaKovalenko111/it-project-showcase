@@ -63,7 +63,6 @@ input, button, select, textarea {
 .publication-dialog label { display: flex; flex-direction: column; gap: 6px; }
 .company-contacts-grid .value { font-size: 13px; overflow-wrap: anywhere; }
 .company-hero__logo--placeholder { display: grid; place-items: center; }
-.company-hero__cover { display: block; width: 100%; height: clamp(130px, 23vw, 280px); object-fit: cover; border-radius: 16px; margin-bottom: 20px; }
 
 .team-search-field { display: grid; gap: 8px; margin-top: 20px; }
 .participation-options { display: flex; flex-wrap: wrap; gap: 12px 20px; }
