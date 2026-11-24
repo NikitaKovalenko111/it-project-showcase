@@ -46,11 +46,16 @@ export interface User {
   phone?: string
   studentProfile?: StudentProfile
   companyProfile?: CompanyProfile
+  memberCompanies?: Company[]
   isBlocked?: boolean
   createdAt: string
 }
 
+export type CompanyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended'
+
 export interface Company {
+  status?: CompanyStatus
+  activities?: string
   documents?: { name: string; url: string }[]
   isBlocked?: boolean
   internshipProgram?: string
@@ -440,6 +445,7 @@ export interface SystemNotification {
     | 'application_status'
     | 'team_invite'
     | 'company_invite'
+    | 'company_member_invitation'
     | 'new_comment'
     | 'milestone_deadline'
     | 'revision_needed'

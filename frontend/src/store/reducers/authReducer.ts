@@ -7,6 +7,7 @@ export interface AuthState {
   isAuthenticated: boolean
   loading: boolean
   error: string | null
+  loginErrorCode?: string
 }
 
 const initialState: AuthState = {
@@ -24,7 +25,7 @@ export const authReducer = (state = initialState, action: any): AuthState => {
     case types.FETCH_CURRENT_USER_REQUEST:
     case types.UPDATE_USER_PROFILE_REQUEST:
     case types.FETCH_ALL_USERS_REQUEST:
-      return { ...state, loading: true, error: null }
+      return { ...state, loading: true, error: null, loginErrorCode: undefined }
 
     case types.LOGIN_SUCCESS:
     case types.REGISTER_SUCCESS:
@@ -36,6 +37,7 @@ export const authReducer = (state = initialState, action: any): AuthState => {
         currentUser: action.payload.user,
         isAuthenticated: true,
         error: null,
+        loginErrorCode: undefined,
       }
 
     case types.UPDATE_USER_PROFILE_SUCCESS:
@@ -71,6 +73,12 @@ export const authReducer = (state = initialState, action: any): AuthState => {
     case types.FETCH_CURRENT_USER_FAILURE:
       return { ...state, loading: false, currentUser: null, isAuthenticated: false, error: null }
     case types.LOGIN_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error,
+        loginErrorCode: action.payload.code,
+      }
     case types.REGISTER_FAILURE:
     case types.UPDATE_USER_PROFILE_FAILURE:
     case types.FETCH_ALL_USERS_FAILURE:

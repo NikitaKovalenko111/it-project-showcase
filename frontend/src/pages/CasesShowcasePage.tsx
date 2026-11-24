@@ -78,7 +78,10 @@ export const CasesShowcasePage: React.FC = () => {
   }, [dispatch])
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
-  const cases = visibleCasesFor(currentUser, casesList)
+  const cases = visibleCasesFor(currentUser, casesList).filter(
+    (item) =>
+      currentUser?.role !== 'company' || item.companyId === currentUser.companyProfile?.companyId,
+  )
   const directions = [...new Set(cases.map((item) => item.direction).filter(Boolean))].sort(
     (a, b) => a.localeCompare(b, 'ru'),
   )

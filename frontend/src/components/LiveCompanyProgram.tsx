@@ -139,15 +139,17 @@ export function LiveCompanyProgram() {
     return '?' + next
   }
   const selected = programs.find((item) => item.program_id === programId)
+  const visibleCompany =
+    companyId || (company && ownCatalog ? user.companyProfile?.companyId : undefined)
   const visible = programs.filter(
     (item) =>
       item.kind === kind &&
-      (!companyId || item.company_id === companyId) &&
+      (!visibleCompany || item.company_id === visibleCompany) &&
       matchesSearch(search, item.title, item.summary, item.company_name),
   )
   const preferredCompany =
+    companies.find((item) => item.id === companyId) ||
     companies.find((item) => item.id === user?.companyProfile?.companyId) ||
-    (admin ? companies.find((item) => item.id === companyId) : undefined) ||
     companies[0]
 
   const meta = (item: Opportunity) => (

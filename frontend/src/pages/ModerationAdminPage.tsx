@@ -1,4 +1,5 @@
-import type { User } from '../types/models'
+import type { Company, User } from '../types/models'
+import { companyStatuses } from '../api/companyMembership'
 import { useTablePagination } from '../components/ReportTableView'
 import { CompanyLogo } from '../components/CompanyLogo'
 import { UserAvatar } from '../components/UserAvatar'
@@ -21,6 +22,7 @@ import {
   fetchAuditLogsRequest,
   toggleUserBlockRequest,
   verifyCompanyRequest,
+  verifyCompanySuccess,
 } from '../store/actions'
 import {
   Ban,
@@ -56,6 +58,8 @@ export const ModerationAdminPage: React.FC = () => {
   const [roleBusy, setRoleBusy] = useState(false)
   const [roleMessage, setRoleMessage] = useState('')
   const [roleError, setRoleError] = useState('')
+  const [companyBusy, setCompanyBusy] = useState(false)
+  const [companyError, setCompanyError] = useState('')
   const live = apiRuntime.mode === 'live'
   const reviewRole = async (userId: string, decision: 'approved' | 'rejected') => {
     if (roleBusy) return
@@ -69,6 +73,7 @@ export const ModerationAdminPage: React.FC = () => {
       setRoleMessage(decision === 'approved' ? 'Роль одобрена.' : 'Заявка отклонена.')
     } catch (e) {
       setRoleError((e as Error).message)
+      if ((e as { status?: number }).status === 404) dispatch(fetchAllUsersRequest())
     } finally {
       setRoleBusy(false)
     }
@@ -88,7 +93,11 @@ export const ModerationAdminPage: React.FC = () => {
     (c) =>
       matches(c.id, c.name, c.industry, c.contactPerson, c.email) &&
       (status === 'all' ||
-        (c.isBlocked ? status === 'suspended' : String(c.isVerified) === status)),
+        (live
+          ? c.status === status
+          : c.isBlocked
+            ? status === 'suspended'
+            : String(c.isVerified) === status)),
   )
   const allUsers = users.filter(
     (u) =>
@@ -102,15 +111,28 @@ export const ModerationAdminPage: React.FC = () => {
   )
   const pageFilter = JSON.stringify([search, status])
   const companiesPage = useTablePagination(companiesList, 'Модерация компаний', pageFilter)
+  const representativeRequests = users.filter(
+    (user) =>
+      user.requestedRole === 'company_representative' &&
+      user.roleRequestStatus === 'pending' &&
+      matches(user.username, user.email, user.id),
+  )
+  const representativePage = useTablePagination(
+    representativeRequests,
+    'Заявки представителей',
+    search,
+  )
   const usersPage = useTablePagination(allUsers, 'Пользователи и роли', pageFilter)
   const auditPage = useTablePagination(auditLogs, 'Журнал аудита', pageFilter)
   const statusOptions =
     activeTab === 'companies'
-      ? [
-          ['true', 'Верифицирована'],
-          ['false', 'Требует проверки'],
-          ['suspended', 'Заблокирована'],
-        ]
+      ? live
+        ? Object.entries(companyStatuses).filter(([value]) => value !== 'draft')
+        : [
+            ['true', 'Верифицирована'],
+            ['false', 'Требует проверки'],
+            ['suspended', 'Заблокирована'],
+          ]
       : activeTab === 'users'
         ? [
             ['student', 'Студент'],
@@ -140,6 +162,29 @@ export const ModerationAdminPage: React.FC = () => {
 
   const handleVerifyCompany = (companyId: string, status: boolean) => {
     dispatch(verifyCompanyRequest(companyId, status))
+  }
+
+  const reviewCompany = async (company: Company, approved: boolean) => {
+    if (companyBusy) return
+    setCompanyBusy(true)
+    setCompanyError('')
+    try {
+      const action = approved ? 'Одобрить компанию' : 'Отклонить заявку'
+      const reason = await confirm(`${action} «${company.name}»?`, action, !approved, !approved)
+      if (reason === null) return
+      dispatch(verifyCompanySuccess(await apiClient.verifyCompany(company.id, approved, reason)))
+      dispatch(fetchAuditLogsRequest())
+    } catch (cause) {
+      const error = cause as Error & { code?: string }
+      setCompanyError(
+        error.code === 'invalid_status'
+          ? 'Заявка уже обработана. Очередь обновляется.'
+          : error.message,
+      )
+      dispatch(fetchCompaniesRequest())
+    } finally {
+      setCompanyBusy(false)
+    }
   }
 
   const handleToggleBlock = async (user: (typeof allUsers)[number]) => {
@@ -285,12 +330,82 @@ export const ModerationAdminPage: React.FC = () => {
       {activeTab === 'opportunities' && <InternshipModeration />}
 
       {/* TAB 2: COMPANIES MODERATION */}
+      {activeTab === 'companies' && live && (
+        <section className="card feature-panel">
+          <div className="feature-toolbar">
+            <h2>Заявки на роль представителя</h2>
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={roleBusy || companyBusy}
+              onClick={() => {
+                dispatch(fetchAllUsersRequest())
+                dispatch(fetchCompaniesRequest())
+              }}
+            >
+              Обновить очереди
+            </button>
+          </div>
+          {roleMessage && <p role="status">{roleMessage}</p>}
+          {roleError && (
+            <p className="form-error" role="alert">
+              {roleError}
+            </p>
+          )}
+          {representativePage.items.length > 0 ? (
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Логин</th>
+                    <th>Email</th>
+                    <th>Решение</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {representativePage.items.map((user) => (
+                    <tr key={user.id}>
+                      <td>{user.username}</td>
+                      <td>{user.email}</td>
+                      <td>
+                        <div className="action-row">
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={roleBusy}
+                            onClick={() => void reviewRole(user.id, 'approved')}
+                          >
+                            Одобрить роль
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={roleBusy}
+                            onClick={() => void reviewRole(user.id, 'rejected')}
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>Нет ожидающих заявок на роль представителя.</p>
+          )}
+          {representativePage.controls}
+        </section>
+      )}
       {activeTab === 'companies' && (
         <div className="card">
           <div className="card__header">
-            <h3 style={{ margin: 0, fontSize: '15px' }}>Верификация компаний-партнеров</h3>
+            <h3 style={{ margin: 0, fontSize: '15px' }}>Модерация компаний</h3>
           </div>
           <div className="card__body" style={{ padding: 0 }}>
+            {companyError && (
+              <p className="form-error" role="alert">
+                {companyError}
+              </p>
+            )}
             <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>
               <table className="data-table">
                 <thead>
@@ -308,10 +423,7 @@ export const ModerationAdminPage: React.FC = () => {
                     <tr key={comp.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <CompanyLogo
-                            company={comp}
-                            className="moderation-company-logo"
-                          />
+                          <CompanyLogo company={comp} className="moderation-company-logo" />
                           <Link to={`/company/${comp.id}`}>
                             <strong>{comp.name}</strong>
                           </Link>
@@ -330,7 +442,13 @@ export const ModerationAdminPage: React.FC = () => {
                         </a>
                       </td>
                       <td>
-                        {comp.isBlocked ? (
+                        {live && comp.status ? (
+                          <span
+                            className={`badge ${comp.isVerified ? 'badge-verified' : 'publication-' + (comp.isBlocked ? 'hidden' : comp.status)}`}
+                          >
+                            {companyStatuses[comp.status]}
+                          </span>
+                        ) : comp.isBlocked ? (
                           <span className="badge publication-hidden">Заблокирована</span>
                         ) : comp.isVerified ? (
                           <span className="badge badge-verified">✓ Верифицирована</span>
@@ -339,7 +457,24 @@ export const ModerationAdminPage: React.FC = () => {
                         )}
                       </td>
                       <td>
-                        {comp.isBlocked ? (
+                        {live && comp.status === 'pending' ? (
+                          <div className="action-row">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              disabled={companyBusy}
+                              onClick={() => void reviewCompany(comp, true)}
+                            >
+                              Одобрить компанию
+                            </button>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              disabled={companyBusy}
+                              onClick={() => void reviewCompany(comp, false)}
+                            >
+                              Отклонить
+                            </button>
+                          </div>
+                        ) : comp.isBlocked || live ? (
                           <Link className="btn btn-secondary btn-sm" to={`/company/${comp.id}`}>
                             Открыть карточку
                           </Link>

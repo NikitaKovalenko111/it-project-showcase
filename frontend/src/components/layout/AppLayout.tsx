@@ -11,12 +11,23 @@ import {
 } from '../../store/actions'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
+import { apiRuntime } from '../../api/runtime'
+import { belongsToCompany, hasApprovedCompany } from '../../utils/access'
 
 export const AppLayout: React.FC = () => {
   const { currentUser, loading } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const limitedCompany =
+    apiRuntime.mode === 'live' &&
+    currentUser?.role === 'company' &&
+    !hasApprovedCompany(currentUser)
+  const canOpenPage =
+    !limitedCompany ||
+    ['/my-company', '/account', '/feedback'].includes(pathname) ||
+    (pathname.startsWith('/company/') &&
+      belongsToCompany(currentUser, pathname.slice('/company/'.length)))
   const previousUser = useRef(currentUser?.id)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false)
@@ -74,17 +85,19 @@ export const AppLayout: React.FC = () => {
       navigate('/', { replace: true })
     previousUser.current = currentUser.id
     setMobileOpen(false)
+    if (limitedCompany) return
     dispatch(fetchCompaniesRequest())
     dispatch(fetchApplicationsRequest())
     dispatch(fetchStudentProjectsRequest())
     dispatch(fetchStudentsRequest())
     dispatch(fetchTeamsRequest())
-  }, [currentUser?.id, dispatch, navigate])
+  }, [currentUser?.id, dispatch, navigate, limitedCompany])
 
   useEffect(() => {
-    if (currentUser && pathname !== '/cases') dispatch(fetchCasesRequest())
+    if (currentUser && !limitedCompany && pathname !== '/cases') dispatch(fetchCasesRequest())
     if (
       currentUser &&
+      !limitedCompany &&
       ['/', '/analytics', '/company-applications', '/favorites'].includes(pathname)
     ) {
       dispatch(fetchApplicationsRequest())
@@ -92,7 +105,7 @@ export const AppLayout: React.FC = () => {
     if (currentUser && (pathname === '/' || pathname.startsWith('/profile/'))) {
       dispatch(fetchStudentProjectsRequest())
     }
-  }, [currentUser?.id, pathname, dispatch])
+  }, [currentUser?.id, pathname, dispatch, limitedCompany])
 
   const handleToggleSidebar = () => {
     if (window.innerWidth <= 1024) {
@@ -104,6 +117,7 @@ export const AppLayout: React.FC = () => {
 
   if (!currentUser)
     return loading ? <p role="status">Загрузка профиля...</p> : <Navigate to="/login" replace />
+  if (!canOpenPage) return <Navigate to="/my-company" replace />
   return (
     <div className="app-shell">
       <Sidebar

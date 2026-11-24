@@ -97,8 +97,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
   const existingPublication = caseItem || draft
   const companyId =
     existingPublication?.companyId ||
-    (admin &&
-      companyOptions.find((item) => item.id === (selectedCompanyId || initialCompanyId))?.id) ||
+    companyOptions.find((item) => item.id === (selectedCompanyId || initialCompanyId))?.id ||
     companyOptions.find((item) => item.id === user?.companyProfile?.companyId)?.id ||
     companyOptions[0]?.id ||
     ''

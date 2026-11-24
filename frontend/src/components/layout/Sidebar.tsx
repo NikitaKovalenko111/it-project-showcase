@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '../../types/models'
+import { apiRuntime } from '../../api/runtime'
+import { hasApprovedCompany } from '../../utils/access'
 
 interface SidebarProps {
   isOpen: boolean
@@ -60,6 +62,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   const { favorites } = useAppSelector((state) => state.cases)
   const { applicationsList } = useAppSelector((state) => state.applications)
   const role: UserRole = currentUser?.role || 'student'
+  const limitedCompany =
+    apiRuntime.mode === 'live' && role === 'company' && !hasApprovedCompany(currentUser)
 
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>('online')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
@@ -109,7 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   const navGroups: NavItem[][] = useMemo(() => {
     const opportunities = [{ to: '/internships', label: 'Стажировки и практики', icon: Briefcase }]
     const userId = currentUser?.id || 'me'
-    const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
+    const companyId = currentUser?.companyProfile?.companyId
+    const companyPage =
+      apiRuntime.mode === 'live' || !companyId ? '/my-company' : `/company/${companyId}`
 
     switch (role) {
       /* ---------- Student ---------- */
@@ -137,6 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
       /* ---------- Company ---------- */
       case 'company':
+        if (limitedCompany) return [[{ to: companyPage, label: 'Моя компания', icon: Building2 }]]
         return [
           [
             { to: '/', label: 'Главная', icon: Home, end: true },
@@ -157,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             { to: '/students-search', label: 'Поиск талантов', icon: Search },
           ],
           [
-            { to: `/company/${companyId}`, label: 'Карточка компании', icon: Building2 },
+            { to: companyPage, label: 'Моя компания', icon: Building2 },
             { to: '/analytics', label: 'Аналитика кейсов', icon: BarChart3 },
           ],
         ]
@@ -205,6 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
     }
   }, [
     role,
+    limitedCompany,
     currentUser?.id,
     currentUser?.companyProfile?.companyId,
     favorites.length,

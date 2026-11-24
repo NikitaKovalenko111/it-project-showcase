@@ -1,4 +1,5 @@
-import { createId } from '../utils/id'
+import { hasApprovedCompany } from '../utils/access'
+import { getRepresentativeProfile, saveRepresentativeProfile } from '../utils/representativeProfile'
 import { isPhoneValid } from '../utils/validation'
 import { PasswordInput } from '../components/PasswordInput'
 import { apiClient } from '../api/client'
@@ -26,11 +27,20 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { loading, error, isAuthenticated, loginErrorCode, currentUser } = useAppSelector(
+    (state) => state.auth,
+  )
+  const live = apiRuntime.mode === 'live'
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/')
-  }, [isAuthenticated, navigate])
+    if (isAuthenticated)
+      navigate(
+        live && currentUser?.role === 'company' && !hasApprovedCompany(currentUser)
+          ? '/my-company'
+          : '/',
+        { replace: true },
+      )
+  }, [isAuthenticated, currentUser, live, navigate])
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [roleToRegister, setRoleToRegister] = useState<'student' | 'company' | 'curator'>('student')
   const [registerLogin, setRegisterLogin] = useState('')
@@ -40,6 +50,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [registering, setRegistering] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const awaitingApproval =
+    loginErrorCode === 'role_approval_pending' || (!!registerNotice && !error)
 
   // Registration fields - Student
   const [fullName, setFullName] = useState('')
@@ -84,7 +96,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       setRegisterError('Укажите студенческую почту на домене @stud.uust.ru.')
       return
     }
-    if (roleToRegister !== 'curator' && !isPhoneValid(phone)) {
+    if (
+      (roleToRegister === 'student' || (!live && roleToRegister === 'company')) &&
+      !isPhoneValid(phone)
+    ) {
       setRegisterError('Укажите телефон из 7–15 цифр.')
       return
     }
@@ -113,10 +128,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     }
 
     if (
+      !live &&
       roleToRegister === 'company' &&
       (!companyName.trim() || !position.trim() || fullName.trim().split(/\s+/).length < 2)
     ) {
       setRegisterError('Укажите название компании, фамилию и имя представителя и должность.')
+      return
+    }
+    if (live && roleToRegister === 'company' && fullName.trim().split(/\s+/).length < 2) {
+      setRegisterError('Укажите фамилию и имя. Отчество заполните при наличии.')
       return
     }
 
@@ -130,12 +150,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
         .split(',')
         .map((technology) => technology.trim())
         .filter(Boolean),
-      username:
-        apiRuntime.mode === 'live'
-          ? roleToRegister === 'company'
-            ? 'company_' + createId().replace(/-/g, '').slice(0, 24)
-            : registerLogin.trim().toLowerCase()
-          : normalizedEmail.split('@')[0],
+      username: live ? registerLogin.trim().toLowerCase() : normalizedEmail.split('@')[0],
       role: roleToRegister,
       phone,
       group: roleToRegister === 'student' ? group.trim() : undefined,
@@ -147,10 +162,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
 
     setRegistering(true)
     try {
-      if (apiRuntime.mode === 'live' && roleToRegister !== 'student') {
-        await apiClient.requestRole({ ...regData, role: roleToRegister })
-        setRegisterNotice('Заявка на роль отправлена. Вход станет доступен после одобрения.')
-        setUsername(roleToRegister === 'company' ? regData.email : regData.username)
+      if (live && roleToRegister !== 'student') {
+        const userId = await apiClient.requestRole({
+          username: regData.username,
+          email: regData.email,
+          password: regData.password,
+          role: roleToRegister,
+        })
+        let notice = 'Аккаунт зарегистрирован. Заявка на роль отправлена.'
+        if (roleToRegister === 'company') {
+          try {
+            if (!userId) throw new Error('Missing user ID')
+            if (!getRepresentativeProfile(userId)) {
+              saveRepresentativeProfile(userId, {
+                name: regData.fullName,
+                position: '',
+                bio: '',
+                expertise: '',
+              })
+            }
+          } catch {
+            notice +=
+              ' ФИО не удалось сохранить в браузере. Его можно добавить в профиле после входа.'
+          }
+        }
+        setRegisterNotice(notice)
+        setUsername(regData.username)
         setRegisterPassword('')
         setPassword('')
         setMode('login')
@@ -211,14 +248,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
           </div>
         </div>
 
-        {registerNotice && (
-          <p className="form-hint" role="status">
-            {registerNotice}
-          </p>
-        )}
         {mode === 'login' ? (
           <div className="auth-card__body">
-            {error && (
+            {awaitingApproval && (
+              <section
+                className="card feature-panel"
+                role="status"
+                aria-label="Статус заявки на роль"
+              >
+                <h3>Ожидайте одобрения</h3>
+                {registerNotice && <p>{registerNotice}</p>}
+                <p>
+                  После одобрения администратором войдите с указанным при регистрации логином или
+                  почтой.
+                </p>
+              </section>
+            )}
+            {error && loginErrorCode !== 'role_approval_pending' && (
               <div className="form-error" role="alert">
                 {error}
               </div>
@@ -261,6 +307,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 type="submit"
                 className="btn btn-primary btn-lg"
                 style={{ width: '100%', marginBottom: '24px' }}
+                disabled={loading}
               >
                 Войти в систему
               </button>
@@ -351,7 +398,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 {registerError}
               </p>
             )}
-            {apiRuntime.mode === 'live' && roleToRegister !== 'company' && (
+            {live && (
               <label className="form-group">
                 Логин *
                 <input
@@ -481,17 +528,33 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
               </>
-            ) : roleToRegister === 'curator' ? (
-              <label className="form-group">
-                Рабочий email
-                <input
-                  className="input"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </label>
+            ) : live ? (
+              <>
+                {roleToRegister === 'company' && (
+                  <label className="form-group">
+                    ФИО *
+                    <input
+                      className="input"
+                      autoComplete="name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      maxLength={150}
+                      placeholder="Фамилия Имя Отчество"
+                      required
+                    />
+                  </label>
+                )}
+                <label className="form-group">
+                  Рабочий email
+                  <input
+                    className="input"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </label>
+              </>
             ) : (
               <>
                 <div
@@ -620,7 +683,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 <p className="form-hint">
                   Заявку на роль проверит администратор.
                   {roleToRegister === 'company' &&
-                    ' Сервис принимает заявку по корпоративному email. Реквизиты и данные представителя сервис пока не сохраняет.'}
+                    ' ФИО сохранится в этом браузере. После одобрения вы сможете создать компанию или принять приглашение.'}
                 </p>
               )}
               <button

@@ -24,9 +24,9 @@ export const loginSuccess = (user: User) => ({
   payload: { user },
 })
 
-export const loginFailure = (error: string) => ({
+export const loginFailure = (error: string, code?: string) => ({
   type: types.LOGIN_FAILURE,
-  payload: { error },
+  payload: { error, code },
 })
 
 export const registerRequest = (data: any) => ({

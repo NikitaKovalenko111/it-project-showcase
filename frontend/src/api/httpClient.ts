@@ -32,6 +32,8 @@ const messages: Record<string, string> = {
   permission_denied: 'У вас нет доступа к этому действию.',
   report_conflict: 'По этому объекту уже есть открытая жалоба.',
   username_taken: 'Этот логин уже занят.',
+  pending_role_request_not_found: 'Заявка уже обработана или недоступна. Обновите очередь.',
+  company_name_taken: 'Компания с таким названием уже существует.',
   email_taken: 'Этот email уже зарегистрирован.',
 }
 

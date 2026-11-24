@@ -2,7 +2,6 @@ import { InternshipApplications } from '../components/InternshipApplications'
 import { matchesSearch } from '../utils/publication'
 import { UserAvatar } from '../components/UserAvatar'
 import { formatDate } from '../utils/date'
-import { apiRuntime } from '../api/runtime'
 import { FileDownload } from '../components/FileDownload'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import React, { useState, useEffect } from 'react'
@@ -53,8 +52,8 @@ export const CompanyApplicationsPage: React.FC = () => {
   const accessibleApplications = allApplications.filter(
     (app) =>
       (taskKind === 'all' || kindOf(app.caseId) === taskKind) &&
-      (apiRuntime.mode !== 'mock' ||
-        currentUser?.role !== 'company' ||
+      (currentUser?.role !== 'company' ||
+        !!caseFilter ||
         app.companyId === currentUser.companyProfile?.companyId),
   )
   const applicationsList = caseFilter

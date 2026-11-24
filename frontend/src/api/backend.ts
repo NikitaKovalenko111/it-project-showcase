@@ -80,9 +80,11 @@ function companyLogoUrl(companyId: string, fileId?: string): string {
 export function fromCompany(d: any): Company {
   return {
     id: d.company_id,
+    status: d.status,
     name: d.full_name,
     shortName: d.short_name || d.full_name,
     description: d.description || '',
+    activities: d.activities || '',
     internshipProgram: d.internship_program || '',
     practiceProgram: d.practice_program || '',
     inn: d.inn,
