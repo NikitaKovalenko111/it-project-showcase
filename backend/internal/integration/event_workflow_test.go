@@ -766,6 +766,52 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 			t.Fatalf("obsolete requisites remain: %d %v", removedColumns, err)
 		}
 	})
+	t.Run("declining a team invitation succeeds without team membership", func(t *testing.T) {
+		leader, invitee, stranger := newUser(true), newUser(true), newUser(true)
+		tokenFor := func(user string) string {
+			t.Helper()
+			token, _, err := pkg.CreateAccessTokenWithRoles(user, []string{"student"}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return token
+		}
+		teamID := id(`INSERT INTO teams(name,leader_id,visibility) VALUES('Private decline regression',$1,'private') RETURNING team_id`, leader)
+		exec(`INSERT INTO team_members(team_id,student_id) VALUES($1,$2)`, teamID, leader)
+		invitationID := id(`INSERT INTO team_invitations(team_id,invited_by,student_id) VALUES($1,$2,$3) RETURNING team_invitation_id`, teamID, leader, invitee)
+		path := "/team-invitations/" + invitationID
+		res := request(http.MethodPatch, path, tokenFor(stranger), `{"status":"declined"}`)
+		if res.Code != 403 {
+			t.Fatalf("not recipient: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodPatch, path, tokenFor(invitee), `{"status":"declined"}`)
+		if res.Code != 200 {
+			t.Fatalf("decline: %d %s", res.Code, res.Body)
+		}
+		var body map[string]string
+		if err := json.Unmarshal(res.Body.Bytes(), &body); err != nil {
+			t.Fatal(err)
+		}
+		if body["invitation_id"] != invitationID || body["status"] != "declined" || body["team_id"] != "" {
+			t.Fatalf("decline response: %+v", body)
+		}
+		var state string
+		var responded, joined bool
+		if err := db.QueryRowContext(ctx, `SELECT status,responded_at IS NOT NULL FROM team_invitations WHERE team_invitation_id=$1`, invitationID).Scan(&state, &responded); err != nil || state != "declined" || !responded {
+			t.Fatalf("persisted decline: %s %v %v", state, responded, err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM team_members WHERE team_id=$1 AND student_id=$2 AND left_at IS NULL)`, teamID, invitee).Scan(&joined); err != nil || joined {
+			t.Fatalf("decline joined team: %v %v", joined, err)
+		}
+		res = request(http.MethodGet, "/teams/"+teamID, tokenFor(invitee), "")
+		if res.Code != 404 {
+			t.Fatalf("private team access after decline: %d %s", res.Code, res.Body)
+		}
+		res = request(http.MethodPatch, path, tokenFor(invitee), `{"status":"declined"}`)
+		if res.Code != 409 {
+			t.Fatalf("repeat decline: %d %s", res.Code, res.Body)
+		}
+	})
 	t.Run("moderator replaces role and the old access token is rejected", func(t *testing.T) {
 		administrator, account := newUser(false), newUser(false)
 		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='admin'`, administrator)

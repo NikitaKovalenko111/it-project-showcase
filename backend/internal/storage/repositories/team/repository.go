@@ -167,5 +167,8 @@ func (r *Repository) Respond(ctx context.Context, studentID, invitationID, statu
 	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit invitation response: %w", err)
 	}
+	if status == "declined" {
+		return nil, nil
+	}
 	return r.Get(ctx, studentID, teamID, false)
 }
