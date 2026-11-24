@@ -282,10 +282,7 @@ export function LiveCompanyProgram() {
               <div className="opportunity-detail__layout">
                 <section className="card opportunity-content">
                   <h3>О программе</h3>
-                  <OpportunityDescription
-                    summary={selected.summary}
-                    markdown={selected.content_markdown}
-                  />
+                  <OpportunityDescription program={selected} />
                   {ownCatalog && selected.moderation_comment && (
                     <p className="inline-notice">
                       Комментарий модератора: {selected.moderation_comment}
@@ -504,6 +501,12 @@ export function LiveCompanyProgram() {
           initial={editor}
           companies={companies}
           allowCompanySelection={admin}
+          onDraftChange={(item) =>
+            setPrograms((items) => [
+              item,
+              ...items.filter((old) => old.program_id !== item.program_id),
+            ])
+          }
           onClose={() => setEditor(undefined)}
           onSaved={(item, submitted) => {
             setPrograms((items) => [

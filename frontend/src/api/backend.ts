@@ -8,6 +8,7 @@ import {
   StudentProject,
   ProjectMilestone,
 } from '../types/models'
+import { localDate, localDayEnd } from '../utils/date'
 // Backend DTOs are intentionally converted at the API boundary.
 export function fromUser(d: any): User {
   const s = d.student
@@ -149,7 +150,10 @@ export function fromCase(d: any): CaseProject {
     maxTeams: d.capacity,
     requiredCompetencies: (d.required_competencies || []).map((v: any) => v.name),
     recommendedTech: (d.technologies || []).map((v: any) => v.name),
-    deadlineDate: (d.due_at || d.application_deadline || '').slice(0, 10),
+    deadlineDate:
+      d.due_at || d.application_deadline
+        ? localDate(new Date(d.due_at || d.application_deadline))
+        : '',
     duration: d.duration || '',
     workFormat:
       ({ remote: 'дистанционный', onsite: 'очный', hybrid: 'смешанный' } as const)[
@@ -243,7 +247,11 @@ export function toCase(d: CaseProject) {
     course_min: source?.course_min,
     course_max: source?.course_max,
     application_deadline: d.applicationDeadline || source?.application_deadline,
-    due_at: d.deadlineDate ? `${d.deadlineDate}T23:59:59Z` : null,
+    due_at: d.deadlineDate
+      ? source?.due_at && localDate(new Date(source.due_at)) === d.deadlineDate
+        ? source.due_at
+        : localDayEnd(d.deadlineDate)
+      : null,
     duration: d.duration,
     result_requirements: d.resultRequirements,
     evaluation_rules: d.olympiadRules || d.evaluationOrder,
@@ -301,6 +309,7 @@ export const fromApplication = (d: any): CaseApplication => ({
   consentPending: d.status === 'consent_pending',
   canConsent: d.can_consent,
   isRegistration: d.entry_kind === 'registration',
+  executionId: d.execution_id || undefined,
   status:
     (
       {

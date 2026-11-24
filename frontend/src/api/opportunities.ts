@@ -18,6 +18,7 @@ export type Opportunity = {
   content_markdown: string
   capacity: number | null
   application_deadline: string | null
+  file_ids?: string[]
   moderation_comment?: string
   status: string
 }
@@ -36,6 +37,14 @@ export type OpportunityApplication = {
 }
 
 const live = apiRuntime.mode === 'live'
+export function programFilesUrl(programId: string) {
+  const base = (apiRuntime.baseUrl || '/api/v1').replace(/\/+$/, '')
+  return `${base}/internships/${encodeURIComponent(programId)}/files/`
+}
+
+export function programImageUrl(programId: string, fileId: string) {
+  return `${programFilesUrl(programId)}${encodeURIComponent(fileId)}/content`
+}
 let programFixtures: Opportunity[] | undefined
 function read<T>(key: string, fallback: T): T {
   const data = localStorage.getItem('showcase_curated_v1_' + key)
@@ -130,6 +139,7 @@ export const opportunityApi = {
       content_markdown: payload.content_markdown || '',
       capacity: payload.capacity ?? null,
       application_deadline: payload.application_deadline || null,
+      file_ids: payload.file_ids ?? previous?.file_ids,
       status: previous?.status === 'published' ? 'revision' : previous?.status || 'draft',
     }
     save('opportunities', [item, ...rows.filter((row) => row.program_id !== item.program_id)])

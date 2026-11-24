@@ -45,6 +45,13 @@ function* handleUpdateApplicationStatus(action: {
     if (app.status === 'accepted') {
       yield put(actions.fetchCasesRequest())
     }
+    if (app.ndaAccessPending) {
+      yield put(
+        actions.fetchApplicationsFailure(
+          'Заявка принята. Повторите выдачу доступа к ТЗ в карточке кейса.',
+        ),
+      )
+    }
   } catch (error: any) {
     yield put(
       actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'),

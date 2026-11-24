@@ -11,6 +11,8 @@ type Options = {
 const messages: Record<string, string> = {
   event_plan_required:
     'Перед отправкой на модерацию заполните план мероприятия, расписание и сроки.',
+  nda_version_required:
+    'Откройте форму редактирования и сохраните текст NDA перед отправкой на модерацию.',
   event_round_not_open: 'Тур ещё не открыт.',
   event_round_already_submitted: 'Решение этого тура уже отправлено.',
   case_plan_changed: 'План изменился на сервере. Загрузите его заново.',

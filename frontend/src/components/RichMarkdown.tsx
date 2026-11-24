@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import { axiosInstance } from '../api/http'
@@ -35,13 +35,19 @@ export function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
     <span>{alt || 'Изображение недоступно'}</span>
   )
 }
-export function RichMarkdown({ text }: { text: string }) {
+export function RichMarkdown({
+  text,
+  imageComponent = MarkdownImage,
+}: {
+  text: string
+  imageComponent?: ComponentType<{ src?: string; alt?: string }>
+}) {
   return (
     <div className="rich-description" data-color-mode="light">
       <MDEditor.Markdown
         source={text}
         rehypePlugins={[[rehypeSanitize, markdownSchema]]}
-        components={{ img: (props) => <MarkdownImage src={props.src} alt={props.alt} /> }}
+        components={{ img: imageComponent }}
       />
     </div>
   )

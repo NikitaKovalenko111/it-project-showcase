@@ -542,6 +542,14 @@ export const apiClient = {
     await axiosInstance.patch(`/nda-grants/${grantId}`, { status: 'granted' })
   },
 
+  async getApplicationParticipantIds(application: CaseApplication): Promise<string[]> {
+    if (!application.teamId || !application.executionId) return [application.studentId]
+    const { data } = await axiosInstance.get<{
+      members: { student_id: string; left_at?: string | null }[]
+    }>(`/executions/${application.executionId}`)
+    return data.members.filter((member) => !member.left_at).map((member) => member.student_id)
+  },
+
   async getCaseNDA(caseId: string) {
     return (
       await axiosInstance.get<{ nda_version_id: string; text: string }>(`/cases/${caseId}/nda`)
@@ -622,11 +630,49 @@ export const apiClient = {
     notes?: string,
   ): Promise<CaseApplication> {
     if (apiRuntime.mode === 'live') {
+      let confidential = false
+      if (status === 'accepted') {
+        const { data } = await axiosInstance.get(`/applications/${appId}`)
+        const application = fromApplication(data)
+        confidential = (await apiClient.getCaseById(application.caseId)).isConfidential
+        if (confidential) {
+          const grants = await apiClient.getCaseNdaGrants(application.caseId)
+          if (
+            !grants.some(
+              (grant) =>
+                grant.student_id === application.studentId &&
+                ['pending', 'granted'].includes(grant.status),
+            )
+          ) {
+            throw new Error('Заявитель должен подписать NDA перед принятием заявки.')
+          }
+        }
+      }
       const res = await axiosInstance.patch<CaseApplication>(`/applications/${appId}/status`, {
         status: status === 'need_info' ? 'info_requested' : status,
         notes,
       })
-      return fromApplication(res.data)
+      const accepted = fromApplication(res.data)
+      if (confidential && accepted.status === 'accepted') {
+        try {
+          const [studentIds, grants] = await Promise.all([
+            apiClient.getApplicationParticipantIds(accepted),
+            apiClient.getCaseNdaGrants(accepted.caseId),
+          ])
+          const results = await Promise.allSettled(
+            grants
+              .filter(
+                (grant) => grant.status === 'pending' && studentIds.includes(grant.student_id),
+              )
+              .map((grant) => apiClient.grantCaseNdaAccess(grant.nda_grant_id)),
+          )
+          accepted.ndaAccessPending = results.some((result) => result.status === 'rejected')
+        } catch {
+          // The application is already accepted. The case page can retry granting access.
+          accepted.ndaAccessPending = true
+        }
+      }
+      return accepted
     }
     await delay(200)
     return mockServer.updateApplicationStatus(appId, status, notes)

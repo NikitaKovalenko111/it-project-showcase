@@ -1,5 +1,5 @@
 import { IdentityImage } from '../IdentityImage'
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { logoutRequest } from '../../store/actions'
@@ -63,10 +63,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>('online')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const statusControl = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isOpen || isCollapsedDesktop) setShowStatusMenu(false)
   }, [isOpen, isCollapsedDesktop])
+
+  useEffect(() => {
+    if (!showStatusMenu) return
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !statusControl.current?.contains(event.target))
+        setShowStatusMenu(false)
+    }
+    document.addEventListener('pointerdown', dismiss, true)
+    return () => document.removeEventListener('pointerdown', dismiss, true)
+  }, [showStatusMenu])
 
   const closeSidebar = () => {
     setShowStatusMenu(false)
@@ -243,7 +254,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
         <div className="profile-presence">
           {/* Interactive Online Status Pill */}
-          <div className="profile-status-control">
+          <div
+            className="profile-status-control"
+            ref={statusControl}
+            onKeyDown={(event) => {
+              if (event.key !== 'Escape' || !showStatusMenu) return
+              event.stopPropagation()
+              setShowStatusMenu(false)
+              statusControl.current?.querySelector('button')?.focus()
+            }}
+          >
             <button
               className="profile-status-pill"
               aria-expanded={showStatusMenu}

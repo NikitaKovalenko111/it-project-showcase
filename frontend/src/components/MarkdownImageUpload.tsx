@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { LocalizedFileInput } from './LocalizedFileInput'
 import { uploadFile } from '../utils/files'
-export function MarkdownImageUpload({ onInsert }: { onInsert: (markdown: string) => void }) {
+export function markdownImageLink(name: string, url: string) {
+  return `\n\n![${name.replace(/[\[\]\\\r\n]/g, '')}](${url})\n`
+}
+
+export function MarkdownImageUpload(
+  props: { onInsert: (markdown: string) => void } | { onUpload: (file: File) => Promise<void> },
+) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('')
   return (
@@ -22,8 +28,11 @@ export function MarkdownImageUpload({ onInsert }: { onInsert: (markdown: string)
             setBusy(true)
             setError('')
             try {
-              const uploaded = await uploadFile(file)
-              onInsert('\n\n![' + file.name.replace(/[\[\]]/g, '') + '](' + uploaded.url + ')\n')
+              if ('onUpload' in props) await props.onUpload(file)
+              else {
+                const uploaded = await uploadFile(file)
+                props.onInsert(markdownImageLink(file.name, uploaded.url))
+              }
             } catch (cause) {
               setError((cause as Error).message)
             } finally {

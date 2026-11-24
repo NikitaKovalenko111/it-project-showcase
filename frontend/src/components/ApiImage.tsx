@@ -3,7 +3,7 @@ import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
 
 export function useImageUrl(src?: string) {
-  const base = (apiRuntime.baseUrl || '/api/v1').replace(/\/$/, '')
+  const base = (apiRuntime.baseUrl || '/api/v1').replace(/\/+$/, '')
   const protectedUrl = apiRuntime.mode === 'live' && !!src?.startsWith(base + '/')
   const [image, setImage] = useState<{ source?: string; url?: string; failed?: boolean }>({})
   useEffect(() => {

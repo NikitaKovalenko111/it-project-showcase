@@ -45,16 +45,20 @@ export const CaseApplications: React.FC<{ caseId: string; registrations?: boolea
       active = false
     }
   }, [caseId])
-  const visible = applications.filter((a) => !!a.isRegistration === registrations)
+  const visible = applications.filter(
+    (a) => a.caseId === caseId && !!a.isRegistration === registrations,
+  )
   const decide = async (id: string, status: CaseApplication['status']) => {
     setBusy(true)
     setError('')
     try {
-      await apiClient.updateApplicationStatus(id, status)
+      const updated = await apiClient.updateApplicationStatus(id, status)
       setApplications(await apiClient.getApplications(caseId))
-      dispatch(fetchApplicationsRequest(caseId))
+      dispatch(fetchApplicationsRequest())
       dispatch(fetchTeamsRequest())
       dispatch(fetchCaseByIdRequest(caseId))
+      if (updated.ndaAccessPending)
+        setError('Заявка принята. Повторите выдачу доступа к ТЗ в карточке кейса.')
     } catch (e) {
       setError((e as Error).message)
     } finally {

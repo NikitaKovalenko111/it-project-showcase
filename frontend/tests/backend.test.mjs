@@ -24,10 +24,27 @@ test('backend DTO maps criterion maximum, auth roles and dates', () => {
   assert.deepEqual(dto.evaluation_criteria, [{ name: 'Quality', max_score: 25, ordinal: 1 }])
   assert.equal(dto.company_id, 'co')
   assert.equal(dto.work_format, 'remote')
+  assert.equal(dto.due_at, '2027-01-02T12:00:00Z')
   assert.ok(!('weight' in dto.evaluation_criteria[0]))
   assert.equal(
     fromUser({ user_id: 'u', roles: ['student', 'admin'], username: 'a', status: 'blocked' }).role,
     'admin',
+  )
+})
+test('new case deadlines end on the selected local calendar day', () => {
+  const project = fromCase({ case_id: 'local-deadline' })
+  project.deadlineDate = '2027-01-02'
+  const deadline = new Date(toCase(project).due_at)
+  assert.deepEqual(
+    [
+      deadline.getFullYear(),
+      deadline.getMonth(),
+      deadline.getDate(),
+      deadline.getHours(),
+      deadline.getMinutes(),
+      deadline.getSeconds(),
+    ],
+    [2027, 0, 2, 23, 59, 59],
   )
 })
 test('cursor lists collect every page and reject repeated cursor', async () => {

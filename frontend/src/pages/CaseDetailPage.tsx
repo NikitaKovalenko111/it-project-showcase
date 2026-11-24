@@ -68,7 +68,9 @@ export const CaseDetailPage: React.FC = () => {
   const dispatch = useAppDispatch()
 
   const { activeCase, favorites, ndaAcceptedCases, error } = useAppSelector((state) => state.cases)
-  const { applicationsList } = useAppSelector((state) => state.applications)
+  const { applicationsList, error: applicationError } = useAppSelector(
+    (state) => state.applications,
+  )
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [applicationModalOpen, setApplicationModalOpen] = useState(false)
@@ -82,6 +84,7 @@ export const CaseDetailPage: React.FC = () => {
   >([])
   const [ndaError, setNdaError] = useState('')
   const [grantingNda, setGrantingNda] = useState(false)
+  const [acceptedNdaParticipants, setAcceptedNdaParticipants] = useState<string[]>([])
   const live = apiRuntime.mode === 'live'
   const managesNda =
     live &&
@@ -124,7 +127,10 @@ export const CaseDetailPage: React.FC = () => {
       void apiClient
         .getCaseNdaGrants(id)
         .then((items) => {
-          if (active) setNdaRequests(items)
+          if (active) {
+            setNdaRequests(items)
+            setNdaError('')
+          }
         })
         .catch((cause: Error) => {
           if (active) setNdaError(cause.message)
@@ -136,7 +142,29 @@ export const CaseDetailPage: React.FC = () => {
       active = false
       window.removeEventListener('focus', refresh)
     }
-  }, [id, viewerId, managesNda])
+  }, [id, viewerId, managesNda, applicationsList])
+
+  useEffect(() => {
+    setAcceptedNdaParticipants([])
+    if (!managesNda || !id) return
+    let active = true
+    const accepted = applicationsList.filter(
+      (app) => app.caseId === id && app.status === 'accepted',
+    )
+    void Promise.allSettled(
+      accepted.map((app) => apiClient.getApplicationParticipantIds(app)),
+    ).then((results) => {
+      if (active)
+        setAcceptedNdaParticipants(
+          results.flatMap((result, index) =>
+            result.status === 'fulfilled' ? result.value : [accepted[index].studentId],
+          ),
+        )
+    })
+    return () => {
+      active = false
+    }
+  }, [id, managesNda, applicationsList])
 
   useEffect(() => {
     setApplicationModalOpen(false)
@@ -180,13 +208,15 @@ export const CaseDetailPage: React.FC = () => {
     !activeCase.isConfidential ||
     (live ? ndaStatus === 'granted' : ndaAcceptedCases.includes(activeCase.id)) ||
     currentUser?.role !== 'student'
-  const pendingNdaRequests = ndaRequests.filter((item) => item.status === 'pending')
+  const caseApplications = applicationsList.filter((app) => app.caseId === activeCase.id)
+  const pendingNdaRequests = ndaRequests.filter(
+    (item) => item.status === 'pending' && acceptedNdaParticipants.includes(item.student_id),
+  )
 
   const userApplications =
     currentUser?.role === 'student'
-      ? applicationsList.filter(
+      ? caseApplications.filter(
           (app) =>
-            app.caseId === activeCase.id &&
             !['rejected', 'withdrawn'].includes(app.status) &&
             (app.studentId === currentUser.id || (apiRuntime.mode === 'live' && app.teamId)),
         )
@@ -215,6 +245,7 @@ export const CaseDetailPage: React.FC = () => {
 
   const instantRegistration = ['olympiad', 'hackathon'].includes(activeCase.kind || '')
   const canReviewApplications = isCompanyRepresentative && !instantRegistration
+  const incomingApplications = caseApplications.filter((app) => !app.isRegistration)
 
   const handleStatusChange = (appId: string, status: any) => {
     dispatch(updateApplicationStatusRequest(appId, status))
@@ -462,8 +493,8 @@ export const CaseDetailPage: React.FC = () => {
                     />
                     <h4 style={{ margin: '0 0 6px', color: 'var(--ui-danger)' }}>
                       {ndaStatus === 'pending'
-                        ? 'Запрос доступа к техническому заданию'
-                        : 'Доступ ограничен: требуется подписать соглашение о неразглашении (NDA)'}
+                        ? 'Соглашение о неразглашении подписано'
+                        : 'Техническое задание доступно по NDA'}
                     </h4>
                     {ndaStatus !== 'pending' && (
                       <p
@@ -475,19 +506,24 @@ export const CaseDetailPage: React.FC = () => {
                           marginInline: 'auto',
                         }}
                       >
-                        Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну
-                        компании. Ознакомьтесь и подпишите электронное NDA в один клик.
+                        {userApplication
+                          ? 'Подпишите соглашение о неразглашении, чтобы получить доступ к ТЗ.'
+                          : instantRegistration
+                            ? 'Сначала зарегистрируйтесь на мероприятие, затем подпишите NDA.'
+                            : 'Сначала подайте заявку на кейс, затем подпишите NDA.'}
                       </p>
                     )}
                     {ndaStatus === 'pending' ? (
                       <p role="status">
-                        Соглашение подписано. Доступ к ТЗ появится после подтверждения компанией.
+                        {userApplication?.status === 'accepted'
+                          ? 'Компания подтвердит доступ к ТЗ.'
+                          : 'Доступ к ТЗ откроется после принятия заявки.'}
                       </p>
-                    ) : (
+                    ) : userApplication ? (
                       <button className="btn btn-primary" onClick={() => setNdaModalOpen(true)}>
                         <ShieldAlert size={16} /> Ознакомиться и подписать NDA
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 ) : (
                   <div
@@ -604,7 +640,7 @@ export const CaseDetailPage: React.FC = () => {
             <div className="card" style={{ marginBottom: '24px' }}>
               <div className="card__header">
                 <h3 style={{ margin: 0, fontSize: '16px' }}>
-                  Поступившие заявки от студентов ({applicationsList.length})
+                  Поступившие заявки от студентов ({incomingApplications.length})
                 </h3>
                 <span className="badge badge-direction">Модуль отбора</span>
               </div>
@@ -614,12 +650,17 @@ export const CaseDetailPage: React.FC = () => {
                 aria-label="Поступившие заявки студентов"
                 style={{ padding: 0 }}
               >
-                {applicationsList.length === 0 ? (
+                {applicationError && (
+                  <p className="form-error" role="alert">
+                    {applicationError}
+                  </p>
+                )}
+                {incomingApplications.length === 0 ? (
                   <div style={{ padding: '32px', textAlign: 'center', color: 'var(--ui-icon)' }}>
                     Заявок на данный кейс пока не поступало
                   </div>
                 ) : (
-                  applicationsList.map((app) => (
+                  incomingApplications.map((app) => (
                     <div
                       key={app.id}
                       style={{
@@ -725,7 +766,7 @@ export const CaseDetailPage: React.FC = () => {
                       </div>
 
                       {/* Action buttons for company/curator */}
-                      {app.status === 'pending' && (
+                      {app.status === 'pending' && !app.consentPending && (
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                           <button
                             className="btn btn-success btn-sm"
@@ -1067,16 +1108,14 @@ export const CaseDetailPage: React.FC = () => {
 
       {managesNda && (pendingNdaRequests.length > 0 || ndaError) && (
         <section className="card feature-panel">
-          <h2>Запросы доступа по NDA</h2>
+          <h2>Доступ участников по NDA</h2>
           {ndaError && (
             <p className="form-error" role="alert">
               {ndaError}
             </p>
           )}
           {pendingNdaRequests.map((request) => {
-            const applicant = applicationsList.find(
-              (item) => item.caseId === activeCase.id && item.studentId === request.student_id,
-            )
+            const applicant = caseApplications.find((item) => item.studentId === request.student_id)
             return (
               <div className="action-row" key={request.nda_grant_id}>
                 <Link to={`/profile/${request.student_id}`}>
@@ -1138,6 +1177,9 @@ export const CaseDetailPage: React.FC = () => {
           onSubmitted={(message) => {
             setApplicationNotice(message)
             setApplicationModalOpen(false)
+            if (activeCase.isConfidential && !isNDASigned && ndaStatus !== 'pending') {
+              setNdaModalOpen(true)
+            }
           }}
         />
       )}

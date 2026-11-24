@@ -3,7 +3,7 @@ import { LocalizedFileInput } from '../LocalizedFileInput'
 import { Modal } from '../Modal'
 import { axiosInstance } from '../../api/http'
 import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
-import { localDate } from '../../utils/date'
+import { localDate, localDayEnd } from '../../utils/date'
 import { apiRuntime } from '../../api/runtime'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -143,7 +143,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
   const [format, setFormat] = useState<WorkFormat>('дистанционный'),
     [skills, setSkills] = useState(''),
     [rules, setRules] = useState(''),
-    [prizeInput, setPrize] = useState('0')
+    [prizeInput, setPrize] = useState('')
   const [participation, setParticipation] = useState<ParticipationFormat>('team')
   const [teamMinInput, setTeamMin] = useState('2'),
     [teamMaxInput, setTeamMax] = useState('5'),
@@ -196,7 +196,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
       setFormat(caseItem.workFormat)
       setSkills(caseItem.requiredCompetencies.join(', '))
       setRules(caseItem.olympiadRules || caseItem.internshipConditions || '')
-      setPrize(String(caseItem.prizeFund || caseItem.rewardAmount || 0))
+      setPrize(String(caseItem.prizeFund || caseItem.rewardAmount || ''))
       setParticipation(caseItem.participationFormat)
       setTeamMin(String(caseItem.teamSize.min))
       setTeamMax(String(caseItem.teamSize.max))
@@ -294,6 +294,10 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
   const liveEvent = live && (olympiad || kind === 'hackathon')
   const today = localDate()
   const team = participationFormat !== 'individual'
+  const initialRegistrationDay = caseItem?.applicationDeadline
+    ? localDate(new Date(caseItem.applicationDeadline))
+    : ''
+  const canSaveNdaVersion = !caseItem || ['draft', 'revision'].includes(caseItem.status)
   const directionOptions = live
     ? olympiad
       ? serverDirections.filter((value) => olympiadSubjects.includes(value))
@@ -400,8 +404,8 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               throw new Error('Дедлайн не может быть в прошлом.')
             if (![title, short, description].every((value) => value.trim()))
               throw new Error('Заполните название, краткое описание и техническое задание.')
-            if (liveEvent && (!registrationDeadline || registrationDeadline > deadline))
-              throw new Error('Укажите срок регистрации не позднее окончания мероприятия.')
+            if ((liveEvent && !registrationDeadline) || registrationDeadline > deadline)
+              throw new Error('Срок подачи заявок должен быть не позднее даты завершения.')
             if (details.startDate && deadline && details.startDate > deadline)
               throw new Error('Начало должно быть не позднее даты завершения')
             if (
@@ -477,7 +481,9 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               olympiadTasks: olympiad && !live ? tasks : undefined,
               applicationDeadline:
                 live && registrationDeadline
-                  ? `${registrationDeadline}T23:59:59Z`
+                  ? registrationDeadline === initialRegistrationDay
+                    ? caseItem?.applicationDeadline
+                    : localDayEnd(registrationDeadline)
                   : caseItem?.applicationDeadline,
               evaluationCriteria: internship
                 ? []
@@ -665,7 +671,16 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               </select>
             </label>
             <label>
-              {participationFormat === 'team' ? 'Максимум команд' : 'Количество мест'}
+              {participationFormat === 'team'
+                ? 'Максимум команд'
+                : participationFormat === 'both'
+                  ? 'Лимит участников и команд'
+                  : 'Количество мест'}
+              {participationFormat === 'both' && (
+                <span className="form-hint">
+                  Один участник или одна команда занимают одно место.
+                </span>
+              )}
               <span className="form-hint">От 1 до 10 000</span>
               <input
                 className="input"
@@ -692,7 +707,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
                 name="registrationDeadline"
                 required={liveEvent}
                 max={deadline || '2100-12-31'}
-                defaultValue={caseItem?.applicationDeadline?.slice(0, 10) || ''}
+                defaultValue={initialRegistrationDay}
               />
             </label>
           )}
@@ -836,7 +851,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               className="input"
               type="number"
               min="0"
-              required
+              placeholder="0"
               max={maxPrize}
               aria-invalid={prize < 0 || prize > maxPrize || undefined}
               step="0.01"
@@ -1009,9 +1024,12 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               Требуется NDA
             </label>
           )}
-          {live && team && !olympiad && nda && (!caseItem || caseItem.status === 'draft') && (
+          {live && team && !olympiad && nda && canSaveNdaVersion && (
             <label>
               Текст соглашения о неразглашении
+              <span className="form-hint">
+                Для отправки на модерацию нужна действующая версия NDA.
+              </span>
               <textarea
                 className="textarea"
                 required={!caseItem || !caseItem.isConfidential}

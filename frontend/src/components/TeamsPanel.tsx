@@ -599,52 +599,70 @@ export const TeamsPanel: React.FC<{
                 </div>
               )}
               <PaginatedGrid className="request-list">
-                {displayedRequests.map((r) => (
-                  <article className="team-request" key={r.id}>
-                    <div className="feature-toolbar">
-                      <h3>{teams.find((t) => t.id === r.teamId)?.name}</h3>
-                      <span className="badge badge-direction">
-                        {
-                          { pending: 'Ожидает ответа', accepted: 'Принято', rejected: 'Отклонено' }[
-                            r.status
-                          ]
-                        }
-                      </span>
-                    </div>
-                    <p>
-                      {r.kind === 'invitation' ? 'Приглашение в команду' : 'Заявка на вступление'} ·{' '}
-                      {students.find((s) => s.id === r.studentId)?.fullName}
-                    </p>
-                    <p className="preserve-text">{r.message}</p>
-                    {incoming(r) && r.status === 'pending' && (
-                      <div className="action-row">
-                        <button
-                          className="btn btn-primary btn-sm"
-                          disabled={busy}
-                          onClick={() =>
-                            act(
-                              () => communityApi.decideTeamRequest(r.id, 'accepted'),
-                              r.kind === 'invitation'
-                                ? 'Вы присоединились к команде.'
-                                : 'Участник добавлен в состав команды.',
-                            )
+                {displayedRequests.map((r) => {
+                  const isIncoming = incoming(r)
+                  const personId = r.kind === 'invitation' && isIncoming ? r.senderId : r.studentId
+                  const personName =
+                    r.studentName || students.find((s) => s.id === personId)?.fullName
+                  return (
+                    <article className="team-request" key={r.id}>
+                      <div className="feature-toolbar">
+                        <h3>{teams.find((t) => t.id === r.teamId)?.name}</h3>
+                        <span className="badge badge-direction">
+                          {
+                            {
+                              pending: 'Ожидает ответа',
+                              accepted: 'Принято',
+                              rejected: 'Отклонено',
+                            }[r.status]
                           }
-                        >
-                          Принять
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          disabled={busy}
-                          onClick={() =>
-                            act(() => communityApi.decideTeamRequest(r.id, 'rejected'))
-                          }
-                        >
-                          Отклонить
-                        </button>
+                        </span>
                       </div>
-                    )}
-                  </article>
-                ))}
+                      <p>
+                        {r.kind === 'invitation' ? 'Приглашение в команду' : 'Заявка на вступление'}{' '}
+                        ·{' '}
+                        {personId ? (
+                          <Link className="profile-link" to={`/profile/${personId}`}>
+                            {personName ||
+                              (r.kind === 'invitation' && isIncoming
+                                ? 'Профиль отправителя'
+                                : 'Профиль студента')}
+                          </Link>
+                        ) : (
+                          'Участник'
+                        )}
+                      </p>
+                      <p className="preserve-text">{r.message}</p>
+                      {isIncoming && r.status === 'pending' && (
+                        <div className="action-row">
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={busy}
+                            onClick={() =>
+                              act(
+                                () => communityApi.decideTeamRequest(r.id, 'accepted'),
+                                r.kind === 'invitation'
+                                  ? 'Вы присоединились к команде.'
+                                  : 'Участник добавлен в состав команды.',
+                              )
+                            }
+                          >
+                            Принять
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={busy}
+                            onClick={() =>
+                              act(() => communityApi.decideTeamRequest(r.id, 'rejected'))
+                            }
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      )}
+                    </article>
+                  )
+                })}
               </PaginatedGrid>
             </>
           )}

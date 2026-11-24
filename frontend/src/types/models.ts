@@ -243,6 +243,8 @@ export interface CaseApplication {
   consentPending?: boolean
   canConsent?: boolean
   isRegistration?: boolean
+  executionId?: string
+  ndaAccessPending?: boolean
   companyNotes?: string
   createdAt: string
 }
@@ -471,6 +473,7 @@ export interface TeamRequest {
   id: string
   teamId: string
   studentId: string
+  studentName?: string
   senderId: string
   kind: 'invitation' | 'application'
   message: string

@@ -1,14 +1,22 @@
 import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
-import { MarkdownImageUpload } from '../MarkdownImageUpload'
-import { markdownSchema, MarkdownImage } from '../RichMarkdown'
-import { useState, useEffect, type ReactNode } from 'react'
+import { markdownImageLink, MarkdownImageUpload } from '../MarkdownImageUpload'
+import { ProgramMarkdownImage } from '../ProgramMarkdownImage'
+import { markdownSchema } from '../RichMarkdown'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { Modal } from '../Modal'
 import { X } from 'lucide-react'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
-import { opportunityApi, type Opportunity, type OpportunityKind } from '../../api/opportunities'
+import {
+  opportunityApi,
+  programImageUrl,
+  type Opportunity,
+  type OpportunityKind,
+} from '../../api/opportunities'
+import { apiRuntime } from '../../api/runtime'
 import type { Company } from '../../types/models'
-import { localDate } from '../../utils/date'
+import { localDate, localDayEnd } from '../../utils/date'
+import { uploadFile } from '../../utils/files'
 
 export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 
@@ -21,6 +29,7 @@ export function OpportunityPublicationModal({
   formatControl,
   embedded = false,
   onBusyChange,
+  onDraftChange,
   onClose,
   onSaved,
 }: {
@@ -32,6 +41,7 @@ export function OpportunityPublicationModal({
   formatControl?: ReactNode
   embedded?: boolean
   onBusyChange?: (busy: boolean) => void
+  onDraftChange?: (item: Opportunity) => void
   onClose: () => void
   onSaved: (item: Opportunity, submitted: boolean) => void
 }) {
@@ -49,17 +59,13 @@ export function OpportunityPublicationModal({
     editor.program_id || allowCompanySelection ? editor.company_id : initial.company_id
   const companyName =
     companies.find((company) => company.id === companyId)?.name || editor.company_name || ''
-  const [selectedDeadline, setSelectedDeadline] = useState(() =>
-    initial.application_deadline
-      ? new Date(initial.application_deadline).toLocaleDateString('sv-SE')
-      : '',
-  )
+  const initialDeadline = initial.application_deadline
+    ? localDate(new Date(initial.application_deadline))
+    : ''
+  const [selectedDeadline, setSelectedDeadline] = useState(initialDeadline)
   const today = localDate()
   const deadlineError =
-    selectedDeadline &&
-    selectedDeadline < today &&
-    (!initial.application_deadline ||
-      selectedDeadline !== new Date(initial.application_deadline).toLocaleDateString('sv-SE'))
+    selectedDeadline && selectedDeadline < today && selectedDeadline !== initialDeadline
       ? 'Срок подачи заявок не может быть в прошлом.'
       : ''
   const byteLength = (value?: string) => new TextEncoder().encode(value?.trim() || '').length
@@ -81,8 +87,92 @@ export function OpportunityPublicationModal({
     deadlineError
   )
   const title =
-    (editor.program_id ? 'Редактирование ' : 'Размещение ') +
+    (initial.program_id ? 'Редактирование ' : 'Размещение ') +
     (editor.kind === 'practice' ? 'практики' : 'стажировки')
+  const programId = editor.program_id
+  const previewImage = useMemo(
+    () => (props: { src?: string; alt?: string }) => (
+      <ProgramMarkdownImage {...props} programId={programId} authenticated />
+    ),
+    [programId],
+  )
+  const payload = {
+    kind: editor.kind,
+    company_id: companyId,
+    title: editor.title,
+    summary: editor.summary,
+    content_markdown: editor.content_markdown,
+    capacity: editor.capacity,
+    application_deadline:
+      selectedDeadline === initialDeadline
+        ? (initial.application_deadline ?? null)
+        : selectedDeadline
+          ? localDayEnd(selectedDeadline)
+          : null,
+    file_ids: editor.file_ids ?? [],
+  }
+
+  const uploadImage = async (file: File) => {
+    if (apiRuntime.mode !== 'live') {
+      const uploaded = await uploadFile(file)
+      setEditor((current) => ({
+        ...current,
+        content_markdown:
+          (current.content_markdown || '') + markdownImageLink(file.name, uploaded.url),
+      }))
+      return
+    }
+    if (busy || companyUnavailable || !companyId) throw new Error('Сначала укажите компанию.')
+    if (file.type === 'image/gif') throw new Error('Выберите PNG, JPG или WebP.')
+    if (!editor.title?.trim() || !editor.summary?.trim() || !editor.capacity || hasFieldErrors)
+      throw new Error(
+        'Перед загрузкой фото проверьте название, краткое описание, количество мест и срок подачи заявок.',
+      )
+    if (payload.file_ids.length >= 30) throw new Error('К программе можно прикрепить до 30 файлов.')
+
+    setError('')
+    setBusy(true)
+    onBusyChange?.(true)
+    try {
+      let id = programId
+      if (!id) {
+        const draft = await opportunityApi.save(undefined, {
+          ...payload,
+          content_markdown: payload.content_markdown?.trim() || editor.summary,
+        })
+        id = draft.program_id
+        setEditor((current) => ({
+          ...current,
+          program_id: id,
+          company_id: companyId,
+          status: 'draft',
+        }))
+        onDraftChange?.(draft)
+      }
+      const uploaded = await uploadFile(file)
+      if (!uploaded.file_id) throw new Error('Сервер не вернул ID фото.')
+      const markdown =
+        (payload.content_markdown || '') +
+        markdownImageLink(file.name, programImageUrl(id, uploaded.file_id))
+      const fileIds = [...new Set([...payload.file_ids, uploaded.file_id])]
+      try {
+        const saved = await opportunityApi.save(id, {
+          ...payload,
+          content_markdown: markdown,
+          file_ids: fileIds,
+        })
+        const updated = { ...saved, file_ids: saved.file_ids ?? fileIds }
+        setEditor(updated)
+        onDraftChange?.(updated)
+      } catch (cause) {
+        setEditor((current) => ({ ...current, content_markdown: markdown, file_ids: fileIds }))
+        throw cause
+      }
+    } finally {
+      setBusy(false)
+      onBusyChange?.(false)
+    }
+  }
 
   const content = (
     <>
@@ -123,8 +213,6 @@ export function OpportunityPublicationModal({
               return
             }
           }
-          const deadlineField = form.elements.namedItem('application_deadline') as HTMLInputElement
-          const applicationDeadline = deadlineField.value
           const content = event.currentTarget.querySelector(
             'textarea[aria-labelledby="opportunity-program-label"]',
           ) as HTMLTextAreaElement | null
@@ -137,17 +225,6 @@ export function OpportunityPublicationModal({
           onBusyChange?.(true)
           setError('')
           try {
-            const payload = {
-              kind: editor.kind,
-              company_id: companyId,
-              title: editor.title,
-              summary: editor.summary,
-              content_markdown: editor.content_markdown,
-              capacity: editor.capacity,
-              application_deadline: applicationDeadline
-                ? new Date(`${applicationDeadline}T23:59:59`).toISOString()
-                : null,
-            }
             const saved = await opportunityApi.save(editor.program_id, payload)
             setEditor(saved)
             if (submit) {
@@ -274,8 +351,7 @@ export function OpportunityPublicationModal({
                   name="application_deadline"
                   max="2100-12-31"
                   min={
-                    initial.application_deadline?.slice(0, 10) === selectedDeadline &&
-                    selectedDeadline < today
+                    initialDeadline === selectedDeadline && selectedDeadline < today
                       ? selectedDeadline
                       : today
                   }
@@ -294,14 +370,10 @@ export function OpportunityPublicationModal({
               <p id="opportunity-program-label">
                 Программа и условия участия <span className="form-hint">До 50 000 байт</span>
               </p>
-              <MarkdownImageUpload
-                onInsert={(markdown) =>
-                  setEditor((value) => ({
-                    ...value,
-                    content_markdown: (value.content_markdown || '') + markdown,
-                  }))
-                }
-              />
+              {apiRuntime.mode === 'live' && (
+                <p className="form-hint">При добавлении фото программа сохраняется.</p>
+              )}
+              <MarkdownImageUpload onUpload={uploadImage} />
               <MDEditor
                 preview={compact ? 'edit' : 'live'}
                 overflow={false}
@@ -316,7 +388,7 @@ export function OpportunityPublicationModal({
                 }}
                 previewOptions={{
                   rehypePlugins: [[rehypeSanitize, markdownSchema]],
-                  components: { img: MarkdownImage },
+                  components: { img: previewImage },
                 }}
               />
               {contentError && (

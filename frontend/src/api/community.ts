@@ -3,7 +3,7 @@ import { collectPages, collectNumbered, fromTeam, fromCompany, fromProject } fro
 import { axiosInstance } from './http'
 import { apiClient } from './client'
 import { apiRuntime } from './runtime'
-import type { SystemNotification } from '../types/models'
+import type { SystemNotification, TeamRequest } from '../types/models'
 import { mockServer } from './mockRuntime'
 import type { MockServer } from './mockServer'
 
@@ -56,10 +56,11 @@ type AsyncMethods = {
 }
 
 const workflow = createWorkflow(axiosInstance)
-const teamApplication = (a: any) => ({
+const teamApplication = (a: any): TeamRequest => ({
   id: a.join_application_id,
   teamId: a.team_id,
   studentId: a.student_id,
+  studentName: a.student_name,
   senderId: a.student_id,
   kind: 'application',
   message: a.cover_letter,
@@ -192,16 +193,7 @@ export const communityApi = new Proxy({} as AsyncMethods, {
                     (
                       (await axiosInstance.get(`/teams/${t.team_id}/join-applications`)).data
                         .items || []
-                    ).map((a: any) => ({
-                      id: a.join_application_id,
-                      teamId: a.team_id,
-                      studentId: a.student_id,
-                      senderId: a.student_id,
-                      kind: 'application',
-                      message: a.cover_letter,
-                      status: a.status,
-                      createdAt: a.created_at,
-                    })),
+                    ).map(teamApplication),
                   ),
               )
             ).flat()

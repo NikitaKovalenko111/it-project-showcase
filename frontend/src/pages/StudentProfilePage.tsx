@@ -84,31 +84,45 @@ export const StudentProfilePage: React.FC = () => {
     )
   const isOwnProfile = !!currentUser && currentUser.id === targetUser?.id
   const student = targetUser?.studentProfile
-  const [statistics, setStatistics] = useState<{ id: string; rating?: number; awards?: number }>()
+  const [statistics, setStatistics] = useState<{
+    id: string
+    rating?: number
+    awards?: number
+    ratingUnavailable?: boolean
+  }>()
   const studentId = student ? targetUser?.id : undefined
   useEffect(() => {
     if (apiRuntime.mode !== 'live' || !studentId) return
     let active = true
-    setStatistics({ id: studentId })
-    void axiosInstance
-      .get<{ rating: number }>(`/students/${studentId}/rating`)
-      .then(({ data }) => {
-        if (active) setStatistics((current) => ({ ...current, id: studentId, rating: data.rating }))
+    let revision = 0
+    const refresh = async () => {
+      const request = ++revision
+      const [ratingResponse, portfolioResponse] = await Promise.allSettled([
+        axiosInstance.get<{ rating: number }>(`/students/${studentId}/rating`),
+        axiosInstance.get<{ student?: { rating: number }; awards?: { award_id: string }[] }>(
+          `/students/${studentId}/portfolio`,
+        ),
+      ])
+      if (!active || request !== revision) return
+      const portfolio =
+        portfolioResponse.status === 'fulfilled' ? portfolioResponse.value.data : undefined
+      const rated =
+        ratingResponse.status === 'fulfilled' ? ratingResponse.value.data.rating : undefined
+      const rating = Number.isFinite(rated) ? rated : portfolio?.student?.rating
+      setStatistics({
+        id: studentId,
+        rating,
+        awards: portfolio
+          ? new Set(portfolio.awards?.map((award) => award.award_id)).size
+          : undefined,
+        ratingUnavailable: !Number.isFinite(rating),
       })
-      .catch(() => undefined)
-    void axiosInstance
-      .get<{ awards: { award_id: string }[] }>(`/students/${studentId}/portfolio`)
-      .then(({ data }) => {
-        if (active)
-          setStatistics((current) => ({
-            ...current,
-            id: studentId,
-            awards: data.awards?.length ?? 0,
-          }))
-      })
-      .catch(() => undefined)
+    }
+    void refresh()
+    window.addEventListener('focus', refresh)
     return () => {
       active = false
+      window.removeEventListener('focus', refresh)
     }
   }, [studentId, currentUser?.id])
   const profileStatistics = statistics?.id === studentId ? statistics : undefined
@@ -394,6 +408,11 @@ export const StudentProfilePage: React.FC = () => {
               </strong>
             </div>
             <span style={{ fontSize: '11px', color: 'var(--ui-icon)' }}>Рейтинг студента</span>
+            {profileStatistics?.ratingUnavailable && (
+              <div className="form-hint" role="status">
+                Не удалось загрузить рейтинг.
+              </div>
+            )}
             <div style={{ fontSize: '10px', color: 'var(--ui-brand-text)', marginTop: '4px' }}>
               {apiRuntime.mode === 'live'
                 ? `Наград: ${profileStatistics?.awards ?? '—'}`
