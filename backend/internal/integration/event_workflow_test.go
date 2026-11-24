@@ -579,10 +579,22 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		approve(firstRep)
 		firstToken, secondToken := tokenFor(firstRep, "company_representative"), tokenFor(secondRep, "company_representative")
 		var company models.Company
-		data := send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Pipeline " + uuid.NewString(), "position": "Director"}, 201)
+		data := send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Pipeline " + uuid.NewString(), "position": "Director", "inn": "7707083893"}, 201)
 		if err := json.Unmarshal(data, &company); err != nil {
 			t.Fatal(err)
 		}
+		if company.INN != "7707083893" || strings.Contains(string(data), "\"kpp\"") || strings.Contains(string(data), "\"ogrn\"") || strings.Contains(string(data), "\"legal_address\"") {
+			t.Fatalf("company requisites: %s", data)
+		}
+		var storedINN string
+		if err := db.QueryRowContext(ctx, `SELECT inn FROM companies WHERE company_id=$1`, company.CompanyID).Scan(&storedINN); err != nil || storedINN != company.INN {
+			t.Fatalf("stored INN: %q %v", storedINN, err)
+		}
+		for _, inn := range []string{"", "7707083894"} {
+			send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Invalid INN", "inn": inn}, 422)
+			send(http.MethodPut, "/companies/"+company.CompanyID, firstToken, map[string]string{"full_name": company.FullName, "inn": inn}, 422)
+		}
+		send(http.MethodPatch, "/companies/"+company.CompanyID+"/legal", firstToken, map[string]string{"inn": "7707083893"}, 404)
 		invitePath := "/companies/" + company.CompanyID + "/member-invitations"
 		invite := func(user string, expected int) []byte {
 			t.Helper()
@@ -664,6 +676,21 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		var joined bool
 		if err := db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM company_members WHERE company_id=$1 AND user_id=$2)`, company.CompanyID, thirdRep).Scan(&joined); err != nil || joined {
 			t.Fatalf("decline created membership: %v %v", joined, err)
+		}
+		var updated models.Company
+		data = send(http.MethodPut, "/companies/"+company.CompanyID, firstToken, map[string]string{"full_name": company.FullName, "inn": "500100732259"}, 200)
+		if err := json.Unmarshal(data, &updated); err != nil {
+			t.Fatal(err)
+		}
+		if updated.INN != "500100732259" || updated.Status != "pending" {
+			t.Fatalf("updated INN/status: %s", data)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT inn FROM companies WHERE company_id=$1`, company.CompanyID).Scan(&storedINN); err != nil || storedINN != updated.INN {
+			t.Fatalf("updated stored INN: %q %v", storedINN, err)
+		}
+		var removedColumns int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='showcase' AND table_name='companies' AND column_name IN ('kpp','ogrn','legal_address')`).Scan(&removedColumns); err != nil || removedColumns != 0 {
+			t.Fatalf("obsolete requisites remain: %d %v", removedColumns, err)
 		}
 	})
 	t.Run("moderator replaces role and the old access token is rejected", func(t *testing.T) {

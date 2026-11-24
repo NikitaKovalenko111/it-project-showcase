@@ -2,15 +2,8 @@ package models
 
 import "time"
 
-type CompanyLegal struct {
-	INN          string `json:"inn,omitempty"`
-	KPP          string `json:"kpp,omitempty"`
-	OGRN         string `json:"ogrn,omitempty"`
-	LegalAddress string `json:"legal_address,omitempty"`
-}
-
 type Company struct {
-	CompanyLegal
+	INN               string    `json:"inn"`
 	CompanyID         string    `json:"company_id"`
 	FullName          string    `json:"full_name"`
 	ShortName         string    `json:"short_name,omitempty"`
@@ -28,6 +21,7 @@ type Company struct {
 }
 
 type CompanyInput struct {
+	INN         string
 	FullName    string
 	ShortName   string
 	Industry    string

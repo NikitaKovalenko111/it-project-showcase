@@ -22,11 +22,10 @@ func Init(service *companies_service.Service) *Handler { return &Handler{service
 func (h *Handler) Start(mux *http.ServeMux, representative, admin func(http.Handler) http.Handler) {
 	mux.HandleFunc("GET /", h.List)
 	mux.Handle("GET /mine", representative(http.HandlerFunc(h.ListMine)))
-	mux.HandleFunc("GET /{company_id}", h.Get) 
+	mux.HandleFunc("GET /{company_id}", h.Get)
 	mux.Handle("GET /moderation", admin(http.HandlerFunc(h.ListModeration)))
 	mux.Handle("POST /", representative(http.HandlerFunc(h.Create)))
 	mux.Handle("PUT /{company_id}", representative(http.HandlerFunc(h.Update)))
-	mux.Handle("PATCH /{company_id}/legal", representative(http.HandlerFunc(h.UpdateLegal)))
 	mux.Handle("PATCH /{company_id}/programs", representative(http.HandlerFunc(h.UpdatePrograms)))
 	mux.Handle("PATCH /{company_id}/moderation", admin(http.HandlerFunc(h.Moderate)))
 	mux.Handle("POST /{company_id}/submit-moderation", representative(http.HandlerFunc(h.Submit)))
@@ -248,23 +247,6 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	pkg.WriteJSON(w, http.StatusCreated, company)
 }
-func (h *Handler) UpdateLegal(w http.ResponseWriter, r *http.Request) {
-	var details models.CompanyLegal
-	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
-	decoder.DisallowUnknownFields()
-	if decoder.Decode(&details) != nil {
-		pkg.WriteError(w, http.StatusBadRequest, "invalid_request", "Invalid request payload")
-		return
-	}
-	userID, _ := middleware.UserIDFromContext(r.Context())
-	company, err := h.service.UpdateLegal(r.Context(), userID, r.PathValue("company_id"), details)
-	if err != nil {
-		writeCompanyError(w, r, err)
-		return
-	}
-	pkg.WriteJSON(w, http.StatusOK, company)
-}
-
 func (h *Handler) UpdatePrograms(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Internship *string `json:"internship_program"`
