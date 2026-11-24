@@ -6,6 +6,7 @@ import { AdminCompanyActions } from '../components/AdminCompanyActions'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { communityApi } from '../api/community'
 import { CompanyLogo } from '../components/CompanyLogo'
+import { CompanyLogoEditor } from '../components/CompanyLogoEditor'
 import { ReportButton } from '../components/ReportButton'
 import { CompanyProgram } from '../components/CompanyProgram'
 import { CompanyLegalDetails } from '../components/CompanyLegalDetails'
@@ -20,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '../store'
 import {
   fetchCompanyByIdRequest,
   fetchCompanyByIdSuccess,
+  fetchCasesRequest,
   fetchCurrentUserSuccess,
   fetchCompaniesRequest,
 } from '../store/actions'
@@ -70,9 +72,11 @@ export const CompanyDetailPage: React.FC = () => {
   const [caseSort, setCaseSort] = useState('newest')
   const [createCaseModalOpen, setCreateCaseModalOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [logoSaved, setLogoSaved] = useState(false)
 
   useEffect(() => {
     setInviteOpen(false)
+    setLogoSaved(false)
     if (id) {
       dispatch(fetchCompanyByIdRequest(id))
     }
@@ -145,7 +149,7 @@ export const CompanyDetailPage: React.FC = () => {
       {saveError && <p role="alert">{saveError}</p>}
       {inviteOpen && live && currentUser && isCompanyRepresentative && approvedCompany && (
         <InviteCompanyMember
-          key={activeCompany.id}
+          key={`invite-${activeCompany.id}`}
           companyId={activeCompany.id}
           actorId={currentUser.id}
           onClose={() => setInviteOpen(false)}
@@ -191,7 +195,19 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
         <div className="company-hero__top">
-          <CompanyLogo company={activeCompany} className="company-hero__logo" />
+          {live && canEditCompany ? (
+            <CompanyLogoEditor
+              key={activeCompany.id}
+              company={activeCompany}
+              onSaved={(company) => {
+                onCompanySaved(company)
+                dispatch(fetchCasesRequest())
+                setLogoSaved(true)
+              }}
+            />
+          ) : (
+            <CompanyLogo company={activeCompany} className="company-hero__logo" />
+          )}
 
           <div className="company-hero__info">
             <div
@@ -290,6 +306,16 @@ export const CompanyDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {logoSaved && (
+        <p role="status">
+          {activeCompany.status === 'draft' || activeCompany.status === 'rejected'
+            ? 'Логотип загружен. Отправьте компанию на модерацию в разделе «Моя компания».'
+            : activeCompany.isVerified
+              ? 'Логотип опубликован.'
+              : 'Логотип загружен и появится в витрине после одобрения компании.'}
+        </p>
+      )}
 
       <CompanyLegalDetails
         key={activeCompany.id}

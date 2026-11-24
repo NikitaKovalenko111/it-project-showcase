@@ -7,16 +7,27 @@ export function AvatarCropModal({
   file,
   onClose,
   onSave,
+  title = 'Обрезать фото профиля',
+  instructions = 'Перетащите само фото мышью или пальцем. В профиль сохранится область внутри рамки.',
+  notice,
+  saveLabel = 'Сохранить фото',
+  initialZoom = 1.15,
 }: {
   file: File
   onClose: () => void
   onSave: (file: File) => Promise<void>
+  title?: string
+  instructions?: string
+  notice?: string
+  saveLabel?: string
+  initialZoom?: number
 }) {
   const picture = useRef<HTMLImageElement>(null)
+  const saving = useRef(false)
   const drag = useRef<{ id: number; x: number; y: number; left: number; top: number }>()
   const [url, setUrl] = useState('')
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const [zoom, setZoom] = useState(1.15)
+  const [zoom, setZoom] = useState(initialZoom)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -30,7 +41,8 @@ export function AvatarCropModal({
   const height = edge ? dimensions.height / edge : 1
   const ready = !!dimensions.width
   const save = async () => {
-    if (!ready || busy || !picture.current) return
+    if (!ready || saving.current || !picture.current) return
+    saving.current = true
     setBusy(true)
     setError('')
     try {
@@ -55,18 +67,14 @@ export function AvatarCropModal({
     } catch (cause) {
       setError((cause as Error).message)
     } finally {
+      saving.current = false
       setBusy(false)
     }
   }
   return (
-    <Modal
-      title="Обрезать фото профиля"
-      onClose={onClose}
-      busy={busy}
-      className="avatar-crop-modal"
-    >
+    <Modal title={title} onClose={onClose} busy={busy} className="avatar-crop-modal">
       <div className="modal-dialog__body avatar-crop-body">
-        <p>Перетащите само фото мышью или пальцем. В профиль сохранится область внутри рамки.</p>
+        <p>{instructions}</p>
         <div
           className="avatar-crop-area"
           aria-label="Переместить фотографию в рамке"
@@ -159,6 +167,7 @@ export function AvatarCropModal({
             />
           </label>
         </fieldset>
+        {notice && <p className="form-hint">{notice}</p>}
         {error && (
           <p className="form-error" role="alert">
             {error}
@@ -171,7 +180,7 @@ export function AvatarCropModal({
           className="btn btn-secondary"
           disabled={busy}
           onClick={() => {
-            setZoom(1.15)
+            setZoom(initialZoom)
             setPosition({ x: 0, y: 0 })
             setError('')
           }}
@@ -187,7 +196,7 @@ export function AvatarCropModal({
           disabled={!dimensions.width || busy}
           onClick={() => void save()}
         >
-          {busy ? 'Сохранение…' : 'Сохранить фото'}
+          {busy ? 'Сохранение…' : saveLabel}
         </button>
       </div>
     </Modal>

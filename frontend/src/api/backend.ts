@@ -84,7 +84,7 @@ export function fromUser(d: any): User {
       : {}),
   }
 }
-function companyLogoUrl(companyId: string, fileId?: string): string {
+export function companyLogoUrl(companyId: string, fileId?: string): string {
   return companyId && fileId ? `/api/v1/companies/${companyId}/logo?v=${fileId}` : ''
 }
 
@@ -340,6 +340,8 @@ export const fromApplication = (d: any): CaseApplication => ({
 export const fromTeam = (d: any): ProjectTeam => ({
   id: d.team_id,
   name: d.name,
+  description: d.description,
+  recruitmentOpen: d.visibility === 'open' && d.looking_for_members === true,
   leaderId: d.leader_id,
   leaderName: (d.members || []).find((m: any) => m.student_id === d.leader_id)?.name || '',
   members: (d.members || [])

@@ -1,10 +1,12 @@
 import { createInvitationApi, invitationKind } from './invitations'
 import { createUserManagement } from './users'
 import { createCompanyMembershipApi, withCompanyMemberships } from './companyMembership'
+import { patchApplicationStatus } from './applicationStatus'
 import {
   fromUser,
   fromCase,
   fromCompany,
+  companyLogoUrl,
   toCase,
   collectPages,
   collectNumbered,
@@ -652,6 +654,7 @@ export const apiClient = {
       if (status === 'accepted') {
         const { data } = await axiosInstance.get(`/applications/${appId}`)
         const application = fromApplication(data)
+        if (application.status === 'accepted') return application
         confidential = (await apiClient.getCaseById(application.caseId)).isConfidential
         if (confidential) {
           const grants = await apiClient.getCaseNdaGrants(application.caseId)
@@ -666,12 +669,13 @@ export const apiClient = {
           }
         }
       }
-      const res = await axiosInstance.patch<CaseApplication>(`/applications/${appId}/status`, {
-        status: status === 'need_info' ? 'info_requested' : status,
+      const { application: accepted, changed } = await patchApplicationStatus(
+        axiosInstance,
+        appId,
+        status,
         notes,
-      })
-      const accepted = fromApplication(res.data)
-      if (confidential && accepted.status === 'accepted') {
+      )
+      if (changed && confidential && accepted.status === 'accepted') {
         try {
           const [studentIds, grants] = await Promise.all([
             apiClient.getApplicationParticipantIds(accepted),
@@ -949,6 +953,23 @@ export const apiClient = {
     const c = mockServer.getCompanyById(id)
     if (!c) throw new Error('Компания не найдена')
     return c
+  },
+
+  async updateCompanyLogo(company: Company, file: File): Promise<Company> {
+    const logoFileId = await companyMembershipApi.uploadLogo(company.id, file)
+    try {
+      return await apiClient.getCompanyById(company.id)
+    } catch {
+      // The upload has already succeeded. Keep the new logo and reflect the server's transition.
+      return {
+        ...company,
+        logoFileId,
+        logo: companyLogoUrl(company.id, logoFileId),
+        status: company.status === 'approved' ? 'pending' : company.status,
+        isVerified: false,
+        isModerated: false,
+      }
+    }
   },
 
   async suspendCompany(id: string): Promise<Company> {

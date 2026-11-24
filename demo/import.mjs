@@ -5,12 +5,12 @@ import { earlyProjectDates, feedback, milestones as demoAchievements, reviews } 
 import { demoCompanyCases } from './company-cases.mjs'
 import { companyPrograms, companyQuestions } from './company-engagement.mjs'
 import { companyDemoCoverage } from './company-demo-coverage.mjs'
+import { fixtureId as id, fixtureUuidSql } from './fixture-id.mjs'
 import { basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const read = (name) => JSON.parse(readFileSync(new URL(`data/${name}.json`, import.meta.url), 'utf8'))
-const id = (key) => key ? createHash('sha256').update(`showcase-data:${key}`).digest('hex').slice(0, 32) : null
 const sql = (value) => {
   if (value == null) return 'NULL'
   if (typeof value === 'boolean' || typeof value === 'number') return String(value)
@@ -27,6 +27,7 @@ const statements = [
      THEN RAISE EXCEPTION 'This import requires the isolated showcase_demo database'; END IF; END $$`,
   "SELECT pg_advisory_xact_lock(hashtext('showcase-data-import'))",
   'CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public',
+  fixtureUuidSql,
   `CREATE TEMP TABLE import_password AS SELECT public.crypt(${sql(password)}, public.gen_salt('bf', 10)) AS hash`,
   'CREATE TEMP TABLE existing_cases AS SELECT case_id FROM cases',
 ]
@@ -63,7 +64,7 @@ const users = read('users')
 const admin = id(users.find((user) => user.role === 'admin').id)
 statements.push(`DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM users WHERE username='demo.admin' AND user_id<>${sql(admin)}::uuid)
-  THEN RAISE EXCEPTION 'This database already has demo.admin from a different seed. Use a separate demo Compose project.'; END IF;
+  THEN RAISE EXCEPTION 'This database already has demo.admin from an older or different seed. Use a separate demo Compose project to keep existing data.'; END IF;
 END $$`)
 const studentVariants = new Map([
   ['syn_student_057', { institute: 'Физико-технический институт', phone: '+70000000057' }],
@@ -737,7 +738,7 @@ assets.push(async () => {
   const file = await studentAsset(feedbackAuthor, 'documents/examples/feedback-description.txt')
   mediaChanges.push(`INSERT INTO showcase.feedback_files(feedback_id,file_id,ordinal)
     SELECT feedback_id,${sql(file)},1 FROM showcase.feedback_messages
-    WHERE feedback_id=md5('coverage:feedback:reviewing')::uuid AND author_id=${sql(id(feedbackAuthor.id))}
+    WHERE feedback_id=pg_temp.demo_uuid('coverage:feedback:reviewing') AND author_id=${sql(id(feedbackAuthor.id))}
     ON CONFLICT DO NOTHING`)
 })
 assets.push(async () => {
@@ -745,7 +746,7 @@ assets.push(async () => {
   mediaChanges.push(`UPDATE showcase.event_plans
     SET plan=jsonb_set(plan,'{rounds,0,tasks,0,file_ids}',jsonb_build_array(${sql(file)}::uuid))
     WHERE plan#>'{rounds,0,tasks,0,file_ids}'='[]'::jsonb
-      AND plan#>>'{rounds,0,round_id}'=md5('coverage:round:'||case_id||':1')::uuid::text`)
+      AND plan#>>'{rounds,0,round_id}'=pg_temp.demo_uuid('coverage:round:'||case_id||':1')::text`)
 })
 const accountsWithAvatars = new Set(query(`SELECT u.user_id FROM showcase.users u
   JOIN showcase.files f ON f.file_id=u.avatar_file_id WHERE f.status='active';`).split(/\r?\n/))
@@ -893,6 +894,6 @@ if (companyCoverage.newCases.length) {
     WHERE a.case_id IN (${caseIds}) AND a.resume_file_id IS NULL
       AND p.student_id=a.student_id AND p.kind='resume' AND p.is_default AND p.detached_at IS NULL`)
 }
-if (mediaChanges.length) query(`BEGIN;\n${mediaChanges.join(';\n')};\nCOMMIT;`)
+if (mediaChanges.length) query(`BEGIN;\n${fixtureUuidSql};\n${mediaChanges.join(';\n')};\nCOMMIT;`)
 if (failures.length) throw new AggregateError(failures, 'Some demo media uploads failed')
 console.log(`Finished ${assets.length} media tasks.`)

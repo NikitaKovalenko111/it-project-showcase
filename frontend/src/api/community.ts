@@ -1,4 +1,5 @@
 import { createWorkflow } from './workflow'
+import { createTeamRecruitmentApi } from './teamRecruitment'
 import { collectPages, collectNumbered, fromTeam, fromCompany, fromProject } from './backend'
 import { axiosInstance } from './http'
 import { apiClient, getCompanyRecord } from './client'
@@ -56,6 +57,7 @@ type AsyncMethods = {
 }
 
 const workflow = createWorkflow(axiosInstance)
+export const teamRecruitmentApi = createTeamRecruitmentApi(axiosInstance)
 const teamApplication = (a: any): TeamRequest => ({
   id: a.join_application_id,
   teamId: a.team_id,
@@ -170,11 +172,6 @@ export const communityApi = new Proxy({} as AsyncMethods, {
               resolution: 'Рассмотрено администратором',
             })
             return
-          case 'linkTeamToCase':
-            throw new Error(
-              'API поддерживает открытый набор команды, но не привязку набора к кейсу',
-            )
-
           case 'getTeamRequests': {
             const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
             if (actor?.role !== 'student') return []
@@ -214,7 +211,7 @@ export const communityApi = new Proxy({} as AsyncMethods, {
           }
           case 'requestTeam':
             if (reason === 'invitation') {
-              await axiosInstance.post(`/teams/${id}/invitations`, { student_id: value })
+              await teamRecruitmentApi.invite(id, value)
               return
             }
             return (

@@ -269,6 +269,7 @@ export interface TeamMember {
 
 export interface ProjectTeam {
   description?: string
+  recruitmentOpen?: boolean
   recruitingCaseId?: string
   id: string
   name: string

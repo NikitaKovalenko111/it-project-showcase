@@ -106,6 +106,44 @@ test('company submission and invitation acceptance use distinct endpoints and re
   ])
 })
 
+test('company logos use the dedicated multipart endpoint and reject unsupported files', async () => {
+  const uploads = []
+  const api = createCompanyMembershipApi({
+    put: async (path, body) => {
+      uploads.push({ path, body })
+      return { data: { file_id: 'logo' } }
+    },
+  })
+  await assert.rejects(
+    api.uploadLogo(
+      'company',
+      new File(['data'], 'logo.svg', {
+        type: 'image/svg+xml',
+      }),
+    ),
+    /PNG, JPEG или WebP/,
+  )
+  await assert.rejects(
+    api.uploadLogo(
+      'company',
+      new File([], 'empty.png', {
+        type: 'image/png',
+      }),
+    ),
+    /непустое изображение/,
+  )
+
+  const file = new File(['logo bytes'], 'logo.png', { type: 'image/png' })
+  assert.equal(await api.uploadLogo('company', file), 'logo')
+  assert.equal(uploads.length, 1)
+  assert.equal(uploads[0].path, '/companies/company/logo')
+  assert.ok(uploads[0].body instanceof FormData)
+  const uploaded = uploads[0].body.get('file')
+  assert.equal(uploaded.name, 'logo.png')
+  assert.equal(uploaded.type, 'image/png')
+  assert.equal(await uploaded.text(), 'logo bytes')
+})
+
 test('membership and invitation lists follow the cursor and preserve the selected company ID', async () => {
   const calls = []
   const api = createCompanyMembershipApi({
