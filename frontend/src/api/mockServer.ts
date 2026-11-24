@@ -1441,11 +1441,12 @@ export class MockServer {
     return updated
   }
 
-  suspendCompany(id: string): Company {
+  suspendCompany(id: string, suspended = true): Company {
     this.requireAdmin()
     const company = this.companies.find((c) => c.id === id)
     if (!company) throw new Error('Компания не найдена')
-    company.isBlocked = true
+    company.isBlocked = suspended
+    if (!suspended) company.isVerified = true
     save('companies', this.companies)
     return company
   }

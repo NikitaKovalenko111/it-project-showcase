@@ -32,19 +32,53 @@ const readMockFeedback = (): Feedback[] => JSON.parse(localStorage.getItem(mockF
 const saveMockFeedback = (records: Feedback[]) =>
   localStorage.setItem(mockFeedbackKey, JSON.stringify(records))
 const fileDrafts = new Map<string, File[]>()
-const duplicateFeedbackInterval = 60_000
+const feedbackInterval = 60_000
+const feedbackLimit = 3
+
+function feedbackRetryAt(records: Feedback[], now: number) {
+  const recent = records
+    .map((record) => Date.parse(record.created_at))
+    .filter((date) => now - date < feedbackInterval)
+    .sort((first, second) => second - first)
+  return recent.length >= feedbackLimit ? recent[feedbackLimit - 1] + feedbackInterval : 0
+}
+
+function retryAfterDeadline(header: unknown, now: number) {
+  if (typeof header !== 'string') return now + feedbackInterval
+  const deadline = /^\d+$/.test(header) ? now + Number(header) * 1000 : Date.parse(header)
+  return Number.isFinite(deadline) ? deadline : now + feedbackInterval
+}
+
 export const FeedbackPage: React.FC = () => {
   const user = useAppSelector((s) => s.auth.currentUser)
   const userId = user?.id || 'guest'
+  return <FeedbackWorkspace key={userId} userId={userId} admin={user?.role === 'admin'} />
+}
+
+function FeedbackWorkspace({ userId, admin }: { userId: string; admin: boolean }) {
   const live = apiRuntime.mode === 'live'
-  const admin = user?.role === 'admin'
   const key = `feedback-draft:${userId}`
+  const cooldownKey = `feedback-cooldown:${userId}`
   const [text, setText] = useState(() => sessionStorage.getItem(key) || ''),
     [files, setFiles] = useState<File[]>(() => fileDrafts.get(key) || []),
     [error, setError] = useState('')
   const [records, setRecords] = useState<Feedback[]>([]),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState('')
+  const [loading, setLoading] = useState(live)
+  const [serverRetryAt, setServerRetryAt] = useState(
+    () => Number(localStorage.getItem(cooldownKey)) || 0,
+  )
+  const [now, setNow] = useState(Date.now)
+  const retryAt = Math.max(serverRetryAt, admin ? 0 : feedbackRetryAt(records, now))
+  const secondsRemaining = Math.max(0, Math.ceil((retryAt - now) / 1000))
+
+  useEffect(() => {
+    if (!secondsRemaining) return
+    const timer = window.setTimeout(() => setNow(Date.now()), Math.min(1000, retryAt - now))
+    return () => window.clearTimeout(timer)
+  }, [now, retryAt, secondsRemaining])
+
   useEffect(() => {
     let active = true
     if (live)
@@ -52,21 +86,22 @@ export const FeedbackPage: React.FC = () => {
         axiosInstance.get(admin ? '/feedback' : '/feedback/mine', { params }),
       )
         .then((rows) => {
-          if (active) setRecords(rows)
+          if (active) {
+            setRecords(rows)
+            setNow(Date.now())
+          }
         })
         .catch((e) => {
           if (active) setError(e.message)
+        })
+        .finally(() => {
+          if (active) setLoading(false)
         })
     else setRecords(readMockFeedback().filter((item) => admin || item.userId === userId))
     return () => {
       active = false
     }
   }, [admin, userId, live])
-  useEffect(() => {
-    setText(sessionStorage.getItem(key) || '')
-    setFiles(fileDrafts.get(key) || [])
-    setError('')
-  }, [key])
   const [previews, setPreviews] = useState<{ name: string; url: string }[]>([])
   useEffect(() => {
     const next = files
@@ -102,15 +137,29 @@ export const FeedbackPage: React.FC = () => {
               e.preventDefault()
               const form = e.currentTarget
               const body = text.trim()
-              if (busy || !body) return
+              if (busy || loading || !body) return
+              const submittedAt = Date.now()
+              const myRecords = live
+                ? records
+                : readMockFeedback().filter((record) => record.userId === userId)
+              const serverDeadline = Number(localStorage.getItem(cooldownKey)) || 0
+              const retryAt = Math.max(serverDeadline, feedbackRetryAt(myRecords, submittedAt))
+              if (retryAt > submittedAt) {
+                setNow(submittedAt)
+                setRecords(myRecords)
+                setServerRetryAt(serverDeadline)
+                setError('')
+                setNotice('')
+                return
+              }
               if (
                 !files.length &&
-                records.some(
+                myRecords.some(
                   (record) =>
                     record.body === body &&
                     !record.file_ids?.length &&
                     !record.mockFiles?.length &&
-                    Date.now() - Date.parse(record.created_at) < duplicateFeedbackInterval,
+                    submittedAt - Date.parse(record.created_at) < feedbackInterval,
                 )
               ) {
                 setNotice('')
@@ -141,7 +190,8 @@ export const FeedbackPage: React.FC = () => {
                   }
                   saveMockFeedback([record, ...readMockFeedback()])
                 }
-                setRecords((items) => [record, ...items])
+                setRecords([record, ...myRecords])
+                setNow(Date.now())
                 form.reset()
                 setText('')
                 setFiles([])
@@ -149,7 +199,16 @@ export const FeedbackPage: React.FC = () => {
                 fileDrafts.delete(key)
                 setNotice('Обращение отправлено.')
               } catch (cause) {
-                setError((cause as Error).message)
+                const failure = cause as Error & { status?: number; retryAfter?: unknown }
+                if (failure.status === 429) {
+                  const receivedAt = Date.now()
+                  const retryAt = retryAfterDeadline(failure.retryAfter, receivedAt)
+                  localStorage.setItem(cooldownKey, String(retryAt))
+                  setServerRetryAt(retryAt)
+                  setNow(receivedAt)
+                  if (retryAt <= receivedAt)
+                    setError('Сервер ограничил отправку. Повторите попытку.')
+                } else setError(failure.message)
               } finally {
                 setBusy(false)
               }
@@ -185,9 +244,17 @@ export const FeedbackPage: React.FC = () => {
                 </a>
               ))}
             </div>
-            <button className="btn btn-primary" disabled={busy || !text.trim()}>
+            <button
+              className="btn btn-primary"
+              disabled={busy || loading || !!secondsRemaining || !text.trim()}
+            >
               {busy ? 'Отправка…' : 'Отправить'}
             </button>
+            {!!secondsRemaining && (
+              <p className="form-hint">
+                Следующее обращение можно отправить через {secondsRemaining} сек.
+              </p>
+            )}
           </form>
         </section>
       )}

@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { CaseProject } from '../types/models'
 import { apiClient } from '../api/client'
 import { useAppDispatch, useAppSelector } from '../store'
-import { fetchCaseByIdRequest, fetchCasesRequest } from '../store/actions'
+import { updateCaseSuccess } from '../store/actions'
 export const AdminCaseActions: React.FC<{ project: CaseProject }> = ({ project }) => {
   const confirm = useConfirm()
   const actor = useAppSelector((s) => s.auth.currentUser),
@@ -27,16 +27,20 @@ export const AdminCaseActions: React.FC<{ project: CaseProject }> = ({ project }
           setBusy(true)
           setError('')
           try {
-            await apiClient.moderatePublication(
+            const updated = await apiClient.moderatePublication(
               'case',
               project.id,
               hidden ? 'approved' : 'hidden',
               'Решение администратора из карточки кейса',
             )
-            dispatch(fetchCaseByIdRequest(project.id))
-            dispatch(fetchCasesRequest())
+            dispatch(updateCaseSuccess(updated as CaseProject))
           } catch (e) {
-            setError((e as Error).message)
+            const cause = e as Error & { code?: string }
+            setError(
+              hidden && cause.code === 'invalid_case_transition'
+                ? 'Сервер не разрешил восстановить кейс из текущего статуса.'
+                : cause.message,
+            )
           } finally {
             setBusy(false)
           }

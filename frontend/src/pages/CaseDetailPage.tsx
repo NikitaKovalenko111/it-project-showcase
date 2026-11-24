@@ -1151,7 +1151,7 @@ export const CaseDetailPage: React.FC = () => {
         <EventPlanPanel key={activeCase.id} project={activeCase} />
       )}
       {!reviewing && (!live || (activeCase.isModerated && activeCase.visibility !== 'private')) && (
-        <CaseComments caseId={activeCase.id} />
+        <CaseComments key={activeCase.id} project={activeCase} />
       )}
       {!reviewing &&
         currentUser?.role !== 'student' &&

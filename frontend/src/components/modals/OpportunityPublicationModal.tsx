@@ -17,6 +17,7 @@ import { apiRuntime } from '../../api/runtime'
 import type { Company } from '../../types/models'
 import { localDate, localDayEnd } from '../../utils/date'
 import { uploadFile } from '../../utils/files'
+import { shorteningError } from '../../utils/publicationLength'
 
 export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 
@@ -68,12 +69,9 @@ export function OpportunityPublicationModal({
     selectedDeadline && selectedDeadline < today && selectedDeadline !== initialDeadline
       ? 'Срок подачи заявок не может быть в прошлом.'
       : ''
-  const byteLength = (value?: string) => new TextEncoder().encode(value?.trim() || '').length
-  const titleError = byteLength(editor.title) > 200 ? 'Название превышает 200 байт.' : ''
-  const summaryError =
-    byteLength(editor.summary) > 1000 ? 'Краткое описание превышает 1 000 байт.' : ''
-  const contentError =
-    byteLength(editor.content_markdown) > 50000 ? 'Программа превышает 50 000 байт.' : ''
+  const titleError = shorteningError('название', editor.title || '', 200, 'utf8')
+  const summaryError = shorteningError('краткое описание', editor.summary || '', 1000, 'utf8')
+  const contentError = shorteningError('программу', editor.content_markdown || '', 50000, 'utf8')
   const capacityError =
     editor.capacity &&
     (editor.capacity < 1 || editor.capacity > 10000 || !Number.isInteger(editor.capacity))
@@ -282,41 +280,39 @@ export function OpportunityPublicationModal({
             </label>
             <label>
               Название
-              <span className="form-hint" id="opportunity-title-limit">
-                До 200 байт
-              </span>
               <input
                 className="input"
                 required
                 name="title"
-                aria-describedby="opportunity-title-limit"
+                aria-errormessage={titleError ? 'opportunity-title-limit' : undefined}
                 aria-invalid={titleError ? true : undefined}
                 value={editor.title || ''}
                 onChange={(event) => setEditor({ ...editor, title: event.target.value })}
               />
               {titleError && (
-                <span className="publication-field-error" role="alert">
+                <span id="opportunity-title-limit" className="publication-field-error" role="alert">
                   {titleError}
                 </span>
               )}
             </label>
             <label>
               Краткое описание
-              <span className="form-hint" id="opportunity-summary-limit">
-                До 1 000 байт
-              </span>
               <textarea
                 className="textarea"
                 required
                 name="summary"
                 rows={2}
-                aria-describedby="opportunity-summary-limit"
+                aria-errormessage={summaryError ? 'opportunity-summary-limit' : undefined}
                 aria-invalid={summaryError ? true : undefined}
                 value={editor.summary || ''}
                 onChange={(event) => setEditor({ ...editor, summary: event.target.value })}
               />
               {summaryError && (
-                <span className="publication-field-error" role="alert">
+                <span
+                  id="opportunity-summary-limit"
+                  className="publication-field-error"
+                  role="alert"
+                >
                   {summaryError}
                 </span>
               )}
@@ -324,13 +320,13 @@ export function OpportunityPublicationModal({
             <div className="responsive-grid">
               <label>
                 Количество мест
-                <span className="form-hint">От 1 до 10 000</span>
                 <input
                   className="input"
                   type="number"
                   required
                   min={1}
                   max={10000}
+                  placeholder="От 1 до 10 000"
                   aria-invalid={capacityError ? true : undefined}
                   value={editor.capacity || ''}
                   onChange={(event) =>
@@ -367,9 +363,7 @@ export function OpportunityPublicationModal({
               </label>
             </div>
             <div data-color-mode="light">
-              <p id="opportunity-program-label">
-                Программа и условия участия <span className="form-hint">До 50 000 байт</span>
-              </p>
+              <p id="opportunity-program-label">Программа и условия участия</p>
               {apiRuntime.mode === 'live' && (
                 <p className="form-hint">При добавлении фото программа сохраняется.</p>
               )}
@@ -384,6 +378,7 @@ export function OpportunityPublicationModal({
                   'aria-labelledby': 'opportunity-program-label',
                   name: 'content_markdown',
                   'aria-invalid': contentError ? true : undefined,
+                  'aria-errormessage': contentError ? 'opportunity-content-limit' : undefined,
                   onInput: (event) => event.currentTarget.setCustomValidity(''),
                 }}
                 previewOptions={{
@@ -392,7 +387,7 @@ export function OpportunityPublicationModal({
                 }}
               />
               {contentError && (
-                <p className="publication-field-error" role="alert">
+                <p id="opportunity-content-limit" className="publication-field-error" role="alert">
                   {contentError}
                 </p>
               )}

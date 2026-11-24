@@ -171,10 +171,14 @@ export const CompanyDetailPage: React.FC = () => {
               <span className="company-industry">
                 <Building2 size={12} /> {activeCompany.industry}
               </span>
-              {activeCompany.isVerified && (
-                <span className="company-verified">
-                  <ShieldCheck size={14} /> Аккредитовано
-                </span>
+              {activeCompany.isBlocked ? (
+                <span className="badge publication-hidden">Заблокирована</span>
+              ) : (
+                activeCompany.isVerified && (
+                  <span className="company-verified">
+                    <ShieldCheck size={14} /> Аккредитовано
+                  </span>
+                )
               )}
             </div>
 

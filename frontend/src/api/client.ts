@@ -37,6 +37,10 @@ export { axiosInstance } from './http'
 import { axiosInstance } from './http'
 // Simulated delay helper for realistic network feedback
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
+const suspendedCompanies = () =>
+  collectPages<any>((params) => axiosInstance.get('/companies/moderation', { params }), {
+    status: 'suspended',
+  })
 
 async function resolveCaseCatalogs(project: CaseProject) {
   const payload = toCase(project)
@@ -407,6 +411,13 @@ export const apiClient = {
             axiosInstance.get('/cases/moderation', { params }),
           )),
         )
+      if (actor?.role === 'admin')
+        rows.push(
+          ...(await collectPages<any>(
+            (params) => axiosInstance.get('/cases/moderation', { params }),
+            { status: 'hidden' },
+          )),
+        )
       return [...new Map(rows.map((d) => [d.case_id, d])).values()].map((row) => ({
         ...fromCase(row),
         managedByViewer: actor?.role === 'company' ? managed.has(row.case_id) : undefined,
@@ -477,8 +488,8 @@ export const apiClient = {
   },
 
   async submitCase(id: string): Promise<CaseProject> {
-    await axiosInstance.post(`/cases/${id}/submit-moderation`)
-    return apiClient.getCaseById(id)
+    const { data } = await axiosInstance.post(`/cases/${id}/submit-moderation`)
+    return { ...fromCase(data), managedByViewer: true }
   },
 
   async updateCase(data: CaseProject): Promise<CaseProject> {
@@ -917,6 +928,7 @@ export const apiClient = {
             axiosInstance.get('/companies/moderation', { params }),
           )),
         )
+      if (actor?.role === 'admin') rows.push(...(await suspendedCompanies()))
       return [...new Map(rows.map((d) => [d.company_id, d])).values()].map(fromCompany)
     }
     await delay(120)
@@ -925,7 +937,16 @@ export const apiClient = {
 
   async getCompanyById(id: string): Promise<Company> {
     if (apiRuntime.mode === 'live') {
-      return fromCompany((await axiosInstance.get(`/companies/${id}`)).data)
+      try {
+        return fromCompany((await axiosInstance.get(`/companies/${id}`)).data)
+      } catch (error) {
+        const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+        if ((error as { status?: number }).status === 404 && actor?.role === 'admin') {
+          const company = (await suspendedCompanies()).find((item) => item.company_id === id)
+          if (company) return fromCompany(company)
+        }
+        throw error
+      }
     }
     await delay(120)
     const c = mockServer.getCompanyById(id)
@@ -944,6 +965,10 @@ export const apiClient = {
         ).data,
       )
     return mockServer.suspendCompany(id)
+  },
+  async restoreCompany(id: string): Promise<Company> {
+    if (apiRuntime.mode === 'live') return apiClient.verifyCompany(id, true)
+    return mockServer.suspendCompany(id, false)
   },
   async verifyCompany(id: string, status: boolean): Promise<Company> {
     if (apiRuntime.mode === 'live')

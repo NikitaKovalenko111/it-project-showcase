@@ -399,6 +399,7 @@ input, button, select, textarea {
 @import 'qa-refinement';
 
 .case-card__cover { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; background: var(--ui-brand-surface); }
+.case-card__cover--placeholder { background: var(--ui-brand-surface) url('/images/brand/project.svg') center / min(96px, 30%) no-repeat; }
 
 .badge.status-recruitment-closed {
   gap: 6px;
@@ -471,7 +472,6 @@ input, button, select, textarea {
   background: var(--ui-success-surface);
   color: var(--ui-success);
 }
-.execution-reply { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; overflow-wrap: anywhere; }
 .round-work-fields { min-width: 0; border: 0; padding: 0; margin: 0; }
 .round-work-fields[hidden] { display: none; }
 
@@ -496,5 +496,3 @@ form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']):focus
 .feedback-queue__actions { width: max-content; max-width: 100%; }
 .feedback-queue__actions .btn { flex: none; white-space: nowrap; }
 @media (max-width: 768px) { .feedback-queue .data-table td:has(.feedback-queue__actions) { width: 100%; } }
-
-.comment-compose__shortcut { grid-column: 2 / -1; }

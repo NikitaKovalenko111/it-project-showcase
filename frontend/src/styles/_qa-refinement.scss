@@ -256,24 +256,6 @@ select option {
   padding: 8px 12px;
   font-size: 13px;
 }
-.comments-panel .comment-compose {
-  grid-template-columns: 36px minmax(0, 1fr) auto;
-  align-items: start;
-}
-.comments-panel .comment-compose > label {
-  grid-column: 2;
-}
-.comments-panel .comment-compose > .btn {
-  grid-column: 3;
-  grid-row: 1;
-  margin-top: 4px;
-}
-.comments-panel .comment-compose:has(> p) > .btn {
-  grid-row: 2;
-}
-.comments-panel .comment-compose > p {
-  grid-column: 1 / -1;
-}
 .catalog-search:focus-within {
   border-color: var(--ui-muted);
   outline: 2px solid var(--ui-muted);
@@ -480,19 +462,6 @@ select option {
     flex: 0 0 auto;
     white-space: nowrap;
   }
-  .comments-panel .comment-compose {
-    grid-template-columns: 28px minmax(0, 1fr) auto;
-    gap: 8px;
-  }
-  .comments-panel .comment-compose > .comment-avatar {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-  }
-  .comments-panel .comment-compose > .btn {
-    padding: 8px;
-    font-size: 12px;
-  }
   .curator-stats {
     grid-template-columns: 1fr;
   }
@@ -651,16 +620,6 @@ select option {
 .opportunity-apply-dialog .localized-file-input {
   font-weight: 400;
 }
-.execution-comments .comment-compose > label {
-  margin: 0;
-}
-.execution-comments .comment-compose > button {
-  white-space: normal;
-  max-width: 170px;
-}
-.execution-comments .comment-compose .form-error {
-  grid-row: 2;
-}
 .report-section {
   padding: 20px;
 }
@@ -713,9 +672,6 @@ select option {
   }
   .review-list .opportunity-card .case-card__footer-bar {
     padding-top: 0;
-  }
-  .execution-comments .comment-compose > button {
-    max-width: 100px;
   }
 }
 
@@ -771,10 +727,6 @@ select option {
 }
 .opportunity-enrollment > div:first-child {
   align-self: flex-start;
-}
-.comments-panel .comment-compose > label > textarea {
-  min-height: 42px;
-  padding: 10px 12px;
 }
 .company-legal .feature-toolbar h2 {
   margin: 0;
@@ -1194,7 +1146,6 @@ select option {
 .application-kind-sort { margin-left:auto; }
 .execution-comments > .comments-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
 .execution-comments > .comments-heading h2 { margin:0; }
-.execution-comments > .comment-compose { margin-bottom:22px; }
 .execution-comments .comment-item { padding:16px 0; }
 .execution-comments .comment-item > p { margin:8px 0 0 48px; }
 @media(max-width:600px) { .execution-comments > .comments-heading { flex-wrap:wrap; } }

@@ -86,7 +86,8 @@ export const ModerationAdminPage: React.FC = () => {
   const companiesList = allCompanies.filter(
     (c) =>
       matches(c.id, c.name, c.industry, c.contactPerson, c.email) &&
-      (status === 'all' || String(c.isVerified) === status),
+      (status === 'all' ||
+        (c.isBlocked ? status === 'suspended' : String(c.isVerified) === status)),
   )
   const allUsers = users.filter(
     (u) =>
@@ -107,6 +108,7 @@ export const ModerationAdminPage: React.FC = () => {
       ? [
           ['true', 'Верифицирована'],
           ['false', 'Требует проверки'],
+          ['suspended', 'Заблокирована'],
         ]
       : activeTab === 'users'
         ? [
@@ -328,19 +330,27 @@ export const ModerationAdminPage: React.FC = () => {
                         </a>
                       </td>
                       <td>
-                        {comp.isVerified ? (
+                        {comp.isBlocked ? (
+                          <span className="badge publication-hidden">Заблокирована</span>
+                        ) : comp.isVerified ? (
                           <span className="badge badge-verified">✓ Верифицирована</span>
                         ) : (
                           <span className="badge badge-complexity-high">Требует проверки</span>
                         )}
                       </td>
                       <td>
-                        <button
-                          className={`btn ${comp.isVerified ? 'btn-secondary' : 'btn-primary'} btn-sm`}
-                          onClick={() => handleVerifyCompany(comp.id, !comp.isVerified)}
-                        >
-                          {comp.isVerified ? 'Отозвать аккредитацию' : 'Верифицировать'}
-                        </button>
+                        {comp.isBlocked ? (
+                          <Link className="btn btn-secondary btn-sm" to={`/company/${comp.id}`}>
+                            Открыть карточку
+                          </Link>
+                        ) : (
+                          <button
+                            className={`btn ${comp.isVerified ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+                            onClick={() => handleVerifyCompany(comp.id, !comp.isVerified)}
+                          >
+                            {comp.isVerified ? 'Отозвать аккредитацию' : 'Верифицировать'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios'
 type Options = {
   baseURL: string
   timeoutMs: number
@@ -144,7 +144,13 @@ export function createHttpClient(options: Options) {
                 ? `Ошибка API (${error.response.status})`
                 : 'Сервер недоступен. Проверьте подключение к API.'),
           ),
-          { status: error.response?.status, code: apiError?.code },
+          {
+            status: error.response?.status,
+            code: apiError?.code,
+            ...(error.response?.status === 429 && {
+              retryAfter: AxiosHeaders.from(error.response.headers).get('retry-after'),
+            }),
+          },
         ),
       )
     },

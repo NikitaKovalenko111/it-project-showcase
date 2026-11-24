@@ -3,6 +3,7 @@ import { LocalizedFileInput } from '../LocalizedFileInput'
 import { Modal } from '../Modal'
 import { axiosInstance } from '../../api/http'
 import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
+import { shorteningError } from '../../utils/publicationLength'
 import { localDate, localDayEnd } from '../../utils/date'
 import { apiRuntime } from '../../api/runtime'
 import React, { useEffect, useState } from 'react'
@@ -292,6 +293,65 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
     olympiad = kind === 'olympiad',
     participationFormat = internship ? 'individual' : participation
   const liveEvent = live && (olympiad || kind === 'hackathon')
+  const publishDirectly = admin && kind === 'case' && !caseItem
+  const summaryError = shorteningError('краткое описание', short, 1000)
+  const descriptionError = shorteningError('описание', description, 30000)
+  const approveCase = async (id: string) => {
+    const published = (await apiClient.moderatePublication(
+      'case',
+      id,
+      'approved',
+      '',
+    )) as CaseProject
+    dispatch(updateCaseSuccess(published))
+  }
+  if (publishDirectly && draft?.status === 'moderation') {
+    return dialog(
+      <>
+        <header className="modal-dialog__header">
+          <h3>Публикация кейса</h3>
+        </header>
+        <div className="modal-dialog__body">
+          <p>Данные кейса сохранены. Завершите публикацию.</p>
+          {error && (
+            <p role="alert" className="form-error">
+              {error}
+            </p>
+          )}
+        </div>
+        <footer className="modal-dialog__footer">
+          <button className="btn btn-secondary" disabled={busy} onClick={onClose}>
+            Закрыть
+          </button>
+          <button
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setError('')
+              try {
+                const current = await apiClient.getCaseById(draft.id)
+                if (current.moderationStatus === 'approved') dispatch(updateCaseSuccess(current))
+                else if (current.status === 'moderation') await approveCase(current.id)
+                else
+                  throw new Error(
+                    'Статус кейса изменился. Откройте его в панели администрирования.',
+                  )
+                onClose()
+              } catch (cause) {
+                setError((cause as Error).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {busy ? 'Публикуем…' : 'Опубликовать'}
+          </button>
+        </footer>
+      </>,
+      'Публикация кейса',
+    )
+  }
   const today = localDate()
   const team = participationFormat !== 'individual'
   const initialRegistrationDay = caseItem?.applicationDeadline
@@ -330,9 +390,13 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
             {caseItem ? 'Редактирование' : 'Размещение'} {name}
           </h3>
           <p>
-            {live && !caseItem
-              ? 'Сохраните черновик, чтобы настроить этапы до модерации.'
-              : 'Публикация появится в витрине после модерации.'}
+            {publishDirectly
+              ? live
+                ? 'Сохраните черновик, если хотите настроить этапы до публикации.'
+                : 'После публикации кейс появится в витрине.'
+              : live && !caseItem
+                ? 'Сохраните черновик, чтобы настроить этапы до модерации.'
+                : 'Публикация появится в витрине после модерации.'}
           </p>
         </div>
         <button className="close-btn" aria-label="Закрыть" disabled={busy} onClick={onClose}>
@@ -349,6 +413,10 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
           const fields = new FormData(form)
           const deadline = String(fields.get('deadline') || '')
           const registrationDeadline = String(fields.get('registrationDeadline') || '')
+          if (summaryError || descriptionError) {
+            form.querySelector<HTMLElement>('[aria-errormessage]')?.focus()
+            return
+          }
           for (const [name, label] of [
             ['title', 'название'],
             ['summary', 'краткое описание'],
@@ -538,10 +606,24 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
                   text: ndaText.trim(),
                 })
               }
-              if (!liveEvent && submit && !caseItem) saved = await apiClient.submitCase(saved.id)
+              if (!liveEvent && submit && !caseItem) {
+                try {
+                  saved = await apiClient.submitCase(saved.id)
+                } catch (cause) {
+                  if (publishDirectly) {
+                    const current = await apiClient.getCaseById(saved.id).catch(() => undefined)
+                    if (current?.status === 'moderation') saved = current
+                    else throw cause
+                  } else throw cause
+                }
+              }
               dispatch(updateCaseSuccess(saved))
             } else {
               dispatch(existing ? updateCaseSuccess(saved) : createCaseSuccess(saved))
+            }
+            if (publishDirectly && submit) {
+              setDraft(saved)
+              await approveCase(saved.id)
             }
             onClose()
             if (liveEvent && !caseItem) navigate(`/cases/${saved.id}/workspace?view=event`)
@@ -589,9 +671,8 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               className="input"
               required
               name="title"
-              maxLength={300}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setTitle(Array.from(e.target.value).slice(0, 300).join(''))}
             />
           </label>
           {!live &&
@@ -812,10 +893,16 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               className="input"
               required
               name="summary"
-              maxLength={1000}
+              aria-invalid={!!summaryError || undefined}
+              aria-errormessage={summaryError ? 'case-summary-limit' : undefined}
               value={short}
               onChange={(e) => setShort(e.target.value)}
             />
+            {summaryError && (
+              <span id="case-summary-limit" className="publication-field-error" role="alert">
+                {summaryError}
+              </span>
+            )}
           </label>
           <label>
             {internship
@@ -828,10 +915,16 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               className="textarea"
               required
               name="description"
-              maxLength={30000}
+              aria-invalid={!!descriptionError || undefined}
+              aria-errormessage={descriptionError ? 'case-description-limit' : undefined}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            {descriptionError && (
+              <span id="case-description-limit" className="publication-field-error" role="alert">
+                {descriptionError}
+              </span>
+            )}
           </label>
           {(olympiad || internship) && (
             <label>
@@ -1028,7 +1121,9 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
             <label>
               Текст соглашения о неразглашении
               <span className="form-hint">
-                Для отправки на модерацию нужна действующая версия NDA.
+                {publishDirectly
+                  ? 'Для публикации нужна действующая версия NDA.'
+                  : 'Для отправки на модерацию нужна действующая версия NDA.'}
               </span>
               <textarea
                 className="textarea"
@@ -1071,7 +1166,9 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
                 ? 'Сохранить изменения'
                 : liveEvent
                   ? 'Создать черновик и настроить план'
-                  : 'Отправить на модерацию'}
+                  : publishDirectly
+                    ? 'Опубликовать'
+                    : 'Отправить на модерацию'}
           </button>
         </footer>
       </form>

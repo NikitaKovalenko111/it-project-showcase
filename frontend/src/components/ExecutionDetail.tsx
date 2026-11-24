@@ -143,7 +143,7 @@ export const ExecutionDetail: React.FC<{
           onChange={onChange}
         />
       )}
-      {active === 'discussion' && <TeamDiscussion entries={[entry]} caseId={project.id} />}
+      {active === 'discussion' && <TeamDiscussion entries={[entry]} project={project} />}
       {active === 'members' && (
         <section className="execution-members">
           <h2>{entry.teamId ? entry.name : 'Участник'}</h2>
