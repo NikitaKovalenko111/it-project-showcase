@@ -17,12 +17,13 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("company not found")
-	ErrForbidden     = errors.New("company access denied")
-	ErrInvalidInput  = errors.New("invalid company input")
-	ErrInvalidStatus = errors.New("invalid company status")
-	ErrNameTaken     = errors.New("company name is already in use")
-	ErrInvalidCursor = errors.New("invalid company cursor")
+	ErrNotFound                       = errors.New("company not found")
+	ErrRepresentativeApprovalRequired = errors.New("approved company representative required")
+	ErrForbidden                      = errors.New("company access denied")
+	ErrInvalidInput                   = errors.New("invalid company input")
+	ErrInvalidStatus                  = errors.New("invalid company status")
+	ErrNameTaken                      = errors.New("company name is already in use")
+	ErrInvalidCursor                  = errors.New("invalid company cursor")
 )
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -207,31 +208,8 @@ func (s *Service) Moderate(ctx context.Context, moderatorID, companyID, status, 
 	return company, mapRepositoryError(err)
 }
 
-func (s *Service) UpdateLegal(ctx context.Context, userID, companyID string, details models.CompanyLegal) (*models.Company, error) {
-	if !uuidPattern.MatchString(companyID) {
-		return nil, ErrNotFound
-	}
-	details.INN = strings.TrimSpace(details.INN)
-	details.KPP = strings.TrimSpace(details.KPP)
-	details.OGRN = strings.TrimSpace(details.OGRN)
-	details.LegalAddress = strings.TrimSpace(details.LegalAddress)
-	if !legalNumber(details.INN, 10, 12) || !legalNumber(details.KPP, 9, 9) ||
-		!legalNumber(details.OGRN, 13, 15) || utf8.RuneCountInString(details.LegalAddress) > 500 {
-		return nil, ErrInvalidInput
-	}
-	item, err := s.repo.UpdateLegal(ctx, userID, companyID, details)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrForbidden
-	}
-	return item, mapRepositoryError(err)
-}
-
-func legalNumber(value string, short, long int) bool {
-	return value == "" || ((len(value) == short || len(value) == long) &&
-		strings.IndexFunc(value, func(r rune) bool { return r < '0' || r > '9' }) == -1)
-}
-
 func normalize(input models.CompanyInput) models.CompanyInput {
+	input.INN = strings.TrimSpace(input.INN)
 	input.FullName = strings.TrimSpace(input.FullName)
 	input.ShortName = strings.TrimSpace(input.ShortName)
 	input.Industry = strings.TrimSpace(input.Industry)
@@ -243,7 +221,7 @@ func normalize(input models.CompanyInput) models.CompanyInput {
 	return input
 }
 func validate(input models.CompanyInput) error {
-	if input.FullName == "" || utf8.RuneCountInString(input.FullName) > 300 || utf8.RuneCountInString(input.ShortName) > 100 || utf8.RuneCountInString(input.Industry) > 150 || utf8.RuneCountInString(input.Description) > 5000 || utf8.RuneCountInString(input.Activities) > 3000 || utf8.RuneCountInString(input.Contacts) > 1000 || utf8.RuneCountInString(input.Position) > 150 {
+	if !validINN(input.INN) || input.FullName == "" || utf8.RuneCountInString(input.FullName) > 300 || utf8.RuneCountInString(input.ShortName) > 100 || utf8.RuneCountInString(input.Industry) > 150 || utf8.RuneCountInString(input.Description) > 5000 || utf8.RuneCountInString(input.Activities) > 3000 || utf8.RuneCountInString(input.Contacts) > 1000 || utf8.RuneCountInString(input.Position) > 150 {
 		return ErrInvalidInput
 	}
 	if input.Website != "" {
@@ -257,6 +235,9 @@ func validate(input models.CompanyInput) error {
 func mapRepositoryError(err error) error {
 	if err == nil {
 		return nil
+	}
+	if errors.Is(err, company_repo.ErrRepresentativeApprovalRequired) {
+		return ErrRepresentativeApprovalRequired
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
