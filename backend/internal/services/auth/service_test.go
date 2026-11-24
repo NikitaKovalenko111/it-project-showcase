@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,7 +34,7 @@ func (capture *stringCapture) Match(value driver.Value) bool {
 
 func validRegistration() models.StudentRegistration {
 	return models.StudentRegistration{
-		Username: "student.one", Email: "student@stud.uust.ru", Password: testPassword,
+		FullName: "Иванов Иван", Username: "student.one", Email: "student@stud.uust.ru", Password: testPassword,
 		LastName: "Иванов", FirstName: "Иван", Institute: "ИРИТ-РТФ",
 		Direction: "Программная инженерия", Course: 2, GroupName: "РИ-220901",
 		ConsentVersion: "1.0", Technologies: []string{"Go"},
@@ -54,6 +55,27 @@ func TestStudentRegistrationRequiresUniversityEmail(t *testing.T) {
 	input.RequestedRole = "company_representative"
 	if err := ValidateRegisterRequest(input); err != nil {
 		t.Fatalf("company role request should accept corporate email: %v", err)
+	}
+}
+
+func TestRepresentativeRegistrationRequiresFullName(t *testing.T) {
+	for _, name := range []string{"", " ", strings.Repeat("Я", 501)} {
+		input := validRegistration()
+		input.RequestedRole = "company_representative"
+		input.FullName = name
+		var invalid *ValidationError
+		if err := ValidateRegisterRequest(input); !errors.As(err, &invalid) || invalid.Field != "full_name" {
+			t.Fatalf("full_name %q: %v", name, err)
+		}
+	}
+	input := validRegistration()
+	input.RequestedRole = "company_representative"
+	input.FullName = "Петров Пётр"
+	input.LastName = ""
+	input.FirstName = ""
+	input.Patronymic = ""
+	if err := ValidateRegisterRequest(input); err != nil {
+		t.Fatalf("single name field rejected: %v", err)
 	}
 }
 
