@@ -15,6 +15,7 @@ import (
 type Repository struct{ db *sql.DB }
 
 var ErrInvalidTransition = errors.New("invalid company transition")
+var ErrRepresentativeApprovalRequired = errors.New("approved company representative required")
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
@@ -29,13 +30,24 @@ func (r *Repository) Submit(ctx context.Context, userID, companyID string) (*mod
 	return company, err
 }
 func (r *Repository) InviteMember(ctx context.Context, userID, companyID, targetID, position string) (*models.CompanyMemberInvitation, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	if err = lockApprovedRepresentative(ctx, tx, targetID); err != nil {
+		return nil, err
+	}
 	var x models.CompanyMemberInvitation
 	var permissions []byte
-	err := r.db.QueryRowContext(ctx, `INSERT INTO company_member_invitations(company_id,invited_by,user_id,position) SELECT c.company_id,$2,u.user_id,NULLIF($4,'') FROM companies c JOIN users u ON u.user_id=$3 AND u.status='active' WHERE c.company_id=$1 AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') AND NOT EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active') RETURNING invitation_id,company_id,(SELECT full_name FROM companies WHERE company_id=$1),invited_by,user_id,COALESCE(position,''),permissions,status,created_at,responded_at`, companyID, userID, targetID, position).Scan(&x.InvitationID, &x.CompanyID, &x.CompanyName, &x.InvitedBy, &x.UserID, &x.Position, &permissions, &x.Status, &x.CreatedAt, &x.RespondedAt)
+	err = tx.QueryRowContext(ctx, `INSERT INTO company_member_invitations(company_id,invited_by,user_id,position) SELECT c.company_id,$2,u.user_id,NULLIF($4,'') FROM companies c JOIN users u ON u.user_id=$3 AND u.status='active' WHERE c.company_id=$1 AND c.status='approved' AND EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$2 AND cm.status='active' AND cm.permissions ? 'manage_company') AND NOT EXISTS(SELECT 1 FROM company_members cm WHERE cm.company_id=c.company_id AND cm.user_id=$3 AND cm.status='active') RETURNING invitation_id,company_id,(SELECT full_name FROM companies WHERE company_id=$1),invited_by,user_id,COALESCE(position,''),permissions,status,created_at,responded_at`, companyID, userID, targetID, position).Scan(&x.InvitationID, &x.CompanyID, &x.CompanyName, &x.InvitedBy, &x.UserID, &x.Position, &permissions, &x.Status, &x.CreatedAt, &x.RespondedAt)
 	if err != nil {
 		return nil, err
 	}
 	if err = json.Unmarshal(permissions, &x.Permissions); err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return &x, nil
@@ -55,6 +67,19 @@ func (r *Repository) RespondMemberInvitation(ctx context.Context, userID, id, st
 	if current != "pending" {
 		return nil, ErrInvalidTransition
 	}
+	if status == "accepted" {
+		if err = lockApprovedRepresentative(ctx, tx, userID); err != nil {
+			return nil, err
+		}
+		var approvedCompany string
+		err = tx.QueryRowContext(ctx, `SELECT company_id FROM companies WHERE company_id=$1 AND status='approved' FOR SHARE`, companyID).Scan(&approvedCompany)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrInvalidTransition
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 	_, err = tx.ExecContext(ctx, `UPDATE company_member_invitations SET status=$2,responded_at=CURRENT_TIMESTAMP WHERE invitation_id=$1`, id, status)
 	if err != nil {
 		return nil, err
@@ -64,15 +89,34 @@ func (r *Repository) RespondMemberInvitation(ctx context.Context, userID, id, st
 		if err != nil {
 			return nil, err
 		}
-		_, err = tx.ExecContext(ctx, `INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='company_representative' ON CONFLICT DO NOTHING`, userID)
-		if err != nil {
-			return nil, err
-		}
 	}
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.GetByID(ctx, companyID)
+}
+
+// User row locks serialize these checks with role moderation, role changes and blocking.
+func lockApprovedRepresentative(ctx context.Context, tx *sql.Tx, userID string) error {
+	var active bool
+	err := tx.QueryRowContext(ctx, `SELECT status='active' FROM users WHERE user_id=$1 FOR UPDATE`, userID).Scan(&active)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrRepresentativeApprovalRequired
+	}
+	if err != nil {
+		return err
+	}
+	var approved bool
+	err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r USING(role_id)
+ JOIN role_requests q ON q.user_id=ur.user_id AND q.role_code=r.code
+ WHERE ur.user_id=$1 AND r.code='company_representative' AND q.status='approved')`, userID).Scan(&approved)
+	if err != nil {
+		return err
+	}
+	if !active || !approved {
+		return ErrRepresentativeApprovalRequired
+	}
+	return nil
 }
 func (r *Repository) SendStudentInvitation(ctx context.Context, userID, companyID, studentID, caseID, kind, message string) (*models.CompanyInvitation, error) {
 	var x models.CompanyInvitation

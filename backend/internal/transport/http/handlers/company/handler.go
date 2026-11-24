@@ -321,6 +321,8 @@ func decodeCompany(w http.ResponseWriter, r *http.Request) (CompanyRequest, bool
 }
 func writeCompanyError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
+	case errors.Is(err, companies_service.ErrRepresentativeApprovalRequired):
+		pkg.WriteError(w, http.StatusForbidden, "representative_approval_required", "An active company representative with moderator approval is required")
 	case errors.Is(err, companies_service.ErrNotFound):
 		pkg.WriteError(w, http.StatusNotFound, "company_not_found", "Company not found")
 	case errors.Is(err, companies_service.ErrForbidden):

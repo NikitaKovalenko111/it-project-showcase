@@ -17,12 +17,13 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("company not found")
-	ErrForbidden     = errors.New("company access denied")
-	ErrInvalidInput  = errors.New("invalid company input")
-	ErrInvalidStatus = errors.New("invalid company status")
-	ErrNameTaken     = errors.New("company name is already in use")
-	ErrInvalidCursor = errors.New("invalid company cursor")
+	ErrNotFound                       = errors.New("company not found")
+	ErrRepresentativeApprovalRequired = errors.New("approved company representative required")
+	ErrForbidden                      = errors.New("company access denied")
+	ErrInvalidInput                   = errors.New("invalid company input")
+	ErrInvalidStatus                  = errors.New("invalid company status")
+	ErrNameTaken                      = errors.New("company name is already in use")
+	ErrInvalidCursor                  = errors.New("invalid company cursor")
 )
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -257,6 +258,9 @@ func validate(input models.CompanyInput) error {
 func mapRepositoryError(err error) error {
 	if err == nil {
 		return nil
+	}
+	if errors.Is(err, company_repo.ErrRepresentativeApprovalRequired) {
+		return ErrRepresentativeApprovalRequired
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
