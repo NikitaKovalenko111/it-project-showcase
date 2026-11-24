@@ -205,9 +205,11 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
             : `Ответы: ${comments.filter((c) => c.parentId === comment.id).length}`}
         </button>
       )}
-      {sorted(comments.filter((c) => c.parentId === comment.id))
-        .slice(0, shown[comment.id] || 0)
-        .map((c) => renderComment(c, depth + 1))}
+      <div className="comment-replies">
+        {sorted(comments.filter((c) => c.parentId === comment.id))
+          .slice(0, shown[comment.id] || 0)
+          .map((c) => renderComment(c, depth + 1))}
+      </div>
       {!!shown[comment.id] &&
         comments.filter((c) => c.parentId === comment.id).length > shown[comment.id] && (
           <button

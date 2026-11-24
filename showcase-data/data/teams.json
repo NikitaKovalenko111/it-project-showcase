@@ -581,7 +581,7 @@
           "NumPy"
         ],
         "email": "student.036@example.invalid",
-        "avatar": "assets/avatars/syn_student_036-library.png"
+        "avatar": "assets/avatars/syn_student_036-reviewed.jpg"
       }
     ],
     "createdAt": "2026-09-02T10:00:00Z",
@@ -790,7 +790,7 @@
           "CSS"
         ],
         "email": "student.040@example.invalid",
-        "avatar": "assets/avatars/syn_student_040-library.png"
+        "avatar": "assets/avatars/syn_student_040-reviewed.jpg"
       }
     ],
     "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по субботам утром.",
@@ -1106,7 +1106,7 @@
           "Grafana"
         ],
         "email": "student.046@example.invalid",
-        "avatar": "assets/avatars/syn_student_046-library.png"
+        "avatar": "assets/avatars/syn_student_046-reviewed.jpg"
       }
     ],
     "description": "Любим задачи на стыке данных и интерфейсов. 3 участника; основной созвон по вторникам вечером.",
@@ -1215,7 +1215,7 @@
           "NumPy"
         ],
         "email": "student.048@example.invalid",
-        "avatar": "assets/avatars/syn_student_048-library.png"
+        "avatar": "assets/avatars/syn_student_048-reviewed.jpg"
       }
     ],
     "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по субботам утром.",
@@ -1252,7 +1252,7 @@
           "NumPy"
         ],
         "email": "student.036@example.invalid",
-        "avatar": "assets/avatars/syn_student_036-library.png"
+        "avatar": "assets/avatars/syn_student_036-reviewed.jpg"
       },
       {
         "id": "syn_student_049",
@@ -1264,7 +1264,7 @@
           "CSS"
         ],
         "email": "student.049@example.invalid",
-        "avatar": "assets/avatars/syn_student_049.jpg"
+        "avatar": "assets/avatars/syn_student_049-reviewed.jpg"
       }
     ],
     "description": "Стараемся сделать продукт, который легко передать следующей команде. 3 участника; основной созвон дважды в неделю.",
@@ -1459,7 +1459,7 @@
           "CSS"
         ],
         "email": "student.040@example.invalid",
-        "avatar": "assets/avatars/syn_student_040-library.png"
+        "avatar": "assets/avatars/syn_student_040-reviewed.jpg"
       },
       {
         "id": "syn_student_053",
@@ -1531,7 +1531,7 @@
           "FastAPI"
         ],
         "email": "student.054@example.invalid",
-        "avatar": "assets/avatars/syn_student_054-library.png"
+        "avatar": "assets/avatars/syn_student_054-reviewed.jpg"
       }
     ],
     "description": "Работаем через небольшие задачи и взаимное ревью. 3 участника; основной созвон по вторникам вечером.",

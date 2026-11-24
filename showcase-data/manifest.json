@@ -1,21 +1,21 @@
 {
   "version": "0.2",
   "createdAt": "2026-11-23",
-  "updatedAt": "2026-11-23",
+  "updatedAt": "2026-11-24",
   "scope": "Контент витрины IT-проектов: компании, архив мероприятий и концепции новых заданий.",
   "idNamespace": "syn_",
   "counts": {
     "companies": 36,
     "students": 60,
-    "cases": 75,
-    "projects": 24,
-    "programs": 24,
-    "teams": 12,
-    "applications": 48,
+    "cases": 103,
+    "projects": 48,
+    "programs": 16,
+    "teams": 30,
+    "applications": 150,
     "milestones": 48,
     "submissions": 7,
     "evaluations": 4,
-    "comments": 48
+    "comments": 150
   },
   "realOrganizationsAdded": 12,
   "historicalEvents": 7,

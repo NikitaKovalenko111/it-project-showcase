@@ -909,223 +909,253 @@
     "entityType": "company",
     "entityId": "syn_company_001",
     "path": "assets/covers/syn_company_001.jpg",
-    "sourcePath": "assets/photos/industrial.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-industrial.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_002",
     "path": "assets/covers/syn_company_002.jpg",
-    "sourcePath": "assets/photos/industrial.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/greenhouse.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_003",
     "path": "assets/covers/syn_company_003.jpg",
-    "sourcePath": "assets/photos/bicycle.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/industrial.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_004",
     "path": "assets/covers/syn_company_004.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/bicycle.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_005",
     "path": "assets/covers/syn_company_005.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/energy.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_006",
     "path": "assets/covers/syn_company_006.jpg",
-    "sourcePath": "assets/photos/workspace.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-data-quality.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_007",
     "path": "assets/covers/syn_company_007.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/laboratory.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_008",
     "path": "assets/covers/syn_company_008.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/workspace.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_009",
     "path": "assets/covers/syn_company_009.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/server.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_010",
     "path": "assets/covers/syn_company_010.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/library.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_011",
     "path": "assets/covers/syn_company_011.jpg",
-    "sourcePath": "assets/photos/laboratory.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-meter.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_012",
     "path": "assets/covers/syn_company_012.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/robot.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_013",
     "path": "assets/covers/syn_company_013.jpg",
-    "sourcePath": "assets/photos/server.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-network-analysis.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_014",
     "path": "assets/covers/syn_company_014.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/coding.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_015",
     "path": "assets/covers/syn_company_015.jpg",
-    "sourcePath": "assets/photos/bicycle.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/warehouse.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_016",
     "path": "assets/covers/syn_company_016.jpg",
-    "sourcePath": "assets/photos/analytics.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-gis.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_017",
     "path": "assets/covers/syn_company_017.jpg",
-    "sourcePath": "assets/photos/bicycle.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-campus-map.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_018",
     "path": "assets/covers/syn_company_018.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/vr.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_019",
     "path": "assets/covers/syn_company_019.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/gaming.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_020",
     "path": "assets/covers/syn_company_020.jpg",
-    "sourcePath": "assets/photos/analytics.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-documents.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_021",
     "path": "assets/covers/syn_company_021.jpg",
-    "sourcePath": "assets/photos/laboratory.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-support.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_022",
     "path": "assets/covers/syn_company_022.jpg",
-    "sourcePath": "assets/photos/coding.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/mobile.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_023",
     "path": "assets/covers/syn_company_023.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/math.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_024",
     "path": "assets/covers/syn_company_024.jpg",
-    "sourcePath": "assets/photos/math.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-olympiad.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_025",
     "path": "assets/covers/syn_company_025.jpg",
-    "sourcePath": "assets/photos/analytics.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/office-open.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_026",
     "path": "assets/covers/syn_company_026.jpg",
-    "sourcePath": "assets/photos/analytics.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-integration.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_027",
     "path": "assets/covers/syn_company_027.jpg",
-    "sourcePath": "assets/photos/workspace.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-telecom.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_028",
     "path": "assets/covers/syn_company_028.jpg",
-    "sourcePath": "assets/photos/workspace.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-editorial.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_029",
     "path": "assets/covers/syn_company_029.jpg",
-    "sourcePath": "assets/photos/industrial.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-coding.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_030",
     "path": "assets/covers/syn_company_030.jpg",
-    "sourcePath": "assets/photos/analytics.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-routing.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_031",
     "path": "assets/covers/syn_company_031.jpg",
-    "sourcePath": "assets/photos/server.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/solar.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_032",
     "path": "assets/covers/syn_company_032.jpg",
+    "source": "ImageGen",
     "sourcePath": "assets/photos/analytics.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_033",
     "path": "assets/covers/syn_company_033.jpg",
-    "sourcePath": "assets/photos/gaming.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/museum.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_034",
     "path": "assets/covers/syn_company_034.jpg",
-    "sourcePath": "assets/photos/gaming.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/demo-task-tracker.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_035",
     "path": "assets/covers/syn_company_035.jpg",
-    "sourcePath": "assets/photos/gaming.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/office-meeting.jpg"
   },
   {
     "entityType": "company",
     "entityId": "syn_company_036",
     "path": "assets/covers/syn_company_036.jpg",
-    "sourcePath": "assets/photos/workspace.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_001",
-    "path": "assets/covers/syn_program_001.jpg",
-    "sourcePath": "assets/photos/industrial.jpg"
+    "source": "ImageGen",
+    "sourcePath": "assets/photos/city.jpg"
   },
   {
     "entityType": "program",
@@ -1135,21 +1165,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_003",
-    "path": "assets/covers/syn_program_003.jpg",
-    "sourcePath": "assets/photos/bicycle.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_004",
     "path": "assets/covers/syn_program_004.jpg",
     "sourcePath": "assets/photos/bicycle.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_005",
-    "path": "assets/covers/syn_program_005.jpg",
-    "sourcePath": "assets/photos/energy.jpg"
   },
   {
     "entityType": "program",
@@ -1159,21 +1177,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_007",
-    "path": "assets/covers/syn_program_007.jpg",
-    "sourcePath": "assets/photos/industrial.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_008",
     "path": "assets/covers/syn_program_008.jpg",
     "sourcePath": "assets/photos/workspace.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_009",
-    "path": "assets/covers/syn_program_009.jpg",
-    "sourcePath": "assets/photos/server.jpg"
   },
   {
     "entityType": "program",
@@ -1183,33 +1189,15 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_011",
-    "path": "assets/covers/syn_program_011.jpg",
-    "sourcePath": "assets/photos/laboratory.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_012",
     "path": "assets/covers/syn_program_012.jpg",
     "sourcePath": "assets/photos/bicycle.jpg"
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_013",
-    "path": "assets/covers/syn_program_013.jpg",
-    "sourcePath": "assets/photos/server.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_014",
     "path": "assets/covers/syn_program_014.jpg",
     "sourcePath": "assets/photos/coding.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_015",
-    "path": "assets/covers/syn_program_015.jpg",
-    "sourcePath": "assets/photos/bicycle.jpg"
   },
   {
     "entityType": "program",

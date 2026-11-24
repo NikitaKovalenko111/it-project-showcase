@@ -1,29 +1,5 @@
 [
   {
-    "application_id": "syn_program_application_001",
-    "program_id": "syn_program_001",
-    "student_id": "syn_student_010",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_010.pdf",
-    "status": "submitted",
-    "created_at": "2026-11-07T09:00:00Z",
-    "program_title": "Стажировка: iot — Термослед",
-    "program_kind": "internship",
-    "student_name": "Алина Иванова"
-  },
-  {
-    "application_id": "syn_program_application_002",
-    "program_id": "syn_program_001",
-    "student_id": "syn_student_011",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_011.pdf",
-    "status": "accepted",
-    "created_at": "2026-11-07T09:00:00Z",
-    "program_title": "Стажировка: iot — Термослед",
-    "program_kind": "internship",
-    "student_name": "Илья Новиков"
-  },
-  {
     "application_id": "syn_program_application_003",
     "program_id": "syn_program_002",
     "student_id": "syn_student_012",
@@ -46,30 +22,6 @@
     "program_title": "Практика: автоматизация — АгроРитм",
     "program_kind": "practice",
     "student_name": "Даниил Лебедев"
-  },
-  {
-    "application_id": "syn_program_application_005",
-    "program_id": "syn_program_003",
-    "student_id": "syn_student_014",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_014.pdf",
-    "status": "rejected",
-    "created_at": "2026-11-09T09:00:00Z",
-    "program_title": "Стажировка: fullstack — БиблиоМаршрут",
-    "program_kind": "internship",
-    "student_name": "София Попова"
-  },
-  {
-    "application_id": "syn_program_application_006",
-    "program_id": "syn_program_003",
-    "student_id": "syn_student_015",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_015.pdf",
-    "status": "withdrawn",
-    "created_at": "2026-11-09T09:00:00Z",
-    "program_title": "Стажировка: fullstack — БиблиоМаршрут",
-    "program_kind": "internship",
-    "student_name": "Артём Павлов"
   },
   {
     "application_id": "syn_program_application_007",
@@ -96,30 +48,6 @@
     "student_name": "Кирилл Семёнов"
   },
   {
-    "application_id": "syn_program_application_009",
-    "program_id": "syn_program_005",
-    "student_id": "syn_student_018",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_018.pdf",
-    "status": "submitted",
-    "created_at": "2026-11-11T09:00:00Z",
-    "program_title": "Стажировка: data science — ЭнергоМозаика",
-    "program_kind": "internship",
-    "student_name": "Елизавета Зайцева"
-  },
-  {
-    "application_id": "syn_program_application_010",
-    "program_id": "syn_program_005",
-    "student_id": "syn_student_019",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_019.pdf",
-    "status": "accepted",
-    "created_at": "2026-11-11T09:00:00Z",
-    "program_title": "Стажировка: data science — ЭнергоМозаика",
-    "program_kind": "internship",
-    "student_name": "Андрей Громов"
-  },
-  {
     "application_id": "syn_program_application_011",
     "program_id": "syn_program_006",
     "student_id": "syn_student_020",
@@ -142,30 +70,6 @@
     "program_title": "Практика: frontend — Кампус Навигатор",
     "program_kind": "practice",
     "student_name": "Алексей Миронов Алексеевич"
-  },
-  {
-    "application_id": "syn_program_application_013",
-    "program_id": "syn_program_007",
-    "student_id": "syn_student_022",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_022.pdf",
-    "status": "rejected",
-    "created_at": "2026-11-13T09:00:00Z",
-    "program_title": "Стажировка: iot — АкваКонтекст",
-    "program_kind": "internship",
-    "student_name": "Мария Белова Андреевна"
-  },
-  {
-    "application_id": "syn_program_application_014",
-    "program_id": "syn_program_007",
-    "student_id": "syn_student_023",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_023.pdf",
-    "status": "withdrawn",
-    "created_at": "2026-11-13T09:00:00Z",
-    "program_title": "Стажировка: iot — АкваКонтекст",
-    "program_kind": "internship",
-    "student_name": "Тимур Сафин Алексеевич"
   },
   {
     "application_id": "syn_program_application_015",
@@ -192,30 +96,6 @@
     "student_name": "Максим Орлов Алексеевич"
   },
   {
-    "application_id": "syn_program_application_017",
-    "program_id": "syn_program_009",
-    "student_id": "syn_student_026",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_026.pdf",
-    "status": "submitted",
-    "created_at": "2026-11-15T09:00:00Z",
-    "program_title": "Стажировка: информационная безопасность — Вектор Доступа",
-    "program_kind": "internship",
-    "student_name": "Дарья Соколова Андреевна"
-  },
-  {
-    "application_id": "syn_program_application_018",
-    "program_id": "syn_program_009",
-    "student_id": "syn_student_027",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_027.pdf",
-    "status": "accepted",
-    "created_at": "2026-11-15T09:00:00Z",
-    "program_title": "Стажировка: информационная безопасность — Вектор Доступа",
-    "program_kind": "internship",
-    "student_name": "Руслан Хакимов Алексеевич"
-  },
-  {
     "application_id": "syn_program_application_019",
     "program_id": "syn_program_010",
     "student_id": "syn_student_028",
@@ -238,30 +118,6 @@
     "program_title": "Практика: компьютерное зрение — Архивный Луч",
     "program_kind": "practice",
     "student_name": "Никита Фёдоров Алексеевич"
-  },
-  {
-    "application_id": "syn_program_application_021",
-    "program_id": "syn_program_011",
-    "student_id": "syn_student_030",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_030.pdf",
-    "status": "rejected",
-    "created_at": "2026-11-17T09:00:00Z",
-    "program_title": "Стажировка: базы данных — Реестр Лабораторий",
-    "program_kind": "internship",
-    "student_name": "Алина Иванова Андреевна"
-  },
-  {
-    "application_id": "syn_program_application_022",
-    "program_id": "syn_program_011",
-    "student_id": "syn_student_031",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_031.pdf",
-    "status": "withdrawn",
-    "created_at": "2026-11-17T09:00:00Z",
-    "program_title": "Стажировка: базы данных — Реестр Лабораторий",
-    "program_kind": "internship",
-    "student_name": "Илья Новиков Алексеевич"
   },
   {
     "application_id": "syn_program_application_023",
@@ -288,30 +144,6 @@
     "student_name": "Даниил Лебедев Алексеевич"
   },
   {
-    "application_id": "syn_program_application_025",
-    "program_id": "syn_program_013",
-    "student_id": "syn_student_034",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_034.pdf",
-    "status": "submitted",
-    "created_at": "2026-11-19T09:00:00Z",
-    "program_title": "Стажировка: devops — Облачный След",
-    "program_kind": "internship",
-    "student_name": "София Попова Андреевна"
-  },
-  {
-    "application_id": "syn_program_application_026",
-    "program_id": "syn_program_013",
-    "student_id": "syn_student_035",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_035.pdf",
-    "status": "accepted",
-    "created_at": "2026-11-19T09:00:00Z",
-    "program_title": "Стажировка: devops — Облачный След",
-    "program_kind": "internship",
-    "student_name": "Артём Павлов Алексеевич"
-  },
-  {
     "application_id": "syn_program_application_027",
     "program_id": "syn_program_014",
     "student_id": "syn_student_036",
@@ -334,30 +166,6 @@
     "program_title": "Практика: тестирование — Сценарий Качества",
     "program_kind": "practice",
     "student_name": "Кирилл Семёнов Алексеевич"
-  },
-  {
-    "application_id": "syn_program_application_029",
-    "program_id": "syn_program_015",
-    "student_id": "syn_student_038",
-    "cover_letter": "Интересует задача программы; готов обсудить нагрузку и первый результат.",
-    "resume_url": "documents/resumes/syn_student_038.pdf",
-    "status": "rejected",
-    "created_at": "2026-11-21T09:00:00Z",
-    "program_title": "Стажировка: мобильная разработка — Город На Ладони",
-    "program_kind": "internship",
-    "student_name": "Елизавета Зайцева Андреевна"
-  },
-  {
-    "application_id": "syn_program_application_030",
-    "program_id": "syn_program_015",
-    "student_id": "syn_student_039",
-    "cover_letter": "Хочу пройти практику с понятным календарным планом и обратной связью.",
-    "resume_url": "documents/resumes/syn_student_039.pdf",
-    "status": "withdrawn",
-    "created_at": "2026-11-21T09:00:00Z",
-    "program_title": "Стажировка: мобильная разработка — Город На Ладони",
-    "program_kind": "internship",
-    "student_name": "Андрей Громов Алексеевич"
   },
   {
     "application_id": "syn_program_application_031",

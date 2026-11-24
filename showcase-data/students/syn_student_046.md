@@ -1,6 +1,6 @@
 # Дарья Соколова Викторовна
 
-![Дарья Соколова Викторовна](../assets/avatars/syn_student_046-library.png)
+![Дарья Соколова Викторовна](../assets/avatars/syn_student_046-reviewed.jpg)
 
 Разработчик IoT / Junior+
 

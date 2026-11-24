@@ -1447,19 +1447,7 @@
   },
   {
     "entityType": "programs",
-    "entityId": "syn_program_001",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
     "entityId": "syn_program_002",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
-    "entityId": "syn_program_003",
     "sourceType": "prototype_content",
     "urls": []
   },
@@ -1471,19 +1459,7 @@
   },
   {
     "entityType": "programs",
-    "entityId": "syn_program_005",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
     "entityId": "syn_program_006",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
-    "entityId": "syn_program_007",
     "sourceType": "prototype_content",
     "urls": []
   },
@@ -1495,19 +1471,7 @@
   },
   {
     "entityType": "programs",
-    "entityId": "syn_program_009",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
     "entityId": "syn_program_010",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
-    "entityId": "syn_program_011",
     "sourceType": "prototype_content",
     "urls": []
   },
@@ -1519,19 +1483,7 @@
   },
   {
     "entityType": "programs",
-    "entityId": "syn_program_013",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
     "entityId": "syn_program_014",
-    "sourceType": "prototype_content",
-    "urls": []
-  },
-  {
-    "entityType": "programs",
-    "entityId": "syn_program_015",
     "sourceType": "prototype_content",
     "urls": []
   },

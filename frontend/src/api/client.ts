@@ -985,18 +985,24 @@ export const apiClient = {
       const roots = await collectNumbered<any>((params) =>
         axiosInstance.get(`/cases/${caseId}/comments`, { params }),
       )
-      const replies = (
-        await Promise.all(
-          roots
-            .filter((c) => c.reply_count > 0)
-            .map((c) =>
-              collectNumbered<any>((params) =>
-                axiosInstance.get(`/comments/${c.comment_id}/replies`, { params }),
+      const comments = new Map(roots.map((comment) => [comment.comment_id, comment]))
+      let level = roots
+      while (level.length) {
+        const replies = (
+          await Promise.all(
+            level
+              .filter((comment) => comment.reply_count > 0)
+              .map((comment) =>
+                collectNumbered<any>((params) =>
+                  axiosInstance.get(`/comments/${comment.comment_id}/replies`, { params }),
+                ),
               ),
-            ),
-        )
-      ).flat()
-      return [...roots, ...replies].map(fromComment)
+          )
+        ).flat()
+        level = replies.filter((comment) => !comments.has(comment.comment_id))
+        for (const comment of level) comments.set(comment.comment_id, comment)
+      }
+      return [...comments.values()].map(fromComment)
     }
     await delay(100)
     return mockServer.getComments(caseId)

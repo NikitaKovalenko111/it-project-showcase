@@ -1,6 +1,6 @@
 # Никита Фёдоров Сергеевич
 
-![Никита Фёдоров Сергеевич](../assets/avatars/syn_student_049.jpg)
+![Никита Фёдоров Сергеевич](../assets/avatars/syn_student_049-reviewed.jpg)
 
 Frontend-разработчик / Стажёр с проектным опытом
 

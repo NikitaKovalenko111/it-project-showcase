@@ -213,7 +213,7 @@
     "entityType": "student",
     "entityId": "syn_student_036",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_036-library.png"
+    "path": "assets/avatars/syn_student_036-reviewed.jpg"
   },
   {
     "entityType": "student",
@@ -237,7 +237,7 @@
     "entityType": "student",
     "entityId": "syn_student_040",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_040-library.png"
+    "path": "assets/avatars/syn_student_040-reviewed.jpg"
   },
   {
     "entityType": "student",
@@ -273,7 +273,7 @@
     "entityType": "student",
     "entityId": "syn_student_046",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_046-library.png"
+    "path": "assets/avatars/syn_student_046-reviewed.jpg"
   },
   {
     "entityType": "student",
@@ -285,13 +285,13 @@
     "entityType": "student",
     "entityId": "syn_student_048",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_048-library.png"
+    "path": "assets/avatars/syn_student_048-reviewed.jpg"
   },
   {
     "entityType": "student",
     "entityId": "syn_student_049",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_049.jpg"
+    "path": "assets/avatars/syn_student_049-reviewed.jpg"
   },
   {
     "entityType": "student",
@@ -321,7 +321,7 @@
     "entityType": "student",
     "entityId": "syn_student_054",
     "field": "avatar",
-    "path": "assets/avatars/syn_student_054-library.png"
+    "path": "assets/avatars/syn_student_054-reviewed.jpg"
   },
   {
     "entityType": "student",
@@ -2275,21 +2275,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_001",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_001.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_002",
     "field": "coverImage",
     "path": "assets/covers/syn_program_002.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_003",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_003.jpg"
   },
   {
     "entityType": "program",
@@ -2299,21 +2287,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_005",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_005.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_006",
     "field": "coverImage",
     "path": "assets/covers/syn_program_006.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_007",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_007.jpg"
   },
   {
     "entityType": "program",
@@ -2323,21 +2299,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_009",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_009.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_010",
     "field": "coverImage",
     "path": "assets/covers/syn_program_010.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_011",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_011.jpg"
   },
   {
     "entityType": "program",
@@ -2347,21 +2311,9 @@
   },
   {
     "entityType": "program",
-    "entityId": "syn_program_013",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_013.jpg"
-  },
-  {
-    "entityType": "program",
     "entityId": "syn_program_014",
     "field": "coverImage",
     "path": "assets/covers/syn_program_014.jpg"
-  },
-  {
-    "entityType": "program",
-    "entityId": "syn_program_015",
-    "field": "coverImage",
-    "path": "assets/covers/syn_program_015.jpg"
   },
   {
     "entityType": "program",

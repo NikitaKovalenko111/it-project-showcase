@@ -1,6 +1,6 @@
 # Виктория Кузнецова Андреевна
 
-![Виктория Кузнецова Андреевна](../assets/avatars/syn_student_036-library.png)
+![Виктория Кузнецова Андреевна](../assets/avatars/syn_student_036-reviewed.jpg)
 
 Инженер компьютерного зрения / Junior
 

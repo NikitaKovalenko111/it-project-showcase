@@ -1,6 +1,6 @@
 # Екатерина Морозова Викторовна
 
-![Екатерина Морозова Викторовна](../assets/avatars/syn_student_048-library.png)
+![Екатерина Морозова Викторовна](../assets/avatars/syn_student_048-reviewed.jpg)
 
 Инженер компьютерного зрения / Junior+
 

@@ -1,6 +1,6 @@
 # Ксения Фролова Андреевна
 
-![Ксения Фролова Андреевна](../assets/avatars/syn_student_040-library.png)
+![Ксения Фролова Андреевна](../assets/avatars/syn_student_040-reviewed.jpg)
 
 UX/UI-дизайнер / Junior+
 

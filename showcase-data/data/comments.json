@@ -810,7 +810,7 @@
     "authorId": "syn_student_036",
     "authorName": "Виктория Кузнецова Андреевна",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_036-library.png",
+    "authorAvatar": "assets/avatars/syn_student_036-reviewed.jpg",
     "content": "Для задачи «Аудиомаршрут по выставке» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-23T10:35:00Z",
     "likesCount": 0
@@ -902,7 +902,7 @@
     "authorId": "syn_student_040",
     "authorName": "Ксения Фролова Андреевна",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_040-library.png",
+    "authorAvatar": "assets/avatars/syn_student_040-reviewed.jpg",
     "content": "Для задачи «Заявки на закупку оборудования» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-23T10:39:00Z",
     "likesCount": 4
@@ -1040,7 +1040,7 @@
     "authorId": "syn_student_046",
     "authorName": "Дарья Соколова Викторовна",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_046-library.png",
+    "authorAvatar": "assets/avatars/syn_student_046-reviewed.jpg",
     "content": "Для задачи «Погрешность измерений» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-23T10:45:00Z",
     "likesCount": 0
@@ -1086,7 +1086,7 @@
     "authorId": "syn_student_048",
     "authorName": "Екатерина Морозова Викторовна",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_048-library.png",
+    "authorAvatar": "assets/avatars/syn_student_048-reviewed.jpg",
     "content": "Для задачи «Балансировка учебных команд» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-23T10:47:00Z",
     "likesCount": 2
@@ -1109,7 +1109,7 @@
     "authorId": "syn_student_049",
     "authorName": "Никита Фёдоров Сергеевич",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_049.jpg",
+    "authorAvatar": "assets/avatars/syn_student_049-reviewed.jpg",
     "content": "Для задачи «Маршрут без ступеней» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-21T10:48:00Z",
     "likesCount": 3
@@ -1224,7 +1224,7 @@
     "authorId": "syn_student_054",
     "authorName": "София Попова Викторовна",
     "authorRole": "student",
-    "authorAvatar": "assets/avatars/syn_student_054-library.png",
+    "authorAvatar": "assets/avatars/syn_student_054-reviewed.jpg",
     "content": "Для задачи «Проверяемый ответ ассистента» хотим сначала согласовать основной сценарий. Какие материалы лучше показать на первой консультации?",
     "createdAt": "2026-11-23T10:03:00Z",
     "likesCount": 3

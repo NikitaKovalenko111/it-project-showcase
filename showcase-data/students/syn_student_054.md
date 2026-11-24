@@ -1,6 +1,6 @@
 # София Попова Викторовна
 
-![София Попова Викторовна](../assets/avatars/syn_student_054-library.png)
+![София Попова Викторовна](../assets/avatars/syn_student_054-reviewed.jpg)
 
 ML-инженер / Стажёр с проектным опытом
 
