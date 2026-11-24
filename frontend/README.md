@@ -35,7 +35,7 @@ npm run dev:mock
 Эта команда включает отдельный режим Vite `mock` и загружает браузерные демоданные.
 Обычный запуск через `npm run dev`, интеграционный режим и сборка Docker работают с API.
 Данные для демостенда с PostgreSQL загружаются скриптом из
-[backend/demo](../backend/demo/README.md).
+[demo](../demo/README.md).
 
 ## API и проверки
 

@@ -1,7 +1,7 @@
 import { createWorkflow } from './workflow'
 import { collectPages, collectNumbered, fromTeam, fromCompany, fromProject } from './backend'
 import { axiosInstance } from './http'
-import { apiClient } from './client'
+import { apiClient, getCompanyRecord } from './client'
 import { apiRuntime } from './runtime'
 import type { SystemNotification } from '../types/models'
 import { mockServer } from './mockRuntime'
@@ -244,16 +244,18 @@ export const communityApi = new Proxy({} as AsyncMethods, {
               throw new Error(
                 'Программы стажировок на сервере — отдельные объявления; редактирование требует отдельной формы',
               )
-            const { data } = await axiosInstance.get(`/companies/${id}`)
+            const data = await getCompanyRecord(id)
             return fromCompany(
               (
                 await axiosInstance.put(`/companies/${id}`, {
+                  inn: value.inn ?? data.inn,
                   full_name: data.full_name,
                   short_name: data.short_name,
                   industry: data.industry,
+                  activities: data.activities,
                   website: data.website,
                   contacts: data.contacts,
-                  description: value.description,
+                  description: value.description ?? data.description,
                 })
               ).data,
             )

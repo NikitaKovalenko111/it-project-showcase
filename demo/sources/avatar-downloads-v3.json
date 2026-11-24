@@ -1,0 +1,191 @@
+[
+  {
+    "studentId": "syn_student_033",
+    "path": "assets/avatars/syn_student_033.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/17054662/pexels-photo-17054662.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/a-portrait-of-a-young-man-17054662/",
+    "author": "Aaron Cariñaga",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_035",
+    "path": "assets/avatars/syn_student_035.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/36712225/pexels-photo-36712225.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-young-man-with-studio-lighting-36712225/",
+    "author": "Lukas Kaufmann",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_037",
+    "path": "assets/avatars/syn_student_037.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/7134095/pexels-photo-7134095.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/a-portrait-of-a-young-man-7134095/",
+    "author": "Nicolás Langellotti",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_039",
+    "path": "assets/avatars/syn_student_039.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/37728407/pexels-photo-37728407.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/moody-outdoor-portrait-of-young-man-37728407/",
+    "author": "Alef Morais",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_041",
+    "path": "assets/avatars/syn_student_041.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/39770019/pexels-photo-39770019.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/moody-portrait-of-young-man-in-soft-light-39770019/",
+    "author": "Abdurrahim Israfilov",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_043",
+    "path": "assets/avatars/syn_student_043.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/31969139/pexels-photo-31969139.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/contemplative-young-man-portrait-in-studio-31969139/",
+    "author": "Sephina Cornwall",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_045",
+    "path": "assets/avatars/syn_student_045.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/37568357/pexels-photo-37568357.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/casual-portrait-of-young-man-in-urban-setting-37568357/",
+    "author": "Orkhan Sweden",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_047",
+    "path": "assets/avatars/syn_student_047.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/36207065/pexels-photo-36207065.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/stylish-portrait-of-a-young-man-on-a-warm-background-36207065/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_049",
+    "path": "assets/avatars/syn_student_049.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/30639063/pexels-photo-30639063.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/artistic-portrait-of-a-pensive-young-man-30639063/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_051",
+    "path": "assets/avatars/syn_student_051.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/19456424/pexels-photo-19456424.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-young-man-smiling-19456424/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_053",
+    "path": "assets/avatars/syn_student_053.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/34253781/pexels-photo-34253781.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/casual-urban-portrait-of-a-young-man-34253781/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_036",
+    "path": "assets/avatars/syn_student_036-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0001.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0001.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_038",
+    "path": "assets/avatars/syn_student_038-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0002.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0002.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_040",
+    "path": "assets/avatars/syn_student_040-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0003.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0003.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_042",
+    "path": "assets/avatars/syn_student_042-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0004.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0004.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_044",
+    "path": "assets/avatars/syn_student_044-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0005.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0005.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_046",
+    "path": "assets/avatars/syn_student_046-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0006.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0006.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_048",
+    "path": "assets/avatars/syn_student_048-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0007.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0007.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_050",
+    "path": "assets/avatars/syn_student_050-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0008.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0008.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_052",
+    "path": "assets/avatars/syn_student_052-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0009.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0009.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_054",
+    "path": "assets/avatars/syn_student_054-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0010.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0010.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  }
+]

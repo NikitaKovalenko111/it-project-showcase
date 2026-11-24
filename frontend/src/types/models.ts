@@ -459,7 +459,7 @@ export interface ProjectComment {
   caseId: string
   authorId: string
   authorName: string
-  authorRole: UserRole
+  authorRole?: UserRole
   authorAvatar?: string
   content: string
   createdAt: string

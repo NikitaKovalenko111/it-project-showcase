@@ -716,7 +716,7 @@ export const CaseDetailPage: React.FC = () => {
               <Award size={18} color="var(--ui-warning)" />
             </div>
             <div className="card__body">
-              {activeCase.rewardType === 'contest' && (
+              {(activeCase.rewardType === 'contest' || activeCase.prizeFund != null) && (
                 <div>
                   <span
                     style={{
@@ -736,7 +736,9 @@ export const CaseDetailPage: React.FC = () => {
                       margin: '4px 0 12px',
                     }}
                   >
-                    {activeCase.prizeFund?.toLocaleString('ru-RU')} ₽
+                    {activeCase.prizeFund != null
+                      ? `${activeCase.prizeFund.toLocaleString('ru-RU')} ₽`
+                      : 'Сумма не указана'}
                   </div>
 
                   {activeCase.prizePlaces && activeCase.prizePlaces.length > 0 && (
@@ -813,7 +815,9 @@ export const CaseDetailPage: React.FC = () => {
                       margin: '4px 0 8px',
                     }}
                   >
-                    {activeCase.rewardAmount?.toLocaleString('ru-RU')} ₽
+                    {activeCase.rewardAmount != null
+                      ? `${activeCase.rewardAmount.toLocaleString('ru-RU')} ₽`
+                      : 'Сумма не указана'}
                   </div>
                   <p style={{ fontSize: '12px', color: 'var(--ui-body)', margin: 0 }}>
                     {activeCase.rewardDescription}
@@ -821,21 +825,22 @@ export const CaseDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {!['monetary', 'contest', 'educational'].includes(activeCase.rewardType) && (
+              {activeCase.prizeFund == null && !['monetary', 'contest', 'educational'].includes(activeCase.rewardType) && (
                 <p>
                   {activeCase.rewardDescription ||
                     'Вознаграждение и условия участия уточняются у компании.'}
                 </p>
               )}
-              {activeCase.rewardType === 'educational' && (
+              {activeCase.rewardType === 'educational' && activeCase.prizeFund == null && (
                 <div>
                   <span className="badge badge-reward-educational" style={{ marginBottom: '8px' }}>
                     Образовательный проект
                   </span>
-                  <p style={{ fontSize: '12px', color: 'var(--ui-body)', margin: 0 }}>
-                    {activeCase.rewardDescription ||
-                      'Сертификат от компании, рекомендательное письмо и подтверждение в портфолио.'}
-                  </p>
+                  {activeCase.rewardDescription && (
+                    <p style={{ fontSize: '12px', color: 'var(--ui-body)', margin: 0 }}>
+                      {activeCase.rewardDescription}
+                    </p>
+                  )}
                 </div>
               )}
 

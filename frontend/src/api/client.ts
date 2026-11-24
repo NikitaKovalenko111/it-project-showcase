@@ -35,6 +35,29 @@ import {
 
 export { axiosInstance } from './http'
 import { axiosInstance } from './http'
+
+export async function getCompanyRecord(id: string) {
+  try {
+    return (await axiosInstance.get(`/companies/${id}`)).data
+  } catch (error) {
+    if (
+      (error as { status?: number }).status !== 404 ||
+      (!tokenStore.get() && !localStorage.getItem('uust_refresh_token'))
+    ) {
+      throw error
+    }
+
+    const companies = await collectPages<any>((params) =>
+      axiosInstance.get('/companies/mine', { params }),
+    ).catch((cause: { status?: number }) => {
+      if (cause.status === 401 || cause.status === 403) return []
+      throw cause
+    })
+    const company = companies.find((item) => item.company_id === id)
+    if (!company) throw error
+    return company
+  }
+}
 // Simulated delay helper for realistic network feedback
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -837,7 +860,7 @@ export const apiClient = {
 
   async getCompanyById(id: string): Promise<Company> {
     if (apiRuntime.mode === 'live') {
-      return fromCompany((await axiosInstance.get(`/companies/${id}`)).data)
+      return fromCompany(await getCompanyRecord(id))
     }
     await delay(120)
     const c = mockServer.getCompanyById(id)
@@ -985,18 +1008,24 @@ export const apiClient = {
       const roots = await collectNumbered<any>((params) =>
         axiosInstance.get(`/cases/${caseId}/comments`, { params }),
       )
-      const replies = (
-        await Promise.all(
-          roots
-            .filter((c) => c.reply_count > 0)
-            .map((c) =>
-              collectNumbered<any>((params) =>
-                axiosInstance.get(`/comments/${c.comment_id}/replies`, { params }),
+      const comments = new Map(roots.map((comment) => [comment.comment_id, comment]))
+      let level = roots
+      while (level.length) {
+        const replies = (
+          await Promise.all(
+            level
+              .filter((comment) => comment.reply_count > 0)
+              .map((comment) =>
+                collectNumbered<any>((params) =>
+                  axiosInstance.get(`/comments/${comment.comment_id}/replies`, { params }),
+                ),
               ),
-            ),
-        )
-      ).flat()
-      return [...roots, ...replies].map(fromComment)
+          )
+        ).flat()
+        level = replies.filter((comment) => !comments.has(comment.comment_id))
+        for (const comment of level) comments.set(comment.comment_id, comment)
+      }
+      return [...comments.values()].map(fromComment)
     }
     await delay(100)
     return mockServer.getComments(caseId)

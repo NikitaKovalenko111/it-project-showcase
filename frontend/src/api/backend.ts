@@ -85,9 +85,6 @@ export function fromCompany(d: any): Company {
     internshipProgram: d.internship_program || '',
     practiceProgram: d.practice_program || '',
     inn: d.inn,
-    kpp: d.kpp,
-    ogrn: d.ogrn,
-    legalAddress: d.legal_address,
     industry: d.industry || '',
     website: d.website || '',
     logo: companyLogoUrl(d.company_id, d.logo_file_id),
@@ -340,7 +337,6 @@ export const fromComment = (d: any): ProjectComment => ({
   authorAvatar: d.author_photo_file_id
     ? `/api/v1/users/${d.author_id}/avatar?v=${d.author_photo_file_id}`
     : undefined,
-  authorRole: 'student',
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
   parentId: d.parent_comment_id || undefined,
   createdAt: d.created_at,

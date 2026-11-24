@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-24",
+  "criteria": "Clothed portraits and unique images; no ethnicity inference.",
+  "portraitReplacements": [
+    {
+      "studentId": "syn_student_036",
+      "source": "backend/demo/media/student03.jpg",
+      "path": "assets/avatars/syn_student_036-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    },
+    {
+      "studentId": "syn_student_040",
+      "source": "backend/demo/media/student07.jpg",
+      "path": "assets/avatars/syn_student_040-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    },
+    {
+      "studentId": "syn_student_046",
+      "source": "backend/demo/media/student11.jpg",
+      "path": "assets/avatars/syn_student_046-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    },
+    {
+      "studentId": "syn_student_048",
+      "source": "backend/demo/media/student13.jpg",
+      "path": "assets/avatars/syn_student_048-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    },
+    {
+      "studentId": "syn_student_049",
+      "source": "backend/demo/media/student18.jpg",
+      "path": "assets/avatars/syn_student_049-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    },
+    {
+      "studentId": "syn_student_054",
+      "source": "backend/demo/media/student19.jpg",
+      "path": "assets/avatars/syn_student_054-reviewed.jpg",
+      "reason": "Visible clothing requirement"
+    }
+  ],
+  "additionalCompanyPhotographs": [
+    {
+      "path": "assets/photos/office-open.jpg",
+      "author": "TECNIC Bioprocess Solutions",
+      "source": "https://unsplash.com/photos/xdar9L2_clo",
+      "license": "Unsplash License"
+    },
+    {
+      "path": "assets/photos/office-meeting.jpg",
+      "author": "Petr Magera",
+      "source": "https://unsplash.com/photos/fgSpHuVbv50",
+      "license": "Unsplash License"
+    }
+  ],
+  "demoCompanyPhotographs": "Existing reviewed assets copied from backend/demo/media; backend source files are unchanged."
+}

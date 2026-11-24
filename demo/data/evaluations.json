@@ -1,0 +1,94 @@
+[
+  {
+    "id": "syn_evaluation_001",
+    "caseId": "syn_case_005",
+    "companyId": "syn_company_003",
+    "companyName": "БиблиоМаршрут",
+    "evaluatorName": "Михаил Рощин",
+    "scores": {
+      "solutionCompleteness": 9,
+      "implementationQuality": 8,
+      "codeQuality": 8,
+      "architecture": 8,
+      "specCompliance": 9,
+      "usability": 8,
+      "originality": 7,
+      "documentationQuality": 9,
+      "deadlineCompliance": 9,
+      "teamwork": 8
+    },
+    "totalScore": 83,
+    "maxScore": 100,
+    "feedback": "Основной сценарий раскрыт, критерии приёмки понятны. Следующая итерация: расширить негативные проверки и сделать ограничения заметнее в интерфейсе.",
+    "evaluatedAt": "2026-11-21T10:00:00Z"
+  },
+  {
+    "id": "syn_evaluation_002",
+    "caseId": "syn_case_006",
+    "companyId": "syn_company_003",
+    "companyName": "БиблиоМаршрут",
+    "evaluatorName": "Михаил Рощин",
+    "scores": {
+      "solutionCompleteness": 9,
+      "implementationQuality": 8,
+      "codeQuality": 8,
+      "architecture": 8,
+      "specCompliance": 9,
+      "usability": 8,
+      "originality": 7,
+      "documentationQuality": 9,
+      "deadlineCompliance": 9,
+      "teamwork": 8
+    },
+    "totalScore": 83,
+    "maxScore": 100,
+    "feedback": "Основной сценарий раскрыт, критерии приёмки понятны. Следующая итерация: расширить негативные проверки и сделать ограничения заметнее в интерфейсе.",
+    "evaluatedAt": "2026-11-21T10:00:00Z"
+  },
+  {
+    "id": "syn_evaluation_003",
+    "caseId": "syn_case_007",
+    "companyId": "syn_company_004",
+    "companyName": "Маршрутная Сетка",
+    "evaluatorName": "Ольга Лукина",
+    "scores": {
+      "solutionCompleteness": 9,
+      "implementationQuality": 8,
+      "codeQuality": 8,
+      "architecture": 8,
+      "specCompliance": 9,
+      "usability": 8,
+      "originality": 7,
+      "documentationQuality": 9,
+      "deadlineCompliance": 9,
+      "teamwork": 8
+    },
+    "totalScore": 83,
+    "maxScore": 100,
+    "feedback": "Основной сценарий раскрыт, критерии приёмки понятны. Следующая итерация: расширить негативные проверки и сделать ограничения заметнее в интерфейсе.",
+    "evaluatedAt": "2026-11-21T10:00:00Z"
+  },
+  {
+    "id": "syn_evaluation_004",
+    "caseId": "syn_case_008",
+    "companyId": "syn_company_004",
+    "companyName": "Маршрутная Сетка",
+    "evaluatorName": "Ольга Лукина",
+    "scores": {
+      "solutionCompleteness": 9,
+      "implementationQuality": 8,
+      "codeQuality": 8,
+      "architecture": 8,
+      "specCompliance": 9,
+      "usability": 8,
+      "originality": 7,
+      "documentationQuality": 9,
+      "deadlineCompliance": 9,
+      "teamwork": 8
+    },
+    "totalScore": 83,
+    "maxScore": 100,
+    "feedback": "Основной сценарий раскрыт, критерии приёмки понятны. Следующая итерация: расширить негативные проверки и сделать ограничения заметнее в интерфейсе.",
+    "evaluatedAt": "2026-11-21T10:00:00Z"
+  }
+]

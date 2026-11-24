@@ -997,7 +997,9 @@ export class MockServer {
   }
   updateCompanyContent(
     id: string,
-    patch: { description: string; internshipProgram?: string; practiceProgram?: string },
+    patch: Partial<
+      Pick<Company, 'description' | 'internshipProgram' | 'practiceProgram' | 'inn' | 'kpp' | 'ogrn' | 'legalAddress'>
+    >,
   ): Company {
     const user = this.actor()
     if (
