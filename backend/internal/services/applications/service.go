@@ -26,7 +26,7 @@ var (
 	ErrEventCapacity     = errors.New("event capacity reached")
 	ErrWrongEntryKind    = errors.New("wrong entry route for event format")
 )
-var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 type Service struct{ repo *application_repo.Repository }
 

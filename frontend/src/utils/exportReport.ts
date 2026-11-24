@@ -77,7 +77,7 @@ export const downloadPdfReport = async (
         cellPadding: 2,
         overflow: 'linebreak',
       },
-      headStyles: { font: 'DejaVuSans', fontStyle: 'normal', fillColor: [15, 43, 72] },
+      headStyles: { font: 'DejaVuSans', fontStyle: 'normal', fillColor: [40, 94, 151] },
       margin: { left: 14, right: 14, bottom: 15 },
     })
   })

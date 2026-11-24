@@ -1,6 +1,7 @@
 package opportunity_handler
 
 import (
+	"it-project-showcase/backend/internal/models"
 	"net/http"
 
 	"it-project-showcase/backend/internal/transport/http/pagination"
@@ -10,8 +11,26 @@ import (
 func (h *Handler) StartInternshipApplications(mux *http.ServeMux, student, representative, workflow func(http.Handler) http.Handler) {
 	mux.Handle("POST /{program_id}/applications", student(http.HandlerFunc(h.ApplyInternship)))
 	mux.Handle("GET /{program_id}/applications", representative(http.HandlerFunc(h.ListInternshipApplications)))
+	mux.Handle("GET /applications", representative(http.HandlerFunc(h.ListCompanyInternshipApplications)))
 	mux.Handle("GET /applications/mine", student(http.HandlerFunc(h.ListMyInternshipApplications)))
 	mux.Handle("PATCH /applications/{application_id}/status", workflow(http.HandlerFunc(h.DecideInternshipApplication)))
+}
+
+func (h *Handler) ListCompanyInternshipApplications(w http.ResponseWriter, r *http.Request) {
+	query, err := pagination.ParsePageQuery(r.URL.Query())
+	if err != nil {
+		pagination.WriteQueryError(w, err)
+		return
+	}
+	q := r.URL.Query()
+	items, total, err := h.service.ListCompanyInternshipApplications(r.Context(), user(r), models.InternshipApplicationFilter{
+		ProgramID: q.Get("program_id"), CompanyID: q.Get("company_id"), Kind: q.Get("kind"), Status: q.Get("status"), Search: q.Get("search"),
+	}, query.PageSize, query.Offset)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	pkg.WriteJSON(w, 200, pagination.NewPageResponse(items, query, total))
 }
 
 func (h *Handler) ApplyInternship(w http.ResponseWriter, r *http.Request) {

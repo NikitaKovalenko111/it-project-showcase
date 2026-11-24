@@ -15,6 +15,7 @@ type ProjectAsset struct {
 type StudentProject struct {
 	ProjectID         string          `json:"project_id"`
 	OwnerID           string          `json:"owner_id"`
+	OwnerName         string          `json:"owner_name"`
 	Title             string          `json:"title"`
 	Category          string          `json:"category"`
 	ShortDescription  string          `json:"short_description"`

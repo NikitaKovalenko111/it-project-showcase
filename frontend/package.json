@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "dev:integration": "vite --mode integration"
+    "dev:integration": "vite --mode integration",
+    "dev:mock": "vite --mode mock"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",

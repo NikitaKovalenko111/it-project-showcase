@@ -9,6 +9,7 @@ import {
   type EventTask,
 } from '../api/events'
 import type { CaseProject } from '../types/models'
+import { clearFieldError, markFieldError, reportFieldError } from '../utils/formValidation'
 import { uploadFile } from '../utils/files'
 import { FileDownload } from './FileDownload'
 
@@ -239,6 +240,8 @@ export function EventPlanPanel({
       <input
         className="input"
         type={type}
+        name={key}
+        maxLength={key === 'subject' ? 300 : 500}
         required={required}
         value={String(plan[key] || '')}
         onChange={(e) => update({ [key]: e.target.value })}
@@ -250,10 +253,35 @@ export function EventPlanPanel({
   return (
     <form
       className="event-plan event-plan--editor"
+      onInvalid={markFieldError}
+      onInput={(event) => {
+        clearFieldError(event)
+        if (event.target instanceof HTMLInputElement && event.target.name.endsWith('-opens')) {
+          const due = event.currentTarget.elements.namedItem(
+            event.target.name.replace(/-opens$/, '-due'),
+          )
+          if (due instanceof HTMLInputElement) due.setCustomValidity('')
+        }
+      }}
       onSubmit={async (e) => {
         e.preventDefault()
         setError('')
         setNotice('')
+        if (!plan.subject.trim()) {
+          reportFieldError(e.currentTarget, 'subject', 'Укажите тему или предмет мероприятия.')
+          return
+        }
+        const invalidRound = plan.rounds.findIndex(
+          (round) => Date.parse(round.due_at) <= Date.parse(round.opens_at),
+        )
+        if (invalidRound >= 0) {
+          reportFieldError(
+            e.currentTarget,
+            `round-${invalidRound}-due`,
+            'Срок сдачи должен быть позже открытия заданий.',
+          )
+          return
+        }
         setBusy(true)
         try {
           await saveEventPlan(project.id, {
@@ -363,6 +391,7 @@ export function EventPlanPanel({
                   <input
                     className="input"
                     required
+                    maxLength={300}
                     value={round.title}
                     onChange={(e) => changeRound(index, { title: e.target.value })}
                   />
@@ -374,6 +403,7 @@ export function EventPlanPanel({
                       className="input"
                       required
                       type="datetime-local"
+                      name={`round-${index}-opens`}
                       value={dateInput(round.opens_at)}
                       onChange={(e) => changeRound(index, { opens_at: dateValue(e.target.value) })}
                     />
@@ -384,6 +414,7 @@ export function EventPlanPanel({
                       className="input"
                       required
                       type="datetime-local"
+                      name={`round-${index}-due`}
                       value={dateInput(round.due_at)}
                       onChange={(e) => changeRound(index, { due_at: dateValue(e.target.value) })}
                     />
@@ -405,6 +436,7 @@ export function EventPlanPanel({
                       <input
                         className="input"
                         required
+                        maxLength={300}
                         value={task.title}
                         onChange={(e) => changeTask(index, taskIndex, { title: e.target.value })}
                       />
@@ -509,18 +541,20 @@ export function EventPlanPanel({
             </button>
           </section>
         )}
-        <button className="btn btn-primary" disabled={busy}>
-          Сохранить план мероприятия
-        </button>
+        <div className="event-plan-save">
+          <button className="btn btn-primary" disabled={busy}>
+            {busy ? 'Сохраняем план…' : 'Сохранить план мероприятия'}
+          </button>
+          {notice && (
+            <p className="inline-notice application-feedback" role="status">
+              {notice}
+            </p>
+          )}
+        </div>
       </fieldset>
       {error && (
         <p className="form-error event-plan__message" role="alert">
           {error}
-        </p>
-      )}
-      {notice && (
-        <p className="event-plan__message" role="status">
-          {notice}
         </p>
       )}
     </form>

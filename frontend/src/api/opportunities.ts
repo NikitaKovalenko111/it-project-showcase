@@ -1,14 +1,15 @@
 import { createId } from '../utils/id'
-import { buildPrograms, buildProgramApplications } from './fixtures/programs'
 import { axiosInstance } from './http'
 import { apiRuntime } from './runtime'
 import { collectNumbered } from './backend'
-import { mockServer } from './mockServer'
+import { mockOpportunityFixtures, mockServer } from './mockRuntime'
 import type { User } from '../types/models'
+import { canEditProgram } from '../utils/publicationAccess'
 
 export type OpportunityKind = 'internship' | 'practice'
 export type Opportunity = {
   program_id: string
+  created_by?: string
   kind: OpportunityKind
   company_id: string
   company_name: string
@@ -35,7 +36,7 @@ export type OpportunityApplication = {
 }
 
 const live = apiRuntime.mode === 'live'
-const seed = buildPrograms()
+let programFixtures: Opportunity[] | undefined
 function read<T>(key: string, fallback: T): T {
   const data = localStorage.getItem('showcase_curated_v1_' + key)
   return data ? JSON.parse(data) : structuredClone(fallback)
@@ -44,6 +45,8 @@ function save<T>(key: string, data: T) {
   localStorage.setItem('showcase_curated_v1_' + key, JSON.stringify(data))
 }
 const programs = () => {
+  const { buildPrograms } = mockOpportunityFixtures()
+  const seed = (programFixtures ??= buildPrograms())
   const rows = read('opportunities', seed)
   if (!read('program_details_20261114_v2', false)) {
     const legacy = buildPrograms(false)
@@ -59,7 +62,10 @@ const programs = () => {
   return rows
 }
 const applications = () =>
-  read<OpportunityApplication[]>('opportunity_applications', buildProgramApplications())
+  read<OpportunityApplication[]>(
+    'opportunity_applications',
+    mockOpportunityFixtures().buildProgramApplications(),
+  )
 function actor() {
   const session = JSON.parse(localStorage.getItem('uust_current_user') || 'null') as User | null
   const user = session && mockServer.getUserById(session.id)
@@ -81,7 +87,8 @@ export const opportunityApi = {
     const user = actor()
     return programs().filter((item) => {
       if (scope === 'public') return item.status === 'published'
-      if (scope === 'mine') return owns(user, item.company_id)
+      if (scope === 'mine')
+        return owns(user, item.company_id) || (user.role === 'admin' && item.created_by === user.id)
       return user.role === 'admin'
         ? ['moderation', 'published', 'closed', 'hidden'].includes(item.status)
         : ['curator', 'university'].includes(user.role) && item.status === 'moderation'
@@ -106,7 +113,7 @@ export const opportunityApi = {
     if (
       !company ||
       (!owns(user, companyId) && user.role !== 'admin') ||
-      (programId && (!previous || !['draft', 'revision', 'published'].includes(previous.status)))
+      (programId && (!previous || !canEditProgram(user, previous)))
     )
       throw new Error('Программа недоступна для редактирования.')
     if (!payload.title?.trim() || !payload.summary?.trim())
@@ -114,6 +121,7 @@ export const opportunityApi = {
     const item: Opportunity = {
       ...previous,
       program_id: previous?.program_id || createId(),
+      created_by: previous ? previous.created_by : user.id,
       kind: previous?.kind || payload.kind,
       company_id: companyId,
       company_name: company.name,
@@ -129,9 +137,6 @@ export const opportunityApi = {
   },
 
   async setStatus(id: string, status: string, comment: string) {
-    if (apiRuntime.mode === 'live' && status === 'draft')
-      throw new Error('Сервер пока не поддерживает отзыв программы с модерации.')
-
     if (live)
       return (
         await axiosInstance.patch<Opportunity>(`/internships/${id}/status`, { status, comment })
@@ -141,11 +146,11 @@ export const opportunityApi = {
     const user = actor()
     if (!item) throw new Error('Программа не найдена.')
     const moderator = ['admin', 'curator', 'university'].includes(user.role)
+    const author =
+      owns(user, item.company_id) || (user.role === 'admin' && item.created_by === user.id)
     const allowed =
-      (status === 'draft' && item.status === 'moderation' && owns(user, item.company_id)) ||
-      (status === 'moderation' &&
-        ['draft', 'revision'].includes(item.status) &&
-        (owns(user, item.company_id) || user.role === 'admin')) ||
+      (status === 'draft' && item.status === 'moderation' && author) ||
+      (status === 'moderation' && ['draft', 'revision'].includes(item.status) && author) ||
       (status === 'closed' && item.status === 'published' && owns(user, item.company_id)) ||
       (item.status === 'moderation' && moderator && ['published', 'revision'].includes(status)) ||
       (user.role === 'admin' &&

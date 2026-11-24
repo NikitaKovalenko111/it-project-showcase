@@ -34,9 +34,20 @@ export const applicationsReducer = (state = initialState, action: any): Applicat
       return {
         ...state,
         loading: false,
-        applicationsList: state.applicationsList.map((a) =>
-          a.id === action.payload.application.id ? action.payload.application : a,
-        ),
+        applicationsList: state.applicationsList.map((application) => {
+          const updated: CaseApplication = action.payload.application
+          if (application.id !== updated.id) return application
+          return {
+            ...updated,
+            studentName: updated.studentName || application.studentName,
+            studentEmail: updated.studentEmail || application.studentEmail,
+            studentPhone: updated.studentPhone || application.studentPhone,
+            studentCourse: updated.studentCourse || application.studentCourse,
+            studentInstitute: updated.studentInstitute || application.studentInstitute,
+            studentGroup: updated.studentGroup || application.studentGroup,
+            studentAvatar: updated.studentAvatar || application.studentAvatar,
+          }
+        }),
       }
 
     case types.FETCH_APPLICATIONS_FAILURE:

@@ -1,5 +1,6 @@
+import { CatalogSearch } from '../components/CatalogSearch'
 import { ExpandableText } from '../components/ExpandableText'
-import { IdentityImage } from '../components/IdentityImage'
+import { UserAvatar } from '../components/UserAvatar'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { canModerate, matchesSearch } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
@@ -119,19 +120,16 @@ export const StudentsSearchPage: React.FC = () => {
 
       {/* Filter Bar */}
       <div className="uust-container">
-        <div className="uust-box">
-          <div className="uust-filter-row">
-            <label className="catalog-filter">
-              {hasGroups ? 'ФИО, группа или компетенция' : 'ФИО или компетенция'}
-              <input
-                className="uust-input"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={hasGroups ? 'ФИО, группа, React, Python…' : 'ФИО, React, Python…'}
-              />
-            </label>
-          </div>
-          <div className="uust-filter-row">
+        <div className="uust-box student-directory-filters">
+          <label className="student-directory-search">
+            {hasGroups ? 'ФИО, группа или компетенция' : 'ФИО или компетенция'}
+            <CatalogSearch
+              value={search}
+              onChange={setSearch}
+              label={hasGroups ? 'ФИО, группа, React, Python…' : 'ФИО, React, Python…'}
+            />
+          </label>
+          <div className="student-directory-grid">
             <label className="catalog-filter">
               Институт
               <select
@@ -250,18 +248,19 @@ export const StudentsSearchPage: React.FC = () => {
                     marginBottom: '14px',
                   }}
                 >
-                  <IdentityImage
+                  <UserAvatar
+                    userId={stud.id}
                     src={stud.avatar}
                     name={stud.fullName}
                     className="student-search-avatar"
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link to={`/profile/${stud.id}`}>
-                      <h3 style={{ margin: '0 0 2px', fontSize: '15px', color: '#0f2b48' }}>
+                      <h3 style={{ margin: '0 0 2px', fontSize: '15px', color: 'var(--ui-ink)' }}>
                         {stud.fullName}
                       </h3>
                     </Link>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                       {[
                         prof.group && `Группа ${prof.group}`,
                         prof.course > 0 && `${prof.course} курс`,
@@ -300,8 +299,8 @@ export const StudentsSearchPage: React.FC = () => {
                     <span
                       key={sk}
                       style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
+                        background: 'var(--ui-soft)',
+                        color: 'var(--ui-body)',
                         fontSize: '11px',
                         padding: '2px 7px',
                         borderRadius: '4px',

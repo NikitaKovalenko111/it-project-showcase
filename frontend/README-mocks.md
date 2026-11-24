@@ -2,26 +2,19 @@
 
 Все функции, исправления QA и подготовленные моки собраны в обычной папке frontend основного проекта. Для запуска не нужны файлы из tmp или другой worktree.
 
-## Через Docker
-
-Из C:/hack/it-project-showcase:
-    docker compose up --build frontend
-
-Откройте http://localhost:3000. Сборка Docker по умолчанию использует VITE_API_MODE=mock. Если зависимые сервисы уже запущены, пересобрать только интерфейс можно командой:
-    docker compose up -d --build --no-deps frontend
-
 ## Через npm
 
 Из папки frontend, в PowerShell:
     npm ci
-    $env:VITE_API_MODE = 'mock'
-    npm run dev
+    npm run dev:mock
 
 Откройте адрес, напечатанный Vite. Если Docker уже занимает порт 3000, Vite предложит другой свободный порт.
 
+Обычный запуск и Docker работают с API. Демостенд с PostgreSQL заполняется отдельно через [backend/demo/seed.ps1](../backend/demo/README.md).
+
 ## Данные и вход
 
-Логины: student, company, curator, admin. Можно использовать кнопки выбора роли. Пароль в мок-режиме — любой непустой.
+Кнопки быстрого входа позволяют выбрать студента, компанию, куратора или администратора.
 
 Подготовлены 37 вымышленных студентов, 13 компаний, 49 заданий, 15 проектов, 14 программ стажировок и практик, 39 заявок, 25 команд и 36 выполнений. Содержимое находится в src/api/fixtures; связанные данные собирают mockData.ts, competitionSeed.ts и showcaseSeed.ts.
 

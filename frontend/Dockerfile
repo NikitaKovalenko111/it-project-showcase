@@ -3,9 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ARG VITE_API_MODE=mock
 ARG VITE_API_URL=/api/v1
-ENV VITE_API_MODE=${VITE_API_MODE}
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 

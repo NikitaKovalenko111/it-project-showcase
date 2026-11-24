@@ -24,7 +24,7 @@ func (r *Repository) SavePlan(ctx context.Context, userID, caseID string, input 
 	var publishedResults bool
 	err = tx.QueryRowContext(ctx, `SELECT c.status
 		FROM cases c WHERE c.case_id=$1 AND (EXISTS(SELECT 1 FROM company_members m WHERE
-		m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR (c.status IN ('draft','revision') AND (c.created_by=$2 AND showcase.is_active_admin($2))))
+		m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company') OR showcase.is_active_admin($2))
 		FOR UPDATE OF c`, caseID, userID).Scan(&status)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAccessDenied

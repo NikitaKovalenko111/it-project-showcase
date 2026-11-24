@@ -12,6 +12,15 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:3005',
           changeOrigin: true,
+          configure(proxy) {
+            proxy.on('proxyReq', (outgoing, incoming) => {
+              const host = incoming.headers.host
+              // The dev server uses HTTP. Retain Origin for cross-origin requests.
+              if (host && incoming.headers.origin === `http://${host}`) {
+                outgoing.removeHeader('origin')
+              }
+            })
+          },
         },
       },
     },

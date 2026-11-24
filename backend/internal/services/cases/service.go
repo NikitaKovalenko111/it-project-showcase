@@ -26,9 +26,10 @@ var (
 	ErrReferenceNotFound = errors.New("case reference not found")
 	ErrStagesLocked      = errors.New("case stages are locked by existing executions")
 	ErrEventPlanRequired = errors.New("event plan and deadlines are required")
+	ErrNDARequired       = errors.New("current NDA version is required")
 )
 
-var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 type Service struct{ repo *case_repo.Repository }
 
@@ -393,6 +394,9 @@ func mapRepositoryError(err error) error {
 	}
 	if errors.Is(err, case_repo.ErrStagesLocked) {
 		return ErrStagesLocked
+	}
+	if errors.Is(err, case_repo.ErrNDARequired) {
+		return ErrNDARequired
 	}
 	if errors.Is(err, case_repo.ErrEventPlanRequired) {
 		return ErrEventPlanRequired

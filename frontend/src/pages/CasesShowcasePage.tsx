@@ -4,6 +4,7 @@ import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { ScrollToolbar } from '../components/ScrollToolbar'
+import { CompanyLogo } from '../components/CompanyLogo'
 import {
   publicationLabels,
   publicationStatus,
@@ -21,6 +22,8 @@ import {
   toggleFavoriteRequest,
 } from '../store/actions'
 import { visibleCasesFor } from '../utils/access'
+import { canReceiveApplications } from '../utils/recruiting'
+import { canCreatePublication } from '../utils/publicationAccess'
 import { selectShowcaseCases, ShowcaseSort } from '../utils/showcase'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
@@ -58,7 +61,8 @@ export const CasesShowcasePage: React.FC = () => {
   const [eventFormat, setEventFormat] = useState('all')
   const live = apiRuntime.mode === 'live'
   const requestFilters = live ? undefined : filters
-  const [recruiting, setRecruiting] = useState(false)
+  const [recruiting, setRecruiting] = useState('all')
+  const [rewardPresence, setRewardPresence] = useState('all')
 
   useEffect(() => {
     dispatch(fetchCasesRequest(requestFilters))
@@ -76,6 +80,14 @@ export const CasesShowcasePage: React.FC = () => {
   const filteredCases = cases.filter(
     (item) =>
       (eventFormat === 'all' || (item.kind || 'case') === eventFormat) &&
+      (recruiting === 'all' || canReceiveApplications(item) === (recruiting === 'open')) &&
+      (rewardPresence === 'all' ||
+        Boolean(
+          item.prizeFund ||
+            item.rewardAmount ||
+            (item.rewardType === 'other' && item.rewardDescription),
+        ) ===
+          (rewardPresence === 'paid')) &&
       (!live ||
         (matchesSearch(
           filters.search,
@@ -88,16 +100,12 @@ export const CasesShowcasePage: React.FC = () => {
           (filters.direction === 'all' || item.direction === filters.direction) &&
           (filters.complexity === 'all' || item.complexity === filters.complexity) &&
           (filters.workFormat === 'all' || item.workFormat === filters.workFormat) &&
-          (filters.rewardType === 'all' || item.rewardType === filters.rewardType) &&
-          (!filters.hasReward ||
-            !!item.prizeFund ||
-            !!item.rewardAmount ||
-            !!item.rewardDescription))),
+          (filters.rewardType === 'all' || item.rewardType === filters.rewardType))),
   )
   const visibleCases = selectShowcaseCases(filteredCases, {
     period: 'all',
     technology: 'all',
-    recruiting,
+    recruiting: false,
     sort,
   })
 
@@ -110,7 +118,8 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const handleResetFilters = () => {
-    setRecruiting(false)
+    setRecruiting('all')
+    setRewardPresence('all')
     setSort('newest')
     setEventFormat('all')
     dispatch(resetCaseFilters())
@@ -122,9 +131,8 @@ export const CasesShowcasePage: React.FC = () => {
   }
 
   const canCreateCase =
-    currentUser?.role === 'company' ||
-    currentUser?.role === 'admin' ||
-    currentUser?.role === 'university'
+    canCreatePublication(currentUser) ||
+    (apiRuntime.mode !== 'live' && currentUser?.role === 'university')
 
   const getRewardBadge = (c: any) => {
     if (c.rewardType === 'contest') {
@@ -173,7 +181,7 @@ export const CasesShowcasePage: React.FC = () => {
             style={{
               fontSize: '22px',
               fontWeight: 800,
-              color: '#0c1938',
+              color: 'var(--ui-ink)',
               margin: 0,
               letterSpacing: '-0.02em',
             }}
@@ -204,7 +212,7 @@ export const CasesShowcasePage: React.FC = () => {
                     left: 14,
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: '#94a3b8',
+                    color: 'var(--ui-icon)',
                   }}
                 />
                 <input
@@ -311,28 +319,33 @@ export const CasesShowcasePage: React.FC = () => {
                 <option value="hackathon">Хакатоны</option>
                 <option value="olympiad">Олимпиады</option>
               </select>
-              <button
-                type="button"
-                className={`uust-pill ${recruiting ? 'active' : ''}`}
-                aria-pressed={recruiting}
-                onClick={() => setRecruiting(!recruiting)}
+              <select
+                className="uust-select"
+                aria-label="Статус набора"
+                value={recruiting}
+                onChange={(event) => setRecruiting(event.target.value)}
               >
-                Только с открытым набором
-              </button>
-              <button
-                className={`uust-pill ${filters.hasReward ? 'active' : ''}`}
-                onClick={() => handleFilterChange('hasReward', !filters.hasReward)}
-                style={{ marginLeft: 'auto' }}
+                <option value="all">Любой статус набора</option>
+                <option value="open">Открытый набор</option>
+                <option value="closed">Закрытый набор</option>
+              </select>
+              <select
+                className="uust-select"
+                aria-label="Наличие вознаграждения"
+                value={rewardPresence}
+                onChange={(event) => setRewardPresence(event.target.value)}
               >
-                <RussianRuble size={14} aria-hidden="true" /> Только с оплатой / призом
-              </button>
+                <option value="all">С оплатой и без</option>
+                <option value="paid">Только с оплатой / призом</option>
+                <option value="unpaid">Без оплаты и приза</option>
+              </select>
 
               <button
                 onClick={handleResetFilters}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#e04646',
+                  color: 'var(--ui-danger-accent)',
                   fontSize: '11px',
                   cursor: 'pointer',
                   fontWeight: 700,
@@ -353,7 +366,7 @@ export const CasesShowcasePage: React.FC = () => {
 
       {/* Case Grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ui-muted)' }}>
           Загрузка витрины кейсов...
         </div>
       ) : error ? (
@@ -369,9 +382,9 @@ export const CasesShowcasePage: React.FC = () => {
         </div>
       ) : visibleCases.length === 0 ? (
         <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <FolderGit2 size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Кейсы не найдены</h3>
-          <p style={{ color: '#64748b', fontSize: '13px', margin: '0 0 16px' }}>
+          <FolderGit2 size={48} color="var(--ui-icon)" style={{ margin: '0 auto 16px' }} />
+          <h3 style={{ margin: '0 0 8px', color: 'var(--ui-ink)' }}>Кейсы не найдены</h3>
+          <p style={{ color: 'var(--ui-muted)', fontSize: '13px', margin: '0 0 16px' }}>
             По заданным фильтрам проектов не найдено. Попробуйте сбросить фильтры.
           </p>
           <button
@@ -406,15 +419,19 @@ export const CasesShowcasePage: React.FC = () => {
                     aria-pressed={isFav}
                     title={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
                   >
-                    <Bookmark size={15} fill={isFav ? '#e04646' : 'none'} />
+                    <Bookmark size={15} fill={isFav ? 'var(--ui-danger-accent)' : 'none'} />
                   </button>
                 )}
 
+                {item.coverUrl && isPublished(item) && (
+                  <img className="case-card__cover" src={item.coverUrl} alt="" loading="lazy" />
+                )}
                 <div className="card__body">
                   <div className="case-card__company">
-                    <img
-                      src={item.companyLogo || 'https://via.placeholder.com/36'}
-                      alt={item.companyName}
+                    <CompanyLogo
+                      src={item.companyLogo}
+                      name={item.companyName}
+                      className="case-company-logo"
                     />
                     <div>
                       <div className="company-title">{item.companyName}</div>
@@ -492,8 +509,8 @@ export const CasesShowcasePage: React.FC = () => {
                           key={tech}
                           style={{
                             fontSize: '11px',
-                            background: '#f1f5f9',
-                            color: '#475569',
+                            background: 'var(--ui-soft)',
+                            color: 'var(--ui-body)',
                             padding: '2px 7px',
                             borderRadius: '4px',
                             fontFamily: 'monospace',
@@ -503,7 +520,9 @@ export const CasesShowcasePage: React.FC = () => {
                         </span>
                       ))}
                       {item.recommendedTech.length > 4 && (
-                        <span style={{ fontSize: '10px', color: '#94a3b8', alignSelf: 'center' }}>
+                        <span
+                          style={{ fontSize: '10px', color: 'var(--ui-icon)', alignSelf: 'center' }}
+                        >
                           +{item.recommendedTech.length - 4}
                         </span>
                       )}
@@ -512,7 +531,7 @@ export const CasesShowcasePage: React.FC = () => {
                 </div>
 
                 <div className="case-card__footer-bar">
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                     Заявок: <strong>{item.applicationsCount}</strong>
                   </span>
                   <Link to={`/cases/${item.id}`} className="btn btn-primary btn-sm">

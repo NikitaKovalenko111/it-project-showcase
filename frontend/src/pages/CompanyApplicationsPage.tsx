@@ -1,5 +1,6 @@
+import { InternshipApplications } from '../components/InternshipApplications'
 import { matchesSearch } from '../utils/publication'
-import { IdentityImage } from '../components/IdentityImage'
+import { UserAvatar } from '../components/UserAvatar'
 import { formatDate } from '../utils/date'
 import { apiRuntime } from '../api/runtime'
 import { FileDownload } from '../components/FileDownload'
@@ -31,6 +32,7 @@ export const CompanyApplicationsPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const [params] = useSearchParams()
   const caseFilter = params.get('caseId')
+  const programId = params.get('programId')
   useEffect(() => {
     dispatch(fetchApplicationsRequest())
   }, [dispatch])
@@ -44,7 +46,10 @@ export const CompanyApplicationsPage: React.FC = () => {
   const projects = useAppSelector((s) => s.cases.casesList)
   const kindOf = (caseId: string) =>
     projects.find((project) => project.id === caseId)?.kind || 'case'
-  const [taskKind, setTaskKind] = useState('all')
+  const [taskKind, setTaskKind] = useState(params.get('kind') || 'all')
+  const programKind = taskKind === 'practice' || taskKind === 'internship' ? taskKind : undefined
+  const showPrograms =
+    currentUser?.role === 'company' && !caseFilter && (taskKind === 'all' || !!programKind)
   const accessibleApplications = allApplications.filter(
     (app) =>
       (taskKind === 'all' || kindOf(app.caseId) === taskKind) &&
@@ -75,25 +80,25 @@ export const CompanyApplicationsPage: React.FC = () => {
     <div className="company-applications-page">
       <div className="page-header">
         <div className="page-header__content">
-          <h1>Входящие заявки и регистрации</h1>
+          <h1>Заявки студентов</h1>
         </div>
       </div>
 
       {/* UUST Schedule-style filter container */}
-      <div className="uust-container">
+      <div className="uust-container joined-filter-panel">
         <div className="uust-tabs-row application-status-tabs">
           <button
             className={`uust-tab ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            Все заявки ({applicationsList.length})
+            Все заявки{showPrograms ? '' : ` (${applicationsList.length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'pending' ? 'active' : ''}`}
             onClick={() => setStatusFilter('pending')}
           >
-            <Clock size={14} aria-hidden="true" /> На рассмотрении (
-            {applicationsList.filter((a) => a.status === 'pending').length})
+            <Clock size={14} aria-hidden="true" /> На рассмотрении
+            {!showPrograms && ` (${applicationsList.filter((a) => a.status === 'pending').length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'interview' ? 'active' : ''}`}
@@ -105,8 +110,9 @@ export const CompanyApplicationsPage: React.FC = () => {
             className={`uust-tab ${statusFilter === 'accepted' ? 'active' : ''}`}
             onClick={() => setStatusFilter('accepted')}
           >
-            <CheckCircle2 size={14} aria-hidden="true" /> Принятые заявки / регистрации (
-            {applicationsList.filter((a) => a.status === 'accepted').length})
+            <CheckCircle2 size={14} aria-hidden="true" /> Принятые заявки / регистрации
+            {!showPrograms &&
+              ` (${applicationsList.filter((a) => a.status === 'accepted').length})`}
           </button>
           <button
             className={`uust-tab ${statusFilter === 'rejected' ? 'active' : ''}`}
@@ -126,7 +132,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                   left: 14,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#94a3b8',
+                  color: 'var(--ui-icon)',
                 }}
               />
               <input
@@ -135,7 +141,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                 style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Студент или название кейса"
+                placeholder="Студент или название публикации"
               />
             </div>
             <label className="catalog-sort application-kind-sort">
@@ -149,7 +155,8 @@ export const CompanyApplicationsPage: React.FC = () => {
                 <option value="case">Кейсы</option>
                 <option value="hackathon">Хакатоны</option>
                 <option value="olympiad">Олимпиады</option>
-                {apiRuntime.mode !== 'live' && <option value="internship">Стажировки</option>}
+                <option value="internship">Стажировки</option>
+                <option value="practice">Практики</option>
               </select>
             </label>
           </div>
@@ -158,13 +165,15 @@ export const CompanyApplicationsPage: React.FC = () => {
 
       {error && <p role="alert">{error}</p>}
       {filteredApps.length === 0 ? (
-        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <Users size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Заявок не найдено</h3>
-          <p style={{ color: '#64748b', fontSize: '13px' }}>
-            По выбранному фильтру заявок студентов нет.
-          </p>
-        </div>
+        !showPrograms && (
+          <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+            <Users size={48} color="var(--ui-icon)" style={{ margin: '0 auto 16px' }} />
+            <h3 style={{ margin: '0 0 8px', color: 'var(--ui-ink)' }}>Заявок не найдено</h3>
+            <p style={{ color: 'var(--ui-muted)', fontSize: '13px' }}>
+              По выбранному фильтру заявок студентов нет.
+            </p>
+          </div>
+        )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {
@@ -185,7 +194,8 @@ export const CompanyApplicationsPage: React.FC = () => {
                       className="candidate-identity"
                       style={{ display: 'flex', gap: '14px', alignItems: 'center' }}
                     >
-                      <IdentityImage
+                      <UserAvatar
+                        userId={app.studentId}
                         src={app.studentAvatar}
                         name={app.studentName}
                         className="candidate-avatar"
@@ -195,7 +205,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                           style={{
                             margin: '0 0 2px',
                             fontSize: '16px',
-                            color: '#0c1938',
+                            color: 'var(--ui-ink)',
                             fontWeight: 800,
                           }}
                         >
@@ -210,7 +220,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                         <div
                           style={{
                             fontSize: '12px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                             display: 'flex',
                             gap: '8px',
                             alignItems: 'center',
@@ -273,17 +283,17 @@ export const CompanyApplicationsPage: React.FC = () => {
 
                   <div
                     style={{
-                      background: '#f8fafc',
+                      background: 'var(--ui-panel)',
                       padding: '14px',
                       borderRadius: '8px',
                       marginBottom: '14px',
-                      border: '1px solid #eef2f6',
+                      border: '1px solid var(--ui-soft)',
                     }}
                   >
                     <div
                       style={{
                         fontSize: '11px',
-                        color: '#627282',
+                        color: 'var(--ui-muted)',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         marginBottom: '4px',
@@ -291,7 +301,9 @@ export const CompanyApplicationsPage: React.FC = () => {
                     >
                       Публикация:
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e4b85' }}>
+                    <div
+                      style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ui-brand-text)' }}
+                    >
                       <Link to={`/cases/${app.caseId}`}>{app.caseTitle}</Link>
                     </div>
 
@@ -299,7 +311,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                       style={{
                         marginTop: '10px',
                         fontSize: '13px',
-                        color: '#334455',
+                        color: 'var(--ui-body)',
                         lineHeight: 1.5,
                       }}
                     >
@@ -323,7 +335,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                           }}
                         >
                           <Mail size={13} /> {app.studentEmail}
@@ -335,7 +347,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#627282',
+                            color: 'var(--ui-muted)',
                           }}
                         >
                           <Phone size={13} /> {app.studentPhone}
@@ -354,7 +366,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#3a75b4',
+                            color: 'var(--ui-brand-text)',
                             fontWeight: 700,
                           }}
                         >
@@ -370,7 +382,7 @@ export const CompanyApplicationsPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#3a75b4',
+                            color: 'var(--ui-brand-text)',
                             fontWeight: 700,
                           }}
                         >
@@ -439,6 +451,15 @@ export const CompanyApplicationsPage: React.FC = () => {
             </PaginatedGrid>
           }
         </div>
+      )}
+      {showPrograms && (
+        <InternshipApplications
+          companyQueue
+          programId={programKind === params.get('kind') ? programId || undefined : undefined}
+          kind={programKind}
+          search={searchTerm}
+          status={statusFilter}
+        />
       )}
     </div>
   )

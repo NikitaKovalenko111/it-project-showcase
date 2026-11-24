@@ -1,3 +1,4 @@
+import { canEditCaseDraft } from '../utils/publicationAccess'
 import { CaseComments } from './CaseComments'
 import { ReportTableView } from './ReportTableView'
 import { useConfirm } from './ConfirmProvider'
@@ -29,14 +30,14 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const dispatch = useAppDispatch(),
     user = useAppSelector((s) => s.auth.currentUser)
   const manager = canManageCase(user, project),
+    companyManager = user?.role === 'company' && manager,
     student = user?.role === 'student',
     olympiad = project.kind === 'olympiad'
   const live = apiRuntime.mode === 'live'
   const liveOlympiad = live && olympiad
   const hasEventPlan = project.kind === 'hackathon' || olympiad
   const curator = user?.role === 'curator'
-  const canSubmit =
-    live && user?.role === 'company' && manager && ['draft', 'revision'].includes(project.status)
+  const canSubmit = live && canEditCaseDraft(user, project)
   const [params] = useSearchParams()
   const [entries, setEntries] = useState<Execution[]>([]),
     [selected, setSelected] = useState(''),
@@ -56,7 +57,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const refresh = async () => {
     const [e, r] = await Promise.all([
       communityApi.getExecutions(project.id),
-      curator || canSubmit || liveOlympiad
+      curator || canSubmit
         ? { complete: false, items: [] }
         : communityApi.getLeaderboard(project.id),
     ])
@@ -141,7 +142,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
         ['submission', 'Результат и оценка'],
         ['members', own?.teamId ? 'Моя команда' : 'Участник'],
         ['teamDiscussion', 'Обсуждение команды'],
-        ['discussion', 'Обсуждение и файлы'],
+        ['discussion', 'Общее обсуждение'],
         ['results', 'Итоги'],
       ]
     : [
@@ -255,7 +256,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               className={`uust-tab ${view === 'discussion' ? 'active' : ''}`}
               onClick={() => setView('discussion')}
             >
-              Обсуждение и файлы
+              Общее обсуждение
             </button>
           )}
 
@@ -314,13 +315,20 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {view === 'event' && hasEventPlan && (
                 <EventPlanPanel
                   project={project}
-                  editable={live ? canSubmit && !entries.length : manager}
+                  editable={live ? canSubmit && !entries.length : companyManager}
                 />
               )}
               {view === 'plan' && (
                 <SharedProjectPlan
                   project={project}
-                  editable={live ? canSubmit && !entries.length : manager && !finished}
+                  editable={
+                    live
+                      ? manager &&
+                        (user?.role === 'company' || canEditCaseDraft(user, project)) &&
+                        !finished &&
+                        ['draft', 'revision', 'open', 'in_progress'].includes(project.status)
+                      : companyManager && !finished
+                  }
                   onOpenDeadlines={
                     live &&
                     manager &&
@@ -339,7 +347,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                     key={entry.id}
                     project={project}
                     entry={entry}
-                    manager={manager}
+                    manager={companyManager}
                     finished={finished}
                     onChange={refresh}
                     section={
@@ -372,22 +380,20 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               {!student && view === 'teams' && !entry && (
                 <>
                   <div className="execution-filter">
-                    {!curator && (
-                      <label className="catalog-sort">
-                        Статус работы
-                        <select
-                          className="select"
-                          value={tab}
-                          onChange={(event) => setTab(event.target.value)}
-                        >
-                          <option value="all">Все работы</option>
-                          <option value="active">В работе</option>
-                          <option value="stage_review">Этапы на проверке</option>
-                          <option value="submitted">Сданные решения</option>
-                          <option value="evaluated">Оценённые решения</option>
-                        </select>
-                      </label>
-                    )}
+                    <label className="catalog-sort">
+                      Статус работы
+                      <select
+                        className="select"
+                        value={tab}
+                        onChange={(event) => setTab(event.target.value)}
+                      >
+                        <option value="all">Все работы</option>
+                        <option value="active">В работе</option>
+                        <option value="stage_review">Этапы на проверке</option>
+                        <option value="submitted">Сданные решения</option>
+                        <option value="evaluated">Оценённые решения</option>
+                      </select>
+                    </label>
                     <label className="sr-only" htmlFor="execution-search">
                       Поиск команды или участника
                     </label>
@@ -405,17 +411,15 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                         className={`card execution-card ${curator ? 'execution-card--observer' : ''}`}
                         key={e.id}
                       >
-                        {!curator && (
-                          <span className="badge badge-direction">
-                            {e.status === 'evaluated'
-                              ? 'Оценено'
-                              : e.status === 'submitted'
-                                ? 'Сдано'
-                                : finished
-                                  ? 'Не сдано'
-                                  : 'В работе'}
-                          </span>
-                        )}
+                        <span className="badge badge-direction">
+                          {e.status === 'evaluated'
+                            ? 'Оценено'
+                            : e.status === 'submitted'
+                              ? 'Сдано'
+                              : finished
+                                ? 'Не сдано'
+                                : 'В работе'}
+                        </span>
                         <h3>{e.name}</h3>
                         <p>
                           {olympiad && !e.teamId
@@ -435,13 +439,11 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             )}
                           </small>
                         </p>
-                        {!curator && (
-                          <strong>
-                            {e.evaluation
-                              ? `${e.evaluation.totalScore} / ${e.evaluation.maxScore}`
-                              : 'Без оценки'}
-                          </strong>
-                        )}
+                        <strong>
+                          {e.evaluation
+                            ? `${e.evaluation.totalScore} / ${e.evaluation.maxScore}`
+                            : 'Без оценки'}
+                        </strong>
                         <button
                           className="btn btn-primary btn-sm"
                           onClick={() => setSelected(e.id)}
@@ -468,7 +470,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                             : 'Итоги ещё не опубликованы'}
                       </h2>
                     </div>
-                    {manager && !liveOlympiad && (!live || !ranking.complete) && (
+                    {companyManager && (
                       <button
                         type="button"
                         className={`btn btn-sm ${ranking.complete ? 'btn-secondary' : 'btn-primary'}`}
@@ -486,7 +488,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                       </button>
                     )}
                   </div>
-                  {(ranking.complete || (manager && !liveOlympiad)) && (
+                  {(ranking.complete || manager) && (
                     <ReportTableView
                       label="Итоги проекта"
                       headers={[
@@ -513,7 +515,11 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                     />
                   )}
                   {liveOlympiad && (manager || student) && (
-                    <OlympiadStandings caseId={project.id} entries={entries} manager={manager} />
+                    <OlympiadStandings
+                      caseId={project.id}
+                      entries={entries}
+                      manager={companyManager}
+                    />
                   )}
                 </section>
               )}

@@ -21,6 +21,47 @@ import (
 	"it-project-showcase/backend/pkg"
 )
 
+func TestRightsMatrixRoleBoundaries(t *testing.T) {
+	const secret = "matrix-test-secret"
+	mux := http.NewServeMux()
+	Init(&handlers.Handlers{}, middleware.Authorization(secret, slog.New(slog.NewTextHandler(io.Discard, nil)))).Start(mux)
+
+	tests := []struct {
+		name, role, method, path, body string
+		want                           int
+	}{
+		{"admin keeps case creation", "admin", "POST", "/cases", "{", 400},
+		{"admin keeps case editing route", "admin", "PUT", "/cases/example", "{", 400},
+		{"admin keeps program creation", "admin", "POST", "/internships", "{", 400},
+		{"staff cannot create case", "university_staff", "POST", "/cases", "{", 403},
+		{"staff cannot edit case", "university_staff", "PUT", "/cases/example", "{", 403},
+		{"staff cannot select applicants", "university_staff", "PATCH", "/applications/example/status", "{", 403},
+		{"admin cannot submit application", "admin", "POST", "/applications", "{", 403},
+		{"company cannot submit application", "company_representative", "POST", "/applications", "{", 403},
+		{"staff cannot submit application", "university_staff", "POST", "/applications", "{", 403},
+		{"student can reach application validation", "student", "POST", "/applications", "{", 400},
+		{"admin cannot create student project", "admin", "POST", "/student-projects", "{", 403},
+		{"company cannot create student project", "company_representative", "POST", "/student-projects", "{", 403},
+		{"staff cannot create student project", "university_staff", "POST", "/student-projects", "{", 403},
+		{"student can reach project validation", "student", "POST", "/student-projects", "{", 400},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			token, _, err := pkg.CreateAccessTokenWithRoles("matrix-user", []string{test.role}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(test.method, "/api/v1"+test.path, strings.NewReader(test.body))
+			req.Header.Set("Authorization", "Bearer "+token)
+			res := httptest.NewRecorder()
+			mux.ServeHTTP(res, req)
+			if res.Code != test.want {
+				t.Fatalf("status %d, want %d, body %s", res.Code, test.want, res.Body.String())
+			}
+		})
+	}
+}
+
 func TestRoutesUseAPIVersionPrefix(t *testing.T) {
 	handlerSet := &handlers.Handlers{
 		System: system_handler.Init(),

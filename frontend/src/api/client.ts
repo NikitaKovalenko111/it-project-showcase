@@ -1,3 +1,5 @@
+import { createInvitationApi, invitationKind } from './invitations'
+import { createUserManagement } from './users'
 import {
   fromUser,
   fromCase,
@@ -14,7 +16,7 @@ import {
 } from './backend'
 import { getProjectCatalog, projectCategoryCode } from './studentProjectCatalog'
 import { apiRuntime, tokenStore } from './runtime'
-import { mockServer } from './mockServer'
+import { mockServer } from './mockRuntime'
 import {
   AuditLog,
   CaseApplication,
@@ -245,11 +247,10 @@ export const apiClient = {
   async updateAvatar(user: User, file: File): Promise<User> {
     let avatar: string
     if (apiRuntime.mode === 'live') {
-      if (user.role !== 'student') throw new Error('Загрузка аватара доступна студентам.')
       const body = new FormData()
       body.append('file', file)
-      const { data } = await axiosInstance.put('/users/me/photo', body)
-      avatar = `${apiRuntime.baseUrl || '/api/v1'}/students/${user.id}/photo?v=${data.file_id}`
+      const { data } = await axiosInstance.put('/users/me/avatar', body)
+      avatar = `/api/v1/users/${user.id}/avatar?v=${data.file_id}`
     } else {
       avatar = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -367,6 +368,7 @@ export const apiClient = {
     if (apiRuntime.mode === 'live') {
       await axiosInstance.patch(`/users/${user.id}/status`, {
         status: blocked ? 'blocked' : 'active',
+        reason: reason.trim(),
       })
       return { ...user, isBlocked: blocked }
     }
@@ -377,7 +379,7 @@ export const apiClient = {
 
   async changeUserRole(userId: string, role: User['role']): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      throw new Error('Сервер пока не предоставляет смену роли пользователя')
+      return createUserManagement(axiosInstance).changeRole(userId, role)
     }
     await delay(120)
     return mockServer.changeUserRole(userId, role)
@@ -392,7 +394,7 @@ export const apiClient = {
         company_id: filters?.companyId,
       })
       const managed = new Set<string>()
-      if (actor?.role === 'company') {
+      if (['company', 'admin'].includes(actor?.role)) {
         const own = await collectPages<any>((params) =>
           axiosInstance.get('/cases/mine', { params }),
         )
@@ -467,8 +469,10 @@ export const apiClient = {
   },
 
   async withdrawCaseModeration(id: string): Promise<CaseProject> {
-    if (apiRuntime.mode === 'live')
-      throw new Error('Сервер пока не поддерживает отзыв кейса с модерации.')
+    if (apiRuntime.mode === 'live') {
+      await axiosInstance.post(`/cases/${id}/withdraw-moderation`)
+      return apiClient.getCaseById(id)
+    }
     return mockServer.withdrawCaseModeration(id)
   },
 
@@ -522,19 +526,24 @@ export const apiClient = {
     return mockServer.toggleFavorite(caseId)
   },
 
-  async isNDAAccepted(caseId: string, userId: string): Promise<boolean> {
-    if (apiRuntime.mode === 'live') {
-      const { data } = await axiosInstance.get(`/cases/${caseId}/nda-grants`)
-      return (data.items || []).some((g: any) => g.student_id === userId && g.status === 'granted')
-    }
-    return mockServer.isNDAAccepted(caseId, userId)
+  async getNdaStatus(caseId: string, userId: string) {
+    const { data } = await axiosInstance.get<{ items: { student_id: string; status: string }[] }>(
+      `/cases/${caseId}/nda-grants`,
+    )
+    return data.items?.find((grant) => grant.student_id === userId)?.status
   },
 
-  async acceptNDA(caseId: string, userId: string): Promise<boolean> {
+  async getCaseNDA(caseId: string) {
+    return (
+      await axiosInstance.get<{ nda_version_id: string; text: string }>(`/cases/${caseId}/nda`)
+    ).data
+  },
+
+  async acceptNDA(caseId: string, userId: string, versionId?: string): Promise<boolean> {
     if (apiRuntime.mode === 'live') {
-      const { data } = await axiosInstance.get(`/cases/${caseId}/nda`)
+      if (!versionId) throw new Error('Сначала загрузите текст соглашения.')
       await axiosInstance.post(`/cases/${caseId}/nda-grants`, {
-        nda_version_id: data.nda_version_id,
+        nda_version_id: versionId,
         accepted: true,
       })
       return true
@@ -550,25 +559,7 @@ export const apiClient = {
         (params) => axiosInstance.get('/applications', { params }),
         { case_id: caseId, mine: studentId ? true : undefined },
       )
-      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
-      const directory = ['company', 'admin'].includes(actor?.role)
-        ? await collectPages<any>((params) => axiosInstance.get('/students/search', { params }))
-        : []
-      const students = new Map(directory.map((student) => [student.user_id, student]))
-      return rows.map((d) => {
-        const id = d.student_id || d.submitted_by
-        const profile = students.get(id)
-        return fromApplication({
-          ...d,
-          student_name: profile?.full_name || (actor?.id === id ? actor.fullName : 'Участник'),
-          student_institute: profile?.institute,
-          student_course: profile?.course,
-          student_group: profile?.group_name,
-          student_avatar: profile?.photo_file_id
-            ? `${apiRuntime.baseUrl || '/api/v1'}/students/${id}/photo?v=${profile.photo_file_id}`
-            : undefined,
-        })
-      })
+      return rows.map(fromApplication)
     }
     await delay(150)
     return mockServer.getApplications(caseId, studentId)
@@ -941,15 +932,16 @@ export const apiClient = {
     caseId: string,
     type: string,
     message: string,
+    companyId?: string,
   ): Promise<void> {
     if (apiRuntime.mode === 'live') {
-      const project = await apiClient.getCaseById(caseId)
-      await axiosInstance.post(`/companies/${project.companyId}/student-invitations`, {
-        student_id: studentId,
-        case_id: caseId,
-        kind: type,
-        message,
-      })
+      const kind = invitationKind(type)
+      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+      const owner =
+        kind === 'case'
+          ? (await apiClient.getCaseById(caseId)).companyId
+          : companyId || actor?.companyProfile?.companyId
+      await createInvitationApi(axiosInstance).send(owner, studentId, caseId, type, message)
       return
     }
     await delay(180)

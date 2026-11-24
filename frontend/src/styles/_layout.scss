@@ -4,19 +4,14 @@
   display: flex;
   min-height: 100vh;
   background-color: $bg-main;
-  background-image:
-    radial-gradient(circle at 10% 15%, rgba(58, 117, 180, 0.05) 0%, transparent 45%),
-    radial-gradient(circle at 90% 85%, rgba(224, 70, 70, 0.035) 0%, transparent 40%),
-    radial-gradient(rgba(58, 117, 180, 0.08) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 28px 28px;
   color: $text-dark;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Golos Text', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 // Demo quick-switch top bar
 .demo-bar {
-  background: linear-gradient(90deg, #07132b, #10274c 50%, #173866);
+  background: var(--ui-brand-text);
   color: #fff;
   padding: 8px 24px;
   display: flex;
@@ -34,12 +29,12 @@
     align-items: center;
     gap: 8px;
     font-weight: 600;
-    color: #9cd4ff;
+    color: var(--ui-brand-text);
 
     .badge-demo {
       background: rgba(58, 117, 180, 0.3);
-      border: 1px solid rgba(89, 146, 206, 0.5);
-      color: #9ed4ff;
+      border: 1px solid rgba(58, 117, 180, 0.5);
+      color: var(--ui-brand-text);
       padding: 2px 8px;
       border-radius: 4px;
       font-size: 10px;
@@ -59,7 +54,7 @@
   &__role-btn {
     background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    color: #d1e2f2;
+    color: var(--ui-brand-text);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11px;
@@ -72,12 +67,11 @@
     &:hover {
       background: rgba(255, 255, 255, 0.16);
       color: #fff;
-      transform: translateY(-1px);
     }
 
     &.active {
       background: $primary-blue;
-      border-color: #5992ce;
+      border-color: var(--ui-brand-muted);
       color: #ffffff;
       font-weight: 600;
       box-shadow: 0 0 12px rgba(58, 117, 180, 0.5);
@@ -99,7 +93,7 @@
   flex-direction: column;
   padding: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 6px 0 28px rgba(6, 14, 36, 0.4);
+  box-shadow: 6px 0 28px rgba(24, 44, 71, 0.4);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
 
@@ -131,13 +125,13 @@
     align-items: center;
     gap: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(26, 50, 77, 0.15);
 
     .uust-crest {
       width: 32px;
       height: 32px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #1e4b85, #3a75b4);
+      background: var(--ui-brand);
       border: 1px solid rgba(255, 255, 255, 0.25);
       display: flex;
       align-items: center;
@@ -163,7 +157,7 @@
 
       .brand-sub {
         font-size: 10px;
-        color: #7b99bf;
+        color: var(--ui-icon);
         font-weight: 500;
         letter-spacing: 0.02em;
       }
@@ -175,7 +169,7 @@
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
-    background: radial-gradient(circle at 50% 20%, rgba(58, 117, 180, 0.15) 0%, transparent 70%);
+    background: transparent;
 
     .avatar-wrapper {
       display: inline-block;
@@ -187,14 +181,13 @@
         height: 92px;
         border-radius: 12px;
         object-fit: cover;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-        border: 2px solid rgba(91, 147, 240, 0.55);
+        box-shadow: 0 6px 20px rgba(26, 50, 77, 0.5);
+        border: 2px solid rgba(58, 117, 180, 0.55);
         display: block;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+        transition: border-color 150ms ease-out;
 
         &:hover {
-          transform: scale(1.03);
-          border-color: rgba(91, 147, 240, 0.9);
+          border-color: rgba(58, 117, 180, 0.9);
         }
       }
 
@@ -202,7 +195,7 @@
         position: absolute;
         inset: -4px;
         border-radius: 14px;
-        background: linear-gradient(135deg, rgba(58, 117, 180, 0.4), rgba(224, 70, 70, 0.3));
+        background: transparent;
         z-index: -1;
         filter: blur(4px);
         opacity: 0.6;
@@ -210,7 +203,7 @@
     }
 
     .profile-name {
-      color: #78aeff;
+      color: var(--ui-brand-text);
       font-size: 13px;
       font-weight: 700;
       margin-top: 10px;
@@ -220,12 +213,12 @@
       transition: color 0.15s;
 
       &:hover {
-        color: #a4c9ff;
+        color: var(--ui-brand-text);
       }
     }
 
     .profile-id {
-      color: #8da2c0;
+      color: var(--ui-icon);
       font-size: 11px;
       margin-top: 5px;
       font-weight: 600;
@@ -233,7 +226,7 @@
     }
 
     .profile-email {
-      color: #7088a8;
+      color: var(--ui-muted);
       font-size: 11px;
       margin-top: 2px;
       word-break: break-all;
@@ -245,19 +238,19 @@
       gap: 7px;
       padding: 4px 14px;
       border-radius: 20px;
-      background: rgba(6, 15, 36, 0.85);
+      background: rgba(24, 44, 71, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.12);
       margin-top: 10px;
       font-size: 11px;
       font-weight: 600;
-      color: #b5c7dd;
+      color: var(--ui-icon);
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(26, 50, 77, 0.25);
+      transition: $transition;
 
       &:hover {
-        border-color: rgba(91, 147, 240, 0.6);
-        background: rgba(6, 15, 36, 0.98);
+        border-color: rgba(58, 117, 180, 0.6);
+        background: rgba(24, 44, 71, 0.98);
         color: #ffffff;
       }
 
@@ -265,13 +258,13 @@
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #28a745;
-        box-shadow: 0 0 8px rgba(40, 167, 69, 0.9);
+        background: var(--ui-success-accent);
+        box-shadow: 0 0 8px rgba(47, 106, 82, 0.9);
         animation: statusPulse 2s infinite;
       }
 
       .chevron {
-        color: #7e94b4;
+        color: var(--ui-icon);
         margin-left: 2px;
       }
     }
@@ -284,13 +277,13 @@
       margin-top: 10px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.06);
-      border-left: 3px solid #3a75b4;
+      border-left: 3px solid var(--ui-brand);
       font-size: 10.5px;
       font-weight: 700;
-      color: #c5d6eb;
+      color: var(--ui-brand-text);
       letter-spacing: 0.02em;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(26, 50, 77, 0.2);
+      transition: $transition;
     }
   }
 
@@ -315,31 +308,29 @@
     padding: 10px 14px;
     margin: 2px 10px;
     border-radius: 9px;
-    color: #9cb2cc;
+    color: var(--ui-icon);
     text-decoration: none;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     position: relative;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: $transition;
 
     .nav-icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #7d96b8;
+      color: var(--ui-icon);
       transition: color 0.18s, transform 0.18s;
     }
 
     &:hover {
       background: rgba(255, 255, 255, 0.07);
       color: #ffffff;
-      transform: translateX(4px);
 
       .nav-icon {
         color: #ffffff;
-        transform: scale(1.1);
       }
     }
 
@@ -347,8 +338,7 @@
       background: $gradient-coral-active !important;
       color: #ffffff !important;
       font-weight: 700;
-      box-shadow: 0 4px 16px rgba(224, 70, 70, 0.4);
-      transform: translateX(3px);
+      box-shadow: 0 4px 16px rgba(172, 74, 96, 0.4);
 
       .nav-icon {
         color: #ffffff !important;
@@ -368,27 +358,27 @@
 
     .nav-badge-isu {
       margin-left: auto;
-      background: #28a745;
+      background: var(--ui-success-accent);
       color: #fff;
       font-size: 10px;
       font-weight: 700;
       padding: 1px 7px;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(40, 167, 69, 0.4);
+      box-shadow: 0 1px 4px rgba(47, 106, 82, 0.4);
     }
   }
 
   &__footer-isu {
     padding: 14px 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(26, 50, 77, 0.1);
 
     .logout-btn-isu {
       width: 100%;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      color: #9cb2cc;
+      color: var(--ui-icon);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -398,13 +388,12 @@
       text-transform: uppercase;
       padding: 9px;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: $transition;
 
       &:hover {
-        background: rgba(224, 70, 70, 0.15);
-        border-color: rgba(224, 70, 70, 0.45);
-        color: #ff9191;
-        transform: translateY(-1px);
+        background: rgba(172, 74, 96, 0.15);
+        border-color: rgba(172, 74, 96, 0.45);
+        color: var(--ui-danger-surface);
       }
     }
 
@@ -412,16 +401,16 @@
       text-align: center;
       margin-top: 8px;
       font-size: 10px;
-      color: #5d7594;
+      color: var(--ui-muted);
       font-weight: 500;
     }
   }
 }
 
 @keyframes statusPulse {
-  0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.8); }
-  70% { box-shadow: 0 0 0 7px rgba(40, 167, 69, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(47, 106, 82, 0.8); }
+  70% { box-shadow: 0 0 0 7px rgba(47, 106, 82, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(47, 106, 82, 0); }
 }
 
 .sidebar-backdrop {
@@ -431,7 +420,7 @@
       display: block;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(26, 50, 77, 0.55);
       z-index: 55;
       backdrop-filter: blur(3px);
     }
@@ -461,8 +450,8 @@
   height: 56px;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(219, 227, 237, 0.8);
-  box-shadow: 0 2px 12px rgba(12, 25, 56, 0.04);
+  border-bottom: 1px solid rgba(187, 209, 231, 0.8);
+  box-shadow: 0 2px 12px rgba(24, 44, 71, 0.04);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -484,7 +473,7 @@
   &__hamburger {
     background: none;
     border: none;
-    color: #2d3748;
+    color: var(--ui-ink);
     cursor: pointer;
     padding: 6px;
     display: flex;
@@ -494,29 +483,29 @@
     transition: background 0.15s;
 
     &:hover {
-      background: #f0f4f9;
+      background: var(--ui-soft);
     }
   }
 
   &__date {
-    background: #f0f4fa;
-    border: 1px solid #d8e2ec;
+    background: var(--ui-brand-surface);
+    border: 1px solid var(--ui-control-line);
     border-radius: 20px;
     padding: 5px 14px;
     font-size: 12px;
     font-weight: 600;
-    color: #1a3356;
+    color: var(--ui-ink);
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: inset 0 1px 2px rgba(26, 50, 77, 0.02);
     white-space: nowrap;
 
     .date-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #3a75b4;
+      background: var(--ui-brand);
     }
 
     @media (max-width: $bp-tablet) {
@@ -530,24 +519,24 @@
     align-items: center;
     gap: 8px;
     padding: 6px 14px;
-    background: #f8fafc;
-    border: 1px solid #dbe3ed;
+    background: var(--ui-panel);
+    border: 1px solid var(--ui-control-line);
     border-radius: 20px;
     font-size: 12px;
-    color: #64748b;
+    color: var(--ui-muted);
     cursor: pointer;
     transition: $transition;
 
     &:hover {
-      border-color: #3a75b4;
+      border-color: var(--ui-brand);
       background: #ffffff;
-      color: #1e3a5f;
+      color: var(--ui-ink);
       box-shadow: 0 2px 8px rgba(58, 117, 180, 0.12);
     }
 
     .search-kbd {
-      background: #e2e8f0;
-      color: #475569;
+      background: var(--ui-line);
+      color: var(--ui-body);
       padding: 1px 6px;
       border-radius: 4px;
       font-size: 10px;
@@ -568,8 +557,8 @@
 
   &__icon-btn {
     background: #ffffff;
-    border: 1px solid #dce4ed;
-    color: #3a75b4;
+    border: 1px solid var(--ui-line);
+    color: var(--ui-brand-text);
     cursor: pointer;
     width: 34px;
     height: 34px;
@@ -578,20 +567,19 @@
     justify-content: center;
     border-radius: 8px;
     position: relative;
-    box-shadow: 0 1px 3px rgba(12, 25, 56, 0.04);
-    transition: all 0.18s ease;
+    box-shadow: 0 1px 3px rgba(24, 44, 71, 0.04);
+    transition: $transition;
 
     &:hover {
-      background: #f0f5fb;
-      border-color: #3a75b4;
-      color: #1e528a;
-      transform: translateY(-1px);
+      background: var(--ui-brand-surface);
+      border-color: var(--ui-brand);
+      color: var(--ui-brand-text);
       box-shadow: 0 3px 8px rgba(58, 117, 180, 0.16);
     }
   }
 
   &__badge-circle {
-    background: #28a745;
+    background: var(--ui-success-accent);
     color: #ffffff;
     font-size: 11px;
     font-weight: 700;
@@ -603,7 +591,7 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.35);
+    box-shadow: 0 2px 6px rgba(47, 106, 82, 0.35);
   }
 
   &__red-dot {
@@ -613,8 +601,8 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #e04646;
-    box-shadow: 0 0 6px rgba(224, 70, 70, 0.7);
+    background: var(--ui-danger-accent);
+    box-shadow: 0 0 6px rgba(172, 74, 96, 0.7);
   }
 
   &__more-wrap {
@@ -627,9 +615,9 @@
     right: 0;
     width: 250px;
     background: #ffffff;
-    border: 1px solid #dbe3ed;
+    border: 1px solid var(--ui-control-line);
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(11, 23, 54, 0.15);
+    box-shadow: 0 10px 30px rgba(24, 44, 71, 0.15);
     padding: 8px 0;
     z-index: 100;
     animation: scaleUp 0.18s ease-out;
@@ -637,7 +625,7 @@
     .dropdown-title {
       font-size: 11px;
       font-weight: 700;
-      color: #627282;
+      color: var(--ui-muted);
       padding: 6px 14px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -650,7 +638,7 @@
       border: none;
       padding: 9px 14px;
       font-size: 12px;
-      color: #212529;
+      color: var(--ui-ink);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -658,12 +646,12 @@
       transition: background 0.15s;
 
       &:hover {
-        background: #f0f4f9;
+        background: var(--ui-soft);
       }
 
       &.active {
-        background: #eaf3fb;
-        color: #3a75b4;
+        background: var(--ui-brand-surface);
+        color: var(--ui-brand-text);
         font-weight: 600;
       }
     }

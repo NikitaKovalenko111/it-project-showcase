@@ -1,3 +1,4 @@
+import { UserAvatar } from './UserAvatar'
 import { ExpandableText } from './ExpandableText'
 import { matchesSearch } from '../utils/publication'
 import React, { useEffect, useState } from 'react'
@@ -31,6 +32,7 @@ export const TeamsPanel: React.FC<{
     [stack, setStack] = useState(''),
     [preferredCase, setPreferredCase] = useState(''),
     [filterCase, setFilterCase] = useState(caseId || '')
+  const [projectQuery, setProjectQuery] = useState('')
   const [teamQuery, setTeamQuery] = useState(''),
     [view, setView] = useState(initialView || 'teams'),
     [direction, setDirection] = useState('incoming')
@@ -377,25 +379,52 @@ export const TeamsPanel: React.FC<{
                 </div>
                 <p>Вы капитан. Приглашённый студент появится в составе только после согласия.</p>
                 {!managed.caseId && (
-                  <div className="team-form-row">
-                    <label>
-                      Для какого проекта набираете команду
-                      <select
-                        className="select"
-                        value={filterCase}
-                        onChange={(e) => setFilterCase(e.target.value)}
-                      >
-                        <option value="">Выберите проект</option>
-                        {recruitable.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.title}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                  <div className="form-action-row">
+                    <div className="form-action-row__field team-project-picker">
+                      <span>Для какого проекта набираете команду</span>
+                      <details>
+                        <summary className="select">
+                          {recruitable.find((item) => item.id === filterCase)?.title ||
+                            'Выберите проект'}
+                        </summary>
+                        <div className="team-project-options">
+                          <input
+                            className="input"
+                            type="search"
+                            aria-label="Поиск проекта"
+                            placeholder="Введите название проекта"
+                            value={projectQuery}
+                            onChange={(event) => setProjectQuery(event.target.value)}
+                          />
+                          {recruitable
+                            .filter((item) => matchesSearch(projectQuery, item.title))
+                            .map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={(event) => {
+                                  setFilterCase(item.id)
+                                  setProjectQuery('')
+                                  const menu = event.currentTarget.closest('details')
+                                  if (menu) {
+                                    menu.open = false
+                                    menu.querySelector('summary')?.focus()
+                                  }
+                                }}
+                              >
+                                {item.title}
+                              </button>
+                            ))}
+                          {!recruitable.some((item) => matchesSearch(projectQuery, item.title)) && (
+                            <p>Проекты не найдены.</p>
+                          )}
+                        </div>
+                      </details>
+                    </div>
                     <button
                       className="btn btn-secondary btn-sm"
-                      disabled={busy || !filterCase}
+                      disabled={busy || !recruitable.some((item) => item.id === filterCase)}
                       onClick={() =>
                         act(
                           () => communityApi.linkTeamToCase(managed.id, filterCase),
@@ -436,6 +465,12 @@ export const TeamsPanel: React.FC<{
                       <article className="candidate-row" key={s.id}>
                         <div>
                           <Link to={`/profile/${s.id}`}>
+                            <UserAvatar
+                              userId={s.id}
+                              className="member-avatar"
+                              name={s.fullName}
+                              src={s.avatar}
+                            />
                             <strong>{s.fullName}</strong>
                           </Link>
                           <p>{candidates.find((c) => c.studentId === s.id)?.message || s.email}</p>

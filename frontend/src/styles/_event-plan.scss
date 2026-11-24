@@ -44,8 +44,8 @@
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: #eaf2fa;
-  color: #285581;
+  background: var(--ui-brand-surface);
+  color: var(--ui-brand-text);
 }
 
 .event-plan__number {
@@ -68,7 +68,7 @@
   padding: 14px 16px;
   border: 1px solid $border-color;
   border-radius: 10px;
-  background: #f7f9fd;
+  background: var(--ui-brand-surface);
 }
 
 .event-plan__facts dt,
@@ -85,7 +85,7 @@
 .event-plan__facts dt { margin-bottom: 6px; font-size: 12px; }
 .event-plan__facts dd:not(.event-plan__hint) { font-weight: 600; }
 .event-plan__facts dd + dd { margin-top: 3px; }
-.event-plan__facts a { color: #245783; text-decoration: underline; text-underline-offset: 2px; }
+.event-plan__facts a { color: var(--ui-brand-text); text-decoration: underline; text-underline-offset: 2px; }
 .event-plan__facts a svg { vertical-align: middle; }
 .event-plan__notes h4 { margin-bottom: 6px; }
 
@@ -106,7 +106,7 @@
   padding: clamp(12px, 2vw, 18px);
   border: 1px solid $border-color;
   border-radius: 10px;
-  background: #f7f9fd;
+  background: var(--ui-brand-surface);
 }
 
 .event-plan__round-header > div { min-width: 0; }
@@ -135,8 +135,8 @@
 .event-plan__points {
   padding: 3px 8px;
   border-radius: 6px;
-  background: #eaf2fa;
-  color: #285581;
+  background: var(--ui-brand-surface);
+  color: var(--ui-brand-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -152,6 +152,6 @@
   justify-self: start;
 }
 .event-plan--editor .event-plan__round { background: #fff; }
-.event-plan--editor .event-plan__task { background: #f7f9fd; }
+.event-plan--editor .event-plan__task { background: var(--ui-brand-surface); }
 
 .event-plan__message { margin: 12px 0; }

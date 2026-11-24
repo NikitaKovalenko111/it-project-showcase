@@ -51,7 +51,7 @@ func (r *Repository) ChangeDeadline(ctx context.Context, actor, caseID, stageID,
 	var previous *time.Time
 	var status string
 	err = tx.QueryRowContext(ctx, `SELECT c.due_at,c.status FROM cases c WHERE c.case_id=$1
-		AND EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company')
+		AND (showcase.is_active_admin($2) OR EXISTS(SELECT 1 FROM company_members m WHERE m.company_id=c.company_id AND m.user_id=$2 AND m.status='active' AND m.permissions ? 'manage_company'))
 		FOR UPDATE OF c`, caseID, actor).Scan(&previous, &status)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrAccessDenied

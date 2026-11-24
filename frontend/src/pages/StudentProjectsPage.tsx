@@ -1,3 +1,4 @@
+import { StudentProjectCover } from '../components/StudentProjectCover'
 import { ExpandableText } from '../components/ExpandableText'
 import { apiRuntime } from '../api/runtime'
 import { getProjectCatalog, type ProjectCatalog } from '../api/studentProjectCatalog'
@@ -164,7 +165,7 @@ export const StudentProjectsPage: React.FC = () => {
           {(!live || section === 'catalog') && (
             <ScrollToolbar>
               <div className="uust-container">
-                <div className="uust-box">
+                <div className="uust-box student-project-filters">
                   <div className="uust-filter-row">
                     <div style={{ position: 'relative', flex: 1, minWidth: 'min(240px, 100%)' }}>
                       <Search
@@ -174,7 +175,7 @@ export const StudentProjectsPage: React.FC = () => {
                           left: 14,
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          color: '#94a3b8',
+                          color: 'var(--ui-icon)',
                         }}
                       />
                       <input
@@ -267,7 +268,7 @@ export const StudentProjectsPage: React.FC = () => {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#e04646',
+                        color: 'var(--ui-danger-accent)',
                         fontSize: '12px',
                         cursor: 'pointer',
                         fontWeight: 700,
@@ -288,14 +289,14 @@ export const StudentProjectsPage: React.FC = () => {
 
           {/* Projects Grid */}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ui-muted)' }}>
               Загрузка проектов...
             </div>
           ) : catalogProjects.length === 0 ? (
             <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-              <FolderGit2 size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>Проекты не найдены</h3>
-              <p style={{ color: '#64748b', fontSize: '13px' }}>
+              <FolderGit2 size={48} color="var(--ui-icon)" style={{ margin: '0 auto 16px' }} />
+              <h3 style={{ margin: '0 0 8px', color: 'var(--ui-ink)' }}>Проекты не найдены</h3>
+              <p style={{ color: 'var(--ui-muted)', fontSize: '13px' }}>
                 {section === 'mine'
                   ? 'Здесь будут ваши проекты и черновики.'
                   : 'Попробуйте изменить параметры поиска или категорию.'}
@@ -306,7 +307,7 @@ export const StudentProjectsPage: React.FC = () => {
               {catalogProjects.map((item) => (
                 <div key={item.id} className="student-project-card">
                   <div className="student-project-card__image-wrap">
-                    {item.coverImage && <img src={item.coverImage} alt={item.title} />}
+                    <StudentProjectCover project={item} />
                     <span className="category-tag">{item.category}</span>
                     <button
                       onClick={(e) => handleLike(e, item.id)}
@@ -328,12 +329,12 @@ export const StudentProjectsPage: React.FC = () => {
                         gap: '4px',
                         fontSize: '11px',
                         fontWeight: 700,
-                        color: '#e11d48',
+                        color: 'var(--ui-danger-accent)',
                         cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        boxShadow: '0 2px 8px rgba(41, 32, 52, 0.2)',
                       }}
                     >
-                      <Heart size={13} fill={item.likedByMe ? '#e11d48' : 'none'} />{' '}
+                      <Heart size={13} fill={item.likedByMe ? 'var(--ui-danger-accent)' : 'none'} />{' '}
                       {item.likesCount}
                     </button>
                   </div>
@@ -345,7 +346,7 @@ export const StudentProjectsPage: React.FC = () => {
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '12px',
-                        color: '#64748b',
+                        color: 'var(--ui-muted)',
                         marginBottom: '8px',
                       }}
                     >
@@ -382,11 +383,11 @@ export const StudentProjectsPage: React.FC = () => {
                           style={{
                             fontSize: '10.5px',
                             fontWeight: 600,
-                            background: '#e0f2fe',
-                            color: '#0369a1',
+                            background: 'var(--ui-brand-surface)',
+                            color: 'var(--ui-brand-text)',
                             padding: '2px 8px',
                             borderRadius: '4px',
-                            border: '1px solid #bae6fd',
+                            border: '1px solid var(--ui-brand-line)',
                           }}
                         >
                           <Tag size={12} aria-hidden="true" /> {getBadgeTitle(b)}
@@ -409,8 +410,8 @@ export const StudentProjectsPage: React.FC = () => {
                           key={t}
                           style={{
                             fontSize: '11px',
-                            background: '#f1f5f9',
-                            color: '#475569',
+                            background: 'var(--ui-soft)',
+                            color: 'var(--ui-body)',
                             padding: '2px 7px',
                             borderRadius: '4px',
                             fontFamily: 'monospace',
@@ -432,7 +433,7 @@ export const StudentProjectsPage: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
-                              color: '#1b5e91',
+                              color: 'var(--ui-brand-text)',
                               fontWeight: 700,
                               textDecoration: 'none',
                             }}
@@ -449,7 +450,7 @@ export const StudentProjectsPage: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
-                              color: '#16805b',
+                              color: 'var(--ui-success)',
                               fontWeight: 700,
                               textDecoration: 'none',
                             }}

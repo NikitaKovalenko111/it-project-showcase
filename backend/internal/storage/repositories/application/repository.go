@@ -24,15 +24,15 @@ type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
-const applicationSelect = `SELECT a.application_id,a.case_id,c.title,a.case_revision_id,c.company_id,company.full_name,a.submitted_by,a.student_id,a.team_id,COALESCE(t.name,''),COALESCE(a.cover_letter,''),a.resume_file_id,COALESCE(a.portfolio_url,''),COALESCE(a.github_url,''),a.status,a.entry_kind,COALESCE(a.company_notes,''),(SELECT count(*) FROM application_consents x WHERE x.application_id=a.application_id),CASE WHEN a.team_id IS NULL THEN 1 ELSE (SELECT count(*) FROM team_members m WHERE m.team_id=a.team_id AND m.left_at IS NULL) END,e.execution_id,
+const applicationSelect = `SELECT a.application_id,a.case_id,c.title,a.case_revision_id,c.company_id,company.full_name,a.submitted_by,a.student_id,trim(concat_ws(' ',s.last_name,s.first_name,s.patronymic)),COALESCE(s.institute_name,''),s.course,COALESCE(s.group_name,''),a.team_id,COALESCE(t.name,''),COALESCE(a.cover_letter,''),a.resume_file_id,COALESCE(a.portfolio_url,''),COALESCE(a.github_url,''),a.status,a.entry_kind,COALESCE(a.company_notes,''),(SELECT count(*) FROM application_consents x WHERE x.application_id=a.application_id),CASE WHEN a.team_id IS NULL THEN 1 ELSE (SELECT count(*) FROM team_members m WHERE m.team_id=a.team_id AND m.left_at IS NULL) END,e.execution_id,
   (a.status='consent_pending'
     AND EXISTS(SELECT 1 FROM team_members m WHERE m.team_id=a.team_id AND m.student_id=$1 AND m.left_at IS NULL)
     AND NOT EXISTS(SELECT 1 FROM application_consents x WHERE x.application_id=a.application_id AND x.student_id=$1 AND x.case_revision_id=a.case_revision_id)),
-  a.submitted_at,a.updated_at FROM applications a JOIN cases c ON c.case_id=a.case_id JOIN companies company ON company.company_id=c.company_id LEFT JOIN teams t ON t.team_id=a.team_id LEFT JOIN executions e ON e.application_id=a.application_id`
+  a.submitted_at,a.updated_at FROM applications a JOIN cases c ON c.case_id=a.case_id JOIN companies company ON company.company_id=c.company_id LEFT JOIN students s ON s.user_id=COALESCE(a.student_id,a.submitted_by) LEFT JOIN teams t ON t.team_id=a.team_id LEFT JOIN executions e ON e.application_id=a.application_id`
 
 func scanApplication(row interface{ Scan(...any) error }) (*models.Application, error) {
 	var a models.Application
-	err := row.Scan(&a.ApplicationID, &a.CaseID, &a.CaseTitle, &a.CaseRevisionID, &a.CompanyID, &a.CompanyName, &a.SubmittedBy, &a.StudentID, &a.TeamID, &a.TeamName, &a.CoverLetter, &a.ResumeFileID, &a.PortfolioURL, &a.GithubURL, &a.Status, &a.EntryKind, &a.CompanyNotes, &a.ConsentCount, &a.MemberCount, &a.ExecutionID, &a.CanConsent, &a.SubmittedAt, &a.UpdatedAt)
+	err := row.Scan(&a.ApplicationID, &a.CaseID, &a.CaseTitle, &a.CaseRevisionID, &a.CompanyID, &a.CompanyName, &a.SubmittedBy, &a.StudentID, &a.StudentName, &a.StudentInstitute, &a.StudentCourse, &a.StudentGroup, &a.TeamID, &a.TeamName, &a.CoverLetter, &a.ResumeFileID, &a.PortfolioURL, &a.GithubURL, &a.Status, &a.EntryKind, &a.CompanyNotes, &a.ConsentCount, &a.MemberCount, &a.ExecutionID, &a.CanConsent, &a.SubmittedAt, &a.UpdatedAt)
 	return &a, err
 }
 

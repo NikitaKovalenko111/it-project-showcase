@@ -94,7 +94,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
                   ? 'Итоговый отчёт о стажировке'
                   : 'Представление результатов проекта'}
             </h3>
-            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--ui-muted)' }}>
               Кейс: <strong>{caseTitle}</strong>
             </p>
           </div>
@@ -109,6 +109,7 @@ export const ResultSubmissionModal: React.FC<ResultSubmissionModalProps> = ({
               <label>Описание решения и достигнутых результатов:*</label>
               <textarea
                 className="textarea"
+                maxLength={10000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Кратко опишите, что было сделано, ключевые архитектурные решения и метрики..."

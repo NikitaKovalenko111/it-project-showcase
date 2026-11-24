@@ -86,7 +86,14 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
         dispatch({ type: UPDATE_STUDENT_PROJECT_SUCCESS, payload: { project: updated } })
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось сохранить решение')
+      const message = cause instanceof Error ? cause.message : 'Не удалось сохранить решение'
+      setError(
+        message === 'Case request failed' && 'isConfidential' in project && project.isConfidential
+          ? 'Не удалось опубликовать кейс с NDA. Проверьте, что у кейса сохранена действующая версия соглашения.'
+          : message === 'Case request failed'
+            ? 'Сервер не смог сохранить решение по кейсу.'
+            : message,
+      )
     } finally {
       setBusy(null)
     }
@@ -168,7 +175,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
                       />
                     </label>
                     <div className="action-row">
-                      {(liveStudent
+                      {(apiRuntime.mode === 'live'
                         ? publicationStatus(project) === 'pending'
                         : publicationStatus(project) !== 'approved') && (
                         <button
@@ -179,7 +186,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
                           Одобрить и опубликовать
                         </button>
                       )}
-                      {(liveStudent
+                      {(apiRuntime.mode === 'live'
                         ? publicationStatus(project) === 'pending'
                         : publicationStatus(project) !== 'approved') && (
                         <button

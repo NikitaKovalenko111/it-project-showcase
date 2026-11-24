@@ -1,8 +1,10 @@
+import { ProjectCover } from '../components/StudentProjectCover'
+import { UserAvatar } from '../components/UserAvatar'
+import { AttachmentPreview } from '../components/AttachmentPreview'
 import { apiClient } from '../api/client'
 import { useConfirm } from '../components/ConfirmProvider'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { apiRuntime } from '../api/runtime'
-import { FileDownload } from '../components/FileDownload'
 import { LiveStudentProjectEditor } from '../components/modals/LiveStudentProjectEditor'
 import { ProjectVisibility } from '../components/ProjectVisibility'
 import { ReportButton } from '../components/ReportButton'
@@ -26,24 +28,7 @@ import {
   Layers,
   Sparkles,
   Tag,
-  User,
 } from 'lucide-react'
-
-function ProjectScreenshot({ url, label }: { url: string; label: string }) {
-  const [unavailable, setUnavailable] = useState(false)
-  if (unavailable) return <span className="screenshot-unavailable">Скриншот недоступен</span>
-  return (
-    <a href={url} target="_blank" rel="noreferrer">
-      <img
-        src={url}
-        loading="lazy"
-        alt={label}
-        onError={() => setUnavailable(true)}
-        style={{ width: 160, maxWidth: '100%' }}
-      />
-    </a>
-  )
-}
 
 export const StudentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -73,31 +58,33 @@ export const StudentDetailPage: React.FC = () => {
     )
   if (loading || !activeProject || activeProject.id !== id) {
     return (
-      <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ui-muted)' }}>
         Загрузка проекта...
       </div>
     )
   }
 
   const owner = activeProject.authorId === currentUser?.id
+  const author = authors.find((student) => student.id === activeProject.authorId)
+  const authorName = activeProject.authorName || author?.fullName || 'Автор проекта'
   const server = activeProject.server
   const reviewer =
     ['curator', 'university'].includes(currentUser?.role || '') && server?.status === 'moderation'
   const canEdit = owner && (server?.status === 'draft' || server?.status === 'revision')
-  const protectedFiles =
-    (owner || currentUser?.role === 'admin' || reviewer) &&
-    !activeProject.coverImage &&
-    !activeProject.screenshots.length &&
-    server
-      ? [
-          ...(server.coverFileId ? [{ id: server.coverFileId, name: 'Обложка' }] : []),
-          ...server.assets
-            .filter((asset) => asset.kind === 'screenshot')
-            .map((asset, index) => ({
-              id: asset.file_id,
-              name: `Скриншот ${index + 1}`,
-            })),
-        ]
+  const canReadPrivateMedia = owner || currentUser?.role === 'admin' || reviewer
+  const mediaUrl = (fileId: string) =>
+    reviewer
+      ? `${apiRuntime.baseUrl || '/api/v1'}/student-projects/${activeProject.id}/review/files/${fileId}`
+      : `${apiRuntime.baseUrl || '/api/v1'}/files/${fileId}`
+  const coverUrl =
+    activeProject.coverImage ||
+    (canReadPrivateMedia && server?.coverFileId ? mediaUrl(server.coverFileId) : '')
+  const screenshots = activeProject.screenshots.length
+    ? activeProject.screenshots
+    : canReadPrivateMedia && server
+      ? server.assets
+          .filter((asset) => asset.kind === 'screenshot')
+          .map((asset) => mediaUrl(asset.file_id))
       : []
 
   const getBadgeTitle = (b: string) => {
@@ -121,14 +108,14 @@ export const StudentDetailPage: React.FC = () => {
 
   return (
     <div>
-      <div className="detail-actions">
+      <div className="detail-actions student-project-actions">
         <Link to="/student-projects" className="btn btn-secondary btn-sm">
           <ArrowLeft size={15} /> Назад к студенческим проектам
         </Link>
         {canEdit && (
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm student-project-edit"
             onClick={() => setEditing(true)}
           >
             Редактировать проект
@@ -178,23 +165,10 @@ export const StudentDetailPage: React.FC = () => {
       >
         <div>
           <div className="card" style={{ marginBottom: '24px', overflow: 'hidden' }}>
-            {activeProject.coverImage && (
-              <img
-                src={activeProject.coverImage}
-                alt=""
-                style={{ width: '100%', height: '320px', objectFit: 'cover' }}
-              />
-            )}
+            {coverUrl && <ProjectCover src={coverUrl} alt="Обложка проекта" variant="detail" />}
 
             <div className="card__body">
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '12px',
-                }}
-              >
+              <div className="student-project-meta">
                 <span className="badge badge-direction" style={{ textTransform: 'uppercase' }}>
                   {[activeProject.category, activeProject.direction].filter(Boolean).join(' • ')}
                 </span>
@@ -209,15 +183,23 @@ export const StudentDetailPage: React.FC = () => {
                   }
                   aria-pressed={!!activeProject.likedByMe}
                   aria-label={activeProject.likedByMe ? 'Убрать лайк' : 'Поставить лайк'}
-                  style={{ color: '#e11d48' }}
+                  style={{ color: 'var(--ui-danger-accent)' }}
                 >
-                  <Heart size={15} fill={activeProject.likedByMe ? '#e11d48' : 'none'} />{' '}
+                  <Heart
+                    size={15}
+                    fill={activeProject.likedByMe ? 'var(--ui-danger-accent)' : 'none'}
+                  />{' '}
                   {activeProject.likesCount}
                 </button>
               </div>
 
               <h1
-                style={{ fontSize: '24px', fontWeight: 800, color: '#0f2b48', margin: '0 0 16px' }}
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: 'var(--ui-ink)',
+                  margin: '0 0 16px',
+                }}
               >
                 {activeProject.title}
               </h1>
@@ -236,11 +218,11 @@ export const StudentDetailPage: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       fontWeight: 600,
-                      background: '#e0f2fe',
-                      color: '#0369a1',
+                      background: 'var(--ui-brand-surface)',
+                      color: 'var(--ui-brand-text)',
                       padding: '4px 10px',
                       borderRadius: '6px',
-                      border: '1px solid #bae6fd',
+                      border: '1px solid var(--ui-brand-line)',
                     }}
                   >
                     <Tag size={12} aria-hidden="true" /> {getBadgeTitle(b)}
@@ -249,16 +231,16 @@ export const StudentDetailPage: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '6px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--ui-ink)', marginBottom: '6px' }}>
                   <Lightbulb size={14} aria-hidden="true" /> Решаемая проблема:
                 </h3>
                 <p
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: '#334155',
+                    color: 'var(--ui-body)',
                     lineHeight: 1.6,
-                    background: '#f8fafc',
+                    background: 'var(--ui-panel)',
                     padding: '12px 16px',
                     borderRadius: '8px',
                   }}
@@ -268,14 +250,14 @@ export const StudentDetailPage: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '15px', color: '#0f2b48', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--ui-ink)', marginBottom: '8px' }}>
                   Подробное описание:
                 </h3>
                 <div
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: '#334155',
+                    color: 'var(--ui-body)',
                     lineHeight: 1.7,
                     whiteSpace: 'pre-line',
                   }}
@@ -284,22 +266,15 @@ export const StudentDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {(activeProject.screenshots.length > 0 || protectedFiles.length > 0) && (
+              {screenshots.length > 0 && (
                 <section>
                   <h3>Изображения проекта</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                    {activeProject.screenshots.map((url, index) => (
-                      <ProjectScreenshot key={url} url={url} label={`Скриншот ${index + 1}`} />
-                    ))}
-                    {protectedFiles.map((file) => (
-                      <FileDownload
-                        key={file.id}
-                        file={{
-                          name: file.name,
-                          url: reviewer
-                            ? `${apiRuntime.baseUrl || '/api/v1'}/student-projects/${activeProject.id}/review/files/${file.id}`
-                            : `${apiRuntime.baseUrl || '/api/v1'}/files/${file.id}`,
-                        }}
+                  <div className="student-project-gallery">
+                    {screenshots.map((url, index) => (
+                      <AttachmentPreview
+                        key={url}
+                        image
+                        file={{ name: `Скриншот ${index + 1}`, url }}
                       />
                     ))}
                   </div>
@@ -346,25 +321,17 @@ export const StudentDetailPage: React.FC = () => {
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
               >
-                <div
-                  style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: '#e2e8f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <User size={22} color="#1b5e91" />
-                </div>
+                <UserAvatar
+                  userId={activeProject.authorId}
+                  src={author?.avatar}
+                  name={authorName}
+                  className="student-project-author-avatar"
+                />
                 <div>
-                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block' }}>
-                    {authors.find((author) => author.id === activeProject.authorId)?.fullName ||
-                      activeProject.authorName}
+                  <strong style={{ fontSize: '14px', color: 'var(--ui-ink)', display: 'block' }}>
+                    {authorName}
                   </strong>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                     {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент'}
                   </span>
                 </div>
@@ -389,8 +356,8 @@ export const StudentDetailPage: React.FC = () => {
                   <span
                     key={t}
                     style={{
-                      background: '#f1f5f9',
-                      color: '#1e293b',
+                      background: 'var(--ui-soft)',
+                      color: 'var(--ui-ink)',
                       fontSize: '12px',
                       fontFamily: 'monospace',
                       padding: '4px 8px',

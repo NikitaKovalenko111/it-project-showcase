@@ -72,7 +72,7 @@ export const FavoritesPage: React.FC = () => {
       : [{ project, app: undefined }],
   )
   return (
-    <div>
+    <div className="favorites-page">
       <div className="page-header">
         <div className="page-header__content">
           <h1>Заявки и избранное</h1>
@@ -179,7 +179,7 @@ export const FavoritesPage: React.FC = () => {
                 })}
               </PaginatedGrid>
               {!projects.length && (
-                <div className="card empty-state">
+                <div className="card empty-state favorites-empty">
                   <p>
                     {search
                       ? 'По вашему запросу ничего не найдено.'

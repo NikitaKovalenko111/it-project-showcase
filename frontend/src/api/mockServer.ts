@@ -2369,7 +2369,7 @@ export class MockServer {
   inviteStudent(studentId: string, caseId: string, type: string, message: string): void {
     if (this.sessionUser()?.role !== 'company')
       throw new Error('Приглашать студентов может только компания')
-    this.requireCaseManager(caseId)
+    if (type === 'Участие в проекте') this.requireCaseManager(caseId)
     const c = this.cases.find((x) => x.id === caseId)
     const notificationId = createId()
     const sender = this.actor()
@@ -2378,14 +2378,16 @@ export class MockServer {
       userId: studentId,
       type: 'company_invite',
       title: `Приглашение от компании: ${c?.companyName || 'Партнер УУНиТ'}`,
-      message: `Вас приглашают в проект «${c?.title || 'Кейс'}» (${type}). Сообщение: ${message}`,
+      message: caseId
+        ? `Вас приглашают в проект «${c?.title || 'Кейс'}» (${type}). Сообщение: ${message}`
+        : `${type}. Сообщение: ${message}`,
       read: false,
       link: `/invitations/${notificationId}`,
       invitation: {
         caseId,
         senderId: sender.id,
         senderName: sender.fullName,
-        companyId: c?.companyId,
+        companyId: c?.companyId || sender.companyProfile?.companyId,
         reason: type,
         status: 'pending',
         replies: [],
@@ -2407,13 +2409,3 @@ export const createMockServer = (): MockServer =>
         structuredClone(Reflect.apply(value, target, structuredClone(args)))
     },
   })
-
-let lazyMock: MockServer | undefined
-export const mockServer = new Proxy({} as MockServer, {
-  get(_target, key) {
-    return (...args: unknown[]) => {
-      lazyMock ||= createMockServer()
-      return Reflect.apply((lazyMock as any)[key], lazyMock, args)
-    }
-  },
-})

@@ -18,13 +18,13 @@ type Repository struct{ db *sql.DB }
 
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
-const selectProject = `SELECT p.project_id,p.owner_id,p.title,p.category,p.short_description,p.full_description,p.problem_solved,p.github_url,p.product_url,p.cover_file_id,p.status,p.visibility,p.tags,p.moderation_comment,(SELECT count(*) FROM student_project_likes l WHERE l.project_id=p.project_id),(CASE WHEN $1='' THEN false ELSE EXISTS(SELECT 1 FROM student_project_likes l WHERE l.project_id=p.project_id AND l.user_id=NULLIF($1,'')::uuid) END),COALESCE((SELECT jsonb_agg(direction_id ORDER BY direction_id) FROM student_project_directions d WHERE d.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(technology_id ORDER BY technology_id) FROM student_project_technologies t WHERE t.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'role_name',m.role_name,'joined_at',m.joined_at) ORDER BY m.joined_at) FROM project_members m WHERE m.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal) ORDER BY f.ordinal) FROM student_project_files f WHERE f.project_id=p.project_id),'[]'),p.created_at,p.updated_at,p.published_at FROM student_projects p`
+const selectProject = `SELECT p.project_id,p.owner_id,trim(concat_ws(' ',owner.last_name,owner.first_name,owner.patronymic)),p.title,p.category,p.short_description,p.full_description,p.problem_solved,p.github_url,p.product_url,p.cover_file_id,p.status,p.visibility,p.tags,p.moderation_comment,(SELECT count(*) FROM student_project_likes l WHERE l.project_id=p.project_id),(CASE WHEN $1='' THEN false ELSE EXISTS(SELECT 1 FROM student_project_likes l WHERE l.project_id=p.project_id AND l.user_id=NULLIF($1,'')::uuid) END),COALESCE((SELECT jsonb_agg(direction_id ORDER BY direction_id) FROM student_project_directions d WHERE d.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(technology_id ORDER BY technology_id) FROM student_project_technologies t WHERE t.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('student_id',m.student_id,'role_name',m.role_name,'joined_at',m.joined_at) ORDER BY m.joined_at) FROM project_members m WHERE m.project_id=p.project_id),'[]'),COALESCE((SELECT jsonb_agg(jsonb_build_object('file_id',f.file_id,'kind',f.kind,'ordinal',f.ordinal) ORDER BY f.ordinal) FROM student_project_files f WHERE f.project_id=p.project_id),'[]'),p.created_at,p.updated_at,p.published_at FROM student_projects p JOIN students owner ON owner.user_id=p.owner_id`
 
 func scan(row interface{ Scan(...any) error }) (*models.StudentProject, error) {
 	var x models.StudentProject
 	var problem, gh, product, comment sql.NullString
 	var dirs, tech, members, assets, tags []byte
-	err := row.Scan(&x.ProjectID, &x.OwnerID, &x.Title, &x.Category, &x.ShortDescription, &x.FullDescription, &problem, &gh, &product, &x.CoverFileID, &x.Status, &x.Visibility, &tags, &comment, &x.LikesCount, &x.LikedByMe, &dirs, &tech, &members, &assets, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt)
+	err := row.Scan(&x.ProjectID, &x.OwnerID, &x.OwnerName, &x.Title, &x.Category, &x.ShortDescription, &x.FullDescription, &problem, &gh, &product, &x.CoverFileID, &x.Status, &x.Visibility, &tags, &comment, &x.LikesCount, &x.LikedByMe, &dirs, &tech, &members, &assets, &x.CreatedAt, &x.UpdatedAt, &x.PublishedAt)
 	x.ProblemSolved = problem.String
 	x.GithubURL = gh.String
 	x.ProductURL = product.String
@@ -244,12 +244,18 @@ func (r *Repository) Moderate(ctx context.Context, moderator, id, status, commen
 	}
 	defer tx.Rollback()
 	var old string
-	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 AND visibility='public' AND status<>'draft' FOR UPDATE`, id).Scan(&old)
+	err = tx.QueryRowContext(ctx, `SELECT status FROM student_projects WHERE project_id=$1 AND (visibility='public' AND status<>'draft' OR showcase.is_active_admin($2)) FOR UPDATE`, id, moderator).Scan(&old)
 	if err != nil {
 		return nil, err
 	}
 	if old != "moderation" && status != "hidden" {
-		return nil, ErrTransition
+		var allowed bool
+		if err = tx.QueryRowContext(ctx, `SELECT showcase.is_active_admin($1)`, moderator).Scan(&allowed); err != nil {
+			return nil, err
+		}
+		if !allowed || status != "revision" {
+			return nil, ErrTransition
+		}
 	}
 	_, err = tx.ExecContext(ctx, `UPDATE student_projects SET status=$2,moderation_comment=NULLIF($3,''),published_at=CASE WHEN $2='published' THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END WHERE project_id=$1`, id, status, comment)
 	if err == nil {

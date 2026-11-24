@@ -1,3 +1,4 @@
+import { UserAvatar } from './UserAvatar'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Crown } from 'lucide-react'
@@ -18,17 +19,7 @@ export const TeamMembers: React.FC<{
         return (
           <li key={member.id}>
             <Link to={`/profile/${member.id}`} className="team-member">
-              {avatar ? (
-                <img src={avatar} alt="" />
-              ) : (
-                <span className="member-avatar" aria-hidden="true">
-                  {name
-                    .split(' ')
-                    .slice(0, 2)
-                    .map((n) => n[0])
-                    .join('')}
-                </span>
-              )}
+              <UserAvatar userId={member.id} className="member-avatar" name={name} src={avatar} />
               <span className="team-member__info">
                 <strong>{name}</strong>
                 <small>

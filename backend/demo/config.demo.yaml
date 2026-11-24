@@ -1,0 +1,26 @@
+log_level: dev
+http_server:
+  http_address: ":3005"
+  http_timeout: 15s
+  http_idle_timeout: 60s
+postgres:
+  db_host: postgres
+  db_port: 5432
+  db_user: showcase_demo
+  db_pass: showcase-demo-local-db
+  db_name: showcase_demo
+  ssl_mode: disable
+jwt:
+  jwt_access_secret: showcase-demo-local-access-token-secret
+  jwt_refresh_secret: showcase-demo-local-refresh-token-secret
+  access_token_ttl: 15m
+  refresh_token_ttl: 24h
+  session_cleanup_interval: 30m
+object_storage:
+  endpoint: minio:9000
+  access_key: showcase-demo
+  secret_key: showcase-demo-local-storage
+  bucket: showcase-demo
+  use_ssl: false
+  region: us-east-1
+  max_file_size: 20971520

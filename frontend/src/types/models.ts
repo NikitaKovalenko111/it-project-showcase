@@ -63,6 +63,7 @@ export interface Company {
   name: string
   shortName: string
   logo: string
+  logoFileId?: string
   description: string
   industry: string
   website: string
@@ -144,6 +145,7 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  createdBy?: string
   managedByViewer?: boolean
   applicationDeadline?: string
   registrationsCount?: number
@@ -285,7 +287,7 @@ export interface ProjectMilestone {
   deadline: string
   description: string
   status: MilestoneStatus
-  attachedMaterials: { name: string; url: string; size?: string }[]
+  attachedMaterials: { name: string; url: string; size?: string; file_id?: string }[]
   submittedAt?: string
   feedback?: string
 }
@@ -320,6 +322,7 @@ export interface ProjectEvaluation {
   caseId: string
   companyId: string
   companyName: string
+  evaluatorId?: string
   evaluatorName: string
   scores: Record<string, number>
   totalScore: number

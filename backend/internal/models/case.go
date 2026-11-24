@@ -43,6 +43,7 @@ type Case struct {
 	CaseID               string                `json:"case_id"`
 	CompanyID            string                `json:"company_id"`
 	CompanyName          string                `json:"company_name"`
+	CompanyLogoFileID    *string               `json:"company_logo_file_id,omitempty"`
 	CreatedBy            string                `json:"created_by"`
 	Title                string                `json:"title"`
 	Summary              string                `json:"summary"`

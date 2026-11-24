@@ -1,4 +1,5 @@
 import { ExpandableText } from '../components/ExpandableText'
+import { CompanyLogo } from '../components/CompanyLogo'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
@@ -84,7 +85,7 @@ export const CompaniesPage: React.FC = () => {
             <div className="card empty-state">Компании не найдены.</div>
           )}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ui-muted)' }}>
               Загрузка компаний...
             </div>
           ) : (
@@ -101,17 +102,9 @@ export const CompaniesPage: React.FC = () => {
                         marginBottom: '14px',
                       }}
                     >
-                      <img
-                        src={comp.logo}
-                        alt={comp.name}
-                        style={{
-                          width: '56px',
-                          height: '56px',
-                          borderRadius: '8px',
-                          objectFit: 'cover',
-                          border: '1px solid #dce4ed',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                        }}
+                      <CompanyLogo
+                        company={comp}
+                        className="company-card__logo"
                       />
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -120,7 +113,7 @@ export const CompaniesPage: React.FC = () => {
                               style={{
                                 margin: 0,
                                 fontSize: '16px',
-                                color: '#0c1938',
+                                color: 'var(--ui-ink)',
                                 fontWeight: 800,
                               }}
                             >
@@ -129,11 +122,13 @@ export const CompaniesPage: React.FC = () => {
                           </Link>
                           {comp.isVerified && (
                             <span title="Верифицировано">
-                              <ShieldCheck size={16} color="#28a745" />
+                              <ShieldCheck size={16} color="var(--ui-success-accent)" />
                             </span>
                           )}
                         </div>
-                        <span style={{ fontSize: '11px', color: '#627282', fontWeight: 600 }}>
+                        <span
+                          style={{ fontSize: '11px', color: 'var(--ui-muted)', fontWeight: 600 }}
+                        >
                           {comp.industry}
                         </span>
                       </div>
@@ -147,17 +142,17 @@ export const CompaniesPage: React.FC = () => {
                         display: 'grid',
                         gridTemplateColumns: '1fr 1fr',
                         gap: '8px',
-                        background: '#f8fafc',
+                        background: 'var(--ui-panel)',
                         padding: '10px 12px',
                         borderRadius: '8px',
                         fontSize: '11px',
                         marginBottom: '14px',
-                        border: '1px solid #eef2f6',
+                        border: '1px solid var(--ui-soft)',
                       }}
                     >
                       <div>
                         Активных кейсов:{' '}
-                        <strong style={{ color: '#0c1938' }}>
+                        <strong style={{ color: 'var(--ui-ink)' }}>
                           {
                             casesList.filter(
                               (item) =>
@@ -170,7 +165,7 @@ export const CompaniesPage: React.FC = () => {
                       </div>
                       <div>
                         Завершено проектов:{' '}
-                        <strong style={{ color: '#0c1938' }}>
+                        <strong style={{ color: 'var(--ui-ink)' }}>
                           {
                             casesList.filter(
                               (item) =>
@@ -189,8 +184,8 @@ export const CompaniesPage: React.FC = () => {
                         <span
                           key={t}
                           style={{
-                            background: '#f1f5f9',
-                            color: '#475569',
+                            background: 'var(--ui-soft)',
+                            color: 'var(--ui-body)',
                             fontSize: '11px',
                             padding: '2px 7px',
                             borderRadius: '4px',
@@ -213,7 +208,7 @@ export const CompaniesPage: React.FC = () => {
                         alignItems: 'center',
                         gap: '5px',
                         fontSize: '12px',
-                        color: '#3a75b4',
+                        color: 'var(--ui-brand-text)',
                         fontWeight: 700,
                         textDecoration: 'none',
                       }}

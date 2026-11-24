@@ -38,6 +38,13 @@ func TestAddCommentRejectsBlankAndLongBody(t *testing.T) {
 	}
 }
 
+func TestAddCommentRejectsInvalidParent(t *testing.T) {
+	_, err := Init(nil).AddComment(context.Background(), "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1", "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1", "", "Reply", false, false, "invalid-parent")
+	if !errors.Is(err, ErrInvalid) {
+		t.Fatalf("expected invalid parent error, got %v", err)
+	}
+}
+
 func TestUpdateNDARejectsUnknownStatus(t *testing.T) {
 	service := Init(nil)
 	id := "5c76ce4e-b384-4f29-b462-eb9b8d5e8ba1"

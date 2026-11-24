@@ -6,14 +6,12 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
 import { loginRequest, loginSuccess } from '../store/actions'
-import { mockServer } from '../api/mockServer'
 import {
   Landmark,
   Settings,
   Building2,
   CheckCircle2,
   GraduationCap,
-  Layers,
   LogIn,
   ShieldCheck,
   Sparkles,
@@ -46,7 +44,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [institute, setInstitute] = useState('Институт информатики, математики и робототехники')
+  const [institute, setInstitute] = useState(
+    apiRuntime.mode === 'mock' ? 'Институт информатики, математики и робототехники' : '',
+  )
   const [direction, setDirection] = useState('')
   const [course, setCourse] = useState(2)
   const [group, setGroup] = useState('')
@@ -90,11 +90,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     if (
       roleToRegister === 'student' &&
       (fullName.trim().split(/\s+/).length < 2 ||
+        !institute.trim() ||
         !direction.trim() ||
         direction.trim().toLowerCase() === 'не указано' ||
         !group.trim())
     ) {
-      setRegisterError('Укажите фамилию и имя, направление подготовки и учебную группу.')
+      setRegisterError('Укажите фамилию и имя, институт, направление подготовки и учебную группу.')
       return
     }
     if (
@@ -127,7 +128,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       role: roleToRegister,
       phone,
       group: roleToRegister === 'student' ? group.trim() : undefined,
-      institute: roleToRegister === 'student' ? institute : undefined,
+      institute: roleToRegister === 'student' ? institute.trim() : undefined,
       companyName: roleToRegister === 'company' ? companyName : undefined,
     }
 
@@ -155,67 +156,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   }
 
   return (
-    <div
-      className="login-page"
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #091b2e 0%, #0f2b48 50%, #17395c 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 16px',
-        color: '#fff',
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: '100%',
-          maxWidth: mode === 'register' ? '780px' : '440px',
-          background: '#ffffff',
-          color: '#1e293b',
-          borderRadius: '8px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-        }}
-      >
-        <div
-          style={{
-            padding: '28px 32px 20px',
-            borderBottom: '1px solid #e2e8f0',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #0f2b48, #269eb8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              margin: '0 auto 12px',
-              boxShadow: '0 8px 16px rgba(38, 158, 184, 0.3)',
-            }}
-          >
-            <Layers size={28} />
-          </div>
+    <div className="login-page">
+      <aside className="auth-intro" aria-label="Витрина IT-проектов">
+        <img
+          className="auth-intro__mark"
+          src="/images/brand/mark.svg"
+          alt=""
+          width="56"
+          height="56"
+        />
+        <h1>Витрина IT-проектов</h1>
+        <img
+          className="auth-intro__art"
+          src="/images/brand/workspace.svg"
+          alt=""
+          width="400"
+          height="340"
+        />
+      </aside>
+      <div className="auth-card">
+        <div className="auth-card__header">
+          <h2>{mode === 'login' ? 'Вход в систему' : 'Регистрация'}</h2>
 
-          <h2 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 800, color: '#0f2b48' }}>
-            Витрина IT-проектов
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: '8px',
-              marginTop: '18px',
-              background: '#f1f5f9',
-              padding: '4px',
-              borderRadius: '8px',
-            }}
-          >
+          <div className="auth-mode-tabs">
             <button
               type="button"
               className={`btn btn-sm ${mode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
@@ -241,18 +204,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
           </p>
         )}
         {mode === 'login' ? (
-          <div style={{ padding: '24px 32px 32px' }}>
+          <div className="auth-card__body">
             {error && (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  background: '#fee2e2',
-                  color: '#991b1b',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  marginBottom: '16px',
-                }}
-              >
+              <div className="form-error" role="alert">
                 {error}
               </div>
             )}
@@ -301,20 +255,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
 
             {/* Quick Demo Login Buttons */}
             {apiRuntime.mode === 'mock' && (
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '18px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    textTransform: 'uppercase',
-                    color: '#64748b',
-                    fontWeight: 700,
-                    display: 'block',
-                    marginBottom: '10px',
-                    textAlign: 'center',
-                  }}
-                >
-                  Быстрый вход под тестовой ролью:
-                </span>
+              <div className="auth-demo">
+                <span className="auth-demo__title">Быстрый вход под тестовой ролью:</span>
 
                 <div
                   className="responsive-grid"
@@ -361,26 +303,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
           </div>
         ) : (
           /* REGISTRATION FORM */
-          <form
-            className="registration-form"
-            onSubmit={handleRegisterSubmit}
-            style={{ padding: '24px 32px 32px' }}
-          >
-            <h3 style={{ margin: '0 0 14px', fontSize: '15px', color: '#0c1938' }}>
-              Регистрация нового пользователя
-            </h3>
+          <form className="registration-form" onSubmit={handleRegisterSubmit}>
+            <h3>Регистрация нового пользователя</h3>
 
             {/* Role Selector Tabs */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '8px',
-                marginBottom: '20px',
-                background: '#f1f5f9',
-                padding: '4px',
-                borderRadius: '8px',
-              }}
-            >
+            <div className="auth-role-tabs">
               <button
                 type="button"
                 className={`btn btn-sm ${roleToRegister === 'student' ? 'btn-primary' : 'btn-secondary'}`}
@@ -456,7 +383,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@students.example"
+                      placeholder="name@stud.uust.ru"
                       required
                     />
                   </div>
@@ -467,17 +394,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
                 >
                   <div className="form-group">
-                    <label>Институт / факультет:*</label>
-                    <select
-                      className="select"
+                    <label htmlFor="registration-institute">Институт / факультет *</label>
+                    <input
+                      className="input"
+                      id="registration-institute"
                       value={institute}
                       onChange={(e) => setInstitute(e.target.value)}
-                    >
-                      <option value="Институт информатики, математики и робототехники">ИИМР</option>
-                      <option value="Институт авиационных технологий и материалов">ИАТМ</option>
-                      <option value="Физико-технический институт">ФТИ</option>
-                      <option value="Институт электроники и биомедицины">ИЭБ</option>
-                    </select>
+                      required
+                    />
                   </div>
 
                   <div className="form-group">
@@ -666,26 +590,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               </label>
             </div>
             {/* Consent to Personal Data Processing (п. 7.42 ТЗ / 152-ФЗ) */}
-            <div
-              style={{
-                margin: '16px 0',
-                padding: '12px',
-                background: '#f8fafc',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: '#1e293b',
-                }}
-              >
+            <div className="auth-consent">
+              <label>
                 <input
                   type="checkbox"
                   checked={consentPD}

@@ -1,9 +1,11 @@
 import { ProjectSummaryCard } from '../components/ProjectSummaryCard'
+import { StudentProjectCover } from '../components/StudentProjectCover'
 import { CuratorOverview } from '../components/CuratorOverview'
 import { ExpandableText } from '../components/ExpandableText'
 import { complexityBadge } from '../utils/publication'
 import { PaginatedGrid } from '../components/PaginatedGrid'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
+import { UserAvatar } from '../components/UserAvatar'
 import { caseStatusLabels } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
 import { listCuratedExecutions } from '../api/community'
@@ -133,7 +135,7 @@ export const HomePage: React.FC = () => {
               <Search size={15} /> Поиск талантов
             </Link>
             {companyId && (
-              <Link to={`/company/${companyId}`} className="btn btn-coral">
+              <Link to={`/company/${companyId}`} className="btn btn-secondary">
                 <Building2 size={15} /> Карточка компании
               </Link>
             )}
@@ -253,7 +255,7 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 <div className="case-card__footer-bar">
-                  <span style={{ fontSize: '11px', color: '#627282' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                     Заявок: <strong>{c.applicationsCount}</strong>
                   </span>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -317,18 +319,19 @@ export const HomePage: React.FC = () => {
                     <tr key={app.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IdentityImage
+                          <UserAvatar
+                            userId={app.studentId}
                             src={app.studentAvatar}
                             name={app.studentName}
                             className="candidate-avatar"
                           />
                           <div>
-                            <div style={{ fontWeight: 700, color: '#0c1938' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--ui-ink)' }}>
                               <Link className="profile-link" to={`/profile/${app.studentId}`}>
                                 {app.studentName}
                               </Link>
                             </div>
-                            <div style={{ fontSize: '11px', color: '#627282' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                               {app.studentEmail}
                             </div>
                           </div>
@@ -336,7 +339,7 @@ export const HomePage: React.FC = () => {
                       </td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{app.studentInstitute}</div>
-                        <div style={{ fontSize: '11px', color: '#627282' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                           {app.studentCourse} курс
                         </div>
                       </td>
@@ -487,27 +490,9 @@ export const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       {/* Official ISU Welcome Banner matching user's Image 2 */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid #dce4ed',
-          borderRadius: '8px',
-          padding: '22px 24px',
-          boxShadow: '0 1px 3px rgba(11,23,54,0.04)',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '20px',
-            fontWeight: 800,
-            color: '#1a2233',
-            margin: '0 0 6px',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Добро пожаловать в информационную систему университета!
-        </h1>
-        <p style={{ fontSize: '13px', color: '#5e7188', margin: 0, lineHeight: 1.55 }}>
+      <div className="home-hero student-welcome">
+        <h1>Добро пожаловать в информационную систему университета!</h1>
+        <p className="home-hero__subtitle">
           Данная система является комплексным решением для обеспечения деятельности структурных
           подразделений и платформой взаимодействия студентов с индустриальными предприятиями.
         </p>
@@ -588,7 +573,11 @@ export const HomePage: React.FC = () => {
               <div className="case-card__top-accent" />
               <div className="card__body">
                 <div className="case-card__company">
-                  <img src={c.companyLogo || '/demo/company.svg'} alt="" />
+                  <CompanyLogo
+                    src={c.companyLogo}
+                    name={c.companyName}
+                    className="case-company-logo"
+                  />
                   <div>
                     <div className="company-title">{c.companyName}</div>
                     <div className="company-sub">Индустриальный партнёр</div>
@@ -634,7 +623,7 @@ export const HomePage: React.FC = () => {
               </div>
 
               <div className="case-card__footer-bar">
-                <div style={{ fontSize: '11px', color: '#627282' }}>
+                <div style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                   Заявок: <strong>{c.applicationsCount}</strong>
                 </div>
                 <Link to={`/cases/${c.id}`} className="btn btn-primary btn-sm">
@@ -663,7 +652,7 @@ export const HomePage: React.FC = () => {
           {featuredProjects.map((p) => (
             <div key={p.id} className="student-project-card">
               <div className="student-project-card__image-wrap">
-                <img src={p.coverImage} alt={p.title} />
+                <StudentProjectCover project={p} />
                 <span className="category-tag">{p.category}</span>
                 <span className="readiness-tag">{p.status}</span>
               </div>

@@ -86,6 +86,8 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
         particleCount: 120,
         spread: 70,
         origin: { y: 0.6 },
+        colors: ['#6995c2', '#bbd1e7', '#8aac9b', '#d3af72'],
+        disableForReducedMotion: true,
       })
     }
 
@@ -98,7 +100,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
         <div className="modal-dialog__header">
           <div>
             <h3>Оценка результатов выполнения проекта</h3>
-            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--ui-muted)' }}>
               Проект: {caseTitle} • Оценивает: {companyName}
               <br />
               Исполнители: {teamName || 'Не назначены'}
@@ -114,8 +116,8 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
             {/* Total Score Banner */}
             <div
               style={{
-                background: 'linear-gradient(135deg, #0f2b48, #1b5e91)',
-                color: '#fff',
+                background: 'var(--ui-brand-surface)',
+                color: 'var(--ui-ink)',
                 padding: '16px 20px',
                 borderRadius: '8px',
                 display: 'flex',
@@ -130,7 +132,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
                     fontSize: '11px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
-                    color: '#90d0de',
+                    color: 'var(--ui-muted)',
                   }}
                 >
                   Итоговая оценка
@@ -139,7 +141,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
                   {totalScore} / {maxScore}
                 </div>
               </div>
-              <Star size={36} color="#fbbf24" fill="#fbbf24" />
+              <Star size={36} color="var(--ui-warning-accent)" fill="var(--ui-warning-accent)" />
             </div>
 
             {/* 10 Evaluation Criteria Sliders */}
@@ -164,7 +166,7 @@ export const EvaluationModal: React.FC<EvaluationModalProps> = ({
                     }}
                   >
                     <span>{label}</span>
-                    <span style={{ color: '#1b5e91' }}>
+                    <span style={{ color: 'var(--ui-brand-text)' }}>
                       {scores[key] || 0} / {maxScore ?? 10}
                     </span>
                   </div>

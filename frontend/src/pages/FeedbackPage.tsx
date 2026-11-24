@@ -83,6 +83,9 @@ export const FeedbackPage: React.FC = () => {
     setFiles(next)
     fileDrafts.set(key, next)
   }
+  const sortedRecords = [...records].sort(
+    (first, second) => Date.parse(second.created_at) - Date.parse(first.created_at),
+  )
   return (
     <>
       <header className="page-header">
@@ -182,7 +185,7 @@ export const FeedbackPage: React.FC = () => {
           <ReportTableView
             label="Обращения"
             headers={['Дата', 'Сообщение', 'Статус', ...(admin ? ['Действия'] : [])]}
-            rows={records.map((record) => ({
+            rows={sortedRecords.map((record) => ({
               id: record.feedback_id,
               cells: [
                 new Date(record.created_at).toLocaleString('ru-RU'),

@@ -83,11 +83,7 @@ export function AdminInsights({
           targets[report.targetType]?.[0],
         ),
     )
-    .sort(
-      (a, b) =>
-        Number(b.status === 'pending') - Number(a.status === 'pending') ||
-        b.createdAt.localeCompare(a.createdAt),
-    )
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
   const resolve = async (id: string) => {
     setWorking(id)
     setError('')

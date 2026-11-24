@@ -44,7 +44,7 @@ export const ResumeUpload: React.FC<{ editable?: boolean }> = ({ editable = true
             Выбрать резюме (PDF, DOC или DOCX)
             <LocalizedFileInput
               className="input"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf"
               disabled={busy}
               onChange={(e) => {
                 setError('')

@@ -1,3 +1,4 @@
+import { ApiImage } from './ApiImage'
 import { useState } from 'react'
 import { Modal } from './Modal'
 import { FileDownload } from './FileDownload'
@@ -19,13 +20,13 @@ export function AttachmentPreview({
         onClick={() => setOpen(true)}
         aria-label={'Посмотреть ' + file.name}
       >
-        <img src={file.url} alt={file.name} />
+        <ApiImage src={file.url} alt={file.name} />
       </button>
       <figcaption>{file.name}</figcaption>
       {open && (
         <Modal title={file.name} className="image-preview-dialog" onClose={() => setOpen(false)}>
           <div className="modal-dialog__body">
-            <img src={file.url} alt={file.name} />
+            <ApiImage src={file.url} alt={file.name} />
           </div>
         </Modal>
       )}

@@ -1,4 +1,4 @@
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 import { useConfirm } from './ConfirmProvider'
 import { Heart, SlidersHorizontal } from 'lucide-react'
 import { PaginatedGrid } from './PaginatedGrid'
@@ -85,7 +85,8 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
           </button>
         </p>
       )}
-      <IdentityImage
+      <UserAvatar
+        userId={user.id}
         src={user.avatar}
         name={user.fullName}
         className="comment-avatar comment-compose-avatar"
@@ -112,7 +113,8 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
     <article className="comment-item" key={comment.id}>
       <div className="comment-header">
         <Link className="comment-author" to={`/profile/${comment.authorId}`}>
-          <IdentityImage
+          <UserAvatar
+            userId={comment.authorId}
             src={
               comment.authorId === user?.id
                 ? user.avatar

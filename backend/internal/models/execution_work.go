@@ -33,12 +33,14 @@ type ExecutionStage struct {
 	UpdatedAt      time.Time  `json:"updated_at"`
 }
 type ExecutionComment struct {
-	CommentID   string    `json:"comment_id"`
-	ExecutionID string    `json:"execution_id"`
-	StageID     *string   `json:"stage_id"`
-	AuthorID    string    `json:"author_id"`
-	Body        string    `json:"body"`
-	CreatedAt   time.Time `json:"created_at"`
+	ParentCommentID *string   `json:"parent_comment_id"`
+	CommentID       string    `json:"comment_id"`
+	ExecutionID     string    `json:"execution_id"`
+	StageID         *string   `json:"stage_id"`
+	AuthorID        string    `json:"author_id"`
+	AuthorName      string    `json:"author_name"`
+	Body            string    `json:"body"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 type ExecutionMentor struct {
 	ExecutionID string    `json:"execution_id"`

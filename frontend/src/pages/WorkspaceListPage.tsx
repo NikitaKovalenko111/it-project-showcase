@@ -1,3 +1,4 @@
+import { canEditCaseDraft } from '../utils/publicationAccess'
 import { fetchApplicationsRequest } from '../store/actions'
 import { useAppDispatch } from '../store'
 import { PaginatedGrid } from '../components/PaginatedGrid'
@@ -45,7 +46,7 @@ export const WorkspaceListPage: React.FC = () => {
   const [search, setSearch] = useState('')
   const projects = visibleCasesFor(currentUser, casesList).filter(
     (project) =>
-      (companyView || isPublished(project)) &&
+      (companyView || isPublished(project) || canEditCaseDraft(currentUser, project)) &&
       (kind === 'all' || (project.kind || 'case') === kind) &&
       (status === 'all' || project.status === status) &&
       (!curatorView || curated?.caseIds.has(project.id)) &&
@@ -106,11 +107,14 @@ export const WorkspaceListPage: React.FC = () => {
               </select>
             </label>
           )}
-          <CatalogSearch
-            value={search}
-            onChange={setSearch}
-            label="Поиск по проекту, компании, команде или направлению"
-          />
+          <label className="workspace-search-filter">
+            Поиск
+            <CatalogSearch
+              value={search}
+              onChange={setSearch}
+              label="Проект, компания, команда или направление"
+            />
+          </label>
         </div>
       </div>
       {loading || curatorPending ? (

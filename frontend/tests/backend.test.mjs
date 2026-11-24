@@ -1,9 +1,23 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { loadTs } from './load-ts.mjs'
-const { toCase, fromCase, fromUser, collectPages } = await import(
+const { toCase, fromCase, fromCompany, fromProject, fromUser, collectPages } = await import(
   await loadTs(new URL('../src/api/backend.ts', import.meta.url))
 )
+test('case cards use the same backend logo as the company directory', () => {
+  const company = fromCompany({ company_id: 'co', logo_file_id: 'logo' })
+  const project = fromCase({ case_id: 'c', company_id: 'co', company_logo_file_id: 'logo' })
+  assert.equal(company.logo, '/api/v1/companies/co/logo?v=logo')
+  assert.equal(project.companyLogo, company.logo)
+  assert.equal(fromCase({ case_id: 'c2', company_id: 'co' }).companyLogo, '')
+})
+
+test('student project details carry the author name from the project payload', () => {
+  const project = fromProject({ project_id: 'p', owner_id: 'u', owner_name: 'Гарифуллина Алина' })
+  assert.equal(project.authorId, 'u')
+  assert.equal(project.authorName, 'Гарифуллина Алина')
+})
+
 test('backend DTO maps criterion maximum, auth roles and dates', () => {
   const project = fromCase({
     case_id: 'c',
@@ -88,4 +102,27 @@ const { formatDate } = await import(await loadTs(new URL('../src/utils/date.ts',
 test('nullable server deadlines do not display Invalid Date', () => {
   assert.equal(formatDate(null), 'Не указан')
   assert.equal(formatDate('invalid'), 'Не указан')
+})
+
+test('current backend cursor response fetches subsequent pages', async () => {
+  const cursors = []
+  const result = await collectPages(async ({ cursor }) => {
+    cursors.push(cursor)
+    return {
+      data: cursor ? { items: [2], next_cursor: null } : { items: [1], next_cursor: 'next' },
+    }
+  })
+  assert.deepEqual(result, [1, 2])
+  assert.deepEqual(cursors, [undefined, 'next'])
+})
+
+test('shared avatar takes precedence over legacy student photo', () => {
+  assert.equal(
+    fromUser({ user_id: 'u', avatar_file_id: 'avatar', student: { photo_file_id: 'old' } }).avatar,
+    '/api/v1/users/u/avatar?v=avatar',
+  )
+  assert.equal(
+    fromUser({ user_id: 'u', student: { photo_file_id: 'old' } }).avatar,
+    '/api/v1/users/u/avatar?v=old',
+  )
 })

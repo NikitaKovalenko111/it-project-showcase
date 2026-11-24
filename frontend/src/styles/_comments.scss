@@ -51,7 +51,7 @@
       min-height: 44px;
       max-height: 180px;
       padding: 10px 12px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid var(--ui-control-line);
       border-radius: 10px;
       resize: none;
       line-height: 22px;
@@ -78,7 +78,7 @@
     border-radius: 0;
     overflow-wrap: anywhere;
     & + .comment-item {
-      border-top: 1px solid #edf1f6;
+      border-top: 1px solid var(--ui-line);
     }
     > .comment-header {
       grid-column: 1 / -1;
@@ -98,7 +98,7 @@
       text-decoration: none;
     }
     time {
-      color: #748197;
+      color: var(--ui-muted);
       font-size: 12px;
     }
     > p {
@@ -133,7 +133,7 @@
       margin: 8px 0 0;
     }
     > .comment-item {
-      border-left: 2px solid #e2e8f0;
+      border-left: 2px solid var(--ui-line);
       padding-left: 12px;
     }
     > button {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { switchUserRequest } from '../../store/actions'
-import { mockServer } from '../../api/mockServer'
+import { mockServer } from '../../api/mockRuntime'
 import {
   Building2,
   GraduationCap,
@@ -33,7 +33,7 @@ export const DemoBar: React.FC = () => {
       </div>
 
       <div className="demo-bar__roles">
-        <span style={{ fontSize: '11px', color: '#8da4be', marginRight: '4px' }}>
+        <span style={{ fontSize: '11px', color: 'var(--ui-icon)', marginRight: '4px' }}>
           Переключить роль:
         </span>
 
