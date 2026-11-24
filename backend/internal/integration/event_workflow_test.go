@@ -535,6 +535,164 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		return response
 	}
 
+	t.Run("approved representatives join a moderated company", func(t *testing.T) {
+		tokenFor := func(user, role string) string {
+			t.Helper()
+			token, _, err := pkg.CreateAccessTokenWithRoles(user, []string{role}, secret, time.Minute)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return token
+		}
+		administrator := newUser(false)
+		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='admin'`, administrator)
+		adminToken := tokenFor(administrator, "admin")
+		send := func(method, path, token string, input any, expected int) []byte {
+			t.Helper()
+			var payload []byte
+			if input != nil {
+				payload, _ = json.Marshal(input)
+			}
+			res := request(method, path, token, string(payload))
+			if res.Code != expected {
+				t.Fatalf("%s %s: %d %s", method, path, res.Code, res.Body)
+			}
+			return res.Body.Bytes()
+		}
+		register := func() string {
+			t.Helper()
+			name := "rep_" + uuid.NewString()[:12]
+			var result struct {
+				UserID string `json:"user_id"`
+			}
+			data := send(http.MethodPost, "/auth/register", "", map[string]string{"username": name, "email": name + "@example.test", "password": "Example12345", "role": "company_representative", "consent_version": "1"}, 201)
+			if err := json.Unmarshal(data, &result); err != nil {
+				t.Fatal(err)
+			}
+			return result.UserID
+		}
+		approve := func(user string) {
+			t.Helper()
+			send(http.MethodPatch, "/users/"+user+"/role-request", adminToken, map[string]string{"status": "approved"}, 204)
+		}
+		firstRep, secondRep := register(), register()
+		approve(firstRep)
+		firstToken, secondToken := tokenFor(firstRep, "company_representative"), tokenFor(secondRep, "company_representative")
+		var company models.Company
+		data := send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Pipeline " + uuid.NewString(), "position": "Director", "inn": "7707083893"}, 201)
+		if err := json.Unmarshal(data, &company); err != nil {
+			t.Fatal(err)
+		}
+		if company.INN != "7707083893" || strings.Contains(string(data), "\"kpp\"") || strings.Contains(string(data), "\"ogrn\"") || strings.Contains(string(data), "\"legal_address\"") {
+			t.Fatalf("company requisites: %s", data)
+		}
+		var storedINN string
+		if err := db.QueryRowContext(ctx, `SELECT inn FROM companies WHERE company_id=$1`, company.CompanyID).Scan(&storedINN); err != nil || storedINN != company.INN {
+			t.Fatalf("stored INN: %q %v", storedINN, err)
+		}
+		for _, inn := range []string{"", "7707083894"} {
+			send(http.MethodPost, "/companies", firstToken, map[string]string{"full_name": "Invalid INN", "inn": inn}, 422)
+			send(http.MethodPut, "/companies/"+company.CompanyID, firstToken, map[string]string{"full_name": company.FullName, "inn": inn}, 422)
+		}
+		send(http.MethodPatch, "/companies/"+company.CompanyID+"/legal", firstToken, map[string]string{"inn": "7707083893"}, 404)
+		invitePath := "/companies/" + company.CompanyID + "/member-invitations"
+		invite := func(user string, expected int) []byte {
+			t.Helper()
+			return send(http.MethodPost, invitePath, firstToken, map[string]string{"user_id": user, "position": "Developer"}, expected)
+		}
+		approve(secondRep)
+		invite(secondRep, 404) // Company must also finish moderation.
+		send(http.MethodPost, "/companies/"+company.CompanyID+"/submit-moderation", firstToken, nil, 200)
+		send(http.MethodPatch, "/companies/"+company.CompanyID+"/moderation", adminToken, map[string]string{"status": "approved"}, 200)
+		for _, state := range []string{"student", "pending", "rejected", "role_without_approval", "blocked"} {
+			target := newUser(state == "student")
+			if state != "student" {
+				status := "approved"
+				if state == "pending" || state == "rejected" {
+					status = state
+				}
+				if state != "role_without_approval" {
+					exec(`INSERT INTO role_requests(user_id,role_code,status) VALUES($1,'company_representative',$2)`, target, status)
+				}
+				exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='company_representative'`, target)
+				if state == "blocked" {
+					exec(`UPDATE users SET status='blocked' WHERE user_id=$1`, target)
+				}
+			}
+			data := invite(target, 403)
+			if !strings.Contains(string(data), "representative_approval_required") {
+				t.Fatalf("%s: %s", state, data)
+			}
+		}
+		var invitation models.CompanyMemberInvitation
+		if err := json.Unmarshal(invite(secondRep, 201), &invitation); err != nil {
+			t.Fatal(err)
+		}
+		var notification string
+		if err := db.QueryRowContext(ctx, `SELECT notification_id FROM notifications WHERE user_id=$1 AND type='company_member_invitation' AND resource_id=$2`, secondRep, invitation.InvitationID).Scan(&notification); err != nil {
+			t.Fatal(err)
+		}
+		responsePath := "/company-member-invitations/" + invitation.InvitationID
+		send(http.MethodPatch, responsePath, firstToken, map[string]string{"status": "accepted"}, 404)
+		// Existing invitations cannot bypass revoked approval, blocking or changed roles.
+		exec(`UPDATE role_requests SET status='rejected' WHERE user_id=$1`, secondRep)
+		send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 403)
+		exec(`UPDATE role_requests SET status='approved' WHERE user_id=$1`, secondRep)
+		exec(`UPDATE users SET status='blocked' WHERE user_id=$1`, secondRep)
+		send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 403)
+		exec(`UPDATE users SET status='active' WHERE user_id=$1`, secondRep)
+		exec(`DELETE FROM user_roles WHERE user_id=$1`, secondRep)
+		send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 403)
+		var roles int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM user_roles WHERE user_id=$1`, secondRep).Scan(&roles); err != nil || roles != 0 {
+			t.Fatalf("invitation granted a role: %d %v", roles, err)
+		}
+		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='company_representative'`, secondRep)
+		exec(`UPDATE companies SET status='suspended' WHERE company_id=$1`, company.CompanyID)
+		send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 422)
+		exec(`UPDATE companies SET status='approved' WHERE company_id=$1`, company.CompanyID)
+		var acceptedCompany models.Company
+		if err := json.Unmarshal(send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 200), &acceptedCompany); err != nil {
+			t.Fatal(err)
+		}
+		if acceptedCompany.CompanyID != company.CompanyID {
+			t.Fatal("wrong joined company")
+		}
+		var members int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM company_members WHERE company_id=$1 AND status='active' AND permissions ? 'manage_company'`, company.CompanyID).Scan(&members); err != nil || members != 2 {
+			t.Fatalf("members: %d %v", members, err)
+		}
+		send(http.MethodPatch, responsePath, secondToken, map[string]string{"status": "accepted"}, 422)
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM user_roles WHERE user_id=$1`, secondRep).Scan(&roles); err != nil || roles != 1 {
+			t.Fatalf("roles changed: %d %v", roles, err)
+		}
+		thirdRep := register()
+		approve(thirdRep)
+		var declined models.CompanyMemberInvitation
+		if err := json.Unmarshal(invite(thirdRep, 201), &declined); err != nil {
+			t.Fatal(err)
+		}
+		send(http.MethodPatch, "/company-member-invitations/"+declined.InvitationID, tokenFor(thirdRep, "company_representative"), map[string]string{"status": "declined"}, 200)
+		var joined bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM company_members WHERE company_id=$1 AND user_id=$2)`, company.CompanyID, thirdRep).Scan(&joined); err != nil || joined {
+			t.Fatalf("decline created membership: %v %v", joined, err)
+		}
+		var updated models.Company
+		data = send(http.MethodPut, "/companies/"+company.CompanyID, firstToken, map[string]string{"full_name": company.FullName, "inn": "500100732259"}, 200)
+		if err := json.Unmarshal(data, &updated); err != nil {
+			t.Fatal(err)
+		}
+		if updated.INN != "500100732259" || updated.Status != "pending" {
+			t.Fatalf("updated INN/status: %s", data)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT inn FROM companies WHERE company_id=$1`, company.CompanyID).Scan(&storedINN); err != nil || storedINN != updated.INN {
+			t.Fatalf("updated stored INN: %q %v", storedINN, err)
+		}
+		var removedColumns int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='showcase' AND table_name='companies' AND column_name IN ('kpp','ogrn','legal_address')`).Scan(&removedColumns); err != nil || removedColumns != 0 {
+			t.Fatalf("obsolete requisites remain: %d %v", removedColumns, err)
+		}
+	})
 	t.Run("moderator replaces role and the old access token is rejected", func(t *testing.T) {
 		administrator, account := newUser(false), newUser(false)
 		exec(`INSERT INTO user_roles(user_id,role_id) SELECT $1,role_id FROM roles WHERE code='admin'`, administrator)

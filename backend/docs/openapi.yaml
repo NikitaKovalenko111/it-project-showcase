@@ -554,6 +554,13 @@ paths:
     post:
       tags: [Companies]
       operationId: createCompany
+      description: |
+        Подтверждённый company_representative создаёт draft-компанию после регистрации и одобрения роли.
+        Создатель автоматически получает активное членство с manage_company.
+        Следующий шаг — POST /companies/{company_id}/submit-moderation, затем решение admin.
+        ИНН обязателен в поле inn этого запроса. Проверяются 10/12 цифр и контрольные разряды.
+        Из реквизитов хранится только ИНН; маршрут /legal удалён. Неверный ИНН — 422 validation_failed.
+        Второму приглашённому представителю собственную компанию создавать не требуется.
       summary: Создать карточку компании
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CompanyInput'}}}}
@@ -567,6 +574,7 @@ paths:
     put:
       tags: [Companies]
       operationId: updateCompany
+      description: Полное обновление карточки с обязательными full_name и inn. ИНН проверяется по контрольным разрядам. Approved-компания переходит в pending. Отдельного /legal больше нет.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CompanyID'}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CompanyInput'}}}}
@@ -922,7 +930,13 @@ paths:
     post:
       tags: [Internships]
       operationId: createInternship
-      description: Представитель компании или модератор создаёт черновик стажировки или практики. Модератор передаёт ID одобренной компании.
+      description: |
+        Представитель компании или модератор создаёт черновик стажировки или практики.
+        Модератор передаёт ID одобренной компании.
+        Для фотографий сначала сохраните черновик с непустым content_markdown, получите program_id,
+        затем загрузите фото через POST /files (multipart, поле file, Bearer token).
+        Сохраните Markdown со ссылками /api/v1/internships/{program_id}/files/{file_id}/content
+        и полный массив file_ids через PUT /internships/{program_id}. Подробнее в схеме InternshipInput.
       security: [{bearerAuth: []}]
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InternshipInput'}}}}
       responses: {'201': {description: Черновик программы}}
@@ -961,9 +975,30 @@ paths:
     get:
       tags: [Internships, Files]
       operationId: downloadProgramFile
+      description: |
+        Чтение активного файла, прикреплённого к программе через file_ids (internship_files).
+        Прямая ссылка для Markdown: ![Фото](/api/v1/internships/{program_id}/files/{file_id}/content).
+        Опубликованная программа доступна без авторизации.
+        Для непубличной программы нужен Bearer token: активный участник компании или admin;
+        university_staff имеет доступ в статусе moderation.
+        Если файл не прикреплён, неактивен или программа недоступна, ответ 404.
+        /files/{file_id} не заменяет этот маршрут: он доступен загрузившему файл или admin.
+        Обычный img не передаёт Bearer token из API-клиента. Для защищённого предпросмотра
+        загрузите файл как Blob с Authorization и отобразите object URL, освобождая его при замене.
+        В Markdown храните постоянный URL маршрута программы, а не Blob URL и не токен.
+        При отдельном API-домене используйте URL с адресом API.
       security: [{}, {bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/ProgramID'}, {$ref: '#/components/parameters/FileID'}]
-      responses: {'200': {description: Файл доступной программы}, '404': {description: Файл недоступен}}
+      responses:
+        '200':
+          description: Бинарное содержимое файла с его Content-Type
+          content:
+            image/png: {schema: {type: string, format: binary}}
+            image/jpeg: {schema: {type: string, format: binary}}
+            image/webp: {schema: {type: string, format: binary}}
+            image/gif: {schema: {type: string, format: binary}}
+            application/octet-stream: {schema: {type: string, format: binary}}
+        '404': {description: Программа или прикреплённый активный файл недоступны}
   /internships/{program_id}/status:
     patch:
       tags: [Internships]
@@ -1118,6 +1153,11 @@ paths:
     get:
       tags: [Platform]
       operationId: listNotifications
+      description: |
+        Для приглашения представителя type и resource_type равны company_member_invitation,
+        resource_id содержит invitation_id. Предложите принятие через PATCH
+        /company-member-invitations/{invitation_id}; не отправляйте ответное уведомление.
+        Прочтение — отдельный PATCH /notifications/{notification_id}/read.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/Limit'}, {$ref: '#/components/parameters/Cursor'}]
       responses: {'200': {description: Уведомления пользователя}}
@@ -1168,9 +1208,10 @@ paths:
     patch:
       tags: [Companies]
       operationId: moderateCompany
+      description: Admin рассматривает pending-компанию. Используется status (approved или rejected), а не decision; suspended блокирует approved-компанию.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CompanyID'}]
-      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ModerationRequest'}}}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CompanyModerationRequest'}}}}
       responses: {'200': {description: Решение записано}}
   /companies/{company_id}/submit-moderation:
     post:
@@ -1183,9 +1224,24 @@ paths:
     post:
       tags: [Companies]
       operationId: inviteCompanyMember
+      description: |
+        Представитель с manage_company приглашает другого пользователя по user_id (UUID).
+        Согласованный UX — получатель сначала регистрируется и получает одобрение роли представителя,
+        компания проходит модерацию, затем отправляется приглашение.
+        Сервер требует active-получателя, назначенную company_representative и approved-запрос этой роли
+        в role_requests; иначе 403 representative_approval_required. Компания должна быть approved.
+        Email/username не принимаются, отдельного поиска представителей по email пока нет.
+        Создаётся pending-приглашение и уведомление company_member_invitation для получателя.
+        Права manage_company назначает сервер; приглашение даёт управление компанией.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CompanyMemberInviteInput'}}}}
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/CompanyID'}]
-      responses: {'201': {description: Приглашение создано}}
+      responses:
+        '201': {description: Pending-приглашение, content: {application/json: {schema: {$ref: '#/components/schemas/CompanyMemberInvitation'}}}}
+        '403': {description: representative_approval_required — получатель неактивен или не имеет подтверждённой роли}
+        '404': {description: Компания не одобрена или недоступна либо пользователь уже состоит в компании}
+        '409': {description: Дублирующее pending-приглашение (текущий общий код company_name_taken)}
+        '422': {description: Некорректные UUID или приглашение самого себя}
   /companies/{company_id}/student-invitations:
     post:
       tags: [Companies]
@@ -1197,15 +1253,37 @@ paths:
     get:
       tags: [Companies]
       operationId: listCompanyMemberInvitations
+      description: |
+        Входящие приглашения текущего авторизованного пользователя; пустая страница нормальна.
+        Список не является списком исходящих приглашений или сотрудников компании.
+        Для перехода из уведомления сопоставьте resource_id с invitation_id, учитывая все страницы.
+      parameters:
+        - {$ref: '#/components/parameters/Limit'}
+        - {$ref: '#/components/parameters/Cursor'}
+        - {in: query, name: status, schema: {type: string, enum: [pending, accepted, declined, revoked], default: pending}}
       security: [{bearerAuth: []}]
       responses: {'200': {description: Приглашения текущего пользователя}}
   /company-member-invitations/{invitation_id}:
     patch:
       tags: [Companies]
       operationId: respondCompanyMemberInvitation
+      description: |
+        Только адресат pending-приглашения принимает или отклоняет его.
+        accepted создаёт активное членство и возвращает карточку компании, declined не создаёт членство.
+        После ответа обновить приглашения и GET /companies/mine. Повторный ответ — 422 invalid_status.
+        Прочтение уведомления выполняется отдельно и не является принятием приглашения.
+        Ответного уведомления отправителю и текстового ответа пока нет.
+        При accepted сервер повторно проверяет active-аккаунт, роль company_representative и approved-запрос
+        роли (403 representative_approval_required), а также approved компании (422 invalid_status).
+        Принятие создаёт только членство и никогда не назначает роль. Ошибка оставляет приглашение pending.
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [status], properties: {status: {type: string, enum: [accepted, declined]}}}}}}
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/InvitationID'}]
-      responses: {'200': {description: Статус приглашения изменён}}
+      responses:
+        '200': {description: Карточка компании (не приглашение)}
+        '403': {description: representative_approval_required — получатель неактивен или подтверждённая роль отсутствует}
+        '404': {description: Приглашение не найдено или принадлежит другому пользователю (company_not_found)}
+        '422': {description: Некорректный статус или приглашение уже обработано (invalid_status)}
   /company-invitations:
     get:
       tags: [Companies]
@@ -1724,7 +1802,12 @@ components:
     LoginRequest: {type: object, required: [login, password], properties: {login: {type: string}, password: {type: string, format: password}}}
     RegisterRequest:
       type: object
-      description: Для student обязательны личные и учебные поля. Для остальных доступных ролей создаётся заявка на подтверждение.
+      description: |
+        Для student обязательны личные и учебные поля.
+        Для company_representative и university_staff создаётся pending-запрос роли без назначения роли.
+        Компания при регистрации представителя не создаётся. До одобрения вход возвращает 403 role_approval_pending.
+        После отказа вход возвращает 403 role_request_rejected. После одобрения представитель входит и
+        отдельно создаёт компанию либо принимает приглашение в существующую.
       required: [username, email, password, consent_version]
       oneOf:
         - required: [last_name, first_name, institute, direction, course, group_name]
@@ -1747,7 +1830,46 @@ components:
         group_name: {type: string}
         consent_version: {type: string}
     AuthTokens: {type: object, required: [user_id, access_token, refresh_token, token_type], properties: {user_id: {type: string, format: uuid}, access_token: {type: string}, refresh_token: {type: string}, token_type: {type: string, enum: [Bearer]}}}
-    CompanyInput: {type: object, required: [full_name], properties: {full_name: {type: string}, short_name: {type: string}, industry: {type: string}, description: {type: string}, website: {type: string, format: uri}}}
+    CompanyInput:
+      type: object
+      required: [full_name, inn]
+      properties:
+        inn: {type: string, pattern: '^(?:[0-9]{10}|[0-9]{12})$', description: Обязательный ИНН с корректными контрольными разрядами; все нули недопустимы., example: '7707083893'}
+        full_name: {type: string}
+        short_name: {type: string}
+        industry: {type: string}
+        description: {type: string}
+        activities: {type: string}
+        website: {type: string}
+        contacts: {type: string}
+        position: {type: string, description: При создании должность создателя в company_members}
+    CompanyModerationRequest:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [approved, rejected, suspended]}
+        comment: {type: string, maxLength: 2000}
+      example: {status: approved, comment: ""}
+    CompanyMemberInviteInput:
+      type: object
+      required: [user_id]
+      properties:
+        user_id: {type: string, format: uuid}
+        position: {type: string, maxLength: 150}
+      example: {user_id: "22222222-2222-4222-8222-222222222222", position: "Менеджер проектов"}
+    CompanyMemberInvitation:
+      type: object
+      properties:
+        invitation_id: {type: string, format: uuid}
+        company_id: {type: string, format: uuid}
+        company_name: {type: string}
+        invited_by: {type: string, format: uuid}
+        user_id: {type: string, format: uuid}
+        position: {type: string}
+        permissions: {type: array, items: {type: string}, example: [manage_company]}
+        status: {type: string, enum: [pending, accepted, declined, revoked]}
+        created_at: {type: string, format: date-time}
+        responded_at: {type: string, format: date-time, nullable: true}
     EvaluationCriterionInput: {type: object, required: [name, max_score, ordinal], properties: {name: {type: string}, max_score: {type: number, exclusiveMinimum: true, minimum: 0}, ordinal: {type: integer, minimum: 1}}}
     CaseInput:
       type: object
@@ -1793,7 +1915,43 @@ components:
     EvaluationInput: {type: object, required: [scores], properties: {feedback: {type: string}, scores: {type: array, items: {type: object, required: [criterion_id, score], properties: {criterion_id: {type: string, format: uuid}, score: {type: number, minimum: 0}, comment: {type: string}}}}}}
     PlacementsInput: {type: object, required: [placements], properties: {placements: {type: array, items: {type: object, required: [execution_id], properties: {execution_id: {type: string, format: uuid}, place_no: {type: integer, minimum: 1}, nomination: {type: string}}}}}}
     StudentProjectInput: {type: object, required: [title, category, short_description, full_description], properties: {title: {type: string}, category: {type: string, enum: [coursework, pet_project, startup, research, hackathon, other]}, short_description: {type: string}, full_description: {type: string}, visibility: {type: string, enum: [public, private], default: public}, tags: {type: array, maxItems: 10, uniqueItems: true, items: {type: string, maxLength: 40}}, cover_file_id: {type: string, format: uuid}}}
-    InternshipInput: {type: object, required: [company_id, title, summary, content_markdown], properties: {company_id: {type: string, format: uuid}, title: {type: string}, summary: {type: string}, content_markdown: {type: string}, file_ids: {type: array, maxItems: 30, items: {type: string, format: uuid}}, capacity: {type: integer, minimum: 1, maximum: 10000, description: При создании обязателен лимит людей.}, application_deadline: {type: string, format: date-time}}}
+    InternshipInput:
+      type: object
+      required: [company_id, title, summary, content_markdown]
+      description: |
+        Создание или полное обновление программы. Для POST также обязателен capacity.
+        Фото сначала загружаются через POST /files с полем file и Bearer token.
+        После получения program_id сохраните Markdown и полный массив file_ids через PUT.
+        Нельзя публиковать ссылки /files/{file_id}: используйте маршрут файлов программы.
+        PUT опубликованной программы переводит её в revision; до повторной публикации
+        ссылки на её файлы требуют авторизованного доступа.
+      properties:
+        kind: {type: string, enum: [internship, practice], description: При создании по умолчанию internship. При обновлении существующий вид не меняется.}
+        company_id: {type: string, format: uuid}
+        title: {type: string}
+        summary: {type: string}
+        content_markdown:
+          type: string
+          description: |
+            Постоянные ссылки на прикреплённые изображения в Markdown:
+            ![Фото офиса](/api/v1/internships/{program_id}/files/{file_id}/content).
+            UUID фото также должен быть в file_ids. Blob URL и Bearer token не сохраняются.
+            При отдельном API-домене укажите адрес API в ссылке.
+        file_ids:
+          type: array
+          nullable: true
+          maxItems: 30
+          uniqueItems: true
+          description: |
+            Полный список прикреплённых файлов, включая фото Markdown.
+            Пропущено или null при PUT — сохранить связи; [] — отсоединить все.
+            Новый файл должен быть активным и загруженным текущим пользователем.
+            Уже прикреплённый активный файл можно сохранить повторной передачей ID.
+            Отсоединение не удаляет файл физически и не меняет Markdown автоматически.
+          items: {type: string, format: uuid}
+        capacity: {type: integer, minimum: 1, maximum: 10000, description: При создании обязателен лимит людей.}
+        application_deadline: {type: string, format: date-time, nullable: true}
+      example: {"kind":"practice","company_id":"11111111-1111-4111-8111-111111111111","title":"Практика по разработке","summary":"Практика в команде","content_markdown":"## О программе\n\n![Фото офиса](/api/v1/internships/22222222-2222-4222-8222-222222222222/files/33333333-3333-4333-8333-333333333333/content)","capacity":5,"application_deadline":null,"file_ids":["33333333-3333-4333-8333-333333333333"]}
     RoleRequestDecision: {type: object, required: [status], properties: {status: {type: string, enum: [approved, rejected]}}}
     StudentSearchItem:
       type: object
