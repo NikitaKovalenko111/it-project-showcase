@@ -1,4 +1,4 @@
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 import { ExpandableText } from './ExpandableText'
 import { matchesSearch } from '../utils/publication'
 import React, { useEffect, useState } from 'react'
@@ -496,7 +496,8 @@ export const TeamsPanel: React.FC<{
                       <article className="candidate-row" key={s.id}>
                         <div>
                           <Link to={`/profile/${s.id}`}>
-                            <IdentityImage
+                            <UserAvatar
+                              userId={s.id}
                               className="member-avatar"
                               name={s.fullName}
                               src={s.avatar}

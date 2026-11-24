@@ -1,0 +1,25 @@
+[
+  {
+    "title": "Ufa_Hack 2023",
+    "city": "Уфа",
+    "eventStartDate": null,
+    "eventEndDate": null,
+    "publicationDate": "2023-11-29",
+    "url": "https://uust.ru/news/get/24-chasovoj-studencheskij-hakaton-ufa_hack-2023-vsem-kto-ne-spal-ura/",
+    "status": "exact_event_date_not_confirmed",
+    "knownTopic": "Telegram-бот поиска людей по интересам среди студентов; трек Junior."
+  },
+  {
+    "title": "Миссия ИИ. Лаборатория будущего",
+    "city": "Уфа",
+    "eventStartDate": null,
+    "eventEndDate": null,
+    "publicationDate": "2025-10-17",
+    "url": "https://campusufa.ru/news/1535",
+    "status": "exact_event_date_not_confirmed",
+    "knownOrganizers": [
+      "УГНТУ",
+      "Газпром нефть"
+    ]
+  }
+]

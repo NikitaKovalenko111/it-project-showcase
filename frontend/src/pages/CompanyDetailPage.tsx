@@ -5,7 +5,7 @@ import { formatDate } from '../utils/date'
 import { AdminCompanyActions } from '../components/AdminCompanyActions'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { communityApi } from '../api/community'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
 import { ReportButton } from '../components/ReportButton'
 import { CompanyProgram } from '../components/CompanyProgram'
 import { CompanyLegalDetails } from '../components/CompanyLegalDetails'
@@ -152,9 +152,8 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
         <div className="company-hero__top">
-          <IdentityImage
-            src={activeCompany.logo}
-            name={activeCompany.shortName || activeCompany.name}
+          <CompanyLogo
+            company={activeCompany}
             className="company-hero__logo"
           />
 
@@ -540,84 +539,7 @@ export const CompanyDetailPage: React.FC = () => {
           )}
 
           {activeTab === 'mentors' && (
-            <div>
-              <h3
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  color: 'var(--ui-ink)',
-                  margin: '0 0 14px',
-                }}
-              >
-                Наставники и эксперты от предприятия
-              </h3>
-              <div
-                className="responsive-grid"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                  gap: '16px',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '14px',
-                    background: 'var(--ui-panel)',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--ui-line)',
-                  }}
-                >
-                  <IdentityImage
-                    name={activeCompany.contactPerson || activeCompany.name}
-                    className="company-contact-avatar"
-                  />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ui-ink)' }}>
-                      {activeCompany.contactPerson}
-                    </div>
-                    <div
-                      style={{ fontSize: '12px', color: 'var(--ui-brand-text)', fontWeight: 600 }}
-                    >
-                      Ведущий архитектор R&D
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)', marginTop: '4px' }}>
-                      Экспертиза: SCADA, Python, Архитектура распределенных систем
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '14px',
-                    background: 'var(--ui-panel)',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--ui-line)',
-                  }}
-                >
-                  <IdentityImage
-                    name="Ахметова Лилия Фаритовна"
-                    className="company-contact-avatar"
-                  />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ui-ink)' }}>
-                      Ахметова Лилия Фаритовна
-                    </div>
-                    <div
-                      style={{ fontSize: '12px', color: 'var(--ui-brand-text)', fontWeight: 600 }}
-                    >
-                      Team Lead AI & Data Engineering
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--ui-muted)', marginTop: '4px' }}>
-                      Экспертиза: Компьютерное зрение, PyTorch, MLOps, выпускница
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p className="empty-state">Сведения о наставниках пока не опубликованы.</p>
           )}
         </div>
       </div>

@@ -1,0 +1,615 @@
+[
+  {
+    "id": "syn_milestone_001",
+    "caseId": "syn_case_001",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Панель температуры, журнал превышений и явные состояния «нет связи» и «остановлен». Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_002",
+    "caseId": "syn_case_001",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Мониторинг перегрева насосов».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_001-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_001.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_003",
+    "caseId": "syn_case_001",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_004",
+    "caseId": "syn_case_001",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_005",
+    "caseId": "syn_case_002",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Временная шкала простоев с причинами и выгрузкой CSV. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_006",
+    "caseId": "syn_case_002",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Расследование простоев линии».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_001-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_001.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_007",
+    "caseId": "syn_case_002",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "submitted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_008",
+    "caseId": "syn_case_002",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_009",
+    "caseId": "syn_case_003",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Симулятор полива с ручным подтверждением и журналом решений. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_010",
+    "caseId": "syn_case_003",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Планировщик полива теплицы».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_002-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_002.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_011",
+    "caseId": "syn_case_003",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "needs_work",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z",
+    "feedback": "Не хватает примера ошибочного ввода. Приложите вход и ожидаемое поведение."
+  },
+  {
+    "id": "syn_milestone_012",
+    "caseId": "syn_case_003",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_013",
+    "caseId": "syn_case_004",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Каталог партий с QR-метками и историей перемещений. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_014",
+    "caseId": "syn_case_004",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Учёт партий рассады».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_002-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_002.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_015",
+    "caseId": "syn_case_004",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "submitted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_016",
+    "caseId": "syn_case_004",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_017",
+    "caseId": "syn_case_005",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Каталог экземпляров, очередь бронирования и календарь получения. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_018",
+    "caseId": "syn_case_005",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Бронирование редких изданий».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_003-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_003.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_019",
+    "caseId": "syn_case_005",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_020",
+    "caseId": "syn_case_005",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-20T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_021",
+    "caseId": "syn_case_006",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Поиск с подсветкой совпадений и фильтрами по фонду. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_022",
+    "caseId": "syn_case_006",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Поиск по оцифрованным описям».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_003-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_003.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_023",
+    "caseId": "syn_case_006",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_024",
+    "caseId": "syn_case_006",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-20T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_025",
+    "caseId": "syn_case_007",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: API маршрута с объяснением невыполнимых заказов. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_026",
+    "caseId": "syn_case_007",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Доставка с временными окнами».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_004-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_004.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_027",
+    "caseId": "syn_case_007",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_028",
+    "caseId": "syn_case_007",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-20T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_029",
+    "caseId": "syn_case_008",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Реестр возвратов с актом расхождений и маршрутом согласования. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_030",
+    "caseId": "syn_case_008",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Согласование складских возвратов».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_004-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_004.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_031",
+    "caseId": "syn_case_008",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_032",
+    "caseId": "syn_case_008",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-11-20T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_033",
+    "caseId": "syn_case_009",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Ноутбук, базовая модель и график ошибок по часам. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_034",
+    "caseId": "syn_case_009",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Прогноз выработки ветропарка».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_005-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_005.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_035",
+    "caseId": "syn_case_009",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_036",
+    "caseId": "syn_case_009",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_037",
+    "caseId": "syn_case_010",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Отчёт о потерях с приведением времени и отметками обслуживания. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_038",
+    "caseId": "syn_case_010",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Учёт потерь солнечной станции».",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_039",
+    "caseId": "syn_case_010",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_040",
+    "caseId": "syn_case_010",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_041",
+    "caseId": "syn_case_011",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Доступный календарь с записью, отменой и переносом. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_042",
+    "caseId": "syn_case_011",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Календарь консультаций».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_006-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_006.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_043",
+    "caseId": "syn_case_011",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_044",
+    "caseId": "syn_case_011",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_045",
+    "caseId": "syn_case_012",
+    "stepNumber": 1,
+    "title": "Анализ задачи",
+    "deadline": "2026-09-20",
+    "description": "Уточнить входные данные и критерии: Поиск по времени, вместимости и оборудованию. Инструкция воспроизведения и отчёт о проверках обязательны.",
+    "status": "accepted",
+    "attachedMaterials": [],
+    "submittedAt": "2026-09-19T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_046",
+    "caseId": "syn_case_012",
+    "stepNumber": 2,
+    "title": "Создание прототипа",
+    "deadline": "2026-10-10",
+    "description": "Подготовить демонстрацию по теме «Поиск свободных аудиторий».",
+    "status": "accepted",
+    "attachedMaterials": [
+      {
+        "name": "Основной экран.png",
+        "url": "assets/screenshots/syn_project_006-1.png"
+      },
+      {
+        "name": "План демонстрации.pdf",
+        "url": "documents/presentations/syn_project_006.pdf"
+      }
+    ],
+    "submittedAt": "2026-10-09T10:00:00Z"
+  },
+  {
+    "id": "syn_milestone_047",
+    "caseId": "syn_case_012",
+    "stepNumber": 3,
+    "title": "Тестирование",
+    "deadline": "2026-11-10",
+    "description": "Для каждого критерия зафиксировать вход, ожидаемый и фактический результат.",
+    "status": "pending",
+    "attachedMaterials": []
+  },
+  {
+    "id": "syn_milestone_048",
+    "caseId": "syn_case_012",
+    "stepNumber": 4,
+    "title": "Защита проекта",
+    "deadline": "2026-11-30",
+    "description": "Показать решение, ограничения и дальнейшие шаги.",
+    "status": "pending",
+    "attachedMaterials": []
+  }
+]

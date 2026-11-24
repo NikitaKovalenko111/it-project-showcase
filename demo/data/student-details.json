@@ -1,0 +1,2102 @@
+[
+  {
+    "studentId": "syn_student_001",
+    "specialization": "Frontend-разработчик",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Собрал календарь консультаций с управлением с клавиатуры.",
+        "contribution": "реализация интерфейса, состояния загрузки и регрессионные проверки"
+      }
+    ],
+    "desiredContribution": "реализация интерфейса, состояния загрузки и регрессионные проверки",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_002",
+    "specialization": "Backend-разработчик",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Реализовала идемпотентный приём заявок и журнал повторов.",
+        "contribution": "контракты API, транзакции и обработка конфликтов"
+      }
+    ],
+    "desiredContribution": "контракты API, транзакции и обработка конфликтов",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_003",
+    "specialization": "Аналитик данных",
+    "level": "Начинающий",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Подготовил правила качества каталога и разбор ошибочных строк.",
+        "contribution": "профилирование входа, контрольные расчёты и визуализация"
+      }
+    ],
+    "desiredContribution": "профилирование входа, контрольные расчёты и визуализация",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_004",
+    "specialization": "UX/UI-дизайнер",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Спроектировала запись на оборудование и проверил сценарий переноса.",
+        "contribution": "карта пути пользователя, прототипы и библиотека состояний"
+      }
+    ],
+    "desiredContribution": "карта пути пользователя, прототипы и библиотека состояний",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_005",
+    "specialization": "QA-инженер",
+    "level": "Начинающий",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Составил матрицу прав для четырёх ролей и негативные проверки API.",
+        "contribution": "тест-дизайн, автоматизация и отчёты о дефектах"
+      }
+    ],
+    "desiredContribution": "тест-дизайн, автоматизация и отчёты о дефектах",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_006",
+    "specialization": "ML-инженер",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Сравнила классификатор обращений с базовым поиском по словам.",
+        "contribution": "подготовка выборки, оценка ошибок и сервис предсказаний"
+      }
+    ],
+    "desiredContribution": "подготовка выборки, оценка ошибок и сервис предсказаний",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_007",
+    "specialization": "DevOps-инженер",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Настроил стенд с метриками и проверил отказ зависимости.",
+        "contribution": "окружение, журналы, панели и инструкция восстановления"
+      }
+    ],
+    "desiredContribution": "окружение, журналы, панели и инструкция восстановления",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_008",
+    "specialization": "Мобильный разработчик",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Сделала каталог велопарковок с очередью изменений без сети.",
+        "contribution": "локальное хранение, синхронизация и мобильная навигация"
+      }
+    ],
+    "desiredContribution": "локальное хранение, синхронизация и мобильная навигация",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_009",
+    "specialization": "Системный аналитик",
+    "level": "Начинающий",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Описал маршрут согласования и сценарии возврата документа.",
+        "contribution": "матрица ответственности, словарь состояний и контракт данных"
+      }
+    ],
+    "desiredContribution": "матрица ответственности, словарь состояний и контракт данных",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_010",
+    "specialization": "Разработчик IoT",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Собрала панель измерений с разделением простоя и потери связи.",
+        "contribution": "приём сигналов, единицы измерения и журнал предупреждений"
+      }
+    ],
+    "desiredContribution": "приём сигналов, единицы измерения и журнал предупреждений",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_011",
+    "specialization": "Разработчик игр",
+    "level": "Начинающий",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Разработал игру о сортировке с объяснением спорных решений.",
+        "contribution": "механика, прогресс игрока и обучение без длинных инструкций"
+      }
+    ],
+    "desiredContribution": "механика, прогресс игрока и обучение без длинных инструкций",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_012",
+    "specialization": "Инженер компьютерного зрения",
+    "level": "Начинающий",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров.",
+        "contribution": "обработка изображений, разметка и сравнение результатов"
+      }
+    ],
+    "desiredContribution": "обработка изображений, разметка и сравнение результатов",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_013",
+    "specialization": "Frontend-разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Собрал календарь консультаций с управлением с клавиатуры.",
+        "contribution": "реализация интерфейса, состояния загрузки и регрессионные проверки"
+      }
+    ],
+    "desiredContribution": "реализация интерфейса, состояния загрузки и регрессионные проверки",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_014",
+    "specialization": "Backend-разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Реализовала идемпотентный приём заявок и журнал повторов.",
+        "contribution": "контракты API, транзакции и обработка конфликтов"
+      }
+    ],
+    "desiredContribution": "контракты API, транзакции и обработка конфликтов",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_015",
+    "specialization": "Аналитик данных",
+    "level": "Junior",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Подготовил правила качества каталога и разбор ошибочных строк.",
+        "contribution": "профилирование входа, контрольные расчёты и визуализация"
+      }
+    ],
+    "desiredContribution": "профилирование входа, контрольные расчёты и визуализация",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_016",
+    "specialization": "UX/UI-дизайнер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Спроектировала запись на оборудование и проверил сценарий переноса.",
+        "contribution": "карта пути пользователя, прототипы и библиотека состояний"
+      }
+    ],
+    "desiredContribution": "карта пути пользователя, прототипы и библиотека состояний",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_017",
+    "specialization": "QA-инженер",
+    "level": "Junior",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Составил матрицу прав для четырёх ролей и негативные проверки API.",
+        "contribution": "тест-дизайн, автоматизация и отчёты о дефектах"
+      }
+    ],
+    "desiredContribution": "тест-дизайн, автоматизация и отчёты о дефектах",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_018",
+    "specialization": "ML-инженер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Сравнила классификатор обращений с базовым поиском по словам.",
+        "contribution": "подготовка выборки, оценка ошибок и сервис предсказаний"
+      }
+    ],
+    "desiredContribution": "подготовка выборки, оценка ошибок и сервис предсказаний",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_019",
+    "specialization": "DevOps-инженер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Настроил стенд с метриками и проверил отказ зависимости.",
+        "contribution": "окружение, журналы, панели и инструкция восстановления"
+      }
+    ],
+    "desiredContribution": "окружение, журналы, панели и инструкция восстановления",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_020",
+    "specialization": "Мобильный разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Сделала каталог велопарковок с очередью изменений без сети.",
+        "contribution": "локальное хранение, синхронизация и мобильная навигация"
+      }
+    ],
+    "desiredContribution": "локальное хранение, синхронизация и мобильная навигация",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_021",
+    "specialization": "Системный аналитик",
+    "level": "Junior",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Описал маршрут согласования и сценарии возврата документа.",
+        "contribution": "матрица ответственности, словарь состояний и контракт данных"
+      }
+    ],
+    "desiredContribution": "матрица ответственности, словарь состояний и контракт данных",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_022",
+    "specialization": "Разработчик IoT",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Собрала панель измерений с разделением простоя и потери связи.",
+        "contribution": "приём сигналов, единицы измерения и журнал предупреждений"
+      }
+    ],
+    "desiredContribution": "приём сигналов, единицы измерения и журнал предупреждений",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_023",
+    "specialization": "Разработчик игр",
+    "level": "Junior",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Разработал игру о сортировке с объяснением спорных решений.",
+        "contribution": "механика, прогресс игрока и обучение без длинных инструкций"
+      }
+    ],
+    "desiredContribution": "механика, прогресс игрока и обучение без длинных инструкций",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_024",
+    "specialization": "Инженер компьютерного зрения",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров.",
+        "contribution": "обработка изображений, разметка и сравнение результатов"
+      }
+    ],
+    "desiredContribution": "обработка изображений, разметка и сравнение результатов",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_025",
+    "specialization": "Frontend-разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Собрал календарь консультаций с управлением с клавиатуры.",
+        "contribution": "реализация интерфейса, состояния загрузки и регрессионные проверки"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "реализация интерфейса, состояния загрузки и регрессионные проверки",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_026",
+    "specialization": "Backend-разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Реализовала идемпотентный приём заявок и журнал повторов.",
+        "contribution": "контракты API, транзакции и обработка конфликтов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "контракты API, транзакции и обработка конфликтов",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_027",
+    "specialization": "Аналитик данных",
+    "level": "Junior",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Подготовил правила качества каталога и разбор ошибочных строк.",
+        "contribution": "профилирование входа, контрольные расчёты и визуализация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "профилирование входа, контрольные расчёты и визуализация",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_028",
+    "specialization": "UX/UI-дизайнер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Спроектировала запись на оборудование и проверил сценарий переноса.",
+        "contribution": "карта пути пользователя, прототипы и библиотека состояний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "карта пути пользователя, прототипы и библиотека состояний",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_029",
+    "specialization": "QA-инженер",
+    "level": "Junior",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Составил матрицу прав для четырёх ролей и негативные проверки API.",
+        "contribution": "тест-дизайн, автоматизация и отчёты о дефектах"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "тест-дизайн, автоматизация и отчёты о дефектах",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_030",
+    "specialization": "ML-инженер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Сравнила классификатор обращений с базовым поиском по словам.",
+        "contribution": "подготовка выборки, оценка ошибок и сервис предсказаний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "подготовка выборки, оценка ошибок и сервис предсказаний",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_031",
+    "specialization": "DevOps-инженер",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Настроил стенд с метриками и проверил отказ зависимости.",
+        "contribution": "окружение, журналы, панели и инструкция восстановления"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "окружение, журналы, панели и инструкция восстановления",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_032",
+    "specialization": "Мобильный разработчик",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Сделала каталог велопарковок с очередью изменений без сети.",
+        "contribution": "локальное хранение, синхронизация и мобильная навигация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "локальное хранение, синхронизация и мобильная навигация",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_033",
+    "specialization": "Системный аналитик",
+    "level": "Junior",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Описал маршрут согласования и сценарии возврата документа.",
+        "contribution": "матрица ответственности, словарь состояний и контракт данных"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "матрица ответственности, словарь состояний и контракт данных",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_034",
+    "specialization": "Разработчик IoT",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Собрала панель измерений с разделением простоя и потери связи.",
+        "contribution": "приём сигналов, единицы измерения и журнал предупреждений"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "приём сигналов, единицы измерения и журнал предупреждений",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_035",
+    "specialization": "Разработчик игр",
+    "level": "Junior",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Разработал игру о сортировке с объяснением спорных решений.",
+        "contribution": "механика, прогресс игрока и обучение без длинных инструкций"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "механика, прогресс игрока и обучение без длинных инструкций",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_036",
+    "specialization": "Инженер компьютерного зрения",
+    "level": "Junior",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров.",
+        "contribution": "обработка изображений, разметка и сравнение результатов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "обработка изображений, разметка и сравнение результатов",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_037",
+    "specialization": "Frontend-разработчик",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Собрал календарь консультаций с управлением с клавиатуры.",
+        "contribution": "реализация интерфейса, состояния загрузки и регрессионные проверки"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "реализация интерфейса, состояния загрузки и регрессионные проверки",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_038",
+    "specialization": "Backend-разработчик",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Реализовала идемпотентный приём заявок и журнал повторов.",
+        "contribution": "контракты API, транзакции и обработка конфликтов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "контракты API, транзакции и обработка конфликтов",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_039",
+    "specialization": "Аналитик данных",
+    "level": "Junior+",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Подготовил правила качества каталога и разбор ошибочных строк.",
+        "contribution": "профилирование входа, контрольные расчёты и визуализация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "профилирование входа, контрольные расчёты и визуализация",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_040",
+    "specialization": "UX/UI-дизайнер",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Спроектировала запись на оборудование и проверил сценарий переноса.",
+        "contribution": "карта пути пользователя, прототипы и библиотека состояний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "карта пути пользователя, прототипы и библиотека состояний",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_041",
+    "specialization": "QA-инженер",
+    "level": "Junior+",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Составил матрицу прав для четырёх ролей и негативные проверки API.",
+        "contribution": "тест-дизайн, автоматизация и отчёты о дефектах"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "тест-дизайн, автоматизация и отчёты о дефектах",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_042",
+    "specialization": "ML-инженер",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Сравнила классификатор обращений с базовым поиском по словам.",
+        "contribution": "подготовка выборки, оценка ошибок и сервис предсказаний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "подготовка выборки, оценка ошибок и сервис предсказаний",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_043",
+    "specialization": "DevOps-инженер",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Настроил стенд с метриками и проверил отказ зависимости.",
+        "contribution": "окружение, журналы, панели и инструкция восстановления"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "окружение, журналы, панели и инструкция восстановления",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_044",
+    "specialization": "Мобильный разработчик",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Сделала каталог велопарковок с очередью изменений без сети.",
+        "contribution": "локальное хранение, синхронизация и мобильная навигация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "локальное хранение, синхронизация и мобильная навигация",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_045",
+    "specialization": "Системный аналитик",
+    "level": "Junior+",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Описал маршрут согласования и сценарии возврата документа.",
+        "contribution": "матрица ответственности, словарь состояний и контракт данных"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "матрица ответственности, словарь состояний и контракт данных",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_046",
+    "specialization": "Разработчик IoT",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Собрала панель измерений с разделением простоя и потери связи.",
+        "contribution": "приём сигналов, единицы измерения и журнал предупреждений"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "приём сигналов, единицы измерения и журнал предупреждений",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_047",
+    "specialization": "Разработчик игр",
+    "level": "Junior+",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Разработал игру о сортировке с объяснением спорных решений.",
+        "contribution": "механика, прогресс игрока и обучение без длинных инструкций"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "механика, прогресс игрока и обучение без длинных инструкций",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_048",
+    "specialization": "Инженер компьютерного зрения",
+    "level": "Junior+",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров.",
+        "contribution": "обработка изображений, разметка и сравнение результатов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "обработка изображений, разметка и сравнение результатов",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_049",
+    "specialization": "Frontend-разработчик",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Собрал календарь консультаций с управлением с клавиатуры.",
+        "contribution": "реализация интерфейса, состояния загрузки и регрессионные проверки"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "реализация интерфейса, состояния загрузки и регрессионные проверки",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_050",
+    "specialization": "Backend-разработчик",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Реализовала идемпотентный приём заявок и журнал повторов.",
+        "contribution": "контракты API, транзакции и обработка конфликтов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "контракты API, транзакции и обработка конфликтов",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_051",
+    "specialization": "Аналитик данных",
+    "level": "Стажёр с проектным опытом",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Подготовил правила качества каталога и разбор ошибочных строк.",
+        "contribution": "профилирование входа, контрольные расчёты и визуализация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "профилирование входа, контрольные расчёты и визуализация",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_052",
+    "specialization": "UX/UI-дизайнер",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Спроектировала запись на оборудование и проверил сценарий переноса.",
+        "contribution": "карта пути пользователя, прототипы и библиотека состояний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "карта пути пользователя, прототипы и библиотека состояний",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_053",
+    "specialization": "QA-инженер",
+    "level": "Стажёр с проектным опытом",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Составил матрицу прав для четырёх ролей и негативные проверки API.",
+        "contribution": "тест-дизайн, автоматизация и отчёты о дефектах"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "тест-дизайн, автоматизация и отчёты о дефектах",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_054",
+    "specialization": "ML-инженер",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Сравнила классификатор обращений с базовым поиском по словам.",
+        "contribution": "подготовка выборки, оценка ошибок и сервис предсказаний"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "подготовка выборки, оценка ошибок и сервис предсказаний",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_055",
+    "specialization": "DevOps-инженер",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 6,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Настроил стенд с метриками и проверил отказ зависимости.",
+        "contribution": "окружение, журналы, панели и инструкция восстановления"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "окружение, журналы, панели и инструкция восстановления",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_056",
+    "specialization": "Мобильный разработчик",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 8,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Сделала каталог велопарковок с очередью изменений без сети.",
+        "contribution": "локальное хранение, синхронизация и мобильная навигация"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "локальное хранение, синхронизация и мобильная навигация",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  },
+  {
+    "studentId": "syn_student_057",
+    "specialization": "Системный аналитик",
+    "level": "Стажёр с проектным опытом",
+    "city": "Стерлитамак",
+    "availabilityHours": 10,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Проектная мастерская",
+        "description": "Описал маршрут согласования и сценарии возврата документа.",
+        "contribution": "матрица ответственности, словарь состояний и контракт данных"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Разработка в студенческой команде",
+        "description": "Перевёл требования в проверяемые сценарии и оформил инструкцию передачи."
+      }
+    ],
+    "desiredContribution": "матрица ответственности, словарь состояний и контракт данных",
+    "learningGoals": "Обосновывать архитектурные решения",
+    "strengths": [
+      "Внимание к деталям",
+      "Понятная документация"
+    ]
+  },
+  {
+    "studentId": "syn_student_058",
+    "specialization": "Разработчик IoT",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 12,
+    "preferredWorkFormat": "дистанционный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "A2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Командный интенсив",
+        "description": "Собрала панель измерений с разделением простоя и потери связи.",
+        "contribution": "приём сигналов, единицы измерения и журнал предупреждений"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Практикум по инженерии ПО",
+        "description": "Собрала демонстрацию и разобрал ошибки после пользовательского просмотра."
+      }
+    ],
+    "desiredContribution": "приём сигналов, единицы измерения и журнал предупреждений",
+    "learningGoals": "Лучше оценивать сроки задач",
+    "strengths": [
+      "Командная работа",
+      "Исследовательский подход"
+    ]
+  },
+  {
+    "studentId": "syn_student_059",
+    "specialization": "Разработчик игр",
+    "level": "Стажёр с проектным опытом",
+    "city": "Нефтекамск",
+    "availabilityHours": 14,
+    "preferredWorkFormat": "смешанный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B1"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Пет-проект",
+        "description": "Разработал игру о сортировке с объяснением спорных решений.",
+        "contribution": "механика, прогресс игрока и обучение без длинных инструкций"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Исследовательский семинар",
+        "description": "Настроил совместную работу через ветки и небольшие ревью."
+      }
+    ],
+    "desiredContribution": "механика, прогресс игрока и обучение без длинных инструкций",
+    "learningGoals": "Проводить ревью и принимать обратную связь",
+    "strengths": [
+      "Самостоятельность",
+      "Проверка гипотез"
+    ]
+  },
+  {
+    "studentId": "syn_student_060",
+    "specialization": "Инженер компьютерного зрения",
+    "level": "Стажёр с проектным опытом",
+    "city": "Уфа",
+    "availabilityHours": 16,
+    "preferredWorkFormat": "очный",
+    "languages": [
+      {
+        "language": "Русский",
+        "level": "свободно"
+      },
+      {
+        "language": "Английский",
+        "level": "B2"
+      }
+    ],
+    "experience": [
+      {
+        "period": "2026",
+        "title": "Учебная лаборатория",
+        "description": "Подготовила конвейер выравнивания сканов с ручной проверкой сложных кадров.",
+        "contribution": "обработка изображений, разметка и сравнение результатов"
+      },
+      {
+        "period": "2025–2026",
+        "title": "Университетский проект",
+        "description": "Проверила альтернативный подход и объяснил причины выбора."
+      }
+    ],
+    "desiredContribution": "обработка изображений, разметка и сравнение результатов",
+    "learningGoals": "Обрабатывать сложный ввод без потери данных",
+    "strengths": [
+      "Коммуникация",
+      "Завершение задач"
+    ]
+  }
+]

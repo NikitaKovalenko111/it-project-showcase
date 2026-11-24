@@ -1,0 +1,970 @@
+[
+  {
+    "event_id": "dispatch_001",
+    "timestamp": "2026-11-23T09:00:00.000Z",
+    "request_id": "request_1",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_002",
+    "timestamp": "2026-11-23T09:00:08.000Z",
+    "request_id": "request_2",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_003",
+    "timestamp": "2026-11-23T09:00:16.000Z",
+    "request_id": "request_3",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_004",
+    "timestamp": "2026-11-23T09:00:24.000Z",
+    "request_id": "request_4",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_005",
+    "timestamp": "2026-11-23T09:00:32.000Z",
+    "request_id": "request_5",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_006",
+    "timestamp": "2026-11-23T09:00:40.000Z",
+    "request_id": "request_6",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_007",
+    "timestamp": "2026-11-23T09:00:48.000Z",
+    "request_id": "request_7",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_008",
+    "timestamp": "2026-11-23T09:00:56.000Z",
+    "request_id": "request_8",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_009",
+    "timestamp": "2026-11-23T09:01:04.000Z",
+    "request_id": "request_9",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_010",
+    "timestamp": "2026-11-23T09:01:12.000Z",
+    "request_id": "request_10",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_011",
+    "timestamp": "2026-11-23T09:01:20.000Z",
+    "request_id": "request_11",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_012",
+    "timestamp": "2026-11-23T09:01:28.000Z",
+    "request_id": "request_12",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_013",
+    "timestamp": "2026-11-23T09:01:36.000Z",
+    "request_id": "request_13",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_014",
+    "timestamp": "2026-11-23T09:01:44.000Z",
+    "request_id": "request_14",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_015",
+    "timestamp": "2026-11-23T09:01:52.000Z",
+    "request_id": "request_15",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_016",
+    "timestamp": "2026-11-23T09:02:00.000Z",
+    "request_id": "request_16",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_017",
+    "timestamp": "2026-11-23T09:02:08.000Z",
+    "request_id": "request_17",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_018",
+    "timestamp": "2026-11-23T09:02:16.000Z",
+    "request_id": "request_18",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_019",
+    "timestamp": "2026-11-23T09:02:24.000Z",
+    "request_id": "request_19",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_020",
+    "timestamp": "2026-11-23T09:02:32.000Z",
+    "request_id": "request_20",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_021",
+    "timestamp": "2026-11-23T09:02:40.000Z",
+    "request_id": "request_21",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_022",
+    "timestamp": "2026-11-23T09:02:48.000Z",
+    "request_id": "request_22",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_023",
+    "timestamp": "2026-11-23T09:02:56.000Z",
+    "request_id": "request_23",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_024",
+    "timestamp": "2026-11-23T09:03:04.000Z",
+    "request_id": "request_24",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_025",
+    "timestamp": "2026-11-23T09:03:12.000Z",
+    "request_id": "request_25",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_026",
+    "timestamp": "2026-11-23T09:03:20.000Z",
+    "request_id": "request_26",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_027",
+    "timestamp": "2026-11-23T09:03:28.000Z",
+    "request_id": "request_27",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_028",
+    "timestamp": "2026-11-23T09:03:36.000Z",
+    "request_id": "request_28",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_029",
+    "timestamp": "2026-11-23T09:03:44.000Z",
+    "request_id": "request_29",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_030",
+    "timestamp": "2026-11-23T09:03:52.000Z",
+    "request_id": "request_30",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_031",
+    "timestamp": "2026-11-23T09:04:00.000Z",
+    "request_id": "request_31",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_032",
+    "timestamp": "2026-11-23T09:04:08.000Z",
+    "request_id": "request_32",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_033",
+    "timestamp": "2026-11-23T09:04:16.000Z",
+    "request_id": "request_33",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_034",
+    "timestamp": "2026-11-23T09:04:24.000Z",
+    "request_id": "request_34",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_035",
+    "timestamp": "2026-11-23T09:04:32.000Z",
+    "request_id": "request_35",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_036",
+    "timestamp": "2026-11-23T09:04:40.000Z",
+    "request_id": "request_36",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_037",
+    "timestamp": "2026-11-23T09:04:48.000Z",
+    "request_id": "request_37",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_038",
+    "timestamp": "2026-11-23T09:04:56.000Z",
+    "request_id": "request_38",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_039",
+    "timestamp": "2026-11-23T09:05:04.000Z",
+    "request_id": "request_39",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_040",
+    "timestamp": "2026-11-23T09:05:12.000Z",
+    "request_id": "request_40",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_041",
+    "timestamp": "2026-11-23T09:05:20.000Z",
+    "request_id": "request_41",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_042",
+    "timestamp": "2026-11-23T09:05:28.000Z",
+    "request_id": "request_42",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_043",
+    "timestamp": "2026-11-23T09:05:36.000Z",
+    "request_id": "request_43",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_044",
+    "timestamp": "2026-11-23T09:05:44.000Z",
+    "request_id": "request_44",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_045",
+    "timestamp": "2026-11-23T09:05:52.000Z",
+    "request_id": "request_45",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_046",
+    "timestamp": "2026-11-23T09:06:00.000Z",
+    "request_id": "request_46",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_047",
+    "timestamp": "2026-11-23T09:06:08.000Z",
+    "request_id": "request_47",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_048",
+    "timestamp": "2026-11-23T09:06:16.000Z",
+    "request_id": "request_48",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_049",
+    "timestamp": "2026-11-23T09:06:24.000Z",
+    "request_id": "request_49",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_050",
+    "timestamp": "2026-11-23T09:06:32.000Z",
+    "request_id": "request_50",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_051",
+    "timestamp": "2026-11-23T09:06:40.000Z",
+    "request_id": "request_51",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_052",
+    "timestamp": "2026-11-23T09:06:48.000Z",
+    "request_id": "request_52",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_053",
+    "timestamp": "2026-11-23T09:06:56.000Z",
+    "request_id": "request_53",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_054",
+    "timestamp": "2026-11-23T09:07:04.000Z",
+    "request_id": "request_54",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_055",
+    "timestamp": "2026-11-23T09:07:12.000Z",
+    "request_id": "request_55",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_056",
+    "timestamp": "2026-11-23T09:07:20.000Z",
+    "request_id": "request_56",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_057",
+    "timestamp": "2026-11-23T09:07:28.000Z",
+    "request_id": "request_57",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_058",
+    "timestamp": "2026-11-23T09:07:36.000Z",
+    "request_id": "request_58",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_059",
+    "timestamp": "2026-11-23T09:07:44.000Z",
+    "request_id": "request_59",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_060",
+    "timestamp": "2026-11-23T09:07:52.000Z",
+    "request_id": "request_60",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_061",
+    "timestamp": "2026-11-23T09:08:00.000Z",
+    "request_id": "request_61",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_062",
+    "timestamp": "2026-11-23T09:08:08.000Z",
+    "request_id": "request_62",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_063",
+    "timestamp": "2026-11-23T09:08:16.000Z",
+    "request_id": "request_63",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_064",
+    "timestamp": "2026-11-23T09:08:24.000Z",
+    "request_id": "request_64",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_065",
+    "timestamp": "2026-11-23T09:08:32.000Z",
+    "request_id": "request_65",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_066",
+    "timestamp": "2026-11-23T09:08:40.000Z",
+    "request_id": "request_66",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_067",
+    "timestamp": "2026-11-23T09:08:48.000Z",
+    "request_id": "request_67",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_068",
+    "timestamp": "2026-11-23T09:08:56.000Z",
+    "request_id": "request_68",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_069",
+    "timestamp": "2026-11-23T09:09:04.000Z",
+    "request_id": "request_69",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_070",
+    "timestamp": "2026-11-23T09:09:12.000Z",
+    "request_id": "request_70",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_071",
+    "timestamp": "2026-11-23T09:09:20.000Z",
+    "request_id": "request_71",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_072",
+    "timestamp": "2026-11-23T09:09:28.000Z",
+    "request_id": "request_72",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_073",
+    "timestamp": "2026-11-23T09:09:36.000Z",
+    "request_id": "request_73",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_074",
+    "timestamp": "2026-11-23T09:09:44.000Z",
+    "request_id": "request_74",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_075",
+    "timestamp": "2026-11-23T09:09:52.000Z",
+    "request_id": "request_75",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_076",
+    "timestamp": "2026-11-23T09:10:00.000Z",
+    "request_id": "request_76",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_077",
+    "timestamp": "2026-11-23T09:10:08.000Z",
+    "request_id": "request_77",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_078",
+    "timestamp": "2026-11-23T09:10:16.000Z",
+    "request_id": "request_78",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_079",
+    "timestamp": "2026-11-23T09:10:24.000Z",
+    "request_id": "request_79",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_080",
+    "timestamp": "2026-11-23T09:10:32.000Z",
+    "request_id": "request_80",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_081",
+    "timestamp": "2026-11-23T09:10:40.000Z",
+    "request_id": "request_81",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_082",
+    "timestamp": "2026-11-23T09:10:48.000Z",
+    "request_id": "request_82",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_083",
+    "timestamp": "2026-11-23T09:10:56.000Z",
+    "request_id": "request_83",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_084",
+    "timestamp": "2026-11-23T09:11:04.000Z",
+    "request_id": "request_84",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_085",
+    "timestamp": "2026-11-23T09:11:12.000Z",
+    "request_id": "request_85",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_086",
+    "timestamp": "2026-11-23T09:11:20.000Z",
+    "request_id": "request_86",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_087",
+    "timestamp": "2026-11-23T09:11:28.000Z",
+    "request_id": "request_87",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_088",
+    "timestamp": "2026-11-23T09:11:36.000Z",
+    "request_id": "request_88",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_089",
+    "timestamp": "2026-11-23T09:11:44.000Z",
+    "request_id": "request_89",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_090",
+    "timestamp": "2026-11-23T09:11:52.000Z",
+    "request_id": "request_90",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_091",
+    "timestamp": "2026-11-23T09:12:00.000Z",
+    "request_id": "request_91",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_092",
+    "timestamp": "2026-11-23T09:12:08.000Z",
+    "request_id": "request_92",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_093",
+    "timestamp": "2026-11-23T09:12:16.000Z",
+    "request_id": "request_93",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_094",
+    "timestamp": "2026-11-23T09:12:24.000Z",
+    "request_id": "request_94",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_095",
+    "timestamp": "2026-11-23T09:12:32.000Z",
+    "request_id": "request_95",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_096",
+    "timestamp": "2026-11-23T09:12:40.000Z",
+    "request_id": "request_96",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_097",
+    "timestamp": "2026-11-23T09:12:48.000Z",
+    "request_id": "request_97",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_098",
+    "timestamp": "2026-11-23T09:12:56.000Z",
+    "request_id": "request_98",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_099",
+    "timestamp": "2026-11-23T09:13:04.000Z",
+    "request_id": "request_99",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_100",
+    "timestamp": "2026-11-23T09:13:12.000Z",
+    "request_id": "request_100",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_101",
+    "timestamp": "2026-11-23T09:13:20.000Z",
+    "request_id": "request_101",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_102",
+    "timestamp": "2026-11-23T09:13:28.000Z",
+    "request_id": "request_102",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_103",
+    "timestamp": "2026-11-23T09:13:36.000Z",
+    "request_id": "request_103",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_104",
+    "timestamp": "2026-11-23T09:13:44.000Z",
+    "request_id": "request_104",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_105",
+    "timestamp": "2026-11-23T09:13:52.000Z",
+    "request_id": "request_105",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_106",
+    "timestamp": "2026-11-23T09:14:00.000Z",
+    "request_id": "request_106",
+    "required_skill": "billing",
+    "complexity": 1,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_107",
+    "timestamp": "2026-11-23T09:14:08.000Z",
+    "request_id": "request_107",
+    "required_skill": "support",
+    "complexity": 2,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_108",
+    "timestamp": "2026-11-23T09:14:16.000Z",
+    "request_id": "request_108",
+    "required_skill": "integration",
+    "complexity": 3,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_109",
+    "timestamp": "2026-11-23T09:14:24.000Z",
+    "request_id": "request_109",
+    "required_skill": "billing",
+    "complexity": 4,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_110",
+    "timestamp": "2026-11-23T09:14:32.000Z",
+    "request_id": "request_110",
+    "required_skill": "support",
+    "complexity": 5,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_111",
+    "timestamp": "2026-11-23T09:14:40.000Z",
+    "request_id": "request_111",
+    "required_skill": "integration",
+    "complexity": 1,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_112",
+    "timestamp": "2026-11-23T09:14:48.000Z",
+    "request_id": "request_112",
+    "required_skill": "billing",
+    "complexity": 2,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_113",
+    "timestamp": "2026-11-23T09:14:56.000Z",
+    "request_id": "request_113",
+    "required_skill": "support",
+    "complexity": 3,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_114",
+    "timestamp": "2026-11-23T09:15:04.000Z",
+    "request_id": "request_114",
+    "required_skill": "integration",
+    "complexity": 4,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_115",
+    "timestamp": "2026-11-23T09:15:12.000Z",
+    "request_id": "request_115",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_116",
+    "timestamp": "2026-11-23T09:15:20.000Z",
+    "request_id": "request_116",
+    "required_skill": "support",
+    "complexity": 1,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_117",
+    "timestamp": "2026-11-23T09:15:28.000Z",
+    "request_id": "request_117",
+    "required_skill": "integration",
+    "complexity": 2,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_118",
+    "timestamp": "2026-11-23T09:15:36.000Z",
+    "request_id": "request_118",
+    "required_skill": "billing",
+    "complexity": 3,
+    "priority": 1
+  },
+  {
+    "event_id": "dispatch_119",
+    "timestamp": "2026-11-23T09:15:44.000Z",
+    "request_id": "request_119",
+    "required_skill": "support",
+    "complexity": 4,
+    "priority": 2
+  },
+  {
+    "event_id": "dispatch_120",
+    "timestamp": "2026-11-23T09:15:52.000Z",
+    "request_id": "request_120",
+    "required_skill": "integration",
+    "complexity": 5,
+    "priority": 3
+  },
+  {
+    "event_id": "dispatch_010",
+    "timestamp": "2026-11-23T09:01:12.000Z",
+    "request_id": "request_10",
+    "required_skill": "billing",
+    "complexity": 5,
+    "priority": 1
+  }
+]

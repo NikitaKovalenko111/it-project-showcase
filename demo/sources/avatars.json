@@ -1,0 +1,425 @@
+[
+  {
+    "studentId": "syn_student_001",
+    "path": "assets/avatars/syn_student_001.png",
+    "method": "built-in image_gen",
+    "prompt": "One 21-year-old male undergraduate, dark short hair, navy overshirt, university courtyard, natural editorial portrait, no text."
+  },
+  {
+    "studentId": "syn_student_002",
+    "path": "assets/avatars/syn_student_002.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 20. shoulder-length dark brown hair, thoughtful friendly expression, wearing a forest green knit sweater. Head and shoulders, face centered, breathing room for circular crop. Softly blurred campus courtyard with trees, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_003",
+    "path": "assets/avatars/syn_student_003.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 21. straight dark hair with a side part, natural open smile, wearing a cream hoodie. Head and shoulders, face centered, breathing room for circular crop. Softly blurred campus courtyard with trees, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_004",
+    "path": "assets/avatars/syn_student_004.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 22. wavy chestnut hair tied loosely, calm confident expression, wearing a charcoal crewneck. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_005",
+    "path": "assets/avatars/syn_student_005.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 19. short light brown hair, relaxed slight smile, wearing a pale blue shirt. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_006",
+    "path": "assets/avatars/syn_student_006.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 20. short dark bob haircut, subtle round glasses, thoughtful friendly expression, wearing a burgundy cardigan. Head and shoulders, face centered, breathing room for circular crop. Softly blurred bright university library, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_007",
+    "path": "assets/avatars/syn_student_007.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 21. black textured hair, natural open smile, wearing a beige denim jacket. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_008",
+    "path": "assets/avatars/syn_student_008.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional female university student aged 22. long dark blond hair, calm confident expression, wearing a black t-shirt. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_009",
+    "path": "assets/avatars/syn_student_009.png",
+    "method": "built-in image_gen",
+    "prompt": "Photorealistic natural editorial photograph. Square student profile avatar, one fictional male university student aged 19. dark blond slightly tousled hair, relaxed slight smile, wearing a soft lavender sweater. Head and shoulders, face centered, breathing room for circular crop. Softly blurred modern university corridor, soft natural daylight. Authentic skin texture, ordinary everyday appearance, varied facial features, realistic candid portrait. No celebrity resemblance, no text, no watermark, no logos, no extra people. Make a new independent person; no references to previous images."
+  },
+  {
+    "studentId": "syn_student_010",
+    "path": "assets/avatars/syn_student_010.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_011",
+    "path": "assets/avatars/syn_student_011.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_012",
+    "path": "assets/avatars/syn_student_012.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_013",
+    "path": "assets/avatars/syn_student_013.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_014",
+    "path": "assets/avatars/syn_student_014.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_015",
+    "path": "assets/avatars/syn_student_015.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_016",
+    "path": "assets/avatars/syn_student_016.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_017",
+    "path": "assets/avatars/syn_student_017.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_018",
+    "path": "assets/avatars/syn_student_018.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_019",
+    "path": "assets/avatars/syn_student_019.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_020",
+    "path": "assets/avatars/syn_student_020.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_021",
+    "path": "assets/avatars/syn_student_021.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_022",
+    "path": "assets/avatars/syn_student_022.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_023",
+    "path": "assets/avatars/syn_student_023.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_024",
+    "path": "assets/avatars/syn_student_024.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_025",
+    "path": "assets/avatars/syn_student_025.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_026",
+    "path": "assets/avatars/syn_student_026.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_027",
+    "path": "assets/avatars/syn_student_027.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_028",
+    "path": "assets/avatars/syn_student_028.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_029",
+    "path": "assets/avatars/syn_student_029.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_030",
+    "path": "assets/avatars/syn_student_030.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_031",
+    "path": "assets/avatars/syn_student_031.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_032",
+    "path": "assets/avatars/syn_student_032.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_033",
+    "path": "assets/avatars/syn_student_033.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/17054662/pexels-photo-17054662.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/a-portrait-of-a-young-man-17054662/",
+    "author": "Aaron Cariñaga",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_034",
+    "path": "assets/avatars/syn_student_034.png",
+    "method": "built-in image_gen",
+    "promptSet": "sources/avatar-prompts.md"
+  },
+  {
+    "studentId": "syn_student_035",
+    "path": "assets/avatars/syn_student_035.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/36712225/pexels-photo-36712225.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-young-man-with-studio-lighting-36712225/",
+    "author": "Lukas Kaufmann",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_036",
+    "path": "assets/avatars/syn_student_036-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0001.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0001.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_037",
+    "path": "assets/avatars/syn_student_037.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/7134095/pexels-photo-7134095.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/a-portrait-of-a-young-man-7134095/",
+    "author": "Nicolás Langellotti",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_038",
+    "path": "assets/avatars/syn_student_038-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0002.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0002.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_039",
+    "path": "assets/avatars/syn_student_039.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/37728407/pexels-photo-37728407.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/moody-outdoor-portrait-of-young-man-37728407/",
+    "author": "Alef Morais",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_040",
+    "path": "assets/avatars/syn_student_040-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0003.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0003.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_041",
+    "path": "assets/avatars/syn_student_041.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/39770019/pexels-photo-39770019.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/moody-portrait-of-young-man-in-soft-light-39770019/",
+    "author": "Abdurrahim Israfilov",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_042",
+    "path": "assets/avatars/syn_student_042-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0004.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0004.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_043",
+    "path": "assets/avatars/syn_student_043.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/31969139/pexels-photo-31969139.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/contemplative-young-man-portrait-in-studio-31969139/",
+    "author": "Sephina Cornwall",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_044",
+    "path": "assets/avatars/syn_student_044-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0005.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0005.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_045",
+    "path": "assets/avatars/syn_student_045.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/37568357/pexels-photo-37568357.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/casual-portrait-of-young-man-in-urban-setting-37568357/",
+    "author": "Orkhan Sweden",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_046",
+    "path": "assets/avatars/syn_student_046-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0006.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0006.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_047",
+    "path": "assets/avatars/syn_student_047.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/36207065/pexels-photo-36207065.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/stylish-portrait-of-a-young-man-on-a-warm-background-36207065/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_048",
+    "path": "assets/avatars/syn_student_048-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0007.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0007.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_049",
+    "path": "assets/avatars/syn_student_049.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/30639063/pexels-photo-30639063.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/artistic-portrait-of-a-pensive-young-man-30639063/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_050",
+    "path": "assets/avatars/syn_student_050-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0008.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0008.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_051",
+    "path": "assets/avatars/syn_student_051.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/19456424/pexels-photo-19456424.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-young-man-smiling-19456424/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_052",
+    "path": "assets/avatars/syn_student_052-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0009.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0009.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_053",
+    "path": "assets/avatars/syn_student_053.jpg",
+    "downloadUrl": "https://images.pexels.com/photos/34253781/pexels-photo-34253781.jpeg?auto=compress&cs=tinysrgb&w=640",
+    "sourceUrl": "https://www.pexels.com/photo/casual-urban-portrait-of-a-young-man-34253781/",
+    "author": null,
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/"
+  },
+  {
+    "studentId": "syn_student_054",
+    "path": "assets/avatars/syn_student_054-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0010.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0010.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "studentId": "syn_student_055",
+    "path": "assets/avatars/syn_student_055.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000050__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_056",
+    "path": "assets/avatars/syn_student_056.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000091__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_057",
+    "path": "assets/avatars/syn_student_057.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000062__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_058",
+    "path": "assets/avatars/syn_student_058.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000170__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_059",
+    "path": "assets/avatars/syn_student_059.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000077__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_060",
+    "path": "assets/avatars/syn_student_060.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000424__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  }
+]

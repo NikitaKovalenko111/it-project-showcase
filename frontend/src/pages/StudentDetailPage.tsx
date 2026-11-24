@@ -1,4 +1,5 @@
 import { ProjectCover } from '../components/StudentProjectCover'
+import { UserAvatar } from '../components/UserAvatar'
 import { AttachmentPreview } from '../components/AttachmentPreview'
 import { apiClient } from '../api/client'
 import { useConfirm } from '../components/ConfirmProvider'
@@ -27,7 +28,6 @@ import {
   Layers,
   Sparkles,
   Tag,
-  User,
 } from 'lucide-react'
 
 export const StudentDetailPage: React.FC = () => {
@@ -65,6 +65,8 @@ export const StudentDetailPage: React.FC = () => {
   }
 
   const owner = activeProject.authorId === currentUser?.id
+  const author = authors.find((student) => student.id === activeProject.authorId)
+  const authorName = activeProject.authorName || author?.fullName || 'Автор проекта'
   const server = activeProject.server
   const reviewer =
     ['curator', 'university'].includes(currentUser?.role || '') && server?.status === 'moderation'
@@ -319,23 +321,15 @@ export const StudentDetailPage: React.FC = () => {
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
               >
-                <div
-                  style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: 'var(--ui-line)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <User size={22} color="var(--ui-brand-text)" />
-                </div>
+                <UserAvatar
+                  userId={activeProject.authorId}
+                  src={author?.avatar}
+                  name={authorName}
+                  className="student-project-author-avatar"
+                />
                 <div>
                   <strong style={{ fontSize: '14px', color: 'var(--ui-ink)', display: 'block' }}>
-                    {authors.find((author) => author.id === activeProject.authorId)?.fullName ||
-                      activeProject.authorName}
+                    {authorName}
                   </strong>
                   <span style={{ fontSize: '11px', color: 'var(--ui-muted)' }}>
                     {activeProject.teamName ? `Команда: ${activeProject.teamName}` : 'Студент'}

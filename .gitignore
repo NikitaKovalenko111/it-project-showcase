@@ -32,6 +32,7 @@ blob-report/
 # Logs
 logs/
 *.log
+!demo/documents/examples/client-session.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

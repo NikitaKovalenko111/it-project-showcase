@@ -1,5 +1,4 @@
 import { LocalizedFileInput } from './LocalizedFileInput'
-import { apiRuntime } from '../api/runtime'
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { uploadFile } from '../utils/files'
@@ -10,7 +9,7 @@ import { apiClient } from '../api/client'
 import type { StudentProfile } from '../types/models'
 import { FileDownload } from './FileDownload'
 import { matchesSearch } from '../utils/publication'
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 import { ReportTableView } from './ReportTableView'
 
 const statuses = {
@@ -288,14 +287,10 @@ export function InternshipApplications({
             cells: [
               incoming ? (
                 <Link className="application-student" to={`/profile/${item.student_id}`}>
-                  <IdentityImage
+                  <UserAvatar
+                    userId={item.student_id}
                     className="member-avatar"
                     name={item.student_name || 'Студент'}
-                    src={
-                      apiRuntime.mode === 'live'
-                        ? `${apiRuntime.baseUrl || '/api/v1'}/students/${item.student_id}/photo`
-                        : undefined
-                    }
                   />
                   {item.student_name || 'Открыть профиль'}
                 </Link>

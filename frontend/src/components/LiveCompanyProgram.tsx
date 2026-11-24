@@ -6,15 +6,7 @@ import { opportunityApi } from '../api/opportunities'
 import { apiClient } from '../api/client'
 import { OpportunityDescription } from './OpportunityDescription'
 import { useEffect, useState } from 'react'
-import {
-  ArrowLeft,
-  Briefcase,
-  Building2,
-  CalendarDays,
-  GraduationCap,
-  Plus,
-  Users,
-} from 'lucide-react'
+import { ArrowLeft, Briefcase, CalendarDays, GraduationCap, Plus, Users } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Company } from '../types/models'
 import { useAppSelector } from '../store'
@@ -22,6 +14,7 @@ import { InternshipApply } from './InternshipApplications'
 import { formatDate } from '../utils/date'
 import { matchesSearch } from '../utils/publication'
 import { CatalogSearch } from './CatalogSearch'
+import { CompanyLogo } from './CompanyLogo'
 import { PaginatedGrid } from './PaginatedGrid'
 import {
   OpportunityPublicationModal,
@@ -43,6 +36,7 @@ const plural = { internship: 'Стажировки', practice: 'Практики
 
 export function LiveCompanyProgram() {
   const user = useAppSelector((state) => state.auth.currentUser)
+  const catalogCompanies = useAppSelector((state) => state.companies.companiesList)
   const company = user?.role === 'company'
   const admin = user?.role === 'admin'
   const publisher = canCreatePublication(user)
@@ -57,6 +51,8 @@ export function LiveCompanyProgram() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [loadingCompanies, setLoadingCompanies] = useState(false)
   const [companyListError, setCompanyListError] = useState(false)
+  const findCompany = (id: string) =>
+    companies.find((item) => item.id === id) || catalogCompanies.find((item) => item.id === id)
   const [programs, setPrograms] = useState<Opportunity[]>([])
   const [applied, setApplied] = useState<Set<string>>(new Set())
   const [editor, setEditor] = useState<Partial<Opportunity> & { kind: OpportunityKind }>()
@@ -276,7 +272,12 @@ export function LiveCompanyProgram() {
                 </div>
                 <h2>{selected.title}</h2>
                 <Link to={'/company/' + selected.company_id}>
-                  <Building2 size={17} /> {selected.company_name}
+                  <CompanyLogo
+                    company={findCompany(selected.company_id)}
+                    name={selected.company_name}
+                    className="opportunity-company-logo"
+                  />{' '}
+                  {selected.company_name}
                 </Link>
               </header>
               <div className="opportunity-detail__layout">
@@ -468,7 +469,12 @@ export function LiveCompanyProgram() {
                 <div className="case-card__top-accent" />
                 <div className="card__body">
                   <div className="case-card__company">
-                    <Building2 size={17} /> {item.company_name}
+                    <CompanyLogo
+                      company={findCompany(item.company_id)}
+                      name={item.company_name}
+                      className="opportunity-company-logo"
+                    />
+                    {item.company_name}
                   </div>
                   <h2 className="case-card__title">
                     <Link to={detailsUrl(item)}>{item.title}</Link>

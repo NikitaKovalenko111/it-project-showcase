@@ -28,7 +28,7 @@ export function fromUser(d: any): User {
     avatar: d.avatar_file_id
       ? `/api/v1/users/${d.user_id}/avatar?v=${d.avatar_file_id}`
       : s?.photo_file_id
-        ? `/api/v1/students/${d.user_id}/photo?v=${s.photo_file_id}`
+        ? `/api/v1/users/${d.user_id}/avatar?v=${s.photo_file_id}`
         : undefined,
     fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
     role:
@@ -73,6 +73,10 @@ export function fromUser(d: any): User {
       : {}),
   }
 }
+function companyLogoUrl(companyId: string, fileId?: string): string {
+  return companyId && fileId ? `/api/v1/companies/${companyId}/logo?v=${fileId}` : ''
+}
+
 export function fromCompany(d: any): Company {
   return {
     id: d.company_id,
@@ -82,12 +86,10 @@ export function fromCompany(d: any): Company {
     internshipProgram: d.internship_program || '',
     practiceProgram: d.practice_program || '',
     inn: d.inn,
-    kpp: d.kpp,
-    ogrn: d.ogrn,
-    legalAddress: d.legal_address,
     industry: d.industry || '',
     website: d.website || '',
-    logo: d.logo_file_id ? `/api/v1/companies/${d.company_id}/logo` : '',
+    logo: companyLogoUrl(d.company_id, d.logo_file_id),
+    logoFileId: d.logo_file_id || undefined,
     email: d.contacts || '',
     phone: '',
     contactPerson: '',
@@ -133,7 +135,7 @@ export function fromCase(d: any): CaseProject {
     companyId: d.company_id,
     companyName: d.company_name || '',
     createdBy: d.created_by,
-    companyLogo: '',
+    companyLogo: companyLogoUrl(d.company_id, d.company_logo_file_id),
     title: d.title,
     shortDescription: d.summary,
     fullDescription: d.full_brief,
@@ -343,9 +345,8 @@ export const fromComment = (d: any): ProjectComment => ({
   authorId: d.author_id,
   authorName: d.author_name || '',
   authorAvatar: d.author_photo_file_id
-    ? `/api/v1/students/${d.author_id}/photo?v=${d.author_photo_file_id}`
+    ? `/api/v1/users/${d.author_id}/avatar?v=${d.author_photo_file_id}`
     : undefined,
-  authorRole: 'student',
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
   deleted: d.status === 'deleted',
   parentId: d.parent_comment_id || undefined,

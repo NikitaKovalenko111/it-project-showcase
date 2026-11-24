@@ -1,5 +1,5 @@
 import { ExpandableText } from '../components/ExpandableText'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { CatalogSearch } from '../components/CatalogSearch'
 import { PublicationReviewQueue } from '../components/PublicationReviewQueue'
@@ -102,9 +102,8 @@ export const CompaniesPage: React.FC = () => {
                         marginBottom: '14px',
                       }}
                     >
-                      <IdentityImage
-                        src={comp.logo}
-                        name={comp.shortName || comp.name}
+                      <CompanyLogo
+                        company={comp}
                         className="company-card__logo"
                       />
                       <div>

@@ -1,6 +1,6 @@
 import { InternshipApplications } from '../components/InternshipApplications'
 import { matchesSearch } from '../utils/publication'
-import { IdentityImage } from '../components/IdentityImage'
+import { UserAvatar } from '../components/UserAvatar'
 import { formatDate } from '../utils/date'
 import { apiRuntime } from '../api/runtime'
 import { FileDownload } from '../components/FileDownload'
@@ -194,7 +194,8 @@ export const CompanyApplicationsPage: React.FC = () => {
                       className="candidate-identity"
                       style={{ display: 'flex', gap: '14px', alignItems: 'center' }}
                     >
-                      <IdentityImage
+                      <UserAvatar
+                        userId={app.studentId}
                         src={app.studentAvatar}
                         name={app.studentName}
                         className="candidate-avatar"

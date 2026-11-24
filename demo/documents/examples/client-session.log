@@ -1,0 +1,3 @@
+2026-11-24T12:00:00Z INFO Example session started
+2026-11-24T12:00:01Z INFO Example request completed successfully
+2026-11-24T12:00:02Z WARN Simulated retry for testing the attachment viewer

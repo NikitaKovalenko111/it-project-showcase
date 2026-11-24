@@ -1,0 +1,1583 @@
+[
+  {
+    "id": "syn_project_001",
+    "title": "Панель «Термоконтроль»",
+    "coverImage": "assets/covers/syn_project_001.jpg",
+    "authorId": "syn_student_001",
+    "authorName": "Алексей Миронов",
+    "category": "учебный",
+    "shortDescription": "Панель температуры, журнал превышений и явные состояния «нет связи» и «остановлен».",
+    "fullDescription": "## Задача\n\nПоказания 12 насосов приходят с задержкой; инженер путает остановку оборудования и потерю связи.\n\n## Решение\n\nПанель температуры, журнал превышений и явные состояния «нет связи» и «остановлен».\n\n## Основной сценарий\n\nПовтор сообщения не создаёт второе событие; пропуск показания не превращается в ноль.\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Показания 12 насосов приходят с задержкой; инженер путает остановку оборудования и потерю связи.",
+    "technologies": [
+      "Python",
+      "MQTT",
+      "PostgreSQL"
+    ],
+    "direction": "IoT",
+    "createdAt": "2026-10-01",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_001-1.png",
+      "assets/screenshots/syn_project_001-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 2,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_001.pdf",
+    "videoUrl": "documents/videos/syn_project_001-demo.mp4"
+  },
+  {
+    "id": "syn_project_002",
+    "title": "Сервис «Умная грядка»",
+    "coverImage": "assets/covers/syn_project_002.jpg",
+    "authorId": "syn_student_002",
+    "authorName": "Мария Белова",
+    "category": "курсовой",
+    "shortDescription": "Симулятор полива с ручным подтверждением и журналом решений.",
+    "fullDescription": "## Задача\n\nРасписание полива ведётся отдельно от показаний влажности.\n\n## Решение\n\nСимулятор полива с ручным подтверждением и журналом решений.\n\n## Основной сценарий\n\nУстаревший датчик блокирует автоматический запуск; реальное оборудование не подключается.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Расписание полива ведётся отдельно от показаний влажности.",
+    "technologies": [
+      "Python",
+      "FastAPI",
+      "SQLite"
+    ],
+    "direction": "Автоматизация",
+    "createdAt": "2026-10-02",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_002-1.png",
+      "assets/screenshots/syn_project_002-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 3,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_002.pdf",
+    "videoUrl": "documents/videos/syn_project_002-demo.webm"
+  },
+  {
+    "id": "syn_project_003",
+    "title": "Лаборатория «Библиобронь»",
+    "coverImage": "assets/covers/syn_project_003.jpg",
+    "authorId": "syn_student_003",
+    "authorName": "Тимур Сафин",
+    "category": "ВКР",
+    "shortDescription": "Каталог экземпляров, очередь бронирования и календарь получения.",
+    "fullDescription": "## Задача\n\nЧитатель узнаёт о недоступности экземпляра после поездки в библиотеку.\n\n## Решение\n\nКаталог экземпляров, очередь бронирования и календарь получения.\n\n## Основной сценарий\n\nДва читателя не получают один экземпляр одновременно; отмена освобождает очередь.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "Читатель узнаёт о недоступности экземпляра после поездки в библиотеку.",
+    "technologies": [
+      "React",
+      "TypeScript",
+      "PostgreSQL"
+    ],
+    "direction": "Fullstack",
+    "createdAt": "2026-10-03",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_003-1.png",
+      "assets/screenshots/syn_project_003-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 4,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_003.pdf"
+  },
+  {
+    "id": "syn_project_004",
+    "title": "Платформа «Окно доставки»",
+    "coverImage": "assets/covers/syn_project_004.jpg",
+    "authorId": "syn_student_004",
+    "authorName": "Анна Волкова",
+    "category": "хакатон",
+    "shortDescription": "API маршрута с объяснением невыполнимых заказов.",
+    "fullDescription": "## Задача\n\nКурьер получает адреса без учёта времени доставки и вместимости.\n\n## Решение\n\nAPI маршрута с объяснением невыполнимых заказов.\n\n## Основной сценарий\n\nНевозможное окно выделено; груз не превышает вместимость; сравнение с исходным маршрутом воспроизводимо.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Курьер получает адреса без учёта времени доставки и вместимости.",
+    "technologies": [
+      "Go",
+      "PostgreSQL",
+      "OpenAPI"
+    ],
+    "direction": "Backend",
+    "createdAt": "2026-10-04",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_004-1.png",
+      "assets/screenshots/syn_project_004-2.png"
+    ],
+    "badges": [
+      "seeking_company"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 5,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_004.pdf"
+  },
+  {
+    "id": "syn_project_005",
+    "title": "Панель «Ветер в цифрах»",
+    "coverImage": "assets/covers/syn_project_005.jpg",
+    "authorId": "syn_student_005",
+    "authorName": "Максим Орлов",
+    "category": "pet-проект",
+    "shortDescription": "Ноутбук, базовая модель и график ошибок по часам.",
+    "fullDescription": "## Задача\n\nДиспетчеру нужен прогноз на сутки с объяснением неопределённости.\n\n## Решение\n\nНоутбук, базовая модель и график ошибок по часам.\n\n## Основной сценарий\n\nОбучение отделено по времени; есть сравнение с прогнозом «как вчера».\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Диспетчеру нужен прогноз на сутки с объяснением неопределённости.",
+    "technologies": [
+      "Python",
+      "pandas",
+      "Plotly"
+    ],
+    "direction": "Data Science",
+    "createdAt": "2026-10-05",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_005-1.png",
+      "assets/screenshots/syn_project_005-2.png"
+    ],
+    "badges": [
+      "seeking_investor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 6,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_005.pdf"
+  },
+  {
+    "id": "syn_project_006",
+    "title": "Сервис «Кампус рядом»",
+    "coverImage": "assets/covers/syn_project_006.jpg",
+    "authorId": "syn_student_006",
+    "authorName": "Дарья Соколова",
+    "category": "стартап",
+    "shortDescription": "Доступный календарь с записью, отменой и переносом.",
+    "fullDescription": "## Задача\n\nЗапись к преподавателям в переписке приводит к конфликтам и пропущенным переносам.\n\n## Решение\n\nДоступный календарь с записью, отменой и переносом.\n\n## Основной сценарий\n\nСценарий работает с клавиатуры; конфликт записи предлагает свободное время.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Запись к преподавателям в переписке приводит к конфликтам и пропущенным переносам.",
+    "technologies": [
+      "React",
+      "TypeScript",
+      "Playwright"
+    ],
+    "direction": "Frontend",
+    "createdAt": "2026-10-06",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_006-1.png",
+      "assets/screenshots/syn_project_006-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 7,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_006.pdf"
+  },
+  {
+    "id": "syn_project_007",
+    "title": "Лаборатория «АкваПульс»",
+    "coverImage": "assets/covers/syn_project_007.jpg",
+    "authorId": "syn_student_007",
+    "authorName": "Руслан Хакимов",
+    "category": "НИР",
+    "shortDescription": "Панель с единицами, калибровкой и журналом предупреждений.",
+    "fullDescription": "## Задача\n\nИзмерения pH и температуры поступают с пропусками и разными единицами.\n\n## Решение\n\nПанель с единицами, калибровкой и журналом предупреждений.\n\n## Основной сценарий\n\nНевалидное показание не усредняется; результат не называется санитарным заключением.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "Измерения pH и температуры поступают с пропусками и разными единицами.",
+    "technologies": [
+      "Python",
+      "MQTT",
+      "Grafana"
+    ],
+    "direction": "IoT",
+    "createdAt": "2026-10-07",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_007-1.png",
+      "assets/screenshots/syn_project_007-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 8,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_007.pdf"
+  },
+  {
+    "id": "syn_project_008",
+    "title": "Платформа «Ясная форма»",
+    "coverImage": "assets/covers/syn_project_008.jpg",
+    "authorId": "syn_student_008",
+    "authorName": "Екатерина Морозова",
+    "category": "командный проект",
+    "shortDescription": "Прототип формы и описание состояний.",
+    "fullDescription": "## Задача\n\nСкринридер не связывает поля с сообщениями об ошибке.\n\n## Решение\n\nПрототип формы и описание состояний.\n\n## Основной сценарий\n\nОшибки связаны с полями; фокус предсказуем; цвет не единственный сигнал.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Скринридер не связывает поля с сообщениями об ошибке.",
+    "technologies": [
+      "Figma",
+      "HTML",
+      "CSS"
+    ],
+    "direction": "UX/UI",
+    "createdAt": "2026-10-08",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_008-1.png",
+      "assets/screenshots/syn_project_008-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 9,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_008.pdf"
+  },
+  {
+    "id": "syn_project_009",
+    "title": "Панель «Контур прав»",
+    "coverImage": "assets/covers/syn_project_009.jpg",
+    "authorId": "syn_student_009",
+    "authorName": "Никита Фёдоров",
+    "category": "open-source",
+    "shortDescription": "Матрица доступа и негативные проверки изолированного стенда.",
+    "fullDescription": "## Задача\n\nПрава владельца записи и модератора проверяются в разных местах.\n\n## Решение\n\nМатрица доступа и негативные проверки изолированного стенда.\n\n## Основной сценарий\n\nПроверен запрос чужого объекта; внешние системы не сканируются.\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Права владельца записи и модератора проверяются в разных местах.",
+    "technologies": [
+      "Python",
+      "pytest",
+      "Docker"
+    ],
+    "direction": "Информационная безопасность",
+    "createdAt": "2026-10-09",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_009-1.png",
+      "assets/screenshots/syn_project_009-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 10,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_009.pdf"
+  },
+  {
+    "id": "syn_project_010",
+    "title": "Сервис «Архив в фокусе»",
+    "coverImage": "assets/covers/syn_project_010.jpg",
+    "authorId": "syn_student_010",
+    "authorName": "Алина Иванова",
+    "category": "учебный",
+    "shortDescription": "Конвейер выравнивания с просмотром до и после.",
+    "fullDescription": "## Задача\n\nСтраницы сняты под углом, распознавание теряет строки.\n\n## Решение\n\nКонвейер выравнивания с просмотром до и после.\n\n## Основной сценарий\n\nЗаметки на полях не обрезаны; сложные кадры отправляются на ручную проверку.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Страницы сняты под углом, распознавание теряет строки.",
+    "technologies": [
+      "Python",
+      "OpenCV",
+      "FastAPI"
+    ],
+    "direction": "Компьютерное зрение",
+    "createdAt": "2026-10-10",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_010-1.png",
+      "assets/screenshots/syn_project_010-2.png"
+    ],
+    "badges": [
+      "seeking_company"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 11,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_010.pdf"
+  },
+  {
+    "id": "syn_project_011",
+    "title": "Лаборатория «Приборный реестр»",
+    "coverImage": "assets/covers/syn_project_011.jpg",
+    "authorId": "syn_student_011",
+    "authorName": "Илья Новиков",
+    "category": "курсовой",
+    "shortDescription": "Модель данных и отчёт о возможных дублях.",
+    "fullDescription": "## Задача\n\nОдно устройство записано под разными инвентарными обозначениями.\n\n## Решение\n\nМодель данных и отчёт о возможных дублях.\n\n## Основной сценарий\n\nСлияние сохраняет обслуживание; номер уникален в подразделении.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "Одно устройство записано под разными инвентарными обозначениями.",
+    "technologies": [
+      "PostgreSQL",
+      "SQL",
+      "Python"
+    ],
+    "direction": "Базы данных",
+    "createdAt": "2026-10-11",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_011-1.png",
+      "assets/screenshots/syn_project_011-2.png"
+    ],
+    "badges": [
+      "seeking_investor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 12,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_011.pdf"
+  },
+  {
+    "id": "syn_project_012",
+    "title": "Платформа «РобоМаршрут»",
+    "coverImage": "assets/covers/syn_project_012.jpg",
+    "authorId": "syn_student_012",
+    "authorName": "Полина Сергеева",
+    "category": "ВКР",
+    "shortDescription": "Симуляция маршрута и журнал перепланирования.",
+    "fullDescription": "## Задача\n\nРобот путает временное препятствие и закрытый проход.\n\n## Решение\n\nСимуляция маршрута и журнал перепланирования.\n\n## Основной сценарий\n\nНедостижимая цель приводит к остановке; карты испытаний воспроизводимы.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Робот путает временное препятствие и закрытый проход.",
+    "technologies": [
+      "Python",
+      "ROS2",
+      "OpenCV"
+    ],
+    "direction": "Робототехника",
+    "createdAt": "2026-10-12",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_012-1.png",
+      "assets/screenshots/syn_project_012-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 13,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_012.pdf"
+  },
+  {
+    "id": "syn_project_013",
+    "title": "Панель «Облачный пульс»",
+    "coverImage": "assets/covers/syn_project_013.jpg",
+    "authorId": "syn_student_013",
+    "authorName": "Даниил Лебедев",
+    "category": "хакатон",
+    "shortDescription": "Учебный стенд с метриками задержек и уведомлениями.",
+    "fullDescription": "## Задача\n\nОшибки обнаруживаются по обращениям пользователей, а не по метрикам.\n\n## Решение\n\nУчебный стенд с метриками задержек и уведомлениями.\n\n## Основной сценарий\n\nПроверены отказ зависимости и восстановление; в журналах нет секретов.\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Ошибки обнаруживаются по обращениям пользователей, а не по метрикам.",
+    "technologies": [
+      "Docker",
+      "Prometheus",
+      "Grafana"
+    ],
+    "direction": "DevOps",
+    "createdAt": "2026-10-13",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_013-1.png",
+      "assets/screenshots/syn_project_013-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 14,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_013.pdf"
+  },
+  {
+    "id": "syn_project_014",
+    "title": "Сервис «Честная корзина»",
+    "coverImage": "assets/covers/syn_project_014.jpg",
+    "authorId": "syn_student_014",
+    "authorName": "София Попова",
+    "category": "pet-проект",
+    "shortDescription": "Матрица проверок и отчёты о дефектах.",
+    "fullDescription": "## Задача\n\nКомбинации скидок и количества приводят к неверной сумме.\n\n## Решение\n\nМатрица проверок и отчёты о дефектах.\n\n## Основной сценарий\n\nЕсть округление, нулевой остаток и двойное нажатие; реальных платежей нет.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Комбинации скидок и количества приводят к неверной сумме.",
+    "technologies": [
+      "Playwright",
+      "TypeScript",
+      "Allure"
+    ],
+    "direction": "Тестирование",
+    "createdAt": "2026-10-14",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_014-1.png",
+      "assets/screenshots/syn_project_014-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 15,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_014.pdf"
+  },
+  {
+    "id": "syn_project_015",
+    "title": "Лаборатория «ВелоТочка»",
+    "coverImage": "assets/covers/syn_project_015.jpg",
+    "authorId": "syn_student_015",
+    "authorName": "Артём Павлов",
+    "category": "стартап",
+    "shortDescription": "Мобильный прототип с офлайн-каталогом.",
+    "fullDescription": "## Задача\n\nПри потере сети сохранённые места перестают отображаться.\n\n## Решение\n\nМобильный прототип с офлайн-каталогом.\n\n## Основной сценарий\n\nСинхронизация не дублирует место; давность сведений видна.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "При потере сети сохранённые места перестают отображаться.",
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "SQLite"
+    ],
+    "direction": "Мобильная разработка",
+    "createdAt": "2026-10-15",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_015-1.png",
+      "assets/screenshots/syn_project_015-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 16,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_015.pdf"
+  },
+  {
+    "id": "syn_project_016",
+    "title": "Платформа «Каталог без дублей»",
+    "coverImage": "assets/covers/syn_project_016.jpg",
+    "authorId": "syn_student_016",
+    "authorName": "Виктория Кузнецова",
+    "category": "НИР",
+    "shortDescription": "Правила качества и карантин ошибочных строк.",
+    "fullDescription": "## Задача\n\nДубли артикулов и разные единицы массы искажают отчёт.\n\n## Решение\n\nПравила качества и карантин ошибочных строк.\n\n## Основной сценарий\n\nИсходная строка сохраняется; граммы и килограммы приводятся явно.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Дубли артикулов и разные единицы массы искажают отчёт.",
+    "technologies": [
+      "Python",
+      "SQL",
+      "ClickHouse"
+    ],
+    "direction": "Big Data",
+    "createdAt": "2026-10-16",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_016-1.png",
+      "assets/screenshots/syn_project_016-2.png"
+    ],
+    "badges": [
+      "seeking_company"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 17,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_016.pdf"
+  },
+  {
+    "id": "syn_project_017",
+    "title": "Панель «Маршрут помощи»",
+    "coverImage": "assets/covers/syn_project_017.jpg",
+    "authorId": "syn_student_017",
+    "authorName": "Кирилл Семёнов",
+    "category": "командный проект",
+    "shortDescription": "Модель процесса и карточка сопровождения.",
+    "fullDescription": "## Задача\n\nДоговорённости теряются при передаче обращения между сменами.\n\n## Решение\n\nМодель процесса и карточка сопровождения.\n\n## Основной сценарий\n\nУ переходов есть ответственные; причина возврата обязательна.\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Договорённости теряются при передаче обращения между сменами.",
+    "technologies": [
+      "BPMN",
+      "UML",
+      "Figma"
+    ],
+    "direction": "Системный анализ",
+    "createdAt": "2026-10-17",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_017-1.png",
+      "assets/screenshots/syn_project_017-2.png"
+    ],
+    "badges": [
+      "seeking_investor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 18,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_017.pdf"
+  },
+  {
+    "id": "syn_project_018",
+    "title": "Сервис «Экспонат рядом»",
+    "coverImage": "assets/covers/syn_project_018.jpg",
+    "authorId": "syn_student_018",
+    "authorName": "Елизавета Зайцева",
+    "category": "open-source",
+    "shortDescription": "3D-просмотр с подписями и облегчённой версией.",
+    "fullDescription": "## Задача\n\nНебольшая деталь экспоната не видна за стеклом.\n\n## Решение\n\n3D-просмотр с подписями и облегчённой версией.\n\n## Основной сценарий\n\nДоступно управление без жестов; происхождение модели указано.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Небольшая деталь экспоната не видна за стеклом.",
+    "technologies": [
+      "Unity",
+      "CSharp",
+      "Blender"
+    ],
+    "direction": "AR/VR",
+    "createdAt": "2026-10-18",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_018-1.png",
+      "assets/screenshots/syn_project_018-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 2,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_018.pdf"
+  },
+  {
+    "id": "syn_project_019",
+    "title": "Лаборатория «ЭкоВыбор»",
+    "coverImage": "assets/covers/syn_project_019.jpg",
+    "authorId": "syn_student_019",
+    "authorName": "Андрей Громов",
+    "category": "учебный",
+    "shortDescription": "Короткая игра с объяснением каждого решения.",
+    "fullDescription": "## Задача\n\nУченик помнит цвет контейнера, но не понимает неоднозначные предметы.\n\n## Решение\n\nКороткая игра с объяснением каждого решения.\n\n## Основной сценарий\n\nПравила относятся к условному городу; ошибку сопровождает объяснение.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "Ученик помнит цвет контейнера, но не понимает неоднозначные предметы.",
+    "technologies": [
+      "Godot",
+      "GDScript",
+      "Git"
+    ],
+    "direction": "Разработка игр",
+    "createdAt": "2026-10-19",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_019-1.png",
+      "assets/screenshots/syn_project_019-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 3,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_019.pdf"
+  },
+  {
+    "id": "syn_project_020",
+    "title": "Платформа «Документ в пути»",
+    "coverImage": "assets/covers/syn_project_020.jpg",
+    "authorId": "syn_student_020",
+    "authorName": "Ксения Фролова",
+    "category": "курсовой",
+    "shortDescription": "Модель процесса, статусы и матрица ответственности.",
+    "fullDescription": "## Задача\n\nНеясно, на чьём шаге остановился документ.\n\n## Решение\n\nМодель процесса, статусы и матрица ответственности.\n\n## Основной сценарий\n\nЕсть возврат и повторная подача; версии не стираются.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Неясно, на чьём шаге остановился документ.",
+    "technologies": [
+      "BPMN",
+      "Figma",
+      "Markdown"
+    ],
+    "direction": "Бизнес-анализ",
+    "createdAt": "2026-10-20",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_020-1.png",
+      "assets/screenshots/syn_project_020-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 4,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_020.pdf"
+  },
+  {
+    "id": "syn_project_021",
+    "title": "Панель «Спектральный анализ»",
+    "coverImage": "assets/covers/syn_project_021.jpg",
+    "authorId": "syn_student_021",
+    "authorName": "Алексей Миронов Алексеевич",
+    "category": "ВКР",
+    "shortDescription": "Базовая модель и анализ ошибок отложенных серий.",
+    "fullDescription": "## Задача\n\nСпектры имеют шум и разную длину серии.\n\n## Решение\n\nБазовая модель и анализ ошибок отложенных серий.\n\n## Основной сценарий\n\nСвязанные измерения не попадают в обучение и тест одновременно.\n\n## Личный вклад\n\nМодель данных и API, обработка ошибок и инструкция развёртывания.\n\n## Следующий этап\n\nРасширить контрольные сценарии и проверить поведение на неполном входе.",
+    "problemSolved": "Спектры имеют шум и разную длину серии.",
+    "technologies": [
+      "Python",
+      "scikit-learn",
+      "pandas"
+    ],
+    "direction": "Машинное обучение",
+    "createdAt": "2026-10-21",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_021-1.png",
+      "assets/screenshots/syn_project_021-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 5,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_021.pdf"
+  },
+  {
+    "id": "syn_project_022",
+    "title": "Сервис «Ответ с источником»",
+    "coverImage": "assets/covers/syn_project_022.jpg",
+    "authorId": "syn_student_022",
+    "authorName": "Мария Белова Андреевна",
+    "category": "хакатон",
+    "shortDescription": "Поиск с цитируемыми фрагментами и отказом без источника.",
+    "fullDescription": "## Задача\n\nОтветы на организационные вопросы разбросаны по документам.\n\n## Решение\n\nПоиск с цитируемыми фрагментами и отказом без источника.\n\n## Основной сценарий\n\nОтвет связан с фрагментом; неподтверждённое не выдаётся за факт.\n\n## Личный вклад\n\nПользовательские сценарии, макеты и интерфейс с состояниями загрузки.\n\n## Следующий этап\n\nДобавить обратную связь пользователей и уточнить основной сценарий.",
+    "problemSolved": "Ответы на организационные вопросы разбросаны по документам.",
+    "technologies": [
+      "Python",
+      "FastAPI",
+      "SQLite"
+    ],
+    "direction": "Искусственный интеллект",
+    "createdAt": "2026-10-22",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_022-1.png",
+      "assets/screenshots/syn_project_022-2.png"
+    ],
+    "badges": [
+      "seeking_company"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 6,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_022.pdf"
+  },
+  {
+    "id": "syn_project_023",
+    "title": "Лаборатория «ВиброЛаб»",
+    "coverImage": "assets/covers/syn_project_023.jpg",
+    "authorId": "syn_student_023",
+    "authorName": "Тимур Сафин Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Ноутбук анализа сигнала и сравнение режимов.",
+    "fullDescription": "## Задача\n\nПики спектра меняются при разной частоте дискретизации.\n\n## Решение\n\nНоутбук анализа сигнала и сравнение режимов.\n\n## Основной сценарий\n\nЕсть единицы и частота дискретизации; промышленная диагностика не заявляется.\n\n## Личный вклад\n\nИсследование входных данных, сравнение подходов и графики результатов.\n\n## Следующий этап\n\nОптимизировать обработку больших наборов и измерить потребление памяти.",
+    "problemSolved": "Пики спектра меняются при разной частоте дискретизации.",
+    "technologies": [
+      "Python",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "direction": "Физика",
+    "createdAt": "2026-10-23",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_023-1.png",
+      "assets/screenshots/syn_project_023-2.png"
+    ],
+    "badges": [
+      "seeking_investor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 7,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_023.pdf"
+  },
+  {
+    "id": "syn_project_024",
+    "title": "Платформа «Расписание без конфликтов»",
+    "coverImage": "assets/covers/syn_project_024.jpg",
+    "authorId": "syn_student_024",
+    "authorName": "Анна Волкова Андреевна",
+    "category": "стартап",
+    "shortDescription": "Модель ограничений и объяснение конфликтов расписания.",
+    "fullDescription": "## Задача\n\nГруппы делят ограниченное оборудование и преподавателей.\n\n## Решение\n\nМодель ограничений и объяснение конфликтов расписания.\n\n## Основной сценарий\n\nНевыполнимый набор возвращает причину; варианты сравниваются на одинаковом входе.\n\n## Личный вклад\n\nМатрица проверок, регрессионные сценарии и разбор ограничений.\n\n## Следующий этап\n\nПодготовить демонстрацию и документацию для передачи следующей команде.",
+    "problemSolved": "Группы делят ограниченное оборудование и преподавателей.",
+    "technologies": [
+      "Python",
+      "OR-Tools",
+      "Plotly"
+    ],
+    "direction": "Математика",
+    "createdAt": "2026-10-24",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_project_024-1.png",
+      "assets/screenshots/syn_project_024-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 8,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_project_024.pdf"
+  },
+  {
+    "id": "syn_petproject_001",
+    "title": "BoardBuddy",
+    "coverImage": "assets/covers/syn_petproject_001.jpg",
+    "authorId": "syn_student_025",
+    "authorName": "Максим Орлов Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Доска с короткими задачами, повторением и историей переноса.",
+    "fullDescription": "## Зачем\n\nЛичные дела теряются между заметками и чатом.\n\n## Что делает\n\nДоска с короткими задачами, повторением и историей переноса.\n\n## Личный вклад\n\nреализация интерфейса, состояния загрузки и регрессионные проверки.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "Личные дела теряются между заметками и чатом.",
+    "technologies": [
+      "React",
+      "TypeScript",
+      "SQLite"
+    ],
+    "direction": "Fullstack",
+    "createdAt": "2026-09-01",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_001-1.png",
+      "assets/screenshots/syn_petproject_001-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 9,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_001.pdf"
+  },
+  {
+    "id": "syn_petproject_002",
+    "title": "QuietRead",
+    "coverImage": "assets/covers/syn_petproject_002.jpg",
+    "authorId": "syn_student_026",
+    "authorName": "Дарья Соколова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Небольшая читательская очередь с заметками и недельным планом.",
+    "fullDescription": "## Зачем\n\nХочется читать регулярно, но большой список книг мешает выбрать следующую.\n\n## Что делает\n\nНебольшая читательская очередь с заметками и недельным планом.\n\n## Личный вклад\n\nконтракты API, транзакции и обработка конфликтов.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Хочется читать регулярно, но большой список книг мешает выбрать следующую.",
+    "technologies": [
+      "React",
+      "TypeScript",
+      "CSS"
+    ],
+    "direction": "Frontend",
+    "createdAt": "2026-09-02",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_002-1.png",
+      "assets/screenshots/syn_petproject_002-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 10,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_002.pdf"
+  },
+  {
+    "id": "syn_petproject_003",
+    "title": "BudgetTrail",
+    "coverImage": "assets/covers/syn_petproject_003.jpg",
+    "authorId": "syn_student_027",
+    "authorName": "Руслан Хакимов Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Импорт CSV и понятная сводка с объяснением правил группировки.",
+    "fullDescription": "## Зачем\n\nВыгрузка расходов содержит разные категории и возвраты.\n\n## Что делает\n\nИмпорт CSV и понятная сводка с объяснением правил группировки.\n\n## Личный вклад\n\nпрофилирование входа, контрольные расчёты и визуализация.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "Выгрузка расходов содержит разные категории и возвраты.",
+    "technologies": [
+      "Python",
+      "pandas",
+      "Plotly"
+    ],
+    "direction": "Data Science",
+    "createdAt": "2026-10-03",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_003-1.png",
+      "assets/screenshots/syn_petproject_003-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 11,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_003.pdf"
+  },
+  {
+    "id": "syn_petproject_004",
+    "title": "PocketLex",
+    "coverImage": "assets/covers/syn_petproject_004.jpg",
+    "authorId": "syn_student_028",
+    "authorName": "Екатерина Морозова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Карточки с офлайн-повторением и собственными примерами.",
+    "fullDescription": "## Зачем\n\nНовые слова забываются, если повторять их без интервалов.\n\n## Что делает\n\nКарточки с офлайн-повторением и собственными примерами.\n\n## Личный вклад\n\nкарта пути пользователя, прототипы и библиотека состояний.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Новые слова забываются, если повторять их без интервалов.",
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "SQLite"
+    ],
+    "direction": "Мобильная разработка",
+    "createdAt": "2026-11-04",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_004-1.png",
+      "assets/screenshots/syn_petproject_004-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 12,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_004.pdf"
+  },
+  {
+    "id": "syn_petproject_005",
+    "title": "GardenDiary",
+    "coverImage": "assets/covers/syn_petproject_005.jpg",
+    "authorId": "syn_student_029",
+    "authorName": "Никита Фёдоров Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Дневник ухода и временная шкала показаний.",
+    "fullDescription": "## Зачем\n\nЗаметки о растениях не связаны с измерениями освещения.\n\n## Что делает\n\nДневник ухода и временная шкала показаний.\n\n## Личный вклад\n\nтест-дизайн, автоматизация и отчёты о дефектах.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "Заметки о растениях не связаны с измерениями освещения.",
+    "technologies": [
+      "Python",
+      "MQTT",
+      "Grafana"
+    ],
+    "direction": "IoT",
+    "createdAt": "2026-09-05",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_005-1.png",
+      "assets/screenshots/syn_petproject_005-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 13,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_005.pdf"
+  },
+  {
+    "id": "syn_petproject_006",
+    "title": "MealGrid",
+    "coverImage": "assets/covers/syn_petproject_006.jpg",
+    "authorId": "syn_student_030",
+    "authorName": "Алина Иванова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "План питания и список покупок с ручной проверкой ингредиентов.",
+    "fullDescription": "## Зачем\n\nТрудно спланировать меню, учитывая уже купленные продукты.\n\n## Что делает\n\nПлан питания и список покупок с ручной проверкой ингредиентов.\n\n## Личный вклад\n\nподготовка выборки, оценка ошибок и сервис предсказаний.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Трудно спланировать меню, учитывая уже купленные продукты.",
+    "technologies": [
+      "Figma",
+      "React",
+      "TypeScript"
+    ],
+    "direction": "UX/UI",
+    "createdAt": "2026-09-06",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_006-1.png",
+      "assets/screenshots/syn_petproject_006-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 14,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_006.pdf"
+  },
+  {
+    "id": "syn_petproject_007",
+    "title": "RunIntervals",
+    "coverImage": "assets/covers/syn_petproject_007.jpg",
+    "authorId": "syn_student_031",
+    "authorName": "Илья Новиков Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Настраиваемый интервальный таймер со звуком и вибрацией.",
+    "fullDescription": "## Зачем\n\nВо время тренировки неудобно переключать таймеры вручную.\n\n## Что делает\n\nНастраиваемый интервальный таймер со звуком и вибрацией.\n\n## Личный вклад\n\nокружение, журналы, панели и инструкция восстановления.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "Во время тренировки неудобно переключать таймеры вручную.",
+    "technologies": [
+      "Flutter",
+      "Dart"
+    ],
+    "direction": "Мобильная разработка",
+    "createdAt": "2026-10-07",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_007-1.png",
+      "assets/screenshots/syn_petproject_007-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 15,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_007.pdf"
+  },
+  {
+    "id": "syn_petproject_008",
+    "title": "ScreenBreak",
+    "coverImage": "assets/covers/syn_petproject_008.jpg",
+    "authorId": "syn_student_032",
+    "authorName": "Полина Сергеева Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Мягкие напоминания и расписание без навязчивых уведомлений.",
+    "fullDescription": "## Зачем\n\nКороткие перерывы забываются в длинных учебных сессиях.\n\n## Что делает\n\nМягкие напоминания и расписание без навязчивых уведомлений.\n\n## Личный вклад\n\nлокальное хранение, синхронизация и мобильная навигация.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Короткие перерывы забываются в длинных учебных сессиях.",
+    "technologies": [
+      "TypeScript",
+      "Web Notifications",
+      "CSS"
+    ],
+    "direction": "Frontend",
+    "createdAt": "2026-11-08",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_008-1.png",
+      "assets/screenshots/syn_petproject_008-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 16,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_008.pdf"
+  },
+  {
+    "id": "syn_petproject_009",
+    "title": "ClassroomFinder",
+    "coverImage": "assets/covers/syn_petproject_009.jpg",
+    "authorId": "syn_student_033",
+    "authorName": "Даниил Лебедев Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Поиск помещений с текстовым маршрутом и сохранёнными точками.",
+    "fullDescription": "## Зачем\n\nВ новом корпусе сложно найти аудиторию и ближайший вход.\n\n## Что делает\n\nПоиск помещений с текстовым маршрутом и сохранёнными точками.\n\n## Личный вклад\n\nматрица ответственности, словарь состояний и контракт данных.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "В новом корпусе сложно найти аудиторию и ближайший вход.",
+    "technologies": [
+      "React",
+      "PostgreSQL",
+      "FastAPI"
+    ],
+    "direction": "Fullstack",
+    "createdAt": "2026-09-09",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_009-1.png",
+      "assets/screenshots/syn_petproject_009-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 17,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_009.pdf"
+  },
+  {
+    "id": "syn_petproject_010",
+    "title": "LabNotebook",
+    "coverImage": "assets/covers/syn_petproject_010.jpg",
+    "authorId": "syn_student_034",
+    "authorName": "София Попова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Версионируемый журнал экспериментов и экспорт отчёта.",
+    "fullDescription": "## Зачем\n\nПараметры эксперимента записаны отдельно от результата.\n\n## Что делает\n\nВерсионируемый журнал экспериментов и экспорт отчёта.\n\n## Личный вклад\n\nприём сигналов, единицы измерения и журнал предупреждений.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Параметры эксперимента записаны отдельно от результата.",
+    "technologies": [
+      "Python",
+      "SQLite",
+      "SQL"
+    ],
+    "direction": "Базы данных",
+    "createdAt": "2026-09-10",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_010-1.png",
+      "assets/screenshots/syn_petproject_010-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 18,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_010.pdf"
+  },
+  {
+    "id": "syn_petproject_011",
+    "title": "AudioMarks",
+    "coverImage": "assets/covers/syn_petproject_011.jpg",
+    "authorId": "syn_student_035",
+    "authorName": "Артём Павлов Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Закладки и заметки с временными метками.",
+    "fullDescription": "## Зачем\n\nВ длинной лекции сложно повторно найти важный момент.\n\n## Что делает\n\nЗакладки и заметки с временными метками.\n\n## Личный вклад\n\nмеханика, прогресс игрока и обучение без длинных инструкций.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "В длинной лекции сложно повторно найти важный момент.",
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "SQLite"
+    ],
+    "direction": "Мобильная разработка",
+    "createdAt": "2026-10-11",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_011-1.png",
+      "assets/screenshots/syn_petproject_011-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 2,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_011.pdf"
+  },
+  {
+    "id": "syn_petproject_012",
+    "title": "RoadNotes",
+    "coverImage": "assets/covers/syn_petproject_012.jpg",
+    "authorId": "syn_student_036",
+    "authorName": "Виктория Кузнецова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Личная карта с тегами и экспортом маршрута.",
+    "fullDescription": "## Зачем\n\nИзбранные места разбросаны по нескольким картам.\n\n## Что делает\n\nЛичная карта с тегами и экспортом маршрута.\n\n## Личный вклад\n\nобработка изображений, разметка и сравнение результатов.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Избранные места разбросаны по нескольким картам.",
+    "technologies": [
+      "React",
+      "Leaflet",
+      "TypeScript"
+    ],
+    "direction": "Frontend",
+    "createdAt": "2026-11-12",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_012-1.png",
+      "assets/screenshots/syn_petproject_012-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 3,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_012.pdf"
+  },
+  {
+    "id": "syn_petproject_013",
+    "title": "RegexDojo",
+    "coverImage": "assets/covers/syn_petproject_013.jpg",
+    "authorId": "syn_student_037",
+    "authorName": "Кирилл Семёнов Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Песочница с наборами позитивных и негативных строк.",
+    "fullDescription": "## Зачем\n\nРегулярные выражения проверяются только на удачном примере.\n\n## Что делает\n\nПесочница с наборами позитивных и негативных строк.\n\n## Личный вклад\n\nреализация интерфейса, состояния загрузки и регрессионные проверки.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "Регулярные выражения проверяются только на удачном примере.",
+    "technologies": [
+      "TypeScript",
+      "React"
+    ],
+    "direction": "Программирование",
+    "createdAt": "2026-09-13",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_013-1.png",
+      "assets/screenshots/syn_petproject_013-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 4,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_013.pdf"
+  },
+  {
+    "id": "syn_petproject_014",
+    "title": "QueryQuest",
+    "coverImage": "assets/covers/syn_petproject_014.jpg",
+    "authorId": "syn_student_038",
+    "authorName": "Елизавета Зайцева Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Набор коротких задач с просмотром промежуточных таблиц.",
+    "fullDescription": "## Зачем\n\nИзучение SQL без объяснения ошибок быстро превращается в угадывание.\n\n## Что делает\n\nНабор коротких задач с просмотром промежуточных таблиц.\n\n## Личный вклад\n\nконтракты API, транзакции и обработка конфликтов.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Изучение SQL без объяснения ошибок быстро превращается в угадывание.",
+    "technologies": [
+      "PostgreSQL",
+      "SQL",
+      "React"
+    ],
+    "direction": "Базы данных",
+    "createdAt": "2026-09-14",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_014-1.png",
+      "assets/screenshots/syn_petproject_014-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 5,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_014.pdf"
+  },
+  {
+    "id": "syn_petproject_015",
+    "title": "PixelCourier",
+    "coverImage": "assets/covers/syn_petproject_015.jpg",
+    "authorId": "syn_student_039",
+    "authorName": "Андрей Громов Алексеевич",
+    "category": "pet-проект",
+    "shortDescription": "Пиксельная головоломка с маршрутами и ограничением времени.",
+    "fullDescription": "## Зачем\n\nВ маленькой игре хочется исследовать разные стратегии доставки.\n\n## Что делает\n\nПиксельная головоломка с маршрутами и ограничением времени.\n\n## Личный вклад\n\nпрофилирование входа, контрольные расчёты и визуализация.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "В маленькой игре хочется исследовать разные стратегии доставки.",
+    "technologies": [
+      "Godot",
+      "GDScript"
+    ],
+    "direction": "Разработка игр",
+    "createdAt": "2026-10-15",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_015-1.png",
+      "assets/screenshots/syn_petproject_015-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 6,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_015.pdf"
+  },
+  {
+    "id": "syn_petproject_016",
+    "title": "OrbitSandbox",
+    "coverImage": "assets/covers/syn_petproject_016.jpg",
+    "authorId": "syn_student_040",
+    "authorName": "Ксения Фролова Андреевна",
+    "category": "pet-проект",
+    "shortDescription": "Песочница орбит с управлением начальными условиями.",
+    "fullDescription": "## Зачем\n\nПараметры движения трудно связать с траекторией по формулам.\n\n## Что делает\n\nПесочница орбит с управлением начальными условиями.\n\n## Личный вклад\n\nкарта пути пользователя, прототипы и библиотека состояний.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Параметры движения трудно связать с траекторией по формулам.",
+    "technologies": [
+      "Python",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "direction": "Физика",
+    "createdAt": "2026-11-16",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_016-1.png",
+      "assets/screenshots/syn_petproject_016-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 7,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_016.pdf"
+  },
+  {
+    "id": "syn_petproject_017",
+    "title": "PatchNotes",
+    "coverImage": "assets/covers/syn_petproject_017.jpg",
+    "authorId": "syn_student_041",
+    "authorName": "Алексей Миронов Сергеевич",
+    "category": "pet-проект",
+    "shortDescription": "Лента изменений с фильтром по версии и компоненту.",
+    "fullDescription": "## Зачем\n\nЗаметки о релизе не связаны с задачами и исправлениями.\n\n## Что делает\n\nЛента изменений с фильтром по версии и компоненту.\n\n## Личный вклад\n\nтест-дизайн, автоматизация и отчёты о дефектах.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "Заметки о релизе не связаны с задачами и исправлениями.",
+    "technologies": [
+      "React",
+      "Go",
+      "PostgreSQL"
+    ],
+    "direction": "Fullstack",
+    "createdAt": "2026-09-17",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_017-1.png",
+      "assets/screenshots/syn_petproject_017-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 8,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_017.pdf"
+  },
+  {
+    "id": "syn_petproject_018",
+    "title": "CommitLens",
+    "coverImage": "assets/covers/syn_petproject_018.jpg",
+    "authorId": "syn_student_042",
+    "authorName": "Мария Белова Викторовна",
+    "category": "pet-проект",
+    "shortDescription": "Обзор изменений по модулям без рейтинга людей по строкам кода.",
+    "fullDescription": "## Зачем\n\nКоманда видит количество коммитов, но не структуру работы.\n\n## Что делает\n\nОбзор изменений по модулям без рейтинга людей по строкам кода.\n\n## Личный вклад\n\nподготовка выборки, оценка ошибок и сервис предсказаний.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Команда видит количество коммитов, но не структуру работы.",
+    "technologies": [
+      "Python",
+      "pandas",
+      "Plotly"
+    ],
+    "direction": "Data Science",
+    "createdAt": "2026-09-18",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_018-1.png",
+      "assets/screenshots/syn_petproject_018-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 9,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_018.pdf"
+  },
+  {
+    "id": "syn_petproject_019",
+    "title": "PhotoSort",
+    "coverImage": "assets/covers/syn_petproject_019.jpg",
+    "authorId": "syn_student_043",
+    "authorName": "Тимур Сафин Сергеевич",
+    "category": "pet-проект",
+    "shortDescription": "Поиск групп похожих снимков с ручным подтверждением удаления.",
+    "fullDescription": "## Зачем\n\nНа диске много похожих фотографий с разными именами.\n\n## Что делает\n\nПоиск групп похожих снимков с ручным подтверждением удаления.\n\n## Личный вклад\n\nокружение, журналы, панели и инструкция восстановления.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "На диске много похожих фотографий с разными именами.",
+    "technologies": [
+      "Python",
+      "OpenCV",
+      "NumPy"
+    ],
+    "direction": "Компьютерное зрение",
+    "createdAt": "2026-10-19",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_019-1.png",
+      "assets/screenshots/syn_petproject_019-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 10,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_019.pdf"
+  },
+  {
+    "id": "syn_petproject_020",
+    "title": "CourseLink",
+    "coverImage": "assets/covers/syn_petproject_020.jpg",
+    "authorId": "syn_student_044",
+    "authorName": "Анна Волкова Викторовна",
+    "category": "pet-проект",
+    "shortDescription": "Карта пререквизитов и объяснение пути обучения.",
+    "fullDescription": "## Зачем\n\nНеясно, какие знания нужны до выбранного курса.\n\n## Что делает\n\nКарта пререквизитов и объяснение пути обучения.\n\n## Личный вклад\n\nлокальное хранение, синхронизация и мобильная навигация.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Неясно, какие знания нужны до выбранного курса.",
+    "technologies": [
+      "Figma",
+      "React",
+      "TypeScript"
+    ],
+    "direction": "Системный анализ",
+    "createdAt": "2026-11-20",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_020-1.png",
+      "assets/screenshots/syn_petproject_020-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 11,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_020.pdf"
+  },
+  {
+    "id": "syn_petproject_021",
+    "title": "StudyClock",
+    "coverImage": "assets/covers/syn_petproject_021.jpg",
+    "authorId": "syn_student_045",
+    "authorName": "Максим Орлов Сергеевич",
+    "category": "pet-проект",
+    "shortDescription": "Таймер фокуса с заметками о результате и следующем шаге.",
+    "fullDescription": "## Зачем\n\nУчебные сессии не учитывают время на разбор ошибок.\n\n## Что делает\n\nТаймер фокуса с заметками о результате и следующем шаге.\n\n## Личный вклад\n\nматрица ответственности, словарь состояний и контракт данных.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nПроверить сценарий на мобильном экране и улучшить навигацию.",
+    "problemSolved": "Учебные сессии не учитывают время на разбор ошибок.",
+    "technologies": [
+      "Flutter",
+      "Dart"
+    ],
+    "direction": "Мобильная разработка",
+    "createdAt": "2026-09-01",
+    "status": "архив",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_021-1.png",
+      "assets/screenshots/syn_petproject_021-2.png"
+    ],
+    "badges": [
+      "seeking_team"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 12,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_021.pdf"
+  },
+  {
+    "id": "syn_petproject_022",
+    "title": "InkShelf",
+    "coverImage": "assets/covers/syn_petproject_022.jpg",
+    "authorId": "syn_student_046",
+    "authorName": "Дарья Соколова Викторовна",
+    "category": "pet-проект",
+    "shortDescription": "Коллекция закладок с локальным поиском и заметками.",
+    "fullDescription": "## Зачем\n\nПолезные статьи сохраняются, но потом их не найти.\n\n## Что делает\n\nКоллекция закладок с локальным поиском и заметками.\n\n## Личный вклад\n\nприём сигналов, единицы измерения и журнал предупреждений.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nДобавить импорт и экспорт с понятным отчётом об ошибках.",
+    "problemSolved": "Полезные статьи сохраняются, но потом их не найти.",
+    "technologies": [
+      "React",
+      "TypeScript",
+      "IndexedDB"
+    ],
+    "direction": "Frontend",
+    "createdAt": "2026-09-02",
+    "status": "готовый продукт",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_022-1.png",
+      "assets/screenshots/syn_petproject_022-2.png"
+    ],
+    "badges": [
+      "seeking_mentor"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 13,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_022.pdf"
+  },
+  {
+    "id": "syn_petproject_023",
+    "title": "TravelPack",
+    "coverImage": "assets/covers/syn_petproject_023.jpg",
+    "authorId": "syn_student_047",
+    "authorName": "Руслан Хакимов Сергеевич",
+    "category": "pet-проект",
+    "shortDescription": "Чек-листы по условиям поездки и совместное редактирование.",
+    "fullDescription": "## Зачем\n\nПеред короткой поездкой каждый раз составляется один и тот же список.\n\n## Что делает\n\nЧек-листы по условиям поездки и совместное редактирование.\n\n## Личный вклад\n\nмеханика, прогресс игрока и обучение без длинных инструкций.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nСобрать наблюдения пользователей и сократить лишние действия.",
+    "problemSolved": "Перед короткой поездкой каждый раз составляется один и тот же список.",
+    "technologies": [
+      "Figma",
+      "React"
+    ],
+    "direction": "UX/UI",
+    "createdAt": "2026-10-03",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_023-1.png",
+      "assets/screenshots/syn_petproject_023-2.png"
+    ],
+    "badges": [
+      "open_for_internship"
+    ],
+    "isModerated": true,
+    "moderationStatus": "approved",
+    "likesCount": 14,
+    "visibility": "public",
+    "presentationUrl": "documents/presentations/syn_petproject_023.pdf"
+  },
+  {
+    "id": "syn_petproject_024",
+    "title": "AccessLens",
+    "coverImage": "assets/covers/syn_petproject_024.jpg",
+    "authorId": "syn_student_048",
+    "authorName": "Екатерина Морозова Викторовна",
+    "category": "pet-проект",
+    "shortDescription": "Проверка основных экранов с пояснением и приоритетом исправлений.",
+    "fullDescription": "## Зачем\n\nПроблемы доступности обнаруживаются перед самой демонстрацией.\n\n## Что делает\n\nПроверка основных экранов с пояснением и приоритетом исправлений.\n\n## Личный вклад\n\nобработка изображений, разметка и сравнение результатов.\n\n## Что проверено\n\nПустые данные, повтор действия, сохранение состояния и восстановление после перезапуска.\n\n## Следующий шаг\n\nИзмерить время обработки на увеличенном входе.",
+    "problemSolved": "Проблемы доступности обнаруживаются перед самой демонстрацией.",
+    "technologies": [
+      "TypeScript",
+      "Playwright",
+      "axe-core"
+    ],
+    "direction": "Тестирование",
+    "createdAt": "2026-11-04",
+    "status": "в разработке",
+    "githubUrl": "",
+    "productUrl": "",
+    "screenshots": [
+      "assets/screenshots/syn_petproject_024-1.png",
+      "assets/screenshots/syn_petproject_024-2.png"
+    ],
+    "badges": [
+      "open_for_job"
+    ],
+    "isModerated": false,
+    "moderationStatus": "pending",
+    "likesCount": 15,
+    "visibility": "private",
+    "presentationUrl": "documents/presentations/syn_petproject_024.pdf"
+  }
+]

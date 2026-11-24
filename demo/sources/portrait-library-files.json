@@ -1,0 +1,44 @@
+[
+  {
+    "index": 4,
+    "path": "assets/avatars/library/SFHQ_pt3_00000050__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000050__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "index": 8,
+    "path": "assets/avatars/library/SFHQ_pt3_00000062__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000062__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "index": 10,
+    "path": "assets/avatars/library/SFHQ_pt3_00000077__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000077__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "index": 11,
+    "path": "assets/avatars/library/SFHQ_pt3_00000091__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000091__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "index": 12,
+    "path": "assets/avatars/library/SFHQ_pt3_00000170__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000170__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "index": 16,
+    "path": "assets/avatars/library/SFHQ_pt3_00000424__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000424__orig.jpg",
+    "originalDataset": "https://www.kaggle.com/datasets/selfishgene/synthetic-faces-high-quality-sfhq-part-3",
+    "license": "CC0 (source images); MIT (repository)"
+  }
+]

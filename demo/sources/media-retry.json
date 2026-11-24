@@ -1,0 +1,32 @@
+[
+  {
+    "studentId": "syn_student_044",
+    "path": "assets/avatars/syn_student_044-library.png",
+    "downloadUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/resolve/main/images/headshot/001-0005.png",
+    "sourceUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0/blob/main/images/headshot/001-0005.png",
+    "author": "Reto Wyss",
+    "license": "CC0 1.0 (individual images)",
+    "licenseUrl": "https://huggingface.co/datasets/retowyss/Syn-Vis-v0"
+  },
+  {
+    "companyId": "syn_company_025",
+    "path": "assets/logos/ibs.jpeg",
+    "downloadUrl": "https://uust.ru/unit/media/uploads/subdivuploads/1/%D0%A2%D0%9E%D0%9F-%D0%98%D0%A2/IBSlogo.jpeg",
+    "sourceUrl": "https://uust.ru/it-training-center/rabotadateli/",
+    "usage": "Идентификация компании; логотип не изменён."
+  },
+  {
+    "companyId": "syn_company_028",
+    "path": "assets/logos/action.png",
+    "downloadUrl": "https://hdst.ru/wp-content/uploads/2021/11/og_logo-1-1.png",
+    "sourceUrl": "https://uust.ru/it-training-center/rabotadateli/",
+    "usage": "Идентификация компании; логотип не изменён."
+  },
+  {
+    "companyId": "syn_company_029",
+    "path": "assets/logos/fort-dialog.png",
+    "downloadUrl": "https://uust.ru/unit/media/uploads/subdivuploads/1/%D0%A2%D0%9E%D0%9F-%D0%98%D0%A2/%D0%A4%D0%BE%D1%80%D1%82-%D0%B4%D0%B8%D0%B0%D0%BB%D0%BE%D0%B3-%D0%BB%D0%BE%D0%B3%D0%BE.png",
+    "sourceUrl": "https://uust.ru/it-training-center/rabotadateli/",
+    "usage": "Идентификация компании; логотип не изменён."
+  }
+]

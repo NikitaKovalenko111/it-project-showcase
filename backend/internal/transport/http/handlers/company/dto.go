@@ -3,6 +3,7 @@ package company_handler
 import "it-project-showcase/backend/internal/models"
 
 type CompanyRequest struct {
+	INN         string `json:"inn"`
 	FullName    string `json:"full_name"`
 	ShortName   string `json:"short_name"`
 	Industry    string `json:"industry"`
@@ -14,7 +15,7 @@ type CompanyRequest struct {
 }
 
 func (r CompanyRequest) model() models.CompanyInput {
-	return models.CompanyInput{FullName: r.FullName, ShortName: r.ShortName, Industry: r.Industry, Description: r.Description, Activities: r.Activities, Website: r.Website, Contacts: r.Contacts, Position: r.Position}
+	return models.CompanyInput{INN: r.INN, FullName: r.FullName, ShortName: r.ShortName, Industry: r.Industry, Description: r.Description, Activities: r.Activities, Website: r.Website, Contacts: r.Contacts, Position: r.Position}
 }
 
 type ModerationRequest struct {

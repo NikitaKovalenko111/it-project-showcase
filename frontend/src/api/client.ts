@@ -35,12 +35,39 @@ import {
 
 export { axiosInstance } from './http'
 import { axiosInstance } from './http'
-// Simulated delay helper for realistic network feedback
-const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
+
 const suspendedCompanies = () =>
   collectPages<any>((params) => axiosInstance.get('/companies/moderation', { params }), {
     status: 'suspended',
   })
+
+export async function getCompanyRecord(id: string) {
+  try {
+    return (await axiosInstance.get(`/companies/${id}`)).data
+  } catch (error) {
+    if (
+      (error as { status?: number }).status !== 404 ||
+      (!tokenStore.get() && !localStorage.getItem('uust_refresh_token'))
+    ) {
+      throw error
+    }
+
+    const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+    const companies = await (
+      actor?.role === 'admin'
+        ? suspendedCompanies()
+        : collectPages<any>((params) => axiosInstance.get('/companies/mine', { params }))
+    ).catch((cause: { status?: number }) => {
+      if (cause.status === 401 || cause.status === 403) return []
+      throw cause
+    })
+    const company = companies.find((item) => item.company_id === id)
+    if (!company) throw error
+    return company
+  }
+}
+// Simulated delay helper for realistic network feedback
+const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function resolveCaseCatalogs(project: CaseProject) {
   const payload = toCase(project)
@@ -254,7 +281,7 @@ export const apiClient = {
       const body = new FormData()
       body.append('file', file)
       const { data } = await axiosInstance.put('/users/me/avatar', body)
-      avatar = `${apiRuntime.baseUrl || '/api/v1'}/users/${user.id}/avatar?v=${data.file_id}`
+      avatar = `/api/v1/users/${user.id}/avatar?v=${data.file_id}`
     } else {
       avatar = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -587,25 +614,7 @@ export const apiClient = {
         (params) => axiosInstance.get('/applications', { params }),
         { case_id: caseId, mine: studentId ? true : undefined },
       )
-      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
-      const directory = ['company', 'admin'].includes(actor?.role)
-        ? await collectPages<any>((params) => axiosInstance.get('/students/search', { params }))
-        : []
-      const students = new Map(directory.map((student) => [student.user_id, student]))
-      return rows.map((d) => {
-        const id = d.student_id || d.submitted_by
-        const profile = students.get(id)
-        return fromApplication({
-          ...d,
-          student_name: profile?.full_name || (actor?.id === id ? actor.fullName : 'Участник'),
-          student_institute: profile?.institute,
-          student_course: profile?.course,
-          student_group: profile?.group_name,
-          student_avatar: profile?.photo_file_id
-            ? `${apiRuntime.baseUrl || '/api/v1'}/students/${id}/photo?v=${profile.photo_file_id}`
-            : undefined,
-        })
-      })
+      return rows.map(fromApplication)
     }
     await delay(150)
     return mockServer.getApplications(caseId, studentId)
@@ -937,16 +946,7 @@ export const apiClient = {
 
   async getCompanyById(id: string): Promise<Company> {
     if (apiRuntime.mode === 'live') {
-      try {
-        return fromCompany((await axiosInstance.get(`/companies/${id}`)).data)
-      } catch (error) {
-        const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
-        if ((error as { status?: number }).status === 404 && actor?.role === 'admin') {
-          const company = (await suspendedCompanies()).find((item) => item.company_id === id)
-          if (company) return fromCompany(company)
-        }
-        throw error
-      }
+      return fromCompany(await getCompanyRecord(id))
     }
     await delay(120)
     const c = mockServer.getCompanyById(id)
@@ -1098,18 +1098,24 @@ export const apiClient = {
       const roots = await collectNumbered<any>((params) =>
         axiosInstance.get(`/cases/${caseId}/comments`, { params }),
       )
-      const replies = (
-        await Promise.all(
-          roots
-            .filter((c) => c.reply_count > 0)
-            .map((c) =>
-              collectNumbered<any>((params) =>
-                axiosInstance.get(`/comments/${c.comment_id}/replies`, { params }),
+      const comments = new Map(roots.map((comment) => [comment.comment_id, comment]))
+      let level = roots
+      while (level.length) {
+        const replies = (
+          await Promise.all(
+            level
+              .filter((comment) => comment.reply_count > 0)
+              .map((comment) =>
+                collectNumbered<any>((params) =>
+                  axiosInstance.get(`/comments/${comment.comment_id}/replies`, { params }),
+                ),
               ),
-            ),
-        )
-      ).flat()
-      return [...roots, ...replies].map(fromComment)
+          )
+        ).flat()
+        level = replies.filter((comment) => !comments.has(comment.comment_id))
+        for (const comment of level) comments.set(comment.comment_id, comment)
+      }
+      return [...comments.values()].map(fromComment)
     }
     await delay(100)
     return mockServer.getComments(caseId)

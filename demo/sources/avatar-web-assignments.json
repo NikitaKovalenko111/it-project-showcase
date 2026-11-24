@@ -1,0 +1,122 @@
+[
+  {
+    "studentId": "syn_student_033",
+    "path": "assets/avatars/syn_student_033.jpg"
+  },
+  {
+    "studentId": "syn_student_035",
+    "path": "assets/avatars/syn_student_035.jpg"
+  },
+  {
+    "studentId": "syn_student_037",
+    "path": "assets/avatars/syn_student_037.jpg"
+  },
+  {
+    "studentId": "syn_student_039",
+    "path": "assets/avatars/syn_student_039.jpg"
+  },
+  {
+    "studentId": "syn_student_041",
+    "path": "assets/avatars/syn_student_041.jpg"
+  },
+  {
+    "studentId": "syn_student_043",
+    "path": "assets/avatars/syn_student_043.jpg"
+  },
+  {
+    "studentId": "syn_student_045",
+    "path": "assets/avatars/syn_student_045.jpg"
+  },
+  {
+    "studentId": "syn_student_047",
+    "path": "assets/avatars/syn_student_047.jpg"
+  },
+  {
+    "studentId": "syn_student_049",
+    "path": "assets/avatars/syn_student_049.jpg"
+  },
+  {
+    "studentId": "syn_student_051",
+    "path": "assets/avatars/syn_student_051.jpg"
+  },
+  {
+    "studentId": "syn_student_053",
+    "path": "assets/avatars/syn_student_053.jpg"
+  },
+  {
+    "studentId": "syn_student_055",
+    "path": "assets/avatars/library/SFHQ_pt3_00000050__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000050__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_057",
+    "path": "assets/avatars/library/SFHQ_pt3_00000062__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000062__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_059",
+    "path": "assets/avatars/library/SFHQ_pt3_00000077__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000077__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_036",
+    "path": "assets/avatars/syn_student_036-library.png"
+  },
+  {
+    "studentId": "syn_student_038",
+    "path": "assets/avatars/syn_student_038-library.png"
+  },
+  {
+    "studentId": "syn_student_040",
+    "path": "assets/avatars/syn_student_040-library.png"
+  },
+  {
+    "studentId": "syn_student_042",
+    "path": "assets/avatars/syn_student_042-library.png"
+  },
+  {
+    "studentId": "syn_student_044",
+    "path": "assets/avatars/syn_student_044-library.png"
+  },
+  {
+    "studentId": "syn_student_046",
+    "path": "assets/avatars/syn_student_046-library.png"
+  },
+  {
+    "studentId": "syn_student_048",
+    "path": "assets/avatars/syn_student_048-library.png"
+  },
+  {
+    "studentId": "syn_student_050",
+    "path": "assets/avatars/syn_student_050-library.png"
+  },
+  {
+    "studentId": "syn_student_052",
+    "path": "assets/avatars/syn_student_052-library.png"
+  },
+  {
+    "studentId": "syn_student_054",
+    "path": "assets/avatars/syn_student_054-library.png"
+  },
+  {
+    "studentId": "syn_student_056",
+    "path": "assets/avatars/library/SFHQ_pt3_00000091__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000091__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_058",
+    "path": "assets/avatars/library/SFHQ_pt3_00000170__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000170__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  },
+  {
+    "studentId": "syn_student_060",
+    "path": "assets/avatars/library/SFHQ_pt3_00000424__orig.jpg",
+    "sourceUrl": "https://github.com/santiagodie/face-similarity-search-pipeline/blob/main/docs/faces/SFHQ_pt3_00000424__orig.jpg",
+    "license": "CC0 (source images); MIT (repository)"
+  }
+]

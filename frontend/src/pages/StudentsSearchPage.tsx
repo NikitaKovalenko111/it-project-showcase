@@ -1,6 +1,6 @@
 import { CatalogSearch } from '../components/CatalogSearch'
 import { ExpandableText } from '../components/ExpandableText'
-import { IdentityImage } from '../components/IdentityImage'
+import { UserAvatar } from '../components/UserAvatar'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { canModerate, matchesSearch } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
@@ -248,7 +248,8 @@ export const StudentsSearchPage: React.FC = () => {
                     marginBottom: '14px',
                   }}
                 >
-                  <IdentityImage
+                  <UserAvatar
+                    userId={stud.id}
                     src={stud.avatar}
                     name={stud.fullName}
                     className="student-search-avatar"

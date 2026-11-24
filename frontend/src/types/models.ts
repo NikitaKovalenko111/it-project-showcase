@@ -63,6 +63,7 @@ export interface Company {
   name: string
   shortName: string
   logo: string
+  logoFileId?: string
   description: string
   industry: string
   website: string
@@ -462,7 +463,7 @@ export interface ProjectComment {
   caseId: string
   authorId: string
   authorName: string
-  authorRole: UserRole
+  authorRole?: UserRole
   authorAvatar?: string
   content: string
   createdAt: string

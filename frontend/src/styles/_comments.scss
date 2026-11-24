@@ -93,6 +93,14 @@
     border: 0;
     border-radius: 0;
     overflow-wrap: anywhere;
+    > .comment-replies {
+      grid-column: 2;
+      min-width: 0;
+      border-left: 2px solid var(--ui-line);
+      padding-left: 12px;
+      &:empty { display: none; }
+      .comment-replies { grid-column: 1 / -1; }
+    }
     & + .comment-item {
       border-top: 1px solid var(--ui-line);
     }

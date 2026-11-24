@@ -28,15 +28,14 @@ func (r *Repository) SetFavorite(ctx context.Context, u, kind, id string, on boo
 		}
 		n, _ := res.RowsAffected()
 		if n == 0 {
-			var exists bool
-			e = r.db.QueryRowContext(ctx, fmt.Sprintf(`SELECT EXISTS(SELECT 1 FROM %s WHERE %s=$1)`, source, key), id).Scan(&exists)
+			var eligible bool
+			e = r.db.QueryRowContext(ctx, fmt.Sprintf(`SELECT %s FROM %s WHERE c.%s=$1`, status, source, key), id).Scan(&eligible)
 			if e != nil {
 				return e
 			}
-			if !exists {
-				return sql.ErrNoRows
+			if !eligible {
+				return ErrForbidden
 			}
-			return ErrForbidden
 		}
 		return nil
 	}
@@ -243,7 +242,9 @@ func (r *Repository) SearchStudentsByRating(ctx context.Context, filter models.S
 		}
 		out = append(out, x)
 	}
-	if err := rows.Err(); err != nil { return nil, 0, err }
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
 	var total int
 	e = r.db.QueryRowContext(ctx, `SELECT count(*) FROM students s JOIN users u ON u.user_id=s.user_id`+studentSearchWhere, args...).Scan(&total)
 	return out, total, e

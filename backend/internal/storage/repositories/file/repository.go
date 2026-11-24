@@ -184,7 +184,8 @@ func (r *Repository) CreateStudentPhoto(ctx context.Context, userID string, file
 func (r *Repository) GetUserAvatar(ctx context.Context, userID, viewer string, admin bool) (*models.File, error) {
 	return scanFile(r.db.QueryRowContext(ctx, `SELECT f.file_id,f.storage_key,f.original_name,f.mime_type,
 		f.size_bytes,f.checksum_sha256,f.uploaded_by,f.created_at
-		FROM users u JOIN files f ON f.file_id=u.avatar_file_id AND f.uploaded_by=u.user_id
+		FROM users u LEFT JOIN students s ON s.user_id=u.user_id
+		JOIN files f ON f.file_id=COALESCE(u.avatar_file_id,s.photo_file_id) AND f.uploaded_by=u.user_id
 		LEFT JOIN portfolio_settings ps ON ps.student_id=u.user_id
 		WHERE u.user_id=$1 AND u.status='active' AND f.status='active'
 		AND (COALESCE(ps.visibility,'public')='public' OR u.user_id=NULLIF($2,'')::uuid OR $3)`, userID, viewer, admin))

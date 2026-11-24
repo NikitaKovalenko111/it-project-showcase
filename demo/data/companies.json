@@ -1,0 +1,1140 @@
+[
+  {
+    "id": "syn_company_001",
+    "name": "Термослед",
+    "shortName": "Термослед",
+    "logo": "assets/logos/syn_company_001.png",
+    "description": "Команда в области «Промышленный мониторинг». Предлагает студентам задачи «Мониторинг перегрева насосов» и «Расследование простоев линии». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Промышленный мониторинг",
+    "website": "",
+    "email": "projects@company-001.example",
+    "phone": "",
+    "contactPerson": "Александр Ветров",
+    "directions": [
+      "IoT"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "MQTT",
+      "PostgreSQL"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Панель температуры, журнал превышений и явные состояния «нет связи» и «остановлен».",
+    "practiceProgram": "Учебная практика по теме «Мониторинг перегрева насосов»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_001.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_001.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_002",
+    "name": "АгроРитм",
+    "shortName": "АгроРитм",
+    "logo": "assets/logos/syn_company_002.png",
+    "description": "Команда в области «Агротехнологии». Предлагает студентам задачи «Планировщик полива теплицы» и «Учёт партий рассады». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Агротехнологии",
+    "website": "",
+    "email": "projects@company-002.example",
+    "phone": "",
+    "contactPerson": "Елена Сафина",
+    "directions": [
+      "Автоматизация"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "FastAPI",
+      "SQLite"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Симулятор полива с ручным подтверждением и журналом решений.",
+    "practiceProgram": "Учебная практика по теме «Планировщик полива теплицы»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_002.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_002.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_003",
+    "name": "БиблиоМаршрут",
+    "shortName": "БиблиоМаршрут",
+    "logo": "assets/logos/syn_company_003.png",
+    "description": "Команда в области «Библиотечные сервисы». Предлагает студентам задачи «Бронирование редких изданий» и «Поиск по оцифрованным описям». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Библиотечные сервисы",
+    "website": "",
+    "email": "projects@company-003.example",
+    "phone": "",
+    "contactPerson": "Михаил Рощин",
+    "directions": [
+      "Fullstack"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 2,
+    "techStack": [
+      "React",
+      "TypeScript",
+      "PostgreSQL"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Каталог экземпляров, очередь бронирования и календарь получения.",
+    "practiceProgram": "Учебная практика по теме «Бронирование редких изданий»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_003.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_003.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_004",
+    "name": "Маршрутная Сетка",
+    "shortName": "Маршрутная Сетка",
+    "logo": "assets/logos/syn_company_004.png",
+    "description": "Команда в области «Городская логистика». Предлагает студентам задачи «Доставка с временными окнами» и «Согласование складских возвратов». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Городская логистика",
+    "website": "",
+    "email": "projects@company-004.example",
+    "phone": "",
+    "contactPerson": "Ольга Лукина",
+    "directions": [
+      "Backend"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 2,
+    "techStack": [
+      "Go",
+      "PostgreSQL",
+      "OpenAPI"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. API маршрута с объяснением невыполнимых заказов.",
+    "practiceProgram": "Учебная практика по теме «Доставка с временными окнами»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_004.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_004.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_005",
+    "name": "ЭнергоМозаика",
+    "shortName": "ЭнергоМозаика",
+    "logo": "assets/logos/syn_company_005.png",
+    "description": "Команда в области «Возобновляемая энергетика». Предлагает студентам задачи «Прогноз выработки ветропарка» и «Учёт потерь солнечной станции». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Возобновляемая энергетика",
+    "website": "",
+    "email": "projects@company-005.example",
+    "phone": "",
+    "contactPerson": "Роман Белов",
+    "directions": [
+      "Data Science"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "pandas",
+      "Plotly"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Ноутбук, базовая модель и график ошибок по часам.",
+    "practiceProgram": "Учебная практика по теме «Прогноз выработки ветропарка»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_005.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_005.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_006",
+    "name": "Кампус Навигатор",
+    "shortName": "Кампус Навигатор",
+    "logo": "assets/logos/syn_company_006.png",
+    "description": "Команда в области «Университетские сервисы». Предлагает студентам задачи «Календарь консультаций» и «Поиск свободных аудиторий». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Университетские сервисы",
+    "website": "",
+    "email": "projects@company-006.example",
+    "phone": "",
+    "contactPerson": "Алина Юдина",
+    "directions": [
+      "Frontend"
+    ],
+    "activeCasesCount": 5,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "React",
+      "TypeScript",
+      "Playwright"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Доступный календарь с записью, отменой и переносом.",
+    "practiceProgram": "Учебная практика по теме «Календарь консультаций»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_006.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_006.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_007",
+    "name": "АкваКонтекст",
+    "shortName": "АкваКонтекст",
+    "logo": "assets/logos/syn_company_007.png",
+    "description": "Команда в области «Мониторинг воды». Предлагает студентам задачи «Качество воды на учебном стенде» и «Журнал отбора проб». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Мониторинг воды",
+    "website": "",
+    "email": "projects@company-007.example",
+    "phone": "",
+    "contactPerson": "Александр Ветров",
+    "directions": [
+      "IoT"
+    ],
+    "activeCasesCount": 4,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "MQTT",
+      "Grafana"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Панель с единицами, калибровкой и журналом предупреждений.",
+    "practiceProgram": "Учебная практика по теме «Качество воды на учебном стенде»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_007.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_007.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_008",
+    "name": "Такт Интерфейса",
+    "shortName": "Такт Интерфейса",
+    "logo": "assets/logos/syn_company_008.png",
+    "description": "Команда в области «Цифровая доступность». Предлагает студентам задачи «Доступная форма обращения» и «Онбординг без перегрузки». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Цифровая доступность",
+    "website": "",
+    "email": "projects@company-008.example",
+    "phone": "",
+    "contactPerson": "Елена Сафина",
+    "directions": [
+      "UX/UI"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Figma",
+      "HTML",
+      "CSS"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Прототип формы и описание состояний.",
+    "practiceProgram": "Учебная практика по теме «Доступная форма обращения»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_008.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_008.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_009",
+    "name": "Вектор Доступа",
+    "shortName": "Вектор Доступа",
+    "logo": "assets/logos/syn_company_009.png",
+    "description": "Команда в области «Информационная безопасность». Предлагает студентам задачи «Матрица прав учебного API» и «Жизненный цикл сессий». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Информационная безопасность",
+    "website": "",
+    "email": "projects@company-009.example",
+    "phone": "",
+    "contactPerson": "Михаил Рощин",
+    "directions": [
+      "Информационная безопасность"
+    ],
+    "activeCasesCount": 5,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "pytest",
+      "Docker"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Матрица доступа и негативные проверки изолированного стенда.",
+    "practiceProgram": "Учебная практика по теме «Матрица прав учебного API»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_009.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_009.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_010",
+    "name": "Архивный Луч",
+    "shortName": "Архивный Луч",
+    "logo": "assets/logos/syn_company_010.png",
+    "description": "Команда в области «Цифровое наследие». Предлагает студентам задачи «Выравнивание архивных сканов» и «Разметка рукописных карточек». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Цифровое наследие",
+    "website": "",
+    "email": "projects@company-010.example",
+    "phone": "",
+    "contactPerson": "Ольга Лукина",
+    "directions": [
+      "Компьютерное зрение"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "OpenCV",
+      "FastAPI"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Конвейер выравнивания с просмотром до и после.",
+    "practiceProgram": "Учебная практика по теме «Выравнивание архивных сканов»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_010.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_010.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_011",
+    "name": "Реестр Лабораторий",
+    "shortName": "Реестр Лабораторий",
+    "logo": "assets/logos/syn_company_011.png",
+    "description": "Команда в области «Научная инфраструктура». Предлагает студентам задачи «Реестр лабораторного оборудования» и «Расписание поверки приборов». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Научная инфраструктура",
+    "website": "",
+    "email": "projects@company-011.example",
+    "phone": "",
+    "contactPerson": "Роман Белов",
+    "directions": [
+      "Базы данных"
+    ],
+    "activeCasesCount": 4,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "PostgreSQL",
+      "SQL",
+      "Python"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Модель данных и отчёт о возможных дублях.",
+    "practiceProgram": "Учебная практика по теме «Реестр лабораторного оборудования»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_011.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_011.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_012",
+    "name": "РобоТропа",
+    "shortName": "РобоТропа",
+    "logo": "assets/logos/syn_company_012.png",
+    "description": "Команда в области «Учебная робототехника». Предлагает студентам задачи «Навигация робота в симуляторе» и «Пульт оператора роботостенда». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Учебная робототехника",
+    "website": "",
+    "email": "projects@company-012.example",
+    "phone": "",
+    "contactPerson": "Алина Юдина",
+    "directions": [
+      "Робототехника"
+    ],
+    "activeCasesCount": 4,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "ROS2",
+      "OpenCV"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Симуляция маршрута и журнал перепланирования.",
+    "practiceProgram": "Учебная практика по теме «Навигация робота в симуляторе»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_012.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_012.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_013",
+    "name": "Облачный След",
+    "shortName": "Облачный След",
+    "logo": "assets/logos/syn_company_013.png",
+    "description": "Команда в области «Облачная инфраструктура». Предлагает студентам задачи «Наблюдаемость сервиса заявок» и «Лимиты затрат тестового кластера». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Облачная инфраструктура",
+    "website": "",
+    "email": "projects@company-013.example",
+    "phone": "",
+    "contactPerson": "Александр Ветров",
+    "directions": [
+      "DevOps"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Docker",
+      "Prometheus",
+      "Grafana"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Учебный стенд с метриками задержек и уведомлениями.",
+    "practiceProgram": "Учебная практика по теме «Наблюдаемость сервиса заявок»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_013.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_013.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_014",
+    "name": "Сценарий Качества",
+    "shortName": "Сценарий Качества",
+    "logo": "assets/logos/syn_company_014.png",
+    "description": "Команда в области «Тестирование ПО». Предлагает студентам задачи «Проверки корзины учебного магазина» и «Тестирование импорта таблиц». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Тестирование ПО",
+    "website": "",
+    "email": "projects@company-014.example",
+    "phone": "",
+    "contactPerson": "Елена Сафина",
+    "directions": [
+      "Тестирование"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Playwright",
+      "TypeScript",
+      "Allure"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Матрица проверок и отчёты о дефектах.",
+    "practiceProgram": "Учебная практика по теме «Проверки корзины учебного магазина»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_014.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_014.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_015",
+    "name": "Город На Ладони",
+    "shortName": "Город На Ладони",
+    "logo": "assets/logos/syn_company_015.png",
+    "description": "Команда в области «Городские сервисы». Предлагает студентам задачи «Офлайн-карта велопарковок» и «Сообщения о неисправных фонарях». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Городские сервисы",
+    "website": "",
+    "email": "projects@company-015.example",
+    "phone": "",
+    "contactPerson": "Михаил Рощин",
+    "directions": [
+      "Мобильная разработка"
+    ],
+    "activeCasesCount": 4,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Flutter",
+      "Dart",
+      "SQLite"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Мобильный прототип с офлайн-каталогом.",
+    "practiceProgram": "Учебная практика по теме «Офлайн-карта велопарковок»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_015.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_015.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_016",
+    "name": "Честная Витрина",
+    "shortName": "Честная Витрина",
+    "logo": "assets/logos/syn_company_016.png",
+    "description": "Команда в области «Качество данных». Предлагает студентам задачи «Качество товарного каталога» и «Свежесть аналитических витрин». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Качество данных",
+    "website": "",
+    "email": "projects@company-016.example",
+    "phone": "",
+    "contactPerson": "Ольга Лукина",
+    "directions": [
+      "Big Data"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "SQL",
+      "ClickHouse"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Правила качества и карантин ошибочных строк.",
+    "practiceProgram": "Учебная практика по теме «Качество товарного каталога»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_016.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_016.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_017",
+    "name": "Инклюзивный Маршрут",
+    "shortName": "Инклюзивный Маршрут",
+    "logo": "assets/logos/syn_company_017.png",
+    "description": "Команда в области «Социальные технологии». Предлагает студентам задачи «Сопровождение посетителя» и «Доступная навигация в здании». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Социальные технологии",
+    "website": "",
+    "email": "projects@company-017.example",
+    "phone": "",
+    "contactPerson": "Роман Белов",
+    "directions": [
+      "Системный анализ"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "BPMN",
+      "UML",
+      "Figma"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Модель процесса и карточка сопровождения.",
+    "practiceProgram": "Учебная практика по теме «Сопровождение посетителя»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_017.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_017.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_018",
+    "name": "Музейный Слой",
+    "shortName": "Музейный Слой",
+    "logo": "assets/logos/syn_company_018.png",
+    "description": "Команда в области «Музейные технологии». Предлагает студентам задачи «Виртуальная витрина экспоната» и «Аудиомаршрут по выставке». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Музейные технологии",
+    "website": "",
+    "email": "projects@company-018.example",
+    "phone": "",
+    "contactPerson": "Алина Юдина",
+    "directions": [
+      "AR/VR"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Unity",
+      "CSharp",
+      "Blender"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. 3D-просмотр с подписями и облегчённой версией.",
+    "practiceProgram": "Учебная практика по теме «Виртуальная витрина экспоната»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_018.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_018.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_019",
+    "name": "Игровая Мастерская",
+    "shortName": "Игровая Мастерская",
+    "logo": "assets/logos/syn_company_019.png",
+    "description": "Команда в области «Образовательные игры». Предлагает студентам задачи «Игра о сортировке отходов» и «Симулятор очереди в столовой». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Образовательные игры",
+    "website": "",
+    "email": "projects@company-019.example",
+    "phone": "",
+    "contactPerson": "Александр Ветров",
+    "directions": [
+      "Разработка игр"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Godot",
+      "GDScript",
+      "Git"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Короткая игра с объяснением каждого решения.",
+    "practiceProgram": "Учебная практика по теме «Игра о сортировке отходов»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_019.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_019.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_020",
+    "name": "Письмо Потока",
+    "shortName": "Письмо Потока",
+    "logo": "assets/logos/syn_company_020.png",
+    "description": "Команда в области «Документооборот». Предлагает студентам задачи «Согласование учебных договоров» и «Заявки на закупку оборудования». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Документооборот",
+    "website": "",
+    "email": "projects@company-020.example",
+    "phone": "",
+    "contactPerson": "Елена Сафина",
+    "directions": [
+      "Бизнес-анализ"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "BPMN",
+      "Figma",
+      "Markdown"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Модель процесса, статусы и матрица ответственности.",
+    "practiceProgram": "Учебная практика по теме «Согласование учебных договоров»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_020.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_020.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_021",
+    "name": "Спектр Исследований",
+    "shortName": "Спектр Исследований",
+    "logo": "assets/logos/syn_company_021.png",
+    "description": "Команда в области «Прикладная наука». Предлагает студентам задачи «Классификация учебных спектров» и «Поиск аномалий эксперимента». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Прикладная наука",
+    "website": "",
+    "email": "projects@company-021.example",
+    "phone": "",
+    "contactPerson": "Михаил Рощин",
+    "directions": [
+      "Машинное обучение"
+    ],
+    "activeCasesCount": 3,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "scikit-learn",
+      "pandas"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Базовая модель и анализ ошибок отложенных серий.",
+    "practiceProgram": "Учебная практика по теме «Классификация учебных спектров»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_021.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_021.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_022",
+    "name": "Текстовый Контур",
+    "shortName": "Текстовый Контур",
+    "logo": "assets/logos/syn_company_022.png",
+    "description": "Команда в области «Языковые технологии». Предлагает студентам задачи «Поиск по учебной базе знаний» и «Рубрикатор обращений». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Языковые технологии",
+    "website": "",
+    "email": "projects@company-022.example",
+    "phone": "",
+    "contactPerson": "Ольга Лукина",
+    "directions": [
+      "Искусственный интеллект"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "FastAPI",
+      "SQLite"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Поиск с цитируемыми фрагментами и отказом без источника.",
+    "practiceProgram": "Учебная практика по теме «Поиск по учебной базе знаний»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_022.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_022.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_023",
+    "name": "Физика Сигнала",
+    "shortName": "Физика Сигнала",
+    "logo": "assets/logos/syn_company_023.png",
+    "description": "Команда в области «Измерительные системы». Предлагает студентам задачи «Анализ вибраций учебного двигателя» и «Погрешность измерений». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Измерительные системы",
+    "website": "",
+    "email": "projects@company-023.example",
+    "phone": "",
+    "contactPerson": "Роман Белов",
+    "directions": [
+      "Физика"
+    ],
+    "activeCasesCount": 2,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Ноутбук анализа сигнала и сравнение режимов.",
+    "practiceProgram": "Учебная практика по теме «Анализ вибраций учебного двигателя»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_023.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_023.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_024",
+    "name": "Дискретный План",
+    "shortName": "Дискретный План",
+    "logo": "assets/logos/syn_company_024.png",
+    "description": "Команда в области «Оптимизация и моделирование». Предлагает студентам задачи «Распределение лабораторных смен» и «Балансировка учебных команд». Работа с подготовленными наборами данных с еженедельным разбором решений.",
+    "industry": "Оптимизация и моделирование",
+    "website": "",
+    "email": "projects@company-024.example",
+    "phone": "",
+    "contactPerson": "Алина Юдина",
+    "directions": [
+      "Математика"
+    ],
+    "activeCasesCount": 4,
+    "completedProjectsCount": 0,
+    "techStack": [
+      "Python",
+      "OR-Tools",
+      "Plotly"
+    ],
+    "isVerified": false,
+    "isModerated": true,
+    "internshipProgram": "Работа с наставником: уточнение требований, прототип, проверка и демонстрация. Коммерческий опыт не требуется. Модель ограничений и объяснение конфликтов расписания.",
+    "practiceProgram": "Учебная практика по теме «Распределение лабораторных смен»: постановка задачи, календарный план и отчёт. Календарный план и формат отчёта согласуются с куратором.",
+    "coverImage": "assets/covers/syn_company_024.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_024.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_025",
+    "name": "IBS",
+    "shortName": "IBS",
+    "logo": "assets/logos/syn_company_025.png",
+    "description": "Разрабатывает и сопровождает корпоративные информационные системы. IBS и УУНиТ заключили соглашение о подготовке ИТ-специалистов в ноябре 2025 года.",
+    "industry": "ИТ-сервисы и корпоративная разработка",
+    "website": "https://ibs.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Backend",
+      "Бизнес-анализ",
+      "Тестирование"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_025.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_025.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_026",
+    "name": "Инносети",
+    "shortName": "Инносети",
+    "logo": "assets/logos/innoseti.png",
+    "description": "Индустриальный партнёр программы ТОП-ИТ УУНиТ. На хакатоне 2026 года представила задачу Executor Balancer.",
+    "industry": "Программные платформы",
+    "website": "https://zunami.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Backend",
+      "Системный анализ",
+      "Базы данных"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_026.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_026.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_027",
+    "name": "Уфанет",
+    "shortName": "Уфанет",
+    "logo": "assets/logos/syn_company_027.png",
+    "description": "Телекоммуникационная компания; участвовала в UFA_HACK 2024 как партнёр и кейсодатель.",
+    "industry": "Телекоммуникации и цифровые сервисы",
+    "website": "https://www.ufanet.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Компьютерное зрение",
+      "Frontend",
+      "Backend"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_027.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_027.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_028",
+    "name": "Актион Диджитал",
+    "shortName": "Актион Диджитал",
+    "logo": "assets/logos/syn_company_028.png",
+    "description": "Создаёт цифровые продукты для профессиональных задач. Индустриальный партнёр ТОП-ИТ УУНиТ, представивший два кейса на хакатоне 2026 года.",
+    "industry": "Профессиональные цифровые сервисы",
+    "website": "https://action-digital.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Fullstack",
+      "Искусственный интеллект",
+      "UX/UI"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_028.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_028.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_029",
+    "name": "Форт Диалог",
+    "shortName": "Форт Диалог",
+    "logo": "assets/logos/syn_company_029.png",
+    "description": "Системный интегратор, работающий с ИТ-инфраструктурой, промышленной автоматизацией и информационной безопасностью.",
+    "industry": "Системная интеграция",
+    "website": "https://fortdialog.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Автоматизация",
+      "Информационная безопасность",
+      "IoT"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_029.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_029.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_030",
+    "name": "Газпромнефть-Цифровые решения",
+    "shortName": "Газпромнефть-Цифровые решения",
+    "logo": "assets/logos/syn_company_030.png",
+    "description": "Компания участвует в образовательных мероприятиях ТОП-ИТ УУНиТ; её эксперты вошли в жюри хакатона первокурсников в 2025 году.",
+    "industry": "Цифровые решения для нефтегазовой отрасли",
+    "website": "",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Data Science",
+      "Backend",
+      "Искусственный интеллект"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_030.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_030.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_031",
+    "name": "ИнфоТеКС",
+    "shortName": "ИнфоТеКС",
+    "logo": "assets/logos/syn_company_031.png",
+    "description": "Компания в области защиты информации; партнёр UFA_HACK 2024 и участник образовательной программы ИТ-фестиваля УУНиТ.",
+    "industry": "Информационная безопасность",
+    "website": "https://infotecs.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Информационная безопасность",
+      "Тестирование"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_031.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_031.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_032",
+    "name": "Датареон",
+    "shortName": "Датареон",
+    "logo": "assets/logos/syn_company_032.png",
+    "description": "Разрабатывает решения интеграции приложений и управления корпоративными данными.",
+    "industry": "Интеграция приложений и данных",
+    "website": "https://datareon.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Базы данных",
+      "Backend",
+      "Big Data"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_032.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_032.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_033",
+    "name": "УУНиТ",
+    "shortName": "УУНиТ",
+    "logo": "assets/logos/syn_company_033.png",
+    "description": "Уфимский университет науки и технологий — площадка студенческих ИТ-соревнований и проектной работы.",
+    "industry": "Высшее образование и проектная работа",
+    "website": "https://uust.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Fullstack",
+      "Программирование",
+      "Разработка игр"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_033.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_033.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_034",
+    "name": "БГПУ им. М. Акмуллы",
+    "shortName": "БГПУ им. М. Акмуллы",
+    "logo": "assets/logos/syn_company_034.png",
+    "description": "Организатор республиканских хакатонов серии «Всем в IT!».",
+    "industry": "Высшее образование",
+    "website": "https://bspu.ru/",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "AR/VR",
+      "Data Science",
+      "Разработка игр"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_034.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_034.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_035",
+    "name": "Brain Bricks",
+    "shortName": "Brain Bricks",
+    "logo": "assets/logos/syn_company_035.png",
+    "description": "Клуб молодых разработчиков игр, организовавший «БизGame» в Уфе совместно с Фондом «ПИМУ».",
+    "industry": "Разработка игр",
+    "website": "",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Разработка игр",
+      "UX/UI"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_035.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_035.pdf"
+      }
+    ]
+  },
+  {
+    "id": "syn_company_036",
+    "name": "418team",
+    "shortName": "418team",
+    "logo": "assets/logos/syn_company_036.png",
+    "description": "Организатор и партнёр студенческого Ufa_Hack 2023, партнёр UFA_HACK 2024.",
+    "industry": "ИТ-сообщество и продуктовая разработка",
+    "website": "",
+    "email": "",
+    "phone": "",
+    "contactPerson": "",
+    "directions": [
+      "Fullstack",
+      "Frontend",
+      "Backend"
+    ],
+    "activeCasesCount": 0,
+    "completedProjectsCount": 0,
+    "techStack": [],
+    "isVerified": false,
+    "isModerated": true,
+    "coverImage": "assets/covers/syn_company_036.jpg",
+    "documents": [
+      {
+        "name": "О компании.pdf",
+        "url": "documents/companies/syn_company_036.pdf"
+      }
+    ]
+  }
+]

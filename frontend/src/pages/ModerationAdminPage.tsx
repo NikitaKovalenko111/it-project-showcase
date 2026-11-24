@@ -1,6 +1,7 @@
 import type { User } from '../types/models'
 import { useTablePagination } from '../components/ReportTableView'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
+import { UserAvatar } from '../components/UserAvatar'
 import { useConfirmWithReason } from '../components/ConfirmProvider'
 import { matchesSearch, publicationStatus } from '../utils/publication'
 import { auditActionLabels, auditObjectLabels, roleLabels } from '../utils/adminLabels'
@@ -307,9 +308,8 @@ export const ModerationAdminPage: React.FC = () => {
                     <tr key={comp.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IdentityImage
-                            src={comp.logo}
-                            name={comp.shortName || comp.name}
+                          <CompanyLogo
+                            company={comp}
                             className="moderation-company-logo"
                           />
                           <Link to={`/company/${comp.id}`}>
@@ -397,7 +397,8 @@ export const ModerationAdminPage: React.FC = () => {
                     <tr key={u.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IdentityImage
+                          <UserAvatar
+                            userId={u.id}
                             src={u.avatar}
                             name={u.fullName}
                             className="candidate-avatar"

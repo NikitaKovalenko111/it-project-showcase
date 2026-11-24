@@ -5,7 +5,7 @@ import { apiClient } from '../api/client'
 import { useAppDispatch } from '../store'
 import { fetchCurrentUserSuccess } from '../store/actions'
 import type { User } from '../types/models'
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 
 export function ProfileAvatarUpload({ user }: { user: User }) {
   const dispatch = useAppDispatch()
@@ -15,7 +15,12 @@ export function ProfileAvatarUpload({ user }: { user: User }) {
   return (
     <div className="profile-avatar-control">
       <div className="profile-avatar-picture">
-        <IdentityImage src={user.avatar} name={user.fullName} className="profile-avatar" />
+        <UserAvatar
+          userId={user.id}
+          src={user.avatar}
+          name={user.fullName}
+          className="profile-avatar"
+        />
         <label className="profile-avatar-picker" title="Изменить аватар">
           <Camera size={16} aria-hidden="true" />
           <input

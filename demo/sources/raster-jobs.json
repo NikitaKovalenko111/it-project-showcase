@@ -1,0 +1,22 @@
+[
+  {
+    "source": "assets/logos/syn_curator_001.svg",
+    "target": "assets/logos/syn_curator_001.png"
+  },
+  {
+    "source": "assets/logos/syn_curator_002.svg",
+    "target": "assets/logos/syn_curator_002.png"
+  },
+  {
+    "source": "assets/logos/syn_curator_003.svg",
+    "target": "assets/logos/syn_curator_003.png"
+  },
+  {
+    "source": "assets/logos/syn_admin_001.svg",
+    "target": "assets/logos/syn_admin_001.png"
+  },
+  {
+    "source": "assets/logos/syn_university_001.svg",
+    "target": "assets/logos/syn_university_001.png"
+  }
+]

@@ -1,0 +1,218 @@
+[
+  {
+    "companyId": "syn_company_001",
+    "logo": "assets/logos/syn_company_001.svg",
+    "coverImage": "assets/photos/industrial.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_002",
+    "logo": "assets/logos/syn_company_002.svg",
+    "coverImage": "assets/photos/industrial.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_003",
+    "logo": "assets/logos/syn_company_003.svg",
+    "coverImage": "assets/photos/bicycle.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_004",
+    "logo": "assets/logos/syn_company_004.svg",
+    "coverImage": "assets/photos/bicycle.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_005",
+    "logo": "assets/logos/syn_company_005.svg",
+    "coverImage": "assets/photos/energy.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_006",
+    "logo": "assets/logos/syn_company_006.svg",
+    "coverImage": "assets/photos/workspace.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_007",
+    "logo": "assets/logos/syn_company_007.svg",
+    "coverImage": "assets/photos/laboratory.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_008",
+    "logo": "assets/logos/syn_company_008.svg",
+    "coverImage": "assets/photos/workspace.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_009",
+    "logo": "assets/logos/syn_company_009.svg",
+    "coverImage": "assets/photos/server.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_010",
+    "logo": "assets/logos/syn_company_010.svg",
+    "coverImage": "assets/photos/library.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_011",
+    "logo": "assets/logos/syn_company_011.svg",
+    "coverImage": "assets/photos/laboratory.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_012",
+    "logo": "assets/logos/syn_company_012.svg",
+    "coverImage": "assets/photos/robot.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_013",
+    "logo": "assets/logos/syn_company_013.svg",
+    "coverImage": "assets/photos/server.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_014",
+    "logo": "assets/logos/syn_company_014.svg",
+    "coverImage": "assets/photos/coding.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_015",
+    "logo": "assets/logos/syn_company_015.svg",
+    "coverImage": "assets/photos/bicycle.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_016",
+    "logo": "assets/logos/syn_company_016.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_017",
+    "logo": "assets/logos/syn_company_017.svg",
+    "coverImage": "assets/photos/bicycle.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_018",
+    "logo": "assets/logos/syn_company_018.svg",
+    "coverImage": "assets/photos/vr.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_019",
+    "logo": "assets/logos/syn_company_019.svg",
+    "coverImage": "assets/photos/gaming.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_020",
+    "logo": "assets/logos/syn_company_020.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_021",
+    "logo": "assets/logos/syn_company_021.svg",
+    "coverImage": "assets/photos/laboratory.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_022",
+    "logo": "assets/logos/syn_company_022.svg",
+    "coverImage": "assets/photos/coding.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_023",
+    "logo": "assets/logos/syn_company_023.svg",
+    "coverImage": "assets/photos/math.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_024",
+    "logo": "assets/logos/syn_company_024.svg",
+    "coverImage": "assets/photos/math.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_025",
+    "logo": "assets/logos/syn_company_025.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_026",
+    "logo": "assets/logos/innoseti.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "published_logo"
+  },
+  {
+    "companyId": "syn_company_027",
+    "logo": "assets/logos/syn_company_027.svg",
+    "coverImage": "assets/photos/workspace.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_028",
+    "logo": "assets/logos/syn_company_028.svg",
+    "coverImage": "assets/photos/workspace.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_029",
+    "logo": "assets/logos/syn_company_029.svg",
+    "coverImage": "assets/photos/industrial.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_030",
+    "logo": "assets/logos/syn_company_030.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_031",
+    "logo": "assets/logos/syn_company_031.svg",
+    "coverImage": "assets/photos/server.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_032",
+    "logo": "assets/logos/syn_company_032.svg",
+    "coverImage": "assets/photos/analytics.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_033",
+    "logo": "assets/logos/syn_company_033.svg",
+    "coverImage": "assets/photos/gaming.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_034",
+    "logo": "assets/logos/syn_company_034.svg",
+    "coverImage": "assets/photos/gaming.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_035",
+    "logo": "assets/logos/syn_company_035.svg",
+    "coverImage": "assets/photos/gaming.jpg",
+    "logoKind": "editorial_wordmark"
+  },
+  {
+    "companyId": "syn_company_036",
+    "logo": "assets/logos/syn_company_036.svg",
+    "coverImage": "assets/photos/workspace.jpg",
+    "logoKind": "editorial_wordmark"
+  }
+]
