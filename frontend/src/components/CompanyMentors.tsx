@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { apiRuntime } from '../api/runtime'
 import type { User } from '../types/models'
 import {
   getCompanyMentors,
   getRepresentativeProfile,
+  saveRepresentativeProfile,
   setCompanyMentor,
 } from '../utils/representativeProfile'
 import { UserAvatar } from './UserAvatar'
@@ -20,8 +22,50 @@ export function CompanyMentors({
   const [mentors, setMentors] = useState(() => getCompanyMentors(companyId))
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const profile = canParticipate && viewer ? getRepresentativeProfile(viewer.id) : undefined
-  const included = mentors.some((mentor) => mentor.id === viewer?.id)
+  const live = apiRuntime.mode === 'live'
+  const profile =
+    canParticipate && viewer
+      ? live
+        ? {
+            name: viewer.fullName,
+            position: '',
+            bio: '',
+            expertise: '',
+            ...viewer.representativeDetails,
+          }
+        : getRepresentativeProfile(viewer.id)
+      : undefined
+  const entry = mentors.find((mentor) => mentor.id === viewer?.id)
+  const hasDetails = !!(profile?.name && (profile.bio || profile.expertise))
+  const canUpdate = !!(
+    live &&
+    entry &&
+    profile &&
+    hasDetails &&
+    (entry.name !== profile.name ||
+      entry.bio !== profile.bio ||
+      entry.expertise !== profile.expertise)
+  )
+
+  const changeMentor = (action: 'add' | 'remove' | 'update') => {
+    if (!viewer) return
+    setError('')
+    setMessage('')
+    try {
+      if (live && profile && action !== 'remove') saveRepresentativeProfile(viewer.id, profile)
+      setCompanyMentor(companyId, viewer.id, action !== 'remove')
+      setMentors(getCompanyMentors(companyId))
+      setMessage(
+        {
+          add: 'Ваш профиль добавлен в список этого браузера.',
+          remove: 'Ваш профиль убран из списка.',
+          update: 'Карточка наставника обновлена.',
+        }[action],
+      )
+    } catch {
+      setError('Не удалось обновить список наставников в этом браузере.')
+    }
+  }
 
   useEffect(() => {
     const refresh = () => setMentors(getCompanyMentors(companyId))
@@ -33,34 +77,27 @@ export function CompanyMentors({
     <section className="company-mentors">
       <div className="company-mentors__header">
         <h2>Наставники и менторы</h2>
-        {canParticipate && viewer && (included || (profile?.name && profile.bio)) && (
+        {canParticipate && (entry || hasDetails) && (
           <button
-            className={`btn ${included ? 'btn-secondary' : 'btn-primary'}`}
-            onClick={() => {
-              setError('')
-              setMessage('')
-              try {
-                setCompanyMentor(companyId, viewer.id, !included)
-                setMentors(getCompanyMentors(companyId))
-                setMessage(
-                  included
-                    ? 'Ваш профиль убран из списка.'
-                    : 'Ваш профиль добавлен в список этого браузера.',
-                )
-              } catch {
-                setError('Не удалось обновить список наставников в этом браузере.')
-              }
-            }}
+            className={`btn ${entry ? 'btn-secondary' : 'btn-primary'}`}
+            onClick={() => changeMentor(entry ? 'remove' : 'add')}
           >
-            {included ? 'Убрать себя из списка' : 'Добавить себя в наставники'}
+            {entry ? 'Убрать себя из списка' : 'Добавить себя в наставники'}
           </button>
         )}
-        {canParticipate && !included && !(profile?.name && profile.bio) && (
+        {canParticipate && !entry && !hasDetails && (
           <Link to="/account" className="btn btn-secondary">
             Заполнить мой профиль
           </Link>
         )}
       </div>
+      {canUpdate && (
+        <div>
+          <button className="btn btn-secondary" onClick={() => changeMentor('update')}>
+            Обновить карточку из профиля
+          </button>
+        </div>
+      )}
       {(canParticipate || mentors.length > 0) && (
         <p className="form-hint">Этот список доступен только в текущем браузере.</p>
       )}
@@ -86,11 +123,11 @@ export function CompanyMentors({
                   {mentor.position && <p>{mentor.position}</p>}
                 </div>
               </div>
-              <p className="preserve-text">{mentor.bio}</p>
+              {mentor.bio && <p className="preserve-text">{mentor.bio}</p>}
               {mentor.expertise && (
                 <p className="mentorship-topics">
                   <strong>Темы наставничества</strong>
-                  <span>{mentor.expertise}</span>
+                  <span className="preserve-text">{mentor.expertise}</span>
                 </p>
               )}
             </article>

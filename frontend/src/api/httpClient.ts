@@ -9,6 +9,8 @@ type Options = {
   refreshTokens?: (token: string) => Promise<{ access_token: string; refresh_token: string }>
 }
 const messages: Record<string, string> = {
+  invalid_representative_profile:
+    'Укажите до 4 000 символов об опыте и до 2 000 символов о темах помощи.',
   event_plan_required:
     'Перед отправкой на модерацию заполните план мероприятия, расписание и сроки.',
   nda_version_required:
@@ -38,6 +40,7 @@ const messages: Record<string, string> = {
 }
 
 const fields: Record<string, string> = {
+  full_name: 'ФИО',
   first_name: 'Имя',
   last_name: 'Фамилия',
   patronymic: 'Отчество',

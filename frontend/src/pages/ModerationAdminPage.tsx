@@ -115,7 +115,7 @@ export const ModerationAdminPage: React.FC = () => {
     (user) =>
       user.requestedRole === 'company_representative' &&
       user.roleRequestStatus === 'pending' &&
-      matches(user.username, user.email, user.id),
+      matches(user.fullName, user.username, user.email, user.id),
   )
   const representativePage = useTablePagination(
     representativeRequests,
@@ -356,6 +356,7 @@ export const ModerationAdminPage: React.FC = () => {
               <table className="data-table">
                 <thead>
                   <tr>
+                    <th>ФИО</th>
                     <th>Логин</th>
                     <th>Email</th>
                     <th>Решение</th>
@@ -364,6 +365,7 @@ export const ModerationAdminPage: React.FC = () => {
                 <tbody>
                   {representativePage.items.map((user) => (
                     <tr key={user.id}>
+                      <td>{user.fullName === user.username ? '—' : user.fullName}</td>
                       <td>{user.username}</td>
                       <td>{user.email}</td>
                       <td>

@@ -29,6 +29,7 @@ test('representative account and role approval are separate from creating a comp
   })
   const userId = await userApi.requestRole({
     role: 'company',
+    fullName: '  Анна Петрова  ',
     username: 'partner',
     email: 'partner@example.test',
     password: 'Example12345',
@@ -41,6 +42,7 @@ test('representative account and role approval are separate from creating a comp
       '/auth/register',
       {
         role: 'company_representative',
+        full_name: 'Анна Петрова',
         username: 'partner',
         email: 'partner@example.test',
         password: 'Example12345',
@@ -49,6 +51,27 @@ test('representative account and role approval are separate from creating a comp
     ],
     ['PATCH', '/users/representative/role-request', { status: 'approved' }],
   ])
+})
+
+test('representative profile sends only changed fields and preserves clearing and line breaks', async () => {
+  const path = '/users/me/representative-profile'
+  const calls = []
+  const userApi = createUserManagement({
+    get: async (...request) => {
+      calls.push(request)
+      return { data: { experience_and_interests: 'Опыт', help_topics: 'Go\nSQL' } }
+    },
+    patch: async (...request) => {
+      calls.push(request)
+      return { data: { experience_and_interests: '', help_topics: 'Go\nSQL' } }
+    },
+  })
+  assert.deepEqual(await userApi.getRepresentativeProfile(), { bio: 'Опыт', expertise: 'Go\nSQL' })
+  assert.deepEqual(await userApi.updateRepresentativeProfile({ bio: '' }), {
+    bio: '',
+    expertise: 'Go\nSQL',
+  })
+  assert.deepEqual(calls, [[path], [path, { experience_and_interests: '' }]])
 })
 
 test('company submission and invitation acceptance use distinct endpoints and return the company', async () => {

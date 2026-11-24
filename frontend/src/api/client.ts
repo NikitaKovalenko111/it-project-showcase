@@ -206,6 +206,8 @@ export const apiClient = {
   },
 
   requestRole: userManagement.requestRole,
+  getRepresentativeProfile: userManagement.getRepresentativeProfile,
+  updateRepresentativeProfile: userManagement.updateRepresentativeProfile,
   reviewRoleRequest: userManagement.reviewRole,
 
   async register(data: any): Promise<User> {

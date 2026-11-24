@@ -46,7 +46,7 @@ function mentorIds(companyId: string): string[] {
 export function getCompanyMentors(companyId: string) {
   return mentorIds(companyId).flatMap((id) => {
     const profile = getRepresentativeProfile(id)
-    return profile?.name && profile.bio ? [{ id, ...profile }] : []
+    return profile?.name && (profile.bio || profile.expertise) ? [{ id, ...profile }] : []
   })
 }
 

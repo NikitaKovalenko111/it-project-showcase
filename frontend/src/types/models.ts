@@ -35,6 +35,7 @@ export interface CompanyProfile {
 }
 
 export interface User {
+  representativeDetails?: RepresentativeDetails
   requestedRole?: string
   roleRequestStatus?: 'pending' | 'approved' | 'rejected'
   id: string
@@ -50,6 +51,8 @@ export interface User {
   isBlocked?: boolean
   createdAt: string
 }
+
+export type RepresentativeDetails = { bio: string; expertise: string }
 
 export type CompanyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended'
 

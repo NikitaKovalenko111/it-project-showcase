@@ -1,22 +1,27 @@
 import { useState } from 'react'
-import type { User } from '../types/models'
-import {
-  saveRepresentativeProfile,
-  type RepresentativeProfile,
-} from '../utils/representativeProfile'
+import type { RepresentativeDetails, User } from '../types/models'
+import type { RepresentativeProfile } from '../utils/representativeProfile'
 
 export function RepresentativeProfileEditor({
   user,
   profile,
-  onSaved,
+  live,
+  legacyProfile,
+  onSave,
 }: {
   user: User
   profile?: RepresentativeProfile
-  onSaved: (profile: RepresentativeProfile) => void
+  live: boolean
+  legacyProfile?: RepresentativeProfile
+  onSave: (profile: RepresentativeProfile, changes: Partial<RepresentativeDetails>) => Promise<void>
 }) {
   const [draft, setDraft] = useState<typeof profile>()
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const importable =
+    legacyProfile &&
+    ((!profile?.bio && legacyProfile.bio) || (!profile?.expertise && legacyProfile.expertise))
 
   return (
     <section className="representative-profile">
@@ -42,64 +47,77 @@ export function RepresentativeProfileEditor({
           </button>
         )}
       </div>
-      <p className="form-hint">
-        Сведения доступны в этом браузере, в том числе во вкладке «Наставники и менторы».
-      </p>
+      {!live && <p className="form-hint">Сведения доступны в этом браузере.</p>}
       {draft ? (
         <form
           className="representative-profile__form"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault()
-            if (!draft.name.trim() || !draft.bio.trim()) {
+            if (busy) return
+            if (!live && (!draft.name.trim() || !draft.bio.trim())) {
               setError('Укажите имя и расскажите о себе.')
               return
             }
+            const changes: Partial<RepresentativeDetails> = {}
+            if (draft.bio.trim() !== (profile?.bio ?? '')) changes.bio = draft.bio.trim()
+            if (draft.expertise.trim() !== (profile?.expertise ?? ''))
+              changes.expertise = draft.expertise.trim()
+            setBusy(true)
+            setError('')
             try {
-              onSaved(saveRepresentativeProfile(user.id, draft))
+              if (!live || Object.keys(changes).length) await onSave(draft, changes)
               setDraft(undefined)
               setMessage('Профиль сохранён.')
-              setError('')
-            } catch {
-              setError('Не удалось сохранить сведения в этом браузере.')
+            } catch (cause) {
+              setError((cause as Error).message || 'Не удалось сохранить профиль.')
+            } finally {
+              setBusy(false)
             }
           }}
         >
-          <label className="form-group">
-            Имя для отображения
-            <input
-              className="input"
-              value={draft.name}
-              maxLength={150}
-              required
-              onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-            />
-          </label>
-          <label className="form-group">
-            Должность
-            <input
-              className="input"
-              value={draft.position}
-              maxLength={150}
-              onChange={(event) => setDraft({ ...draft, position: event.target.value })}
-            />
-          </label>
+          {!live && (
+            <label className="form-group">
+              Имя для отображения
+              <input
+                className="input"
+                value={draft.name}
+                maxLength={150}
+                required
+                onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+              />
+            </label>
+          )}
+          {!live && (
+            <label className="form-group">
+              Должность
+              <input
+                className="input"
+                value={draft.position}
+                maxLength={150}
+                onChange={(event) => setDraft({ ...draft, position: event.target.value })}
+              />
+            </label>
+          )}
           <label className="form-group">
             Опыт и интересы
             <textarea
               className="textarea"
               rows={4}
               value={draft.bio}
-              maxLength={2000}
-              required
+              maxLength={live ? 4000 : 2000}
+              required={!live}
+              disabled={busy}
               onChange={(event) => setDraft({ ...draft, bio: event.target.value })}
             />
           </label>
           <label className="form-group">
             Темы, с которыми могу помочь
-            <input
-              className="input"
+            <textarea
+              className="textarea"
+              rows={3}
               value={draft.expertise}
-              maxLength={300}
+              maxLength={live ? 2000 : 300}
+              disabled={busy}
               placeholder="Например, тестирование и системный анализ"
               onChange={(event) => setDraft({ ...draft, expertise: event.target.value })}
             />
@@ -110,27 +128,50 @@ export function RepresentativeProfileEditor({
             </p>
           )}
           <div className="action-row">
-            <button className="btn btn-primary">Сохранить</button>
-            <button type="button" className="btn btn-secondary" onClick={() => setDraft(undefined)}>
+            <button className="btn btn-primary" disabled={busy}>
+              {busy ? 'Сохраняем…' : 'Сохранить'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={busy}
+              onClick={() => setDraft(undefined)}
+            >
               Отмена
             </button>
+            {importable && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy}
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    bio: draft.bio || legacyProfile.bio,
+                    expertise: draft.expertise || legacyProfile.expertise,
+                  })
+                }
+              >
+                Подставить сведения из браузера
+              </button>
+            )}
           </div>
         </form>
-      ) : profile?.bio ? (
+      ) : profile && (profile.bio || profile.expertise) ? (
         <div className="representative-profile__details">
           {profile.position && (
             <p className="representative-profile__position">{profile.position}</p>
           )}
-          <p className="preserve-text">{profile.bio}</p>
+          {profile.bio && <p className="preserve-text">{profile.bio}</p>}
           {profile.expertise && (
             <p className="mentorship-topics">
               <strong>Темы наставничества</strong>
-              <span>{profile.expertise}</span>
+              <span className="preserve-text">{profile.expertise}</span>
             </p>
           )}
         </div>
       ) : (
-        <p>Добавьте должность, опыт и темы, по которым можете помогать студентам.</p>
+        <p>Расскажите об опыте и темах, по которым можете помогать студентам.</p>
       )}
       {message && <p role="status">{message}</p>}
     </section>

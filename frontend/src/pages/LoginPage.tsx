@@ -1,5 +1,4 @@
 import { hasApprovedCompany } from '../utils/access'
-import { getRepresentativeProfile, saveRepresentativeProfile } from '../utils/representativeProfile'
 import { isPhoneValid } from '../utils/validation'
 import { PasswordInput } from '../components/PasswordInput'
 import { apiClient } from '../api/client'
@@ -135,8 +134,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       setRegisterError('Укажите название компании, фамилию и имя представителя и должность.')
       return
     }
-    if (live && roleToRegister === 'company' && fullName.trim().split(/\s+/).length < 2) {
-      setRegisterError('Укажите фамилию и имя. Отчество заполните при наличии.')
+    if (live && roleToRegister === 'company' && !fullName.trim()) {
+      setRegisterError('Укажите ФИО.')
       return
     }
 
@@ -163,30 +162,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     setRegistering(true)
     try {
       if (live && roleToRegister !== 'student') {
-        const userId = await apiClient.requestRole({
+        await apiClient.requestRole({
           username: regData.username,
           email: regData.email,
           password: regData.password,
-          role: roleToRegister,
+          ...(roleToRegister === 'company'
+            ? { role: 'company', fullName: regData.fullName }
+            : { role: 'curator' }),
         })
-        let notice = 'Аккаунт зарегистрирован. Заявка на роль отправлена.'
-        if (roleToRegister === 'company') {
-          try {
-            if (!userId) throw new Error('Missing user ID')
-            if (!getRepresentativeProfile(userId)) {
-              saveRepresentativeProfile(userId, {
-                name: regData.fullName,
-                position: '',
-                bio: '',
-                expertise: '',
-              })
-            }
-          } catch {
-            notice +=
-              ' ФИО не удалось сохранить в браузере. Его можно добавить в профиле после входа.'
-          }
-        }
-        setRegisterNotice(notice)
+        setRegisterNotice('Аккаунт зарегистрирован. Заявка на роль отправлена.')
         setUsername(regData.username)
         setRegisterPassword('')
         setPassword('')
@@ -538,7 +522,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       autoComplete="name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      maxLength={150}
+                      maxLength={500}
                       placeholder="Фамилия Имя Отчество"
                       required
                     />
@@ -683,7 +667,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 <p className="form-hint">
                   Заявку на роль проверит администратор.
                   {roleToRegister === 'company' &&
-                    ' ФИО сохранится в этом браузере. После одобрения вы сможете создать компанию или принять приглашение.'}
+                    ' После одобрения вы сможете создать компанию или принять приглашение.'}
                 </p>
               )}
               <button

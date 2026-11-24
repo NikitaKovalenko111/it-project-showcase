@@ -7,8 +7,16 @@ import {
   ProjectComment,
   StudentProject,
   ProjectMilestone,
+  RepresentativeDetails,
 } from '../types/models'
 import { localDate, localDayEnd } from '../utils/date'
+
+export function fromRepresentativeDetails(data: {
+  experience_and_interests?: string
+  help_topics?: string
+}): RepresentativeDetails {
+  return { bio: data.experience_and_interests ?? '', expertise: data.help_topics ?? '' }
+}
 // Backend DTOs are intentionally converted at the API boundary.
 export function fromUser(d: any): User {
   const s = d.student
@@ -30,7 +38,10 @@ export function fromUser(d: any): User {
       : s?.photo_file_id
         ? `/api/v1/users/${d.user_id}/avatar?v=${s.photo_file_id}`
         : undefined,
-    fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
+    fullName: s
+      ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ')
+      : d.full_name?.trim() || d.username,
+    ...(d.roles.includes('company') ? { representativeDetails: fromRepresentativeDetails(d) } : {}),
     role:
       (['admin', 'company_representative', 'company', 'curator', 'university', 'student'].find(
         (r) => d.roles?.includes(r),
