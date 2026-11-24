@@ -38,6 +38,7 @@ type ExecutionComment struct {
 	ExecutionID     string    `json:"execution_id"`
 	StageID         *string   `json:"stage_id"`
 	AuthorID        string    `json:"author_id"`
+	AuthorName      string    `json:"author_name"`
 	Body            string    `json:"body"`
 	CreatedAt       time.Time `json:"created_at"`
 }

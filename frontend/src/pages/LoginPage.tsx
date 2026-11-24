@@ -44,7 +44,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [institute, setInstitute] = useState('Институт информатики, математики и робототехники')
+  const [institute, setInstitute] = useState(
+    apiRuntime.mode === 'mock' ? 'Институт информатики, математики и робототехники' : '',
+  )
   const [direction, setDirection] = useState('')
   const [course, setCourse] = useState(2)
   const [group, setGroup] = useState('')
@@ -88,11 +90,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
     if (
       roleToRegister === 'student' &&
       (fullName.trim().split(/\s+/).length < 2 ||
+        !institute.trim() ||
         !direction.trim() ||
         direction.trim().toLowerCase() === 'не указано' ||
         !group.trim())
     ) {
-      setRegisterError('Укажите фамилию и имя, направление подготовки и учебную группу.')
+      setRegisterError('Укажите фамилию и имя, институт, направление подготовки и учебную группу.')
       return
     }
     if (
@@ -125,7 +128,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       role: roleToRegister,
       phone,
       group: roleToRegister === 'student' ? group.trim() : undefined,
-      institute: roleToRegister === 'student' ? institute : undefined,
+      institute: roleToRegister === 'student' ? institute.trim() : undefined,
       companyName: roleToRegister === 'company' ? companyName : undefined,
     }
 
@@ -380,7 +383,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       className="input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@students.example"
+                      placeholder="name@stud.uust.ru"
                       required
                     />
                   </div>
@@ -391,17 +394,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
                 >
                   <div className="form-group">
-                    <label>Институт / факультет:*</label>
-                    <select
-                      className="select"
+                    <label htmlFor="registration-institute">Институт / факультет *</label>
+                    <input
+                      className="input"
+                      id="registration-institute"
                       value={institute}
                       onChange={(e) => setInstitute(e.target.value)}
-                    >
-                      <option value="Институт информатики, математики и робототехники">ИИМР</option>
-                      <option value="Институт авиационных технологий и материалов">ИАТМ</option>
-                      <option value="Физико-технический институт">ФТИ</option>
-                      <option value="Институт электроники и биомедицины">ИЭБ</option>
-                    </select>
+                      required
+                    />
                   </div>
 
                   <div className="form-group">

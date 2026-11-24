@@ -250,7 +250,7 @@ export const apiClient = {
       const body = new FormData()
       body.append('file', file)
       const { data } = await axiosInstance.put('/users/me/avatar', body)
-      avatar = `${apiRuntime.baseUrl || '/api/v1'}/users/${user.id}/avatar?v=${data.file_id}`
+      avatar = `/api/v1/users/${user.id}/avatar?v=${data.file_id}`
     } else {
       avatar = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -559,25 +559,7 @@ export const apiClient = {
         (params) => axiosInstance.get('/applications', { params }),
         { case_id: caseId, mine: studentId ? true : undefined },
       )
-      const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
-      const directory = ['company', 'admin'].includes(actor?.role)
-        ? await collectPages<any>((params) => axiosInstance.get('/students/search', { params }))
-        : []
-      const students = new Map(directory.map((student) => [student.user_id, student]))
-      return rows.map((d) => {
-        const id = d.student_id || d.submitted_by
-        const profile = students.get(id)
-        return fromApplication({
-          ...d,
-          student_name: profile?.full_name || (actor?.id === id ? actor.fullName : 'Участник'),
-          student_institute: profile?.institute,
-          student_course: profile?.course,
-          student_group: profile?.group_name,
-          student_avatar: profile?.photo_file_id
-            ? `${apiRuntime.baseUrl || '/api/v1'}/students/${id}/photo?v=${profile.photo_file_id}`
-            : undefined,
-        })
-      })
+      return rows.map(fromApplication)
     }
     await delay(150)
     return mockServer.getApplications(caseId, studentId)

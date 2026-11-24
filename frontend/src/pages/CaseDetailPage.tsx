@@ -4,7 +4,8 @@ import { apiClient } from '../api/client'
 import { complexityBadge } from '../utils/publication'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
+import { UserAvatar } from '../components/UserAvatar'
 import { EventPlanPanel } from '../components/EventPlanPanel'
 import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
@@ -311,11 +312,9 @@ export const CaseDetailPage: React.FC = () => {
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}
               >
-                <IdentityImage
-                  src={
-                    activeCase.companyLogo ||
-                    companies.find((company) => company.id === activeCase.companyId)?.logo
-                  }
+                <CompanyLogo
+                  src={activeCase.companyLogo || undefined}
+                  company={companies.find((company) => company.id === activeCase.companyId)}
                   name={activeCase.companyName}
                   className="case-company-logo"
                 />
@@ -591,7 +590,8 @@ export const CaseDetailPage: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IdentityImage
+                          <UserAvatar
+                            userId={app.studentId}
                             src={app.studentAvatar}
                             name={app.studentName}
                             className="candidate-avatar"

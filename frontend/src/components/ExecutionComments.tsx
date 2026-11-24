@@ -1,7 +1,7 @@
 import { apiRuntime } from '../api/runtime'
 import { mockServer } from '../api/mockRuntime'
 import { createId } from '../utils/id'
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { collectPages } from '../api/backend'
@@ -12,7 +12,6 @@ type Comment = {
   comment_id: string
   author_id: string
   author_name?: string
-  author_photo_file_id?: string
   body: string
   created_at: string
 }
@@ -161,7 +160,8 @@ export function ExecutionComments({
             </button>
           </div>
         )}
-        <IdentityImage
+        <UserAvatar
+          userId={userId}
           className="comment-avatar comment-compose-avatar"
           name={user?.fullName || 'Участник'}
           src={user?.avatar}
@@ -200,20 +200,16 @@ export function ExecutionComments({
             comment.author_id === userId
               ? user
               : users.find((item) => item.id === comment.author_id)
-          const name = author?.fullName || comment.author_name || 'Участник'
+          const name = comment.author_name || author?.fullName || 'Участник'
           return (
             <article className="comment-item" key={comment.comment_id}>
               <div className="comment-header">
                 <Link className="comment-author" to={`/profile/${comment.author_id}`}>
-                  <IdentityImage
+                  <UserAvatar
+                    userId={comment.author_id}
                     className="comment-avatar"
                     name={name}
-                    src={
-                      author?.avatar ||
-                      (comment.author_photo_file_id
-                        ? `/api/v1/students/${comment.author_id}/photo?v=${comment.author_photo_file_id}`
-                        : undefined)
-                    }
+                    src={author?.avatar}
                   />
                   {name}
                 </Link>

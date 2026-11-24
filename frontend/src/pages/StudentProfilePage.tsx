@@ -1,7 +1,8 @@
 import { StudentProjectCover } from '../components/StudentProjectCover'
 import { ExpandableText } from '../components/ExpandableText'
 import { ProfileAvatarUpload } from '../components/ProfileAvatarUpload'
-import { IdentityImage } from '../components/IdentityImage'
+import { UserAvatar } from '../components/UserAvatar'
+import { CompanyLogo } from '../components/CompanyLogo'
 import { isOptionalWebUrl, isPhoneValid } from '../utils/validation'
 import { ResumeUpload } from '../components/ResumeUpload'
 import { FileDownload } from '../components/FileDownload'
@@ -282,7 +283,8 @@ export const StudentProfilePage: React.FC = () => {
           {isOwnProfile && currentUser ? (
             <ProfileAvatarUpload user={currentUser} />
           ) : (
-            <IdentityImage
+            <UserAvatar
+              userId={targetUser.id}
               src={targetUser.avatar}
               name={targetUser.fullName}
               className="profile-avatar"
@@ -598,16 +600,10 @@ export const StudentProfilePage: React.FC = () => {
                     >
                       <div className="profile-case-meta" style={{ marginBottom: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <img
+                          <CompanyLogo
                             src={c.companyLogo}
-                            alt=""
-                            style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '6px',
-                              objectFit: 'cover',
-                              flexShrink: 0,
-                            }}
+                            name={c.companyName}
+                            className="profile-case-company-logo"
                           />
                           <strong style={{ fontSize: '13px', color: 'var(--ui-ink)' }}>
                             {c.companyName}

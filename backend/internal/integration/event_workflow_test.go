@@ -759,10 +759,14 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		if reply.ParentCommentID == nil || *reply.ParentCommentID != root.CommentID {
 			t.Fatalf("missing parent: %+v", reply)
 		}
+		if root.AuthorName != "Test Student" || reply.AuthorName != root.AuthorName {
+			t.Fatalf("comment author names: %q, %q", root.AuthorName, reply.AuthorName)
+		}
 		postComment(teamExecution.ExecutionID, uuid.NewString(), 403)
 		postComment(*entry.ExecutionID, root.CommentID, 403)
 		res := request(http.MethodGet, "/executions/"+teamExecution.ExecutionID+"/comments", studentToken, "")
-		if res.Code != 200 || !strings.Contains(res.Body.String(), root.CommentID) || !strings.Contains(res.Body.String(), "parent_comment_id") {
+		if res.Code != 200 || !strings.Contains(res.Body.String(), root.CommentID) ||
+			!strings.Contains(res.Body.String(), "parent_comment_id") || !strings.Contains(res.Body.String(), "Test Student") {
 			t.Fatalf("list replies: %d %s", res.Code, res.Body)
 		}
 		ownCompany := id(`INSERT INTO companies(full_name,status) VALUES('Queue company','approved') RETURNING company_id`)
@@ -838,7 +842,7 @@ func TestEventRegistrationAndRoundWorkflow(t *testing.T) {
 		if _, err = community.GetComment(ctx, reply.CommentID); err != nil {
 			t.Fatalf("reply lost: %v", err)
 		}
-		for _, method := range []string{http.MethodPut, http.MethodDelete} {
+		for _, method := range []string{http.MethodPut, http.MethodPut, http.MethodDelete} {
 			response = request(method, "/favorites/case/"+item.CaseID, token, "")
 			if response.Code != 200 || !strings.Contains(response.Body.String(), `"favorite":`) {
 				t.Fatalf("favorite: %d %s", response.Code, response.Body)

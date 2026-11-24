@@ -92,4 +92,12 @@ func TestModerationRequiresCommentForRejection(t *testing.T) {
 	}
 }
 
+func TestCaseCursorAcceptsExistingDemoID(t *testing.T) {
+	const demoCaseID = "92cadfe4-a6a9-7464-a750-8e0539b54bad"
+	position, err := parseCursor("2026-01-01T00:00:00Z", demoCaseID)
+	if err != nil || position == nil {
+		t.Fatalf("expected a cursor for the existing demo case, got %v, %v", position, err)
+	}
+}
+
 func intPointer(value int) *int { return &value }

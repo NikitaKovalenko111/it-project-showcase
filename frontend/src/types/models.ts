@@ -63,6 +63,7 @@ export interface Company {
   name: string
   shortName: string
   logo: string
+  logoFileId?: string
   description: string
   industry: string
   website: string

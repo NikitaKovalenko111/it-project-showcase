@@ -2,6 +2,8 @@
 
 // Buttons
 .btn {
+  overflow-wrap: normal;
+  word-break: normal;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -830,6 +832,32 @@ summary.select::-webkit-details-marker {
   height: 44px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.profile-case-company-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.student-project-author-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.opportunity-company-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  vertical-align: middle;
+  font-size: 9px;
 }
 
 .profile-avatar {

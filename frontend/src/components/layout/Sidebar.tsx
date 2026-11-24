@@ -1,4 +1,4 @@
-import { IdentityImage } from '../IdentityImage'
+import { UserAvatar } from '../UserAvatar'
 import React, { useState, useMemo, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
@@ -217,7 +217,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             aria-label="Мой профиль"
             title="Мой профиль"
           >
-            <IdentityImage
+            <UserAvatar
+              userId={currentUser.id}
               src={currentUser.avatar}
               name={currentUser.fullName}
               className="sidebar-avatar"

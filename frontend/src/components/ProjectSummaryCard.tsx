@@ -1,5 +1,5 @@
 import { ExpandableText } from './ExpandableText'
-import { IdentityImage } from './IdentityImage'
+import { CompanyLogo } from './CompanyLogo'
 import { complexityBadge } from '../utils/publication'
 import { formatDate } from '../utils/date'
 import React from 'react'
@@ -36,7 +36,7 @@ export const ProjectSummaryCard: React.FC<{
     )}
     <div className="card__body">
       <div className="case-card__company">
-        <IdentityImage
+        <CompanyLogo
           src={project.companyLogo}
           name={project.companyName}
           className="case-company-logo"

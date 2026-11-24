@@ -1,4 +1,4 @@
-import { IdentityImage } from './IdentityImage'
+import { UserAvatar } from './UserAvatar'
 import { formatDate } from '../utils/date'
 import { FileDownload } from './FileDownload'
 import React, { useEffect, useState } from 'react'
@@ -78,7 +78,8 @@ export const CaseApplications: React.FC<{ caseId: string; registrations?: boolea
             <article key={a.id} className="feature-row application-card">
               <header className="application-card__header">
                 <div className="candidate-identity">
-                  <IdentityImage
+                  <UserAvatar
+                    userId={a.studentId}
                     src={a.studentAvatar}
                     name={a.studentName}
                     className="candidate-avatar"

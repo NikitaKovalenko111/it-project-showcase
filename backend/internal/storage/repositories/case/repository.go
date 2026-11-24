@@ -27,7 +27,9 @@ type Repository struct{ db *sql.DB }
 func Init(db *sql.DB) *Repository { return &Repository{db: db} }
 
 const caseSelectQuery = `
-SELECT c.case_id,c.company_id,company.full_name,c.created_by,c.title,c.summary,c.full_brief,
+SELECT c.case_id,c.company_id,company.full_name,
+       CASE WHEN company.status='approved' THEN company.logo_file_id END,
+       c.created_by,c.title,c.summary,c.full_brief,
        c.type,c.event_format,
        (SELECT count(*) FROM applications a WHERE a.case_id=c.case_id AND a.entry_kind='registration' AND a.status='accepted'),
        (SELECT count(*) FROM case_views v WHERE v.case_id=c.case_id),
@@ -73,7 +75,7 @@ func scanCase(row interface{ Scan(...any) error }) (*models.Case, error) {
 	var item models.Case
 	var directions, competencies, technologies, rewards, files, criteria []byte
 	err := row.Scan(
-		&item.CaseID, &item.CompanyID, &item.CompanyName, &item.CreatedBy, &item.Title, &item.Summary,
+		&item.CaseID, &item.CompanyID, &item.CompanyName, &item.CompanyLogoFileID, &item.CreatedBy, &item.Title, &item.Summary,
 		&item.FullBrief, &item.Type, &item.EventFormat, &item.RegistrationsCount, &item.ViewsCount, &item.ApplicationsCount, &item.Difficulty, &item.WorkFormat, &item.ParticipationMode,
 		&item.AdmissionMode, &item.Capacity, &item.TeamSizeMin, &item.TeamSizeMax, &item.CourseMin,
 		&item.CourseMax, &item.ApplicationDeadline, &item.DueAt, &item.Duration, &item.ResultRequirements,

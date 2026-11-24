@@ -59,10 +59,16 @@
 }
 
 :is(.action-row, .detail-actions, .page-actions) > .btn {
-  min-width: 0;
+  min-width: min-content;
   max-width: 100%;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+}
+
+.data-table .btn {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .feature-toolbar > :is(input, select, label) {

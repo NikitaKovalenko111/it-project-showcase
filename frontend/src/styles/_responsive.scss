@@ -42,7 +42,7 @@ body:has(.modal-backdrop, dialog[open], .sidebar-backdrop.open) { overflow: hidd
   .page-header__content h1 { font-size: 22px; line-height: 1.25; }
   .page-header__actions { width: 100%; }
   .page-header__actions .btn { flex: 1; }
-  .btn { min-height: 44px; white-space: normal; overflow-wrap: anywhere; padding: 10px 14px; }
+  .btn { min-height: 44px; white-space: normal; padding: 10px 14px; }
   .input, .select, .textarea, .uust-input, .uust-select { font-size: 16px; min-height: 44px; max-width: 100%; }
   input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; flex-shrink: 0; }
   input[type="range"] { min-height: 44px; }

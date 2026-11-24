@@ -4,7 +4,7 @@ import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { ScrollToolbar } from '../components/ScrollToolbar'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
 import {
   publicationLabels,
   publicationStatus,
@@ -428,7 +428,7 @@ export const CasesShowcasePage: React.FC = () => {
                 )}
                 <div className="card__body">
                   <div className="case-card__company">
-                    <IdentityImage
+                    <CompanyLogo
                       src={item.companyLogo}
                       name={item.companyName}
                       className="case-company-logo"

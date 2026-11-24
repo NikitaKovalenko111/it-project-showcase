@@ -4,7 +4,8 @@ import { CuratorOverview } from '../components/CuratorOverview'
 import { ExpandableText } from '../components/ExpandableText'
 import { complexityBadge } from '../utils/publication'
 import { PaginatedGrid } from '../components/PaginatedGrid'
-import { IdentityImage } from '../components/IdentityImage'
+import { CompanyLogo } from '../components/CompanyLogo'
+import { UserAvatar } from '../components/UserAvatar'
 import { caseStatusLabels } from '../utils/publication'
 import { apiRuntime } from '../api/runtime'
 import { listCuratedExecutions } from '../api/community'
@@ -318,7 +319,8 @@ export const HomePage: React.FC = () => {
                     <tr key={app.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <IdentityImage
+                          <UserAvatar
+                            userId={app.studentId}
                             src={app.studentAvatar}
                             name={app.studentName}
                             className="candidate-avatar"
@@ -571,7 +573,7 @@ export const HomePage: React.FC = () => {
               <div className="case-card__top-accent" />
               <div className="card__body">
                 <div className="case-card__company">
-                  <IdentityImage
+                  <CompanyLogo
                     src={c.companyLogo}
                     name={c.companyName}
                     className="case-company-logo"
