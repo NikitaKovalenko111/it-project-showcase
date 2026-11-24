@@ -141,6 +141,10 @@ func (h *Handler) Respond(w http.ResponseWriter, r *http.Request) {
 		writeError(w, r, err)
 		return
 	}
+	if strings.TrimSpace(req.Status) == "declined" {
+		pkg.WriteJSON(w, http.StatusOK, map[string]string{"invitation_id": r.PathValue("invitation_id"), "status": "declined"})
+		return
+	}
 	pkg.WriteJSON(w, http.StatusOK, item)
 }
 func decode(w http.ResponseWriter, r *http.Request, target any) bool {

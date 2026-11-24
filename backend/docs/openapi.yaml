@@ -1446,7 +1446,7 @@ paths:
     patch:
       tags: [Teams]
       operationId: respondTeamInvitation
-      description: Принимает только accepted/declined; текстового ответа и обратного уведомления нет.
+      description: Принимает только accepted/declined. При accepted возвращает карточку команды; при declined — объект с invitation_id и status=declined, без чтения закрытой команды. Успех в обоих случаях 200. Отказ сохраняется, членство не создаётся. Повторный ответ — 409 invalid_invitation_transition. Текстового ответа и обратного уведомления нет.
       security: [{bearerAuth: []}]
       parameters: [{$ref: '#/components/parameters/InvitationID'}]
       responses: {'200': {description: Приглашение обработано}}
