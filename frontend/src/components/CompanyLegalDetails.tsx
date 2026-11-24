@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { axiosInstance } from '../api/http'
-import { fromCompany } from '../api/backend'
 import { apiRuntime } from '../api/runtime'
 import { communityApi } from '../api/community'
 import type { Company } from '../types/models'
 
-const fields = [
+const legalFields = [
   { key: 'inn', name: 'ИНН', maxLength: 12, pattern: '[0-9]{10}([0-9]{2})?' },
   { key: 'kpp', name: 'КПП', maxLength: 9, pattern: '[0-9]{9}' },
   { key: 'ogrn', name: 'ОГРН / ОГРНИП', maxLength: 15, pattern: '[0-9]{13}([0-9]{2})?' },
@@ -21,7 +19,9 @@ export function CompanyLegalDetails({
   editable: boolean
   onSaved: (company: Company) => void
 }) {
-  const [draft, setDraft] = useState<Pick<Company, (typeof fields)[number]['key']>>()
+  const live = apiRuntime.mode === 'live'
+  const fields = legalFields.filter((field) => !live || field.key === 'inn')
+  const [draft, setDraft] = useState<Pick<Company, (typeof legalFields)[number]['key']>>()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const values = fields.filter((field) => !!company[field.key])
@@ -54,6 +54,10 @@ export function CompanyLegalDetails({
           onSubmit={async (event) => {
             event.preventDefault()
             if (saving) return
+            if (live && !draft.inn?.trim()) {
+              setError('Укажите ИНН компании.')
+              return
+            }
             const invalid = fields.find((field) => {
               const value = draft[field.key]?.trim()
               return (
@@ -76,22 +80,10 @@ export function CompanyLegalDetails({
             setSaving(true)
             setError('')
             try {
-              const updated =
-                apiRuntime.mode === 'live'
-                  ? fromCompany(
-                      (
-                        await axiosInstance.patch('/companies/' + company.id + '/legal', {
-                          inn: draft.inn?.trim() || '',
-                          kpp: draft.kpp?.trim() || '',
-                          ogrn: draft.ogrn?.trim() || '',
-                          legal_address: draft.legalAddress?.trim() || '',
-                        })
-                      ).data,
-                    )
-                  : await communityApi.updateCompanyContent(company.id, {
-                      description: company.description,
-                      ...draft,
-                    })
+              const updated = await communityApi.updateCompanyContent(
+                company.id,
+                live ? { inn: draft.inn?.trim() } : { description: company.description, ...draft },
+              )
               onSaved(updated)
               setDraft(undefined)
             } catch (cause) {

@@ -35,6 +35,29 @@ import {
 
 export { axiosInstance } from './http'
 import { axiosInstance } from './http'
+
+export async function getCompanyRecord(id: string) {
+  try {
+    return (await axiosInstance.get(`/companies/${id}`)).data
+  } catch (error) {
+    if (
+      (error as { status?: number }).status !== 404 ||
+      (!tokenStore.get() && !localStorage.getItem('uust_refresh_token'))
+    ) {
+      throw error
+    }
+
+    const companies = await collectPages<any>((params) =>
+      axiosInstance.get('/companies/mine', { params }),
+    ).catch((cause: { status?: number }) => {
+      if (cause.status === 401 || cause.status === 403) return []
+      throw cause
+    })
+    const company = companies.find((item) => item.company_id === id)
+    if (!company) throw error
+    return company
+  }
+}
 // Simulated delay helper for realistic network feedback
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -837,7 +860,7 @@ export const apiClient = {
 
   async getCompanyById(id: string): Promise<Company> {
     if (apiRuntime.mode === 'live') {
-      return fromCompany((await axiosInstance.get(`/companies/${id}`)).data)
+      return fromCompany(await getCompanyRecord(id))
     }
     await delay(120)
     const c = mockServer.getCompanyById(id)

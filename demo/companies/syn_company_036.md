@@ -11,5 +11,3 @@ Fullstack, Frontend, Backend
 [Карточка компании PDF](../documents/companies/syn_company_036.pdf)
 
 ## Задания
-
-

@@ -6,3 +6,4 @@ frontend/**/*.cjs text eol=lf
 frontend/**/*.ts text eol=lf
 frontend/**/*.tsx text eol=lf
 demo/*.sh text eol=lf
+demo/documents/**/*.pdf -diff
