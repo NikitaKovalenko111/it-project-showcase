@@ -32,6 +32,7 @@ const readMockFeedback = (): Feedback[] => JSON.parse(localStorage.getItem(mockF
 const saveMockFeedback = (records: Feedback[]) =>
   localStorage.setItem(mockFeedbackKey, JSON.stringify(records))
 const fileDrafts = new Map<string, File[]>()
+const duplicateFeedbackInterval = 60_000
 export const FeedbackPage: React.FC = () => {
   const user = useAppSelector((s) => s.auth.currentUser)
   const userId = user?.id || 'guest'
@@ -99,7 +100,23 @@ export const FeedbackPage: React.FC = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault()
-              if (busy || !text.trim()) return
+              const form = e.currentTarget
+              const body = text.trim()
+              if (busy || !body) return
+              if (
+                !files.length &&
+                records.some(
+                  (record) =>
+                    record.body === body &&
+                    !record.file_ids?.length &&
+                    !record.mockFiles?.length &&
+                    Date.now() - Date.parse(record.created_at) < duplicateFeedbackInterval,
+                )
+              ) {
+                setNotice('')
+                setError('Такое обращение уже отправлено.')
+                return
+              }
               setBusy(true)
               setError('')
               setNotice('')
@@ -108,14 +125,14 @@ export const FeedbackPage: React.FC = () => {
                 let record: Feedback
                 if (live) {
                   const { data } = await axiosInstance.post<Feedback>('/feedback', {
-                    body: text.trim(),
+                    body,
                     file_ids: uploads.map((file) => file.file_id),
                   })
                   record = data
                 } else {
                   record = {
                     feedback_id: createId(),
-                    body: text.trim(),
+                    body,
                     file_ids: [],
                     mockFiles: uploads,
                     created_at: new Date().toISOString(),
@@ -125,6 +142,7 @@ export const FeedbackPage: React.FC = () => {
                   saveMockFeedback([record, ...readMockFeedback()])
                 }
                 setRecords((items) => [record, ...items])
+                form.reset()
                 setText('')
                 setFiles([])
                 sessionStorage.removeItem(key)
@@ -180,7 +198,7 @@ export const FeedbackPage: React.FC = () => {
       )}
       {notice && <p role="status">{notice}</p>}
       {(live || records.length > 0) && (
-        <section className="card feature-panel report-section">
+        <section className="card feature-panel report-section feedback-queue">
           <h2>{admin ? 'Очередь обращений' : 'Мои обращения'}</h2>
           <ReportTableView
             label="Обращения"
@@ -208,7 +226,7 @@ export const FeedbackPage: React.FC = () => {
                 ...(admin
                   ? [
                       record.status !== 'accepted' && record.status !== 'rejected' && (
-                        <div className="action-row">
+                        <div className="action-row feedback-queue__actions">
                           {(
                             (live
                               ? ['accepted', 'rejected']

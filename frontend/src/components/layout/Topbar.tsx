@@ -207,11 +207,22 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                     <div
                       key={notif.id}
                       className={`notifications-popover__item ${!notif.read ? 'unread' : ''}`}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleNotificationClick(notif.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          handleNotificationClick(notif.id)
+                        }
+                      }}
                     >
                       <div style={{ flex: 1 }}>
                         <div className="notif-title">{notif.title}</div>
                         <div className="notif-desc">{notif.message}</div>
+                        {notif.link?.startsWith('/teams?invitation=') && (
+                          <div className="notif-title">Перейти к приглашению</div>
+                        )}
                         <div className="notif-time">
                           {new Date(notif.createdAt).toLocaleDateString('ru-RU')}
                         </div>

@@ -16,6 +16,8 @@ import { createCaseSuccess, updateCaseSuccess } from '../../store/actions'
 import {
   CaseProject,
   CaseKind,
+  CaseComplexity,
+  Company,
   ParticipationFormat,
   ProjectDirection,
   WorkFormat,
@@ -54,25 +56,49 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
   const [ndaText, setNdaText] = useState('')
   const [opportunity, setOpportunity] = useState<OpportunityKind>()
   const [opportunityNotice, setOpportunityNotice] = useState('')
-  const user = useAppSelector((s) => s.auth.currentUser),
-    companies = useAppSelector((s) => s.companies.companiesList)
+  const user = useAppSelector((s) => s.auth.currentUser)
+  const catalogCompanies = useAppSelector((s) => s.companies.companiesList)
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [companyError, setCompanyError] = useState('')
+  const [loadingCompanies, setLoadingCompanies] = useState(false)
+  const publisher = user?.role === 'company' || user?.role === 'admin'
+  useEffect(() => {
+    if (!user || !publisher || caseItem) return
+    let active = true
+    setCompanies([])
+    setCompanyError('')
+    setLoadingCompanies(true)
+    void apiClient
+      .getPublicationCompanies(user)
+      .then((rows) => {
+        if (active) setCompanies(rows)
+      })
+      .catch(() => {
+        if (active) setCompanyError('Не удалось загрузить компании. Откройте форму повторно.')
+      })
+      .finally(() => {
+        if (active) setLoadingCompanies(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [user, publisher, caseItem])
   const [kind, setKind] = useState<CaseKind>('case'),
     [title, setTitle] = useState(''),
     [description, setDescription] = useState(''),
     [short, setShort] = useState('')
+  const [complexity, setComplexity] = useState<CaseComplexity>('Средний')
   const [selectedCompanyId, setSelectedCompanyId] = useState(''),
     [direction, setDirection] = useState<ProjectDirection | ''>(live ? '' : 'Frontend'),
     [deadline, setDeadline] = useState('')
   const admin = user?.role === 'admin'
-  const companyOptions = admin
-    ? companies.filter((company) => company.isVerified && !company.isBlocked)
-    : companies
+  const companyOptions = publisher ? companies : catalogCompanies
   const existingPublication = caseItem || draft
   const companyId =
     existingPublication?.companyId ||
-    selectedCompanyId ||
-    initialCompanyId ||
-    user?.companyProfile?.companyId ||
+    (admin &&
+      companyOptions.find((item) => item.id === (selectedCompanyId || initialCompanyId))?.id) ||
+    companyOptions.find((item) => item.id === user?.companyProfile?.companyId)?.id ||
     companyOptions[0]?.id ||
     ''
   const company = existingPublication
@@ -82,6 +108,13 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
         logo: existingPublication.companyLogo,
       }
     : companyOptions.find((item) => item.id === companyId)
+  const companyUnavailable = !existingPublication && publisher && !company
+  const companyHint = loadingCompanies
+    ? 'Загружаем компании…'
+    : companyError ||
+      (admin
+        ? 'Нет одобренных компаний для публикации.'
+        : 'К аккаунту не привязана доступная компания.')
   const [serverDirections, setServerDirections] = useState<string[]>([])
   const [serverSkills, setServerSkills] = useState<string[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -110,12 +143,18 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
   const [format, setFormat] = useState<WorkFormat>('дистанционный'),
     [skills, setSkills] = useState(''),
     [rules, setRules] = useState(''),
-    [prize, setPrize] = useState(0)
+    [prizeInput, setPrize] = useState('0')
   const [participation, setParticipation] = useState<ParticipationFormat>('team')
-  const [teamMin, setTeamMin] = useState(2),
-    [teamMax, setTeamMax] = useState(5),
+  const [teamMinInput, setTeamMin] = useState('2'),
+    [teamMaxInput, setTeamMax] = useState('5'),
     [limit, setLimit] = useState(''),
     [nda, setNda] = useState(false)
+  const prize = Number(prizeInput)
+  const teamMin = Number(teamMinInput)
+  const teamMax = Number(teamMaxInput)
+  const maxPrize = 999999999999.99
+  const normalizeNumber = (value: string) =>
+    value && Number.isFinite(Number(value)) ? String(Number(value)) : value
   const [criteria, setCriteria] = useState<
     { id: string; label: string; weight: number; maxScore?: number }[]
   >([{ id: createId(), label: 'Качество решения', weight: 1, maxScore: 10 }])
@@ -149,6 +188,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
       setTasks(caseItem.olympiadTasks || [])
       setKind(caseItem.kind || 'case')
       setTitle(caseItem.title)
+      setComplexity(caseItem.complexity)
       setDescription(caseItem.fullDescription)
       setShort(caseItem.shortDescription)
       setDirection(caseItem.direction)
@@ -156,10 +196,10 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
       setFormat(caseItem.workFormat)
       setSkills(caseItem.requiredCompetencies.join(', '))
       setRules(caseItem.olympiadRules || caseItem.internshipConditions || '')
-      setPrize(caseItem.prizeFund || caseItem.rewardAmount || 0)
+      setPrize(String(caseItem.prizeFund || caseItem.rewardAmount || 0))
       setParticipation(caseItem.participationFormat)
-      setTeamMin(caseItem.teamSize.min)
-      setTeamMax(caseItem.teamSize.max)
+      setTeamMin(String(caseItem.teamSize.min))
+      setTeamMax(String(caseItem.teamSize.max))
       setLimit(caseItem.maxTeams ? String(caseItem.maxTeams) : '')
       setNda(caseItem.isConfidential)
       setCriteria(caseItem.evaluationCriteria || legacyCriteria)
@@ -237,6 +277,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
         initial={{ kind: opportunity, company_id: companyId }}
         companies={admin ? companyOptions : companyOptions.filter((item) => item.id === companyId)}
         allowCompanySelection={admin}
+        companyUnavailable={companyUnavailable ? companyHint : undefined}
         onCompanyChange={setSelectedCompanyId}
         formatControl={formatControl}
         onClose={onClose}
@@ -399,7 +440,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               shortDescription: short,
               fullDescription: description,
               direction: direction as ProjectDirection,
-              complexity: caseItem?.complexity || 'Средний',
+              complexity,
               participationFormat,
               teamSize: team ? { min: teamMin, max: teamMax } : { min: 1, max: 1 },
               maxTeams: limit ? Number(limit) : null,
@@ -509,28 +550,35 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
           {formatControl}
           <label className="publication-company-field">
             Компания
-            <select
-              className="select"
-              name="company_id"
-              title={company?.name}
-              required
-              disabled={user?.role === 'company' || !!existingPublication || busy}
-              value={companyId}
-              onChange={(e) => setSelectedCompanyId(e.target.value)}
-            >
-              {existingPublication && company ? (
-                <option value={company.id}>{company.name}</option>
-              ) : (
-                companyOptions.map((c) => (
+            {user?.role === 'company' || existingPublication ? (
+              <input className="input" readOnly title={company?.name} value={company?.name || ''} />
+            ) : (
+              <select
+                className="select"
+                name="company_id"
+                title={company?.name}
+                required
+                disabled={busy || loadingCompanies}
+                value={companyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+              >
+                {!company && <option value="">Выберите компанию</option>}
+                {companyOptions.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
-                ))
-              )}
-            </select>
+                ))}
+              </select>
+            )}
+            {companyUnavailable && (
+              <span className="form-hint" role="status">
+                {companyHint}
+              </span>
+            )}
           </label>
           <label>
             Название {name}
+            <span className="form-hint">До 300 символов</span>
             <input
               className="input"
               required
@@ -551,6 +599,20 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               <HackathonFields value={details} onChange={setDetails} />
             ))}
           <div className="responsive-grid">
+            {!internship && (
+              <label>
+                Уровень сложности
+                <select
+                  className="select"
+                  value={complexity}
+                  onChange={(event) => setComplexity(event.target.value as CaseComplexity)}
+                >
+                  <option>Начальный</option>
+                  <option>Средний</option>
+                  <option>Высокий</option>
+                </select>
+              </label>
+            )}
             {showDirection && (
               <label>
                 {olympiad ? 'Предмет олимпиады' : 'Направление'}
@@ -604,6 +666,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
             </label>
             <label>
               {participationFormat === 'team' ? 'Максимум команд' : 'Количество мест'}
+              <span className="form-hint">От 1 до 10 000</span>
               <input
                 className="input"
                 type="number"
@@ -611,6 +674,10 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
                 max="10000"
                 required={live}
                 value={limit}
+                aria-invalid={
+                  (!!limit && (Number(limit) < 1 || Number(limit) > 10000)) || undefined
+                }
+                onBlur={() => setLimit(normalizeNumber(limit))}
                 onChange={(e) => setLimit(e.target.value)}
                 placeholder={live ? 'Например, 30' : 'Без ограничения'}
               />
@@ -647,26 +714,35 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
             <div className="responsive-grid">
               <label>
                 Минимум участников команды
+                <span className="form-hint">От 1 до 100</span>
                 <input
                   className="input"
                   type="number"
                   min="1"
                   max="100"
                   required
-                  value={teamMin}
-                  onChange={(e) => setTeamMin(+e.target.value)}
+                  value={teamMinInput}
+                  aria-invalid={(!!teamMinInput && (teamMin < 1 || teamMin > 100)) || undefined}
+                  onChange={(e) => setTeamMin(e.target.value)}
+                  onBlur={() => setTeamMin(normalizeNumber(teamMinInput))}
                 />
               </label>
               <label>
                 Максимум участников команды
+                <span className="form-hint">От {Math.min(100, Math.max(2, teamMin))} до 100</span>
                 <input
                   className="input"
                   type="number"
                   min={Math.max(2, teamMin)}
                   max="100"
                   required
-                  value={teamMax}
-                  onChange={(e) => setTeamMax(+e.target.value)}
+                  value={teamMaxInput}
+                  aria-invalid={
+                    (!!teamMaxInput && (teamMax < Math.max(2, teamMin) || teamMax > 100)) ||
+                    undefined
+                  }
+                  onChange={(e) => setTeamMax(e.target.value)}
+                  onBlur={() => setTeamMax(normalizeNumber(teamMaxInput))}
                 />
               </label>
             </div>
@@ -716,11 +792,12 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
           )}
           <label>
             Краткое описание
+            <span className="form-hint">До 1 000 символов</span>
             <input
               className="input"
               required
               name="summary"
-              maxLength={500}
+              maxLength={1000}
               value={short}
               onChange={(e) => setShort(e.target.value)}
             />
@@ -731,6 +808,7 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               : olympiad
                 ? 'Предмет, описание заданий и туров'
                 : 'Задача и требования к прототипу'}
+            <span className="form-hint">До 30 000 символов</span>
             <textarea
               className="textarea"
               required
@@ -759,9 +837,18 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
               type="number"
               min="0"
               required
-              value={prize}
-              onChange={(e) => setPrize(+e.target.value)}
+              max={maxPrize}
+              aria-invalid={prize < 0 || prize > maxPrize || undefined}
+              step="0.01"
+              value={prizeInput}
+              onChange={(e) => setPrize(e.target.value)}
+              onBlur={() => setPrize(normalizeNumber(prizeInput))}
             />
+            <span
+              className={prize < 0 || prize > maxPrize ? 'publication-field-error' : 'form-hint'}
+            >
+              От 0 до {maxPrize.toLocaleString('ru-RU')} ₽
+            </span>
           </label>
           <label className="publication-upload">
             {internship
@@ -797,9 +884,11 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
                   <div className="criteria-row" key={c.id}>
                     <label>
                       Название
+                      <span className="form-hint">До 300 символов</span>
                       <input
                         className="input"
                         required
+                        maxLength={300}
                         value={c.label}
                         onChange={(e) =>
                           setCriteria((cs) =>
@@ -949,11 +1038,15 @@ const CreateCaseForm: React.FC<CreateCaseProps> = ({
             Отмена
           </button>
           {live && !liveEvent && !caseItem && (
-            <button className="btn btn-secondary" value="draft" disabled={busy}>
+            <button
+              className="btn btn-secondary"
+              value="draft"
+              disabled={busy || companyUnavailable}
+            >
               Сохранить черновик
             </button>
           )}
-          <button className="btn btn-primary" disabled={busy}>
+          <button className="btn btn-primary" disabled={busy || companyUnavailable}>
             {busy
               ? 'Сохранение…'
               : caseItem

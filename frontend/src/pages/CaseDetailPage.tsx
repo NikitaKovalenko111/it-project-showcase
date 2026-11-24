@@ -77,22 +77,66 @@ export const CaseDetailPage: React.FC = () => {
   const [detailTab, setDetailTab] = useState('comments')
   const [ndaModalOpen, setNdaModalOpen] = useState(false)
   const [ndaGrant, setNdaGrant] = useState<{ caseId: string; status: string }>()
+  const [ndaRequests, setNdaRequests] = useState<
+    Awaited<ReturnType<typeof apiClient.getCaseNdaGrants>>
+  >([])
+  const [ndaError, setNdaError] = useState('')
+  const [grantingNda, setGrantingNda] = useState(false)
   const live = apiRuntime.mode === 'live'
+  const managesNda =
+    live &&
+    activeCase?.id === id &&
+    !!activeCase?.isConfidential &&
+    currentUser?.role === 'company' &&
+    canManageCase(currentUser, activeCase)
   const needsNda =
     activeCase?.id === id && activeCase?.isConfidential && currentUser?.role === 'student'
+  const awaitingNda = ndaGrant?.caseId === id && ndaGrant?.status === 'pending'
   useEffect(() => {
     if (!live || !needsNda || !id || !viewerId) return
     let active = true
-    void apiClient
-      .getNdaStatus(id, viewerId)
-      .then((status) => {
-        if (active && status) setNdaGrant({ caseId: id, status })
-      })
-      .catch(() => undefined)
+    const refresh = () => {
+      void apiClient
+        .getNdaStatus(id, viewerId)
+        .then((status) => {
+          if (!active || !status) return
+          setNdaGrant({ caseId: id, status })
+          if (status === 'granted') dispatch(fetchCaseByIdRequest(id))
+        })
+        .catch(() => undefined)
+    }
+    refresh()
+    window.addEventListener('focus', refresh)
+    const timer = awaitingNda ? window.setInterval(refresh, 10000) : undefined
     return () => {
       active = false
+      window.removeEventListener('focus', refresh)
+      window.clearInterval(timer)
     }
-  }, [id, viewerId, live, needsNda])
+  }, [id, viewerId, live, needsNda, awaitingNda, dispatch])
+
+  useEffect(() => {
+    setNdaRequests([])
+    setNdaError('')
+    if (!managesNda || !id) return
+    let active = true
+    const refresh = () => {
+      void apiClient
+        .getCaseNdaGrants(id)
+        .then((items) => {
+          if (active) setNdaRequests(items)
+        })
+        .catch((cause: Error) => {
+          if (active) setNdaError(cause.message)
+        })
+    }
+    refresh()
+    window.addEventListener('focus', refresh)
+    return () => {
+      active = false
+      window.removeEventListener('focus', refresh)
+    }
+  }, [id, viewerId, managesNda])
 
   useEffect(() => {
     setApplicationModalOpen(false)
@@ -136,6 +180,7 @@ export const CaseDetailPage: React.FC = () => {
     !activeCase.isConfidential ||
     (live ? ndaStatus === 'granted' : ndaAcceptedCases.includes(activeCase.id)) ||
     currentUser?.role !== 'student'
+  const pendingNdaRequests = ndaRequests.filter((item) => item.status === 'pending')
 
   const userApplications =
     currentUser?.role === 'student'
@@ -169,8 +214,7 @@ export const CaseDetailPage: React.FC = () => {
           : undefined
 
   const instantRegistration = ['olympiad', 'hackathon'].includes(activeCase.kind || '')
-  const canReviewApplications =
-    (isCompanyRepresentative || isCuratorOrAdmin) && !instantRegistration
+  const canReviewApplications = isCompanyRepresentative && !instantRegistration
 
   const handleStatusChange = (appId: string, status: any) => {
     dispatch(updateApplicationStatusRequest(appId, status))
@@ -417,20 +461,24 @@ export const CaseDetailPage: React.FC = () => {
                       style={{ margin: '0 auto 12px' }}
                     />
                     <h4 style={{ margin: '0 0 6px', color: 'var(--ui-danger)' }}>
-                      Доступ ограничен: требуется подписать соглашение о неразглашении (NDA)
+                      {ndaStatus === 'pending'
+                        ? 'Запрос доступа к техническому заданию'
+                        : 'Доступ ограничен: требуется подписать соглашение о неразглашении (NDA)'}
                     </h4>
-                    <p
-                      style={{
-                        margin: '0 0 16px',
-                        fontSize: '12px',
-                        color: 'var(--ui-danger)',
-                        maxWidth: '500px',
-                        marginInline: 'auto',
-                      }}
-                    >
-                      Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну
-                      компании. Ознакомьтесь и подпишите электронное NDA в один клик.
-                    </p>
+                    {ndaStatus !== 'pending' && (
+                      <p
+                        style={{
+                          margin: '0 0 16px',
+                          fontSize: '12px',
+                          color: 'var(--ui-danger)',
+                          maxWidth: '500px',
+                          marginInline: 'auto',
+                        }}
+                      >
+                        Данный проект содержит алгоритмы и данные, составляющие коммерческую тайну
+                        компании. Ознакомьтесь и подпишите электронное NDA в один клик.
+                      </p>
+                    )}
                     {ndaStatus === 'pending' ? (
                       <p role="status">
                         Соглашение подписано. Доступ к ТЗ появится после подтверждения компанией.
@@ -869,7 +917,8 @@ export const CaseDetailPage: React.FC = () => {
               className="card__body"
               style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
             >
-              {activeCase.specificationFile &&
+              {isNDASigned &&
+                activeCase.specificationFile &&
                 (reviewing && activeCase.specificationFile.file_id ? (
                   <FileDownload
                     file={{
@@ -1016,11 +1065,55 @@ export const CaseDetailPage: React.FC = () => {
           </button>
         )}
 
+      {managesNda && (pendingNdaRequests.length > 0 || ndaError) && (
+        <section className="card feature-panel">
+          <h2>Запросы доступа по NDA</h2>
+          {ndaError && (
+            <p className="form-error" role="alert">
+              {ndaError}
+            </p>
+          )}
+          {pendingNdaRequests.map((request) => {
+            const applicant = applicationsList.find(
+              (item) => item.caseId === activeCase.id && item.studentId === request.student_id,
+            )
+            return (
+              <div className="action-row" key={request.nda_grant_id}>
+                <Link to={`/profile/${request.student_id}`}>
+                  {applicant?.studentName || 'Профиль студента'}
+                </Link>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={grantingNda}
+                  onClick={async () => {
+                    setGrantingNda(true)
+                    setNdaError('')
+                    try {
+                      await apiClient.grantCaseNdaAccess(request.nda_grant_id)
+                      setNdaRequests((items) =>
+                        items.filter((item) => item.nda_grant_id !== request.nda_grant_id),
+                      )
+                    } catch (cause) {
+                      setNdaError((cause as Error).message)
+                    } finally {
+                      setGrantingNda(false)
+                    }
+                  }}
+                >
+                  Открыть доступ к ТЗ
+                </button>
+              </div>
+            )
+          })}
+        </section>
+      )}
       <PublicationContext project={activeCase} />
       {apiRuntime.mode === 'live' && instantRegistration && isPublished(activeCase) && (
         <EventPlanPanel key={activeCase.id} project={activeCase} />
       )}
-      {!reviewing && <CaseComments caseId={activeCase.id} />}
+      {!reviewing && (!live || (activeCase.isModerated && activeCase.visibility !== 'private')) && (
+        <CaseComments caseId={activeCase.id} />
+      )}
       {!reviewing &&
         currentUser?.role !== 'student' &&
         !['olympiad', 'hackathon'].includes(activeCase.kind || '') && (

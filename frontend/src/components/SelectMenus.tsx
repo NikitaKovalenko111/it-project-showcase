@@ -18,19 +18,6 @@ export function SelectMenus() {
       )
       // A popover belongs to the dialog's subtree to remain interactive when a modal is open.
       ;(select.closest('dialog') || document.body).append(menu)
-      const rect = select.getBoundingClientRect()
-      const height = Math.min(300, innerHeight - 24)
-      const below = innerHeight - rect.bottom - 8
-      const top =
-        below >= Math.min(height, select.options.length * 38 + 12)
-          ? rect.bottom + 6
-          : Math.max(12, rect.top - Math.min(height, select.options.length * 38 + 12) - 6)
-      Object.assign(menu.style, {
-        left: `${Math.max(12, Math.min(rect.left, innerWidth - Math.min(rect.width, innerWidth - 24) - 12))}px`,
-        top: `${top}px`,
-        width: `${Math.min(rect.width, innerWidth - 24)}px`,
-        maxHeight: `${Math.min(height, innerHeight - top - 12)}px`,
-      })
       const buttons = Array.from(select.options).map((option) => {
         const button = document.createElement('button')
         button.type = 'button'
@@ -40,9 +27,10 @@ export function SelectMenus() {
         button.textContent = option.label
         button.addEventListener('click', () => {
           select.value = option.value
+          select.dispatchEvent(new Event('input', { bubbles: true }))
           select.dispatchEvent(new Event('change', { bubbles: true }))
           close?.()
-          select.focus()
+          select.focus({ preventScroll: true })
         })
         menu.append(button)
         return button
@@ -55,7 +43,8 @@ export function SelectMenus() {
         for (let step = 0; step < buttons.length; step++) {
           index = (next + step + buttons.length) % buttons.length
           if (!buttons[index].disabled) {
-            buttons[index].focus()
+            buttons[index].focus({ preventScroll: true })
+            buttons[index].scrollIntoView({ block: 'nearest' })
             return
           }
         }
@@ -66,7 +55,7 @@ export function SelectMenus() {
         if (event.key === 'Escape' || event.key === 'Tab') {
           if (event.key === 'Escape') event.preventDefault()
           close?.()
-          select.focus()
+          select.focus({ preventScroll: true })
           return
         }
         if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
@@ -97,25 +86,48 @@ export function SelectMenus() {
       const outside = (event: PointerEvent) => {
         if (!menu.contains(event.target as Node) && event.target !== select) close?.()
       }
-      const reposition = () => {
-        close?.()
+      const reposition = (event?: Event) => {
+        if (event?.target instanceof Node && menu.contains(event.target)) return
+        const rect = select.getBoundingClientRect()
+        const container = select.closest('.modal-dialog__body')?.getBoundingClientRect()
+        if (
+          !select.isConnected ||
+          rect.bottom <= Math.max(0, container?.top ?? 0) ||
+          rect.top >= Math.min(innerHeight, container?.bottom ?? innerHeight)
+        ) {
+          close?.()
+          return
+        }
+        const width = Math.min(rect.width, innerWidth - 24)
+        menu.style.width = width + 'px'
+        const height = Math.min(300, menu.scrollHeight + 2)
+        const below = innerHeight - rect.bottom - 18
+        const above = rect.top - 18
+        const opensBelow = below >= height || below >= above
+        const maxHeight = Math.min(height, opensBelow ? below : above)
+        Object.assign(menu.style, {
+          left: Math.max(12, Math.min(rect.left, innerWidth - width - 12)) + 'px',
+          top: (opensBelow ? rect.bottom + 6 : rect.top - maxHeight - 6) + 'px',
+          maxHeight: maxHeight + 'px',
+        })
       }
       menu.addEventListener('keydown', keyboard)
       document.addEventListener('pointerdown', outside, true)
       window.addEventListener('resize', reposition)
-      window.addEventListener('scroll', reposition)
+      window.addEventListener('scroll', reposition, true)
       select.setAttribute('aria-expanded', 'true')
       menu.showPopover()
-      focus(index)
       close = () => {
         clearTimeout(queryTimer)
         menu.remove()
         select.removeAttribute('aria-expanded')
         document.removeEventListener('pointerdown', outside, true)
         window.removeEventListener('resize', reposition)
-        window.removeEventListener('scroll', reposition)
+        window.removeEventListener('scroll', reposition, true)
         close = undefined
       }
+      reposition()
+      if (menu.isConnected) focus(index)
     }
     const selectFor = (target: EventTarget | null) =>
       target instanceof HTMLSelectElement &&

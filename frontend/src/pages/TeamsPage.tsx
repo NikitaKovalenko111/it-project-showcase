@@ -1,7 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { TeamsPanel } from '../components/TeamsPanel'
 export const TeamsPage: React.FC = () => {
-  const [view, setView] = useState<'teams' | 'requests' | 'search'>('teams')
+  const [params, setParams] = useSearchParams()
+  const invitationId = params.get('invitation')
+  const tab = params.get('view')
+  const view =
+    invitationId || tab === 'requests' ? 'requests' : tab === 'search' ? 'search' : 'teams'
   return (
     <div className="teams-layout">
       <div className="page-header">
@@ -23,7 +28,7 @@ export const TeamsPage: React.FC = () => {
               key={id}
               className={`uust-tab ${view === id ? 'active' : ''}`}
               aria-pressed={view === id}
-              onClick={() => setView(id)}
+              onClick={() => setParams(id === 'teams' ? {} : { view: id })}
             >
               {label}
             </button>
@@ -31,7 +36,8 @@ export const TeamsPage: React.FC = () => {
         </nav>
         <div className="uust-box">
           <TeamsPanel
-            key={view}
+            key={view + (invitationId || '')}
+            invitationId={invitationId || undefined}
             searchMode={view === 'search'}
             initialView={view === 'requests' ? 'requests' : 'teams'}
           />

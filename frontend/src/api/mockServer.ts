@@ -1092,7 +1092,7 @@ export class MockServer {
           : `Заявка в команду ${team.name}`,
       message,
       read: false,
-      link: `/invitations/${notificationId}`,
+      link: '/teams?invitation=' + encodeURIComponent(request.id),
       createdAt: request.createdAt,
       invitation: {
         teamId,
@@ -1334,6 +1334,8 @@ export class MockServer {
     course?: number
     technologies?: string[]
     companyName?: string
+    inn?: string
+    position?: string
   }): User {
     const existing = this.users.find(
       (u) =>
@@ -1378,12 +1380,13 @@ export class MockServer {
       newUser.companyProfile = {
         companyId,
         companyName: data.companyName || 'ООО «ИТ Партнер»',
-        position: 'Руководитель направления',
+        position: data.position || 'Руководитель направления',
       }
       this.companies.push({
         id: companyId,
         name: data.companyName || 'ООО «ИТ Партнер»',
         shortName: data.companyName || 'ИТ Партнер',
+        inn: data.inn,
         logo: '',
         industry: 'Информационные технологии',
         description: 'Партнёрская ИТ-компания университета',
@@ -2230,6 +2233,7 @@ export class MockServer {
       throw new Error('Можно удалить только свой комментарий')
     if (this.comments.some((c) => c.parentId === id)) {
       comment.content = 'Комментарий удалён'
+      comment.deleted = true
       comment.likedBy = []
     } else this.comments = this.comments.filter((c) => c.id !== id)
     save('comments', this.comments)

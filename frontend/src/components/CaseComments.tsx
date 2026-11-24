@@ -51,20 +51,42 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
       className="comment-compose"
       onSubmit={async (e) => {
         e.preventDefault()
+        if (busy || !text.trim()) return
+        const form = e.currentTarget
+        const target = comments.find((comment) => comment.id === parentId)
+        // The case comments API accepts replies to a root comment only.
+        const nestedReply = apiRuntime.mode === 'live' && target?.parentId
+        const content = nestedReply ? target.authorName + ', ' + text.trim() : text.trim()
+        if (new TextEncoder().encode(content).length > 4000) {
+          setError('Сократите комментарий до 4 000 байт.')
+          return
+        }
         setBusy(true)
         setError('')
         try {
-          await apiClient.addComment({
+          const added = await apiClient.addComment({
             caseId,
             authorId: user.id,
             authorName: user.fullName,
             authorRole: user.role,
             authorAvatar: user.avatar,
-            content: text.trim(),
-            parentId: parentId || undefined,
+            content,
+            parentId: nestedReply || parentId || undefined,
           })
-          setComments(await apiClient.getComments(caseId))
+          form.reset()
           setText('')
+          setComments((items) =>
+            items.some((item) => item.id === added.id) ? items : [added, ...items],
+          )
+          const branchId = added.parentId
+          if (branchId) {
+            const visibleCount =
+              comments.filter((comment) => comment.parentId === branchId).length + 1
+            setShown((current) => ({
+              ...current,
+              [branchId]: Math.max(current[branchId] || 10, visibleCount),
+            }))
+          }
           setParentId('')
         } catch (e) {
           setError((e as Error).message)
@@ -100,12 +122,20 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
           value={text}
           maxLength={4000}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
+            event.preventDefault()
+            if (text.trim() && !busy) event.currentTarget.form?.requestSubmit()
+          }}
           required
         />
       </label>
       <button className="btn btn-primary" disabled={busy || !text.trim()}>
         Отправить
       </button>
+      <span className="form-hint comment-compose__shortcut">
+        Enter — отправить, Shift+Enter — новая строка
+      </span>
     </form>
   )
   const renderComment = (comment: ProjectComment, depth = 0): React.ReactNode => (
@@ -169,26 +199,40 @@ export const CaseComments: React.FC<{ caseId: string }> = ({ caseId }) => {
             Ответить
           </button>
         )}
-        {user?.id === comment.authorId && (
-          <button
-            className="btn btn-secondary btn-sm"
-            disabled={busy}
-            onClick={async () => {
-              if (!(await confirm('Удалить комментарий? Ответы сохранятся.'))) return
-              setBusy(true)
-              try {
-                await apiClient.deleteComment(caseId, comment.id)
-                setComments(await apiClient.getComments(caseId))
-              } catch (e) {
-                setError((e as Error).message)
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            Удалить
-          </button>
-        )}
+        {user?.id === comment.authorId &&
+          !comment.deleted &&
+          (apiRuntime.mode === 'live' || comment.content !== 'Комментарий удалён') && (
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={busy}
+              onClick={async () => {
+                if (!(await confirm('Удалить комментарий? Ответы сохранятся.'))) return
+                setBusy(true)
+                try {
+                  await apiClient.deleteComment(caseId, comment.id)
+                  setComments((items) =>
+                    items.map((item) =>
+                      item.id === comment.id
+                        ? {
+                            ...item,
+                            deleted: true,
+                            content: 'Комментарий удалён',
+                            likesCount: 0,
+                            likedByMe: false,
+                          }
+                        : item,
+                    ),
+                  )
+                } catch (e) {
+                  setError((e as Error).message)
+                } finally {
+                  setBusy(false)
+                }
+              }}
+            >
+              Удалить
+            </button>
+          )}
         <ReportButton targetType="comment" targetId={comment.id} compact />
       </div>
       {parentId === comment.id && commentForm}

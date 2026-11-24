@@ -180,7 +180,7 @@ export const AnalyticsPage: React.FC = () => {
             <FileSpreadsheet size={15} /> Excel
           </button>
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-secondary btn-sm"
             disabled={busy || !!error}
             onClick={() => exportReport('pdf')}
           >

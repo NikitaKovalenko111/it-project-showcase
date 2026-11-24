@@ -128,6 +128,7 @@ export function fromCase(d: any): CaseProject {
         }
       : undefined,
     id: d.case_id,
+    visibility: d.visibility,
     companyId: d.company_id,
     companyName: d.company_name || '',
     createdBy: d.created_by,
@@ -337,6 +338,7 @@ export const fromComment = (d: any): ProjectComment => ({
     : undefined,
   authorRole: 'student',
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
+  deleted: d.status === 'deleted',
   parentId: d.parent_comment_id || undefined,
   createdAt: d.created_at,
   likedBy: [],

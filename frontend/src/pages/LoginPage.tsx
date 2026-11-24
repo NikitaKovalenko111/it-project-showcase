@@ -1,3 +1,4 @@
+import { createId } from '../utils/id'
 import { isPhoneValid } from '../utils/validation'
 import { PasswordInput } from '../components/PasswordInput'
 import { apiClient } from '../api/client'
@@ -81,7 +82,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       setRegisterError('Укажите студенческую почту на домене @stud.uust.ru.')
       return
     }
-    if (roleToRegister === 'student' && !isPhoneValid(phone)) {
+    if (roleToRegister !== 'curator' && !isPhoneValid(phone)) {
       setRegisterError('Укажите телефон из 7–15 цифр.')
       return
     }
@@ -108,6 +109,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       return
     }
 
+    if (
+      roleToRegister === 'company' &&
+      (!companyName.trim() || !position.trim() || fullName.trim().split(/\s+/).length < 2)
+    ) {
+      setRegisterError('Укажите название компании, фамилию и имя представителя и должность.')
+      return
+    }
+
     const regData = {
       fullName: fullName.trim(),
       direction: direction.trim(),
@@ -120,13 +129,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
         .filter(Boolean),
       username:
         apiRuntime.mode === 'live'
-          ? registerLogin.trim().toLowerCase()
+          ? roleToRegister === 'company'
+            ? 'company_' + createId().replace(/-/g, '').slice(0, 24)
+            : registerLogin.trim().toLowerCase()
           : normalizedEmail.split('@')[0],
       role: roleToRegister,
       phone,
       group: roleToRegister === 'student' ? group.trim() : undefined,
       institute: roleToRegister === 'student' ? institute : undefined,
-      companyName: roleToRegister === 'company' ? companyName : undefined,
+      companyName: roleToRegister === 'company' ? companyName.trim() : undefined,
+      inn: roleToRegister === 'company' ? inn : undefined,
+      position: roleToRegister === 'company' ? position.trim() : undefined,
     }
 
     setRegistering(true)
@@ -134,7 +147,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
       if (apiRuntime.mode === 'live' && roleToRegister !== 'student') {
         await apiClient.requestRole({ ...regData, role: roleToRegister })
         setRegisterNotice('Заявка на роль отправлена. Вход станет доступен после одобрения.')
-        setUsername(regData.username)
+        setUsername(roleToRegister === 'company' ? regData.email : regData.username)
         setRegisterPassword('')
         setPassword('')
         setMode('login')
@@ -308,7 +321,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               <button
                 type="button"
                 className={`btn btn-sm ${roleToRegister === 'student' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, border: 'none' }}
                 onClick={() => setRoleToRegister('student')}
               >
                 <GraduationCap size={14} aria-hidden="true" /> Студент
@@ -316,7 +328,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
               <button
                 type="button"
                 className={`btn btn-sm ${roleToRegister === 'company' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, border: 'none' }}
                 onClick={() => setRoleToRegister('company')}
               >
                 <Building2 size={14} aria-hidden="true" /> Представитель компании
@@ -337,7 +348,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 {registerError}
               </p>
             )}
-            {apiRuntime.mode === 'live' && (
+            {apiRuntime.mode === 'live' && roleToRegister !== 'company' && (
               <label className="form-group">
                 Логин *
                 <input
@@ -397,7 +408,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       value={institute}
                       onChange={(e) => setInstitute(e.target.value)}
                     >
-                      <option value="Институт информатики, математики и робототехники">ИИМР</option>
+                      <option value="Институт информатики, математики и робототехники">
+                        ИИМРТ
+                      </option>
                       <option value="Институт авиационных технологий и материалов">ИАТМ</option>
                       <option value="Физико-технический институт">ФТИ</option>
                       <option value="Институт электроники и биомедицины">ИЭБ</option>
@@ -470,20 +483,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                   </div>
                 </div>
               </>
-            ) : apiRuntime.mode === 'live' ? (
-              <div className="form-group">
-                <p>Заявку на роль проверит администратор.</p>
-                <label>
-                  Рабочий email
-                  <input
-                    className="input"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </label>
-              </div>
+            ) : roleToRegister === 'curator' ? (
+              <label className="form-group">
+                Рабочий email
+                <input
+                  className="input"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
             ) : (
               <>
                 <div
@@ -510,6 +520,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                       value={inn}
                       onChange={(e) => setInn(e.target.value)}
                       placeholder="0274123456"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}|[0-9]{12}"
+                      title="ИНН должен содержать 10 или 12 цифр"
                       required
                     />
                   </div>
@@ -589,31 +602,41 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login' }) =
                 />
               </label>
             </div>
-            {/* Consent to Personal Data Processing (п. 7.42 ТЗ / 152-ФЗ) */}
-            <div className="auth-consent">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={consentPD}
-                  onChange={(e) => setConsentPD(e.target.checked)}
-                  required
-                />
-                <span>Я даю согласие на обработку персональных данных в соответствии с 152-ФЗ</span>
-              </label>
-            </div>
+            <div className="registration-form__submit">
+              {/* Consent to Personal Data Processing (п. 7.42 ТЗ / 152-ФЗ) */}
+              <div className="auth-consent">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={consentPD}
+                    onChange={(e) => setConsentPD(e.target.checked)}
+                    required
+                  />
+                  <span>
+                    Я даю согласие на обработку персональных данных в соответствии с 152-ФЗ
+                  </span>
+                </label>
+              </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%' }}
-              disabled={!consentPD || registering}
-            >
-              {registering
-                ? 'Отправляем…'
-                : apiRuntime.mode === 'live' && roleToRegister !== 'student'
-                  ? 'Отправить заявку на роль'
-                  : 'Зарегистрироваться и войти'}
-            </button>
+              {apiRuntime.mode === 'live' && roleToRegister !== 'student' && (
+                <p className="form-hint">
+                  Заявку на роль проверит администратор.
+                  {roleToRegister === 'company' &&
+                    ' Сервис принимает заявку по корпоративному email. Реквизиты и данные представителя сервис пока не сохраняет.'}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg"
+                disabled={!consentPD || registering}
+              >
+                {registering
+                  ? 'Отправляем…'
+                  : apiRuntime.mode === 'live' && roleToRegister !== 'student'
+                    ? 'Отправить заявку на роль'
+                    : 'Зарегистрироваться и войти'}
+              </button>
+            </div>
           </form>
         )}
       </div>

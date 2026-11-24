@@ -7,6 +7,7 @@ import { ResumeUpload } from '../components/ResumeUpload'
 import { FileDownload } from '../components/FileDownload'
 import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
+import { axiosInstance } from '../api/http'
 import type { User as ProfileUser } from '../types/models'
 import { AdminUserActions } from '../components/AdminUserActions'
 import { communityApi } from '../api/community'
@@ -83,6 +84,34 @@ export const StudentProfilePage: React.FC = () => {
     )
   const isOwnProfile = !!currentUser && currentUser.id === targetUser?.id
   const student = targetUser?.studentProfile
+  const [statistics, setStatistics] = useState<{ id: string; rating?: number; awards?: number }>()
+  const studentId = student ? targetUser?.id : undefined
+  useEffect(() => {
+    if (apiRuntime.mode !== 'live' || !studentId) return
+    let active = true
+    setStatistics({ id: studentId })
+    void axiosInstance
+      .get<{ rating: number }>(`/students/${studentId}/rating`)
+      .then(({ data }) => {
+        if (active) setStatistics((current) => ({ ...current, id: studentId, rating: data.rating }))
+      })
+      .catch(() => undefined)
+    void axiosInstance
+      .get<{ awards: { award_id: string }[] }>(`/students/${studentId}/portfolio`)
+      .then(({ data }) => {
+        if (active)
+          setStatistics((current) => ({
+            ...current,
+            id: studentId,
+            awards: data.awards?.length ?? 0,
+          }))
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [studentId, currentUser?.id])
+  const profileStatistics = statistics?.id === studentId ? statistics : undefined
 
   const [isEditing, setIsEditing] = useState(false)
   const [editError, setEditError] = useState('')
@@ -358,12 +387,17 @@ export const StudentProfilePage: React.FC = () => {
             >
               <Star size={18} fill="var(--ui-warning-accent)" />
               <strong style={{ fontSize: '24px', color: 'var(--ui-ink)' }}>
-                {student?.rating ?? 0}
+                {(apiRuntime.mode === 'live'
+                  ? profileStatistics?.rating
+                  : student?.rating
+                )?.toLocaleString('ru-RU') ?? '—'}
               </strong>
             </div>
             <span style={{ fontSize: '11px', color: 'var(--ui-icon)' }}>Рейтинг студента</span>
             <div style={{ fontSize: '10px', color: 'var(--ui-brand-text)', marginTop: '4px' }}>
-              Побед в конкурсах: {student?.winsCount ?? 0}
+              {apiRuntime.mode === 'live'
+                ? `Наград: ${profileStatistics?.awards ?? '—'}`
+                : `Побед в конкурсах: ${student?.winsCount ?? 0}`}
             </div>
           </div>
         </div>

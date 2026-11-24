@@ -112,6 +112,7 @@ export function ExecutionComments({
         className="execution-form comment-compose"
         onSubmit={async (e) => {
           e.preventDefault()
+          const form = e.currentTarget
           if (!body.trim() || sending) return
           const message = quote + body.trim()
           setError('')
@@ -144,6 +145,7 @@ export function ExecutionComments({
             setComments((items) =>
               items.some((item) => item.comment_id === data.comment_id) ? items : [data, ...items],
             )
+            form.reset()
             setBody('')
             setReply(undefined)
           } catch (e) {

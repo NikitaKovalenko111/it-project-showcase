@@ -49,7 +49,7 @@ const roleLabels: Record<UserRole, string> = {
   student: 'Студент',
   company: 'Компания-партнёр',
   curator: 'Куратор',
-  admin: 'Администратор ИСУ',
+  admin: 'Администратор витрины IT-проектов',
   university: 'Администратор ИСУ',
 }
 
@@ -63,6 +63,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>('online')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen || isCollapsedDesktop) setShowStatusMenu(false)
+  }, [isOpen, isCollapsedDesktop])
+
+  const closeSidebar = () => {
+    setShowStatusMenu(false)
+    onClose()
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem(`uust_presence_${currentUser?.id}`)
@@ -204,7 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
         <div className="uust-brand-text">
           <span className="brand-title">Витрина IT-проектов</span>
         </div>
-        <button className="sidebar__close" onClick={onClose} aria-label="Закрыть меню">
+        <button className="sidebar__close" onClick={closeSidebar} aria-label="Закрыть меню">
           <X size={20} />
         </button>
       </div>
@@ -309,7 +318,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
-                  onClick={onClose}
+                  onClick={closeSidebar}
                 >
                   <span className="nav-icon">
                     <Icon size={15} />

@@ -527,10 +527,19 @@ export const apiClient = {
   },
 
   async getNdaStatus(caseId: string, userId: string) {
-    const { data } = await axiosInstance.get<{ items: { student_id: string; status: string }[] }>(
-      `/cases/${caseId}/nda-grants`,
-    )
-    return data.items?.find((grant) => grant.student_id === userId)?.status
+    return (await apiClient.getCaseNdaGrants(caseId)).find((grant) => grant.student_id === userId)
+      ?.status
+  },
+
+  async getCaseNdaGrants(caseId: string) {
+    const { data } = await axiosInstance.get<{
+      items: { nda_grant_id: string; student_id: string; status: string }[]
+    }>(`/cases/${caseId}/nda-grants`)
+    return data.items || []
+  },
+
+  async grantCaseNdaAccess(grantId: string) {
+    await axiosInstance.patch(`/nda-grants/${grantId}`, { status: 'granted' })
   },
 
   async getCaseNDA(caseId: string) {
@@ -831,6 +840,21 @@ export const apiClient = {
   },
 
   // Companies
+  async getPublicationCompanies(user: User): Promise<Company[]> {
+    if (user.role !== 'company' && user.role !== 'admin') return []
+    if (apiRuntime.mode === 'live') {
+      const path = user.role === 'company' ? '/companies/mine' : '/companies'
+      const rows = await collectPages((params) => axiosInstance.get(path, { params }))
+      return rows.map(fromCompany).filter((item) => !item.isBlocked)
+    }
+    const rows = await apiClient.getCompanies()
+    return rows.filter((item) =>
+      user.role === 'admin'
+        ? item.isVerified && !item.isBlocked
+        : item.id === user.companyProfile?.companyId,
+    )
+  },
+
   async getCompanies(): Promise<Company[]> {
     if (apiRuntime.mode === 'live') {
       const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
@@ -1050,9 +1074,11 @@ export const apiClient = {
         link:
           d.resource_type === 'company_invitation' && d.resource_id
             ? `/invitations/${d.resource_id}`
-            : d.resource_type === 'case' && d.resource_id
-              ? `/cases/${d.resource_id}`
-              : undefined,
+            : d.resource_type === 'team_invitation' && d.resource_id
+              ? '/teams?invitation=' + encodeURIComponent('invitation:' + d.resource_id)
+              : d.resource_type === 'case' && d.resource_id
+                ? `/cases/${d.resource_id}`
+                : undefined,
       }))
     await delay(100)
     return mockServer.getNotifications(userId)

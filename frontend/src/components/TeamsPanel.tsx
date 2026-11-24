@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { UserPlus, Users, X } from 'lucide-react'
 import { apiClient } from '../api/client'
+import { apiRuntime } from '../api/runtime'
 import { communityApi } from '../api/community'
 import { useAppDispatch, useAppSelector } from '../store'
 import { fetchTeamsRequest } from '../store/actions'
@@ -17,7 +18,8 @@ export const TeamsPanel: React.FC<{
   caseId?: string
   searchMode?: boolean
   initialView?: 'teams' | 'requests'
-}> = ({ caseId, searchMode = false, initialView }) => {
+  invitationId?: string
+}> = ({ caseId, searchMode = false, initialView, invitationId }) => {
   const user = useAppSelector((s) => s.auth.currentUser),
     dispatch = useAppDispatch()
   const [teams, setTeams] = useState<ProjectTeam[]>([]),
@@ -28,14 +30,25 @@ export const TeamsPanel: React.FC<{
   const [selected, setSelected] = useState(''),
     [query, setQuery] = useState(''),
     [inviteMessage, setInviteMessage] = useState('')
+  const [candidateFeedback, setCandidateFeedback] = useState<Record<string, string>>({})
+  const [sentInvitations, setSentInvitations] = useState<Record<string, boolean>>({})
+  const [savedSeeker, setSavedSeeker] = useState<string>()
   const [about, setAbout] = useState(''),
     [stack, setStack] = useState(''),
     [preferredCase, setPreferredCase] = useState(''),
     [filterCase, setFilterCase] = useState(caseId || '')
+  const stackItems = stack
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  const seekerValue = JSON.stringify(
+    apiRuntime.mode === 'live' ? [about.trim()] : [about.trim(), preferredCase, stackItems],
+  )
   const [projectQuery, setProjectQuery] = useState('')
   const [teamQuery, setTeamQuery] = useState(''),
     [view, setView] = useState(initialView || 'teams'),
     [direction, setDirection] = useState('incoming')
+  const [highlightedInvitation, setHighlightedInvitation] = useState(invitationId)
   const [create, setCreate] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
@@ -66,6 +79,15 @@ export const TeamsPanel: React.FC<{
         const own =
           q.find((s) => s.studentId === user?.id && !s.caseId) ||
           q.find((s) => s.studentId === user?.id)
+        setSavedSeeker(
+          own
+            ? JSON.stringify(
+                apiRuntime.mode === 'live'
+                  ? [own.message.trim()]
+                  : [own.message.trim(), own.caseId || '', own.techStack],
+              )
+            : undefined,
+        )
         setAbout(own?.message || '')
         setStack(own?.techStack.join(', ') || '')
         setPreferredCase(own?.caseId || '')
@@ -105,7 +127,11 @@ export const TeamsPanel: React.FC<{
   const filteredRequests = requests.filter((r) =>
     direction === 'incoming' ? incoming(r) : r.senderId === user?.id,
   )
+  const displayedRequests = highlightedInvitation
+    ? filteredRequests.filter((request) => request.id === highlightedInvitation)
+    : filteredRequests
   const pending = (t: ProjectTeam, id: string) =>
+    sentInvitations[t.id + ':' + id] ||
     requests.some((r) => r.teamId === t.id && r.studentId === id && r.status === 'pending')
   const recruitable = cases.filter(
     (c) => c.participationFormat !== 'individual' && c.status === 'open',
@@ -194,11 +220,15 @@ export const TeamsPanel: React.FC<{
                 className="seeker-form"
                 onSubmit={(e) => {
                   e.preventDefault()
-                  act(
-                    () =>
-                      communityApi.saveSeeker(preferredCase || undefined, about, stack.split(',')),
-                    'Анкета опубликована. Капитаны видят её в списке кандидатов и могут пригласить вас.',
-                  )
+                  if (busy || !about.trim() || seekerValue === savedSeeker) return
+                  act(async () => {
+                    await communityApi.saveSeeker(
+                      preferredCase || undefined,
+                      about.trim(),
+                      stackItems,
+                    )
+                    setSavedSeeker(seekerValue)
+                  }, 'Анкета опубликована. Капитаны видят её в списке кандидатов и могут пригласить вас.')
                 }}
               >
                 <div>
@@ -218,39 +248,40 @@ export const TeamsPanel: React.FC<{
                     placeholder="Что умеете, какую задачу хотите взять и когда готовы участвовать"
                   />
                 </label>
-                <div className="team-form-row">
-                  <label>
-                    Навыки и технологии
-                    <input
-                      className="input"
-                      maxLength={500}
-                      value={stack}
-                      onChange={(e) => setStack(e.target.value)}
-                      placeholder="React, Python, дизайн"
-                    />
-                  </label>
-                  <label>
-                    Предпочтительный проект · необязательно
-                    <select
-                      className="select"
-                      value={preferredCase}
-                      onChange={(e) => setPreferredCase(e.target.value)}
-                    >
-                      <option value="">Любой проект</option>
-                      {recruitable.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.title}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <button className="btn btn-primary btn-sm" disabled={busy}>
-                  {seekers.some(
-                    (s) => s.studentId === user.id && s.caseId === (preferredCase || undefined),
-                  )
-                    ? 'Обновить анкету'
-                    : 'Опубликовать анкету'}
+                {apiRuntime.mode !== 'live' && (
+                  <div className="team-form-row">
+                    <label>
+                      Навыки и технологии
+                      <input
+                        className="input"
+                        maxLength={500}
+                        value={stack}
+                        onChange={(e) => setStack(e.target.value)}
+                        placeholder="React, Python, дизайн"
+                      />
+                    </label>
+                    <label>
+                      Предпочтительный проект · необязательно
+                      <select
+                        className="select"
+                        value={preferredCase}
+                        onChange={(e) => setPreferredCase(e.target.value)}
+                      >
+                        <option value="">Любой проект</option>
+                        {recruitable.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
+                <button
+                  className="btn btn-primary btn-sm"
+                  disabled={busy || !about.trim() || seekerValue === savedSeeker}
+                >
+                  {savedSeeker !== undefined ? 'Обновить анкету' : 'Опубликовать анкету'}
                 </button>
               </form>
               <label className="team-search-field">
@@ -477,21 +508,39 @@ export const TeamsPanel: React.FC<{
                         <button
                           className="btn btn-primary btn-sm"
                           disabled={busy || pending(managed, s.id)}
-                          onClick={() =>
-                            act(
-                              () =>
-                                communityApi.requestTeam(
-                                  managed.id,
-                                  s.id,
-                                  'invitation',
-                                  inviteMessage.trim() || 'Приглашаем в нашу команду',
-                                ),
-                              'Приглашение отправлено студенту.',
-                            )
-                          }
+                          onClick={async () => {
+                            const key = managed.id + ':' + s.id
+                            setBusy(true)
+                            setCandidateFeedback((current) => ({ ...current, [key]: '' }))
+                            try {
+                              await communityApi.requestTeam(
+                                managed.id,
+                                s.id,
+                                'invitation',
+                                inviteMessage.trim() || 'Приглашаем в нашу команду',
+                              )
+                              setSentInvitations((current) => ({ ...current, [key]: true }))
+                            } catch (cause) {
+                              const error = cause as Error & { code?: string }
+                              if (error.code === 'team_invitation_conflict') {
+                                setSentInvitations((current) => ({ ...current, [key]: true }))
+                              }
+                              setCandidateFeedback((current) => ({
+                                ...current,
+                                [key]: error.message,
+                              }))
+                            } finally {
+                              setBusy(false)
+                            }
+                          }}
                         >
-                          {pending(managed, s.id) ? 'Ожидаем ответ' : 'Пригласить'}
+                          {pending(managed, s.id) ? 'Приглашение отправлено' : 'Пригласить'}
                         </button>
+                        {candidateFeedback[managed.id + ':' + s.id] && (
+                          <p role="alert" className="form-error">
+                            {candidateFeedback[managed.id + ':' + s.id]}
+                          </p>
+                        )}
                       </article>
                     ))}
                 </PaginatedGrid>
@@ -514,12 +563,27 @@ export const TeamsPanel: React.FC<{
                 </button>
                 <button
                   className={`btn ${direction === 'outgoing' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-                  onClick={() => setDirection('outgoing')}
+                  onClick={() => {
+                    setHighlightedInvitation(undefined)
+                    setDirection('outgoing')
+                  }}
                 >
                   Исходящие
                 </button>
               </div>
-              {!filteredRequests.length && (
+              {highlightedInvitation && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setHighlightedInvitation(undefined)}
+                >
+                  Все входящие
+                </button>
+              )}
+              {highlightedInvitation && !displayedRequests.length && (
+                <p>Это приглашение уже обработано или недоступно.</p>
+              )}
+              {!highlightedInvitation && !displayedRequests.length && (
                 <div className="empty-state request-empty">
                   <UserPlus size={28} />
                   <h3>
@@ -535,7 +599,7 @@ export const TeamsPanel: React.FC<{
                 </div>
               )}
               <PaginatedGrid className="request-list">
-                {filteredRequests.map((r) => (
+                {displayedRequests.map((r) => (
                   <article className="team-request" key={r.id}>
                     <div className="feature-toolbar">
                       <h3>{teams.find((t) => t.id === r.teamId)?.name}</h3>
@@ -560,7 +624,9 @@ export const TeamsPanel: React.FC<{
                           onClick={() =>
                             act(
                               () => communityApi.decideTeamRequest(r.id, 'accepted'),
-                              'Участник добавлен в состав команды.',
+                              r.kind === 'invitation'
+                                ? 'Вы присоединились к команде.'
+                                : 'Участник добавлен в состав команды.',
                             )
                           }
                         >

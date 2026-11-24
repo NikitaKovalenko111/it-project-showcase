@@ -8,6 +8,7 @@ import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
 import { opportunityApi, type Opportunity, type OpportunityKind } from '../../api/opportunities'
 import type { Company } from '../../types/models'
+import { localDate } from '../../utils/date'
 
 export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 
@@ -15,6 +16,7 @@ export function OpportunityPublicationModal({
   initial,
   companies,
   allowCompanySelection = false,
+  companyUnavailable,
   onCompanyChange,
   formatControl,
   embedded = false,
@@ -25,6 +27,7 @@ export function OpportunityPublicationModal({
   initial: Partial<Opportunity> & { kind: OpportunityKind }
   companies: Pick<Company, 'id' | 'name'>[]
   allowCompanySelection?: boolean
+  companyUnavailable?: string
   onCompanyChange?: (companyId: string) => void
   formatControl?: ReactNode
   embedded?: boolean
@@ -42,8 +45,41 @@ export function OpportunityPublicationModal({
   const [editor, setEditor] = useState(initial)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const companyId =
+    editor.program_id || allowCompanySelection ? editor.company_id : initial.company_id
   const companyName =
-    companies.find((company) => company.id === editor.company_id)?.name || editor.company_name || ''
+    companies.find((company) => company.id === companyId)?.name || editor.company_name || ''
+  const [selectedDeadline, setSelectedDeadline] = useState(() =>
+    initial.application_deadline
+      ? new Date(initial.application_deadline).toLocaleDateString('sv-SE')
+      : '',
+  )
+  const today = localDate()
+  const deadlineError =
+    selectedDeadline &&
+    selectedDeadline < today &&
+    (!initial.application_deadline ||
+      selectedDeadline !== new Date(initial.application_deadline).toLocaleDateString('sv-SE'))
+      ? 'Срок подачи заявок не может быть в прошлом.'
+      : ''
+  const byteLength = (value?: string) => new TextEncoder().encode(value?.trim() || '').length
+  const titleError = byteLength(editor.title) > 200 ? 'Название превышает 200 байт.' : ''
+  const summaryError =
+    byteLength(editor.summary) > 1000 ? 'Краткое описание превышает 1 000 байт.' : ''
+  const contentError =
+    byteLength(editor.content_markdown) > 50000 ? 'Программа превышает 50 000 байт.' : ''
+  const capacityError =
+    editor.capacity &&
+    (editor.capacity < 1 || editor.capacity > 10000 || !Number.isInteger(editor.capacity))
+      ? 'Укажите целое число от 1 до 10 000.'
+      : ''
+  const hasFieldErrors = !!(
+    titleError ||
+    summaryError ||
+    contentError ||
+    capacityError ||
+    deadlineError
+  )
   const title =
     (editor.program_id ? 'Редактирование ' : 'Размещение ') +
     (editor.kind === 'practice' ? 'практики' : 'стажировки')
@@ -70,10 +106,14 @@ export function OpportunityPublicationModal({
         onInvalid={markFieldError}
         onSubmit={async (event) => {
           event.preventDefault()
-          if (busy) return
+          if (busy || companyUnavailable) return
           const submit =
             (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') !== 'draft'
           const form = event.currentTarget
+          if (hasFieldErrors) {
+            form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+            return
+          }
           for (const [name, label] of [
             ['title', 'название'],
             ['summary', 'краткое описание'],
@@ -99,7 +139,7 @@ export function OpportunityPublicationModal({
           try {
             const payload = {
               kind: editor.kind,
-              company_id: editor.company_id,
+              company_id: companyId,
               title: editor.title,
               summary: editor.summary,
               content_markdown: editor.content_markdown,
@@ -135,7 +175,7 @@ export function OpportunityPublicationModal({
                   name="company_id"
                   title={companyName || undefined}
                   required
-                  value={editor.company_id || ''}
+                  value={companyId || ''}
                   onChange={(event) => {
                     const company_id = event.target.value
                     setEditor((current) => ({ ...current, company_id }))
@@ -157,44 +197,74 @@ export function OpportunityPublicationModal({
                   value={companyName}
                 />
               )}
+              {companyUnavailable && (
+                <span className="form-hint" role="status">
+                  {companyUnavailable}
+                </span>
+              )}
             </label>
             <label>
               Название
+              <span className="form-hint" id="opportunity-title-limit">
+                До 200 байт
+              </span>
               <input
                 className="input"
                 required
                 name="title"
-                maxLength={300}
+                aria-describedby="opportunity-title-limit"
+                aria-invalid={titleError ? true : undefined}
                 value={editor.title || ''}
                 onChange={(event) => setEditor({ ...editor, title: event.target.value })}
               />
+              {titleError && (
+                <span className="publication-field-error" role="alert">
+                  {titleError}
+                </span>
+              )}
             </label>
             <label>
               Краткое описание
+              <span className="form-hint" id="opportunity-summary-limit">
+                До 1 000 байт
+              </span>
               <textarea
                 className="textarea"
                 required
                 name="summary"
                 rows={2}
-                maxLength={500}
+                aria-describedby="opportunity-summary-limit"
+                aria-invalid={summaryError ? true : undefined}
                 value={editor.summary || ''}
                 onChange={(event) => setEditor({ ...editor, summary: event.target.value })}
               />
+              {summaryError && (
+                <span className="publication-field-error" role="alert">
+                  {summaryError}
+                </span>
+              )}
             </label>
             <div className="responsive-grid">
               <label>
                 Количество мест
+                <span className="form-hint">От 1 до 10 000</span>
                 <input
                   className="input"
                   type="number"
                   required
                   min={1}
                   max={10000}
+                  aria-invalid={capacityError ? true : undefined}
                   value={editor.capacity || ''}
                   onChange={(event) =>
                     setEditor({ ...editor, capacity: Number(event.target.value) })
                   }
                 />
+                {capacityError && (
+                  <span className="publication-field-error" role="alert">
+                    {capacityError}
+                  </span>
+                )}
               </label>
               <label>
                 Срок подачи заявок
@@ -203,16 +273,27 @@ export function OpportunityPublicationModal({
                   type="date"
                   name="application_deadline"
                   max="2100-12-31"
-                  defaultValue={
-                    editor.application_deadline
-                      ? new Date(editor.application_deadline).toLocaleDateString('sv-SE')
-                      : ''
+                  min={
+                    initial.application_deadline?.slice(0, 10) === selectedDeadline &&
+                    selectedDeadline < today
+                      ? selectedDeadline
+                      : today
                   }
+                  value={selectedDeadline}
+                  aria-invalid={deadlineError ? true : undefined}
+                  onChange={(event) => setSelectedDeadline(event.target.value)}
                 />
+                {deadlineError && (
+                  <span className="publication-field-error" role="alert">
+                    {deadlineError}
+                  </span>
+                )}
               </label>
             </div>
             <div data-color-mode="light">
-              <p id="opportunity-program-label">Программа и условия участия</p>
+              <p id="opportunity-program-label">
+                Программа и условия участия <span className="form-hint">До 50 000 байт</span>
+              </p>
               <MarkdownImageUpload
                 onInsert={(markdown) =>
                   setEditor((value) => ({
@@ -226,13 +307,11 @@ export function OpportunityPublicationModal({
                 overflow={false}
                 height={200}
                 value={editor.content_markdown || ''}
-                onChange={(value) =>
-                  setEditor({ ...editor, content_markdown: (value || '').slice(0, 15000) })
-                }
+                onChange={(value) => setEditor({ ...editor, content_markdown: value || '' })}
                 textareaProps={{
                   'aria-labelledby': 'opportunity-program-label',
                   name: 'content_markdown',
-                  maxLength: 15000,
+                  'aria-invalid': contentError ? true : undefined,
                   onInput: (event) => event.currentTarget.setCustomValidity(''),
                 }}
                 previewOptions={{
@@ -240,6 +319,11 @@ export function OpportunityPublicationModal({
                   components: { img: MarkdownImage },
                 }}
               />
+              {contentError && (
+                <p className="publication-field-error" role="alert">
+                  {contentError}
+                </p>
+              )}
             </div>
             {error && (
               <p className="form-error" role="alert">
@@ -253,11 +337,15 @@ export function OpportunityPublicationModal({
             Отмена
           </button>
           {editor.status !== 'published' && (
-            <button className="btn btn-secondary" value="draft" disabled={busy}>
+            <button
+              className="btn btn-secondary"
+              value="draft"
+              disabled={busy || !!companyUnavailable}
+            >
               Сохранить черновик
             </button>
           )}
-          <button className="btn btn-primary" disabled={busy}>
+          <button className="btn btn-primary" disabled={busy || !!companyUnavailable}>
             {busy ? 'Сохраняем…' : 'Отправить на модерацию'}
           </button>
         </footer>

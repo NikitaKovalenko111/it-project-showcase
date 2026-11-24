@@ -3,7 +3,6 @@ import { ExpandableText } from './ExpandableText'
 import { ReportButton } from './ReportButton'
 import { OpportunityReviewActions, OpportunityBlockButton } from './OpportunityReviewActions'
 import { opportunityApi } from '../api/opportunities'
-import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
 import { OpportunityDescription } from './OpportunityDescription'
 import { useEffect, useState } from 'react'
@@ -17,8 +16,6 @@ import {
   Users,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { axiosInstance } from '../api/http'
-import { collectPages, fromCompany } from '../api/backend'
 import type { Company } from '../types/models'
 import { useAppSelector } from '../store'
 import { InternshipApply } from './InternshipApplications'
@@ -58,6 +55,8 @@ export function LiveCompanyProgram() {
   const ownCatalog =
     publisher && (company ? params.get('scope') !== 'all' : params.get('scope') === 'mine')
   const [companies, setCompanies] = useState<Company[]>([])
+  const [loadingCompanies, setLoadingCompanies] = useState(false)
+  const [companyListError, setCompanyListError] = useState(false)
   const [programs, setPrograms] = useState<Opportunity[]>([])
   const [applied, setApplied] = useState<Set<string>>(new Set())
   const [editor, setEditor] = useState<Partial<Opportunity> & { kind: OpportunityKind }>()
@@ -69,33 +68,26 @@ export function LiveCompanyProgram() {
   useEffect(() => setApplicationNotice(''), [programId])
 
   useEffect(() => {
-    if (!publisher) return
+    if (!publisher || !user) return
     let active = true
-    const ownedCompanies =
-      apiRuntime.mode === 'live' && !admin
-        ? collectPages<any>((params) => axiosInstance.get('/companies/mine', { params })).then(
-            (rows) => rows.map(fromCompany),
-          )
-        : apiClient
-            .getCompanies()
-            .then((rows) =>
-              rows.filter((item) =>
-                admin
-                  ? item.isVerified && !item.isBlocked
-                  : item.id === user?.companyProfile?.companyId,
-              ),
-            )
-    ownedCompanies
+    setCompanies([])
+    setLoadingCompanies(true)
+    setCompanyListError(false)
+    void apiClient
+      .getPublicationCompanies(user)
       .then((rows) => {
         if (active) setCompanies(rows)
       })
-      .catch((cause: Error) => {
-        if (active) setError(cause.message)
+      .catch(() => {
+        if (active) setCompanyListError(true)
+      })
+      .finally(() => {
+        if (active) setLoadingCompanies(false)
       })
     return () => {
       active = false
     }
-  }, [publisher, admin, user?.id])
+  }, [publisher, user])
 
   useEffect(() => {
     let active = true
@@ -159,7 +151,8 @@ export function LiveCompanyProgram() {
   )
   const preferredCompany =
     companies.find((item) => item.id === user?.companyProfile?.companyId) ||
-    (admin ? companies.find((item) => item.id === companyId) || companies[0] : undefined)
+    (admin ? companies.find((item) => item.id === companyId) : undefined) ||
+    companies[0]
 
   const meta = (item: Opportunity) => (
     <div className="case-card__meta-grid opportunity-meta">
@@ -185,18 +178,31 @@ export function LiveCompanyProgram() {
         <div className="page-header">
           <div className="page-header__content">{!programId && <h1>Стажировки и практики</h1>}</div>
           {publisher && !programId && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!preferredCompany}
-              onClick={() => {
-                setNotice('')
-                setEditor({ kind, company_id: preferredCompany?.id })
-              }}
-            >
-              <Plus size={16} />{' '}
-              {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
-            </button>
+            <div className="program-page__publish">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!preferredCompany}
+                onClick={() => {
+                  setNotice('')
+                  setEditor({ kind, company_id: preferredCompany?.id })
+                }}
+              >
+                <Plus size={16} />{' '}
+                {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
+              </button>
+              {!preferredCompany && (
+                <p className="form-hint" role="status">
+                  {loadingCompanies
+                    ? 'Загружаем компании…'
+                    : companyListError
+                      ? 'Не удалось загрузить список компаний.'
+                      : admin
+                        ? 'Нет одобренных компаний для публикации.'
+                        : 'К аккаунту не привязана доступная компания.'}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}

@@ -144,6 +144,7 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  visibility?: 'private' | 'public'
   createdBy?: string
   managedByViewer?: boolean
   applicationDeadline?: string
@@ -450,6 +451,7 @@ export interface SystemNotification {
 }
 
 export interface ProjectComment {
+  deleted?: boolean
   parentId?: string
   likesCount?: number
   likedByMe?: boolean

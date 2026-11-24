@@ -320,8 +320,6 @@ input, button, select, textarea {
 .portfolio-achievements .empty-state { margin: 0; }
 .profile-edit-form .card__body { display: grid; gap: 18px; }
 .profile-edit-form label { display: grid; align-content: start; gap: 6px; margin: 0; font-weight: 600; }
-.registration-form .form-group { margin-bottom: 14px; }
-.registration-form .form-group label { margin-bottom: 6px; }
 .feedback-form form { gap: 16px; }
 .feedback-form form > label { display: grid; gap: 8px; }
 .feedback-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
@@ -488,3 +486,15 @@ form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']):focus
 @import 'visual-system';
 @import 'interaction-states';
 @import 'form-layout';
+
+.publication-field-error { color: var(--ui-danger); }
+.program-page__publish { display: grid; justify-items: start; gap: 6px; }
+.program-page__publish .form-hint { margin: 0; }
+
+.home-page .stat-number--prize { white-space: normal; }
+.feedback-queue .data-table td:has(.feedback-queue__actions) { width: 1%; }
+.feedback-queue__actions { width: max-content; max-width: 100%; }
+.feedback-queue__actions .btn { flex: none; white-space: nowrap; }
+@media (max-width: 768px) { .feedback-queue .data-table td:has(.feedback-queue__actions) { width: 100%; } }
+
+.comment-compose__shortcut { grid-column: 2 / -1; }

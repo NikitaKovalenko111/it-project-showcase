@@ -18,7 +18,7 @@ export const ReportButton: React.FC<{
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false)
   const reportLabel = 'Пожаловаться'
-  if (!user) return null
+  if (!user || user.role === 'admin') return null
   return (
     <>
       <button

@@ -235,7 +235,7 @@ export const communityApi = new Proxy({} as AsyncMethods, {
               id.startsWith('invitation:')
                 ? `/team-invitations/${id.slice(11)}`
                 : `/team-join-applications/${id}`,
-              { status: value },
+              { status: id.startsWith('invitation:') && value === 'rejected' ? 'declined' : value },
             )
             return
           case 'updateCompanyContent': {
