@@ -332,7 +332,11 @@ export const createApplicationSuccess = (application: CaseApplication) => ({
   payload: { application },
 })
 
-export const updateApplicationStatusRequest = (appId: string, status: any, notes?: string) => ({
+export const updateApplicationStatusRequest = (
+  appId: string,
+  status: CaseApplication['status'],
+  notes?: string,
+) => ({
   type: types.UPDATE_APPLICATION_STATUS_REQUEST,
   payload: { appId, status, notes },
 })

@@ -15,7 +15,7 @@ WHERE NOT EXISTS (SELECT 1 FROM case_views v WHERE v.case_id=c.case_id)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO applications(application_id,case_id,case_revision_id,submitted_by,student_id,status,entry_kind,submitted_at,cover_letter)
-SELECT md5('demo:initial-application:' || c.case_id)::uuid, c.case_id, r.case_revision_id, candidate.user_id, candidate.user_id,
+SELECT pg_temp.demo_uuid('demo:initial-application:' || c.case_id), c.case_id, r.case_revision_id, candidate.user_id, candidate.user_id,
        CASE WHEN c.demo_entry='registration' OR c.status='completed' THEN 'accepted' ELSE 'submitted' END,
        c.demo_entry, c.created_at, 'Учебный отклик: готов показать пример проверки из портфолио и объяснить свой вклад.'
 FROM demo_public_cases c
@@ -35,11 +35,11 @@ ON CONFLICT DO NOTHING;
 INSERT INTO application_consents(application_id,student_id,case_revision_id,accepted_at)
 SELECT a.application_id,a.student_id,a.case_revision_id,a.submitted_at
 FROM applications a JOIN demo_public_cases c USING(case_id)
-WHERE a.application_id=md5('demo:initial-application:' || c.case_id)::uuid AND a.status='accepted'
+WHERE a.application_id=pg_temp.demo_uuid('demo:initial-application:' || c.case_id) AND a.status='accepted'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO comments(comment_id,resource_type,resource_id,author_id,body,created_at)
-SELECT md5('demo:first-question:' || c.case_id)::uuid,'case',c.case_id,candidate.user_id,
+SELECT pg_temp.demo_uuid('demo:first-question:' || c.case_id),'case',c.case_id,candidate.user_id,
        CASE WHEN c.status='completed' THEN 'Какой контрольный сценарий лучше воспроизвести при разборе результатов?'
             ELSE 'Можно принести на первый разбор один контрольный пример и список вопросов к данным?' END,
        c.created_at
@@ -51,11 +51,11 @@ WHERE NOT EXISTS (SELECT 1 FROM comments q WHERE q.resource_type='case' AND q.re
 ON CONFLICT DO NOTHING;
 
 INSERT INTO comments(comment_id,resource_type,resource_id,parent_comment_id,author_id,body,created_at)
-SELECT md5('demo:first-answer:' || c.case_id)::uuid,'case',c.case_id,q.comment_id,c.created_by,
+SELECT pg_temp.demo_uuid('demo:first-answer:' || c.case_id),'case',c.case_id,q.comment_id,c.created_by,
        CASE WHEN c.status='completed' THEN 'Начните с основного сценария в описании кейса. Сравните ожидаемый результат с тем, что получилось на учебных данных.'
             ELSE 'Да. Подпишите ожидаемый результат и отметьте один граничный случай, который хотите обсудить с наставником.' END,
        q.created_at
-FROM demo_public_cases c JOIN comments q ON q.comment_id=md5('demo:first-question:' || c.case_id)::uuid
+FROM demo_public_cases c JOIN comments q ON q.comment_id=pg_temp.demo_uuid('demo:first-question:' || c.case_id)
 WHERE q.status='active' AND NOT EXISTS (SELECT 1 FROM comments r WHERE r.parent_comment_id=q.comment_id AND r.status='active')
 ON CONFLICT DO NOTHING;
 
@@ -74,7 +74,7 @@ WHERE NOT EXISTS (SELECT 1 FROM student_project_likes l WHERE l.project_id=p.pro
 ON CONFLICT DO NOTHING;
 
 INSERT INTO comments(comment_id,resource_type,resource_id,author_id,body,created_at)
-SELECT md5('demo:portfolio-question:' || p.project_id)::uuid,'student_project',p.project_id,reader.user_id,
+SELECT pg_temp.demo_uuid('demo:portfolio-question:' || p.project_id),'student_project',p.project_id,reader.user_id,
        'Какой пример из проекта стоит повторить, чтобы проверить основной сценарий?', p.created_at
 FROM demo_public_projects p
 CROSS JOIN LATERAL (
@@ -85,9 +85,9 @@ WHERE NOT EXISTS (SELECT 1 FROM comments q WHERE q.resource_type='student_projec
 ON CONFLICT DO NOTHING;
 
 INSERT INTO comments(comment_id,resource_type,resource_id,parent_comment_id,author_id,body,created_at)
-SELECT md5('demo:portfolio-answer:' || p.project_id)::uuid,'student_project',p.project_id,q.comment_id,p.owner_id,
+SELECT pg_temp.demo_uuid('demo:portfolio-answer:' || p.project_id),'student_project',p.project_id,q.comment_id,p.owner_id,
        'Начните с основного сценария на одном рабочем примере. Для сравнения попробуйте повторить проверку с неполными входными данными.', q.created_at
-FROM demo_public_projects p JOIN comments q ON q.comment_id=md5('demo:portfolio-question:' || p.project_id)::uuid
+FROM demo_public_projects p JOIN comments q ON q.comment_id=pg_temp.demo_uuid('demo:portfolio-question:' || p.project_id)
 WHERE q.status='active' AND NOT EXISTS (SELECT 1 FROM comments r WHERE r.parent_comment_id=q.comment_id AND r.status='active')
 ON CONFLICT DO NOTHING;
 
@@ -108,7 +108,7 @@ CROSS JOIN LATERAL (
 ON CONFLICT DO NOTHING;
 
 INSERT INTO internship_applications(application_id,program_id,student_id,cover_letter,status,created_at)
-SELECT md5('demo:first-program-application:' || p.program_id)::uuid,p.program_id,reader.user_id,
+SELECT pg_temp.demo_uuid('demo:first-program-application:' || p.program_id),p.program_id,reader.user_id,
        'Хочу обсудить задачу программы и показать один выполненный учебный проект.', 'submitted',p.created_at
 FROM internship_programs p JOIN imported_program_ids i USING(program_id)
 CROSS JOIN LATERAL (

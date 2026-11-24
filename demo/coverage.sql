@@ -12,13 +12,13 @@ SELECT s.user_id, row_number() OVER (ORDER BY u.username) AS n
 FROM imported_student_ids s JOIN users u USING(user_id);
 
 INSERT INTO user_consents(consent_id,user_id,consent_type,version)
-SELECT md5('coverage:consent:'||u.user_id)::uuid,u.user_id,'personal_data','1.0'
+SELECT pg_temp.demo_uuid('coverage:consent:'||u.user_id),u.user_id,'personal_data','1.0'
 FROM imported_student_ids u
 WHERE NOT EXISTS (SELECT 1 FROM user_consents c WHERE c.user_id=u.user_id AND c.consent_type='personal_data')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO users(user_id,username,email,password_hash,status)
-SELECT md5('coverage:account:'||x.login)::uuid,x.login,x.login||'@showcase.example.test',p.hash,x.status
+SELECT pg_temp.demo_uuid('coverage:account:'||x.login),x.login,x.login||'@showcase.example.test',p.hash,x.status
 FROM import_password p CROSS JOIN (VALUES
     ('demo.coverage-pending','active'),('demo.coverage-rejected','active'),('demo.coverage-blocked','blocked')
 ) AS x(login,status) ON CONFLICT DO NOTHING;
@@ -29,21 +29,21 @@ SELECT u.user_id,x.role_code,x.status,CASE WHEN x.status='rejected' THEN a.user_
 FROM (VALUES ('demo.coverage-pending','company_representative','pending'),
     ('demo.coverage-rejected','university_staff','rejected')) x(login,role_code,status)
 JOIN users u ON u.username=x.login CROSS JOIN demo_scenario_admin a
-WHERE u.user_id=md5('coverage:account:'||x.login)::uuid ON CONFLICT DO NOTHING;
+WHERE u.user_id=pg_temp.demo_uuid('coverage:account:'||x.login) ON CONFLICT DO NOTHING;
 
 INSERT INTO user_roles(user_id,role_id)
 SELECT u.user_id,r.role_id FROM users u CROSS JOIN roles r
-WHERE u.user_id=md5('coverage:account:demo.coverage-blocked')::uuid AND r.code='student'
+WHERE u.user_id=pg_temp.demo_uuid('coverage:account:demo.coverage-blocked') AND r.code='student'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO companies(company_id,full_name,short_name,industry,description,status,website,contacts)
-SELECT md5('coverage:company:'||x.status)::uuid,x.title,x.title,'Образование','Учебная карточка для проверки модерации компании.',
+SELECT pg_temp.demo_uuid('coverage:company:'||x.status),x.title,x.title,'Образование','Учебная карточка для проверки модерации компании.',
     x.status,'https://lab.example.test','contact@lab.example.test'
 FROM (VALUES ('pending','Учебная лаборатория · на проверке'),('rejected','Учебная лаборатория · отклонена')) x(status,title)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO internship_programs(program_id,company_id,created_by,title,kind,summary,content_markdown,capacity,application_deadline,status)
-SELECT md5('coverage:program:'||x.status)::uuid,p.company_id,p.created_by,x.title,x.kind,
+SELECT pg_temp.demo_uuid('coverage:program:'||x.status),p.company_id,p.created_by,x.title,x.kind,
     'Учебная программа для проверки статуса публикации.','Разобрать требования, подготовить прототип и обсудить результаты.',
     4,now()+interval '21 days',x.status
 FROM (SELECT p.* FROM internship_programs p JOIN imported_program_ids i USING(program_id)
@@ -56,7 +56,7 @@ CROSS JOIN (VALUES ('draft','Черновик учебной стажировк�
 ON CONFLICT DO NOTHING;
 
 INSERT INTO student_projects(project_id,owner_id,title,category,short_description,full_description,visibility,status,moderation_comment,github_url,product_url)
-SELECT md5('coverage:student-project:'||x.status)::uuid,s.user_id,x.title,'coursework',
+SELECT pg_temp.demo_uuid('coverage:student-project:'||x.status),s.user_id,x.title,'coursework',
     'Учебный проект для проверки состояния публикации.','Собрать прототип и описать проверку результата.',
     CASE WHEN x.status='draft' THEN 'private' ELSE 'public' END,x.status,x.comment,
     'https://code.example.test/demo/project','https://preview.example.test/demo/project'
@@ -67,10 +67,10 @@ FROM (VALUES ('draft','Личный черновик',NULL),
 JOIN demo_scenario_students s ON s.n=1 ON CONFLICT DO NOTHING;
 
 INSERT INTO student_project_moderation_events(moderation_event_id,project_id,moderator_id,previous_status,new_status,comment)
-SELECT md5('coverage:student-project-review:'||p.status)::uuid,p.project_id,a.user_id,
+SELECT pg_temp.demo_uuid('coverage:student-project-review:'||p.status),p.project_id,a.user_id,
     CASE WHEN p.status='hidden' THEN 'published' ELSE 'moderation' END,p.status,p.moderation_comment
 FROM student_projects p CROSS JOIN demo_scenario_admin a
-WHERE p.status IN ('revision','hidden') AND p.project_id=md5('coverage:student-project:'||p.status)::uuid
+WHERE p.status IN ('revision','hidden') AND p.project_id=pg_temp.demo_uuid('coverage:student-project:'||p.status)
 ON CONFLICT DO NOTHING;
 
 CREATE TEMP TABLE demo_team_targets AS
@@ -87,22 +87,22 @@ CROSS JOIN LATERAL (
 UPDATE teams t SET visibility='open',looking_for_members=true
 FROM demo_team_targets d WHERE t.team_id=d.team_id AND d.n>=2
 AND NOT EXISTS (SELECT 1 FROM team_join_applications a
-                WHERE a.join_application_id=md5('coverage:team-application:'||d.team_id)::uuid);
+                WHERE a.join_application_id=pg_temp.demo_uuid('coverage:team-application:'||d.team_id));
 
 INSERT INTO team_invitations(team_invitation_id,team_id,invited_by,student_id,status,responded_at)
-SELECT md5('coverage:team-invitation:'||team_id)::uuid,team_id,leader_id,candidate,
+SELECT pg_temp.demo_uuid('coverage:team-invitation:'||team_id),team_id,leader_id,candidate,
     CASE n WHEN 1 THEN 'pending' WHEN 2 THEN 'declined' ELSE 'revoked' END,
     CASE WHEN n<>1 THEN now() END FROM demo_team_targets WHERE n<=3
 ON CONFLICT DO NOTHING;
 
 INSERT INTO team_join_applications(join_application_id,team_id,student_id,cover_letter,status,responded_at)
-SELECT md5('coverage:team-application:'||team_id)::uuid,team_id,candidate,'Хочу помочь команде с тестами и документацией.',
+SELECT pg_temp.demo_uuid('coverage:team-application:'||team_id),team_id,candidate,'Хочу помочь команде с тестами и документацией.',
     CASE n WHEN 2 THEN 'pending' WHEN 3 THEN 'rejected' ELSE 'withdrawn' END,
     CASE WHEN n<>2 THEN now() END FROM demo_team_targets WHERE n>=2
 ON CONFLICT DO NOTHING;
 
 INSERT INTO team_invitations(team_invitation_id,team_id,invited_by,student_id,status,responded_at)
-SELECT md5('coverage:team-accepted:'||d.team_id)::uuid,d.team_id,d.leader_id,m.student_id,'accepted',now()
+SELECT pg_temp.demo_uuid('coverage:team-accepted:'||d.team_id),d.team_id,d.leader_id,m.student_id,'accepted',now()
 FROM demo_team_targets d
 CROSS JOIN LATERAL (
     SELECT m.student_id FROM team_members m WHERE m.team_id=d.team_id AND m.student_id<>d.leader_id
@@ -114,7 +114,7 @@ SELECT DISTINCT candidate,'Ищу команду для учебного про�
 FROM demo_team_targets ON CONFLICT DO NOTHING;
 
 INSERT INTO feedback_messages(feedback_id,author_id,body,status,moderator_id,reviewed_at)
-SELECT md5('coverage:feedback:'||x.status)::uuid,s.user_id,x.body,x.status,
+SELECT pg_temp.demo_uuid('coverage:feedback:'||x.status),s.user_id,x.body,x.status,
     CASE WHEN x.status<>'reviewing' THEN a.user_id END,CASE WHEN x.status<>'reviewing' THEN now() END
 FROM (VALUES ('reviewing','Вложил пример для проверки формы обратной связи.'),
     ('reviewed','Прошу проверить подпись в карточке проекта.'),
@@ -124,7 +124,7 @@ JOIN demo_scenario_students s ON s.n=1 CROSS JOIN demo_scenario_admin a
 ON CONFLICT DO NOTHING;
 
 INSERT INTO reports(report_id,reporter_id,resource_type,resource_id,reason,details,status,moderator_id,resolved_at)
-SELECT md5('coverage:report:'||x.status)::uuid,s.user_id,'case',c.case_id,'other','Проверка очереди жалоб.',x.status,
+SELECT pg_temp.demo_uuid('coverage:report:'||x.status),s.user_id,'case',c.case_id,'other','Проверка очереди жалоб.',x.status,
     CASE WHEN x.status<>'open' THEN a.user_id END, CASE WHEN x.status IN ('resolved','rejected') THEN now() END
 FROM (VALUES ('open',1),('reviewing',2),('resolved',3),('rejected',4)) x(status,n)
 JOIN demo_scenario_students s ON s.n=x.n CROSS JOIN demo_scenario_admin a
@@ -133,7 +133,7 @@ CROSS JOIN (SELECT c.case_id FROM cases c JOIN imported_case_ids i USING(case_id
 ON CONFLICT DO NOTHING;
 
 INSERT INTO notifications(notification_id,user_id,type,title,body,read_at)
-SELECT md5('coverage:read-notification:'||s.user_id)::uuid,s.user_id,'showcase',
+SELECT pg_temp.demo_uuid('coverage:read-notification:'||s.user_id),s.user_id,'showcase',
     'Учебное уведомление прочитано','Запись показывает состояние прочитанного уведомления.',now()
 FROM demo_scenario_students s WHERE s.n<=4 ON CONFLICT DO NOTHING;
 
@@ -145,7 +145,7 @@ UNION
  AND c.participation_mode='individual' ORDER BY c.case_id LIMIT 1);
 
 INSERT INTO case_nda_versions(nda_version_id,case_id,version_no,text,created_by)
-SELECT md5('coverage:nda:'||c.case_id)::uuid,c.case_id,1,
+SELECT pg_temp.demo_uuid('coverage:nda:'||c.case_id),c.case_id,1,
     'Учебное соглашение. Материалы доступны участнику после принятия условий и не предназначены для публикации.',
     c.created_by FROM cases c JOIN demo_nda_targets i USING(case_id)
 WHERE NOT EXISTS (SELECT 1 FROM case_nda_versions v WHERE v.case_id=c.case_id AND v.is_current)
@@ -156,7 +156,7 @@ WHERE c.case_id=i.case_id AND NOT c.nda_required
 AND EXISTS (SELECT 1 FROM case_nda_versions v WHERE v.case_id=c.case_id AND v.is_current);
 
 INSERT INTO nda_grants(nda_grant_id,case_id,student_id,status,granted_at,nda_version_id,accepted_at)
-SELECT md5('coverage:nda-grant:'||v.case_id||':'||s.user_id)::uuid,v.case_id,s.user_id,x.status,
+SELECT pg_temp.demo_uuid('coverage:nda-grant:'||v.case_id||':'||s.user_id),v.case_id,s.user_id,x.status,
     CASE WHEN x.status='granted' THEN now() END,v.nda_version_id,
     CASE WHEN x.status='granted' THEN now() END
 FROM case_nda_versions v JOIN imported_case_ids i USING(case_id)
@@ -165,14 +165,14 @@ JOIN demo_scenario_students s ON s.n=x.n WHERE v.is_current
 ON CONFLICT DO NOTHING;
 
 INSERT INTO company_invitations(company_invitation_id,company_id,student_id,case_id,kind,status,message,sent_by,responded_at)
-SELECT md5('coverage:nda-invitation:'||c.case_id||':'||s.user_id)::uuid,c.company_id,s.user_id,c.case_id,
+SELECT pg_temp.demo_uuid('coverage:nda-invitation:'||c.case_id||':'||s.user_id),c.company_id,s.user_id,c.case_id,
     'case',CASE WHEN s.n<=2 THEN 'accepted' ELSE 'sent' END,
     'Учебное приглашение в конфиденциальный кейс.',c.created_by,CASE WHEN s.n<=2 THEN now() END
 FROM cases c JOIN demo_nda_targets i USING(case_id) CROSS JOIN demo_scenario_students s
 WHERE c.visibility='restricted' AND c.nda_required AND s.n<=3 ON CONFLICT DO NOTHING;
 
 INSERT INTO applications(application_id,case_id,case_revision_id,submitted_by,student_id,status,cover_letter)
-SELECT md5('coverage:nda-application:'||c.case_id)::uuid,c.case_id,r.case_revision_id,s.user_id,s.user_id,
+SELECT pg_temp.demo_uuid('coverage:nda-application:'||c.case_id),c.case_id,r.case_revision_id,s.user_id,s.user_id,
     'accepted','Учебное участие для проверки доступа к материалам под NDA.'
 FROM cases c JOIN demo_nda_targets d USING(case_id)
 JOIN case_revisions r ON r.case_id=c.case_id AND r.version_no=c.terms_version
@@ -180,7 +180,7 @@ JOIN demo_scenario_students s ON s.n=1
 WHERE c.visibility='public' AND c.participation_mode='individual' ON CONFLICT DO NOTHING;
 
 INSERT INTO executions(execution_id,case_id,application_id,status,started_at,due_at)
-SELECT md5('coverage:nda-execution:'||a.application_id)::uuid,a.case_id,a.application_id,'in_progress',now(),c.due_at
+SELECT pg_temp.demo_uuid('coverage:nda-execution:'||a.application_id),a.case_id,a.application_id,'in_progress',now(),c.due_at
 FROM applications a JOIN demo_nda_targets d USING(case_id) JOIN cases c USING(case_id)
 JOIN demo_scenario_students s ON s.n=1 AND s.user_id=a.student_id
 WHERE a.status='accepted' AND c.visibility='public' ON CONFLICT DO NOTHING;
@@ -188,13 +188,13 @@ WHERE a.status='accepted' AND c.visibility='public' ON CONFLICT DO NOTHING;
 INSERT INTO application_consents(application_id,student_id,case_revision_id,accepted_at)
 SELECT a.application_id,a.student_id,a.case_revision_id,e.started_at
 FROM executions e JOIN applications a USING(application_id) JOIN demo_nda_targets d ON d.case_id=e.case_id
-WHERE e.execution_id=md5('coverage:nda-execution:'||a.application_id)::uuid
+WHERE e.execution_id=pg_temp.demo_uuid('coverage:nda-execution:'||a.application_id)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO execution_members(execution_id,student_id,joined_at)
 SELECT e.execution_id,a.student_id,e.started_at
 FROM executions e JOIN applications a USING(application_id) JOIN demo_nda_targets d ON d.case_id=e.case_id
-WHERE e.execution_id=md5('coverage:nda-execution:'||a.application_id)::uuid
+WHERE e.execution_id=pg_temp.demo_uuid('coverage:nda-execution:'||a.application_id)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO event_plans(case_id,plan)
@@ -204,11 +204,11 @@ SELECT c.case_id,jsonb_build_object('subject',c.title,'time_zone','Asia/Yekateri
     'agenda','Вводная встреча, работа над заданием, защита.','rounds',
     CASE WHEN c.event_format='olympiad' THEN (
         SELECT jsonb_agg(jsonb_build_object(
-            'round_id',md5('coverage:round:'||c.case_id||':'||n)::uuid,
+            'round_id',pg_temp.demo_uuid('coverage:round:'||c.case_id||':'||n),
             'title','Тур '||n,'opens_at',now()+opening,'due_at',now()+closing,
             'rules','Отправьте текст решения и результат проверки.',
             'tasks',jsonb_build_array(jsonb_build_object(
-                'task_id',md5('coverage:task:'||c.case_id||':'||n)::uuid,
+                'task_id',pg_temp.demo_uuid('coverage:task:'||c.case_id||':'||n),
                 'title','Учебное задание','statement','Подготовьте решение и два примера проверки.',
                 'file_ids',jsonb_build_array(),'max_score',50))) ORDER BY n)
         FROM (VALUES (1,interval '-2 days',interval '5 days'),(2,interval '6 days',interval '10 days')) r(n,opening,closing)
@@ -221,12 +221,12 @@ UPDATE cases c SET due_at=greatest(c.due_at,(p.plan#>>'{rounds,1,due_at}')::time
     application_deadline=greatest(c.application_deadline,(p.plan#>>'{rounds,0,due_at}')::timestamptz - interval '1 day')
 FROM event_plans p JOIN imported_case_ids i USING(case_id)
 WHERE p.case_id=c.case_id AND c.event_format='olympiad' AND c.status='published'
-AND p.plan#>>'{rounds,1,round_id}'=md5('coverage:round:'||c.case_id||':2')::uuid::text
+AND p.plan#>>'{rounds,1,round_id}'=pg_temp.demo_uuid('coverage:round:'||c.case_id||':2')::text
 AND (c.due_at IS NULL OR c.due_at<(p.plan#>>'{rounds,1,due_at}')::timestamptz
      OR c.application_deadline IS NULL);
 
 INSERT INTO executions(execution_id,case_id,application_id,status,started_at,due_at)
-SELECT md5('coverage:olympiad-execution:'||a.application_id)::uuid,c.case_id,a.application_id,
+SELECT pg_temp.demo_uuid('coverage:olympiad-execution:'||a.application_id),c.case_id,a.application_id,
     'in_progress',now()-interval '2 days',greatest(c.due_at,now()+interval '10 days')
 FROM cases c JOIN imported_case_ids i USING(case_id) JOIN event_plans p USING(case_id)
 CROSS JOIN LATERAL (
@@ -240,13 +240,13 @@ ON CONFLICT DO NOTHING;
 INSERT INTO application_consents(application_id,student_id,case_revision_id,accepted_at)
 SELECT a.application_id,a.student_id,a.case_revision_id,e.started_at
 FROM executions e JOIN applications a USING(application_id) JOIN imported_case_ids i ON i.case_id=e.case_id
-WHERE e.execution_id=md5('coverage:olympiad-execution:'||a.application_id)::uuid
+WHERE e.execution_id=pg_temp.demo_uuid('coverage:olympiad-execution:'||a.application_id)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO execution_members(execution_id,student_id,joined_at)
 SELECT e.execution_id,a.student_id,e.started_at
 FROM executions e JOIN applications a USING(application_id) JOIN imported_case_ids i ON i.case_id=e.case_id
-WHERE e.execution_id=md5('coverage:olympiad-execution:'||a.application_id)::uuid
+WHERE e.execution_id=pg_temp.demo_uuid('coverage:olympiad-execution:'||a.application_id)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO event_round_submissions(execution_id,round_id,submitted_by,solutions,submitted_at,scores,total_score,max_score,evaluated_by,evaluated_at)
@@ -264,7 +264,7 @@ CROSS JOIN LATERAL (SELECT p.plan->'rounds'->0 AS round) r
 WHERE r.round IS NOT NULL ON CONFLICT DO NOTHING;
 
 INSERT INTO case_deadline_changes(change_id,case_id,changed_by,previous_due_at,due_at,reason)
-SELECT md5('coverage:deadline:'||c.case_id)::uuid,c.case_id,c.created_by,c.due_at-interval '3 days',c.due_at,
+SELECT pg_temp.demo_uuid('coverage:deadline:'||c.case_id),c.case_id,c.created_by,c.due_at-interval '3 days',c.due_at,
     'Учебный перенос срока для повторной защиты.'
 FROM (SELECT c.* FROM cases c JOIN imported_case_ids i USING(case_id)
       WHERE c.status='in_progress' AND c.due_at IS NOT NULL ORDER BY c.case_id LIMIT 3) c

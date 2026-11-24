@@ -1,5 +1,6 @@
 import { all, call, put, takeLatest, takeEvery } from 'redux-saga/effects'
 import { apiClient } from '../../api/client'
+import { ApplicationStatusConflict } from '../../api/applicationStatus'
 import { CaseApplication } from '../../types/models'
 import * as actions from '../actions'
 import * as types from '../types'
@@ -30,17 +31,14 @@ function* handleCreateApplication(action: { type: string; payload: { data: any }
   }
 }
 
-function* handleUpdateApplicationStatus(action: {
-  type: string
-  payload: { appId: string; status: any; notes?: string }
-}) {
+function* handleUpdateApplicationStatus(
+  pending: Set<string>,
+  { payload: { appId, status, notes } }: ReturnType<typeof actions.updateApplicationStatusRequest>,
+) {
+  if (pending.has(appId)) return
+  pending.add(appId)
   try {
-    const app: CaseApplication = yield call(
-      apiClient.updateApplicationStatus,
-      action.payload.appId,
-      action.payload.status,
-      action.payload.notes,
-    )
+    const app: CaseApplication = yield call(apiClient.updateApplicationStatus, appId, status, notes)
     yield put(actions.updateApplicationStatusSuccess(app))
     if (app.status === 'accepted') {
       yield put(actions.fetchCasesRequest())
@@ -53,9 +51,14 @@ function* handleUpdateApplicationStatus(action: {
       )
     }
   } catch (error: any) {
+    if (error instanceof ApplicationStatusConflict) {
+      yield put(actions.updateApplicationStatusSuccess(error.application))
+    }
     yield put(
       actions.fetchApplicationsFailure(error.message || 'Не удалось изменить статус заявки'),
     )
+  } finally {
+    pending.delete(appId)
   }
 }
 
@@ -63,6 +66,10 @@ export function* applicationsSaga() {
   yield all([
     takeLatest(types.FETCH_APPLICATIONS_REQUEST, handleFetchApplications),
     takeLatest(types.CREATE_APPLICATION_REQUEST, handleCreateApplication),
-    takeEvery(types.UPDATE_APPLICATION_STATUS_REQUEST, handleUpdateApplicationStatus),
+    takeEvery(
+      types.UPDATE_APPLICATION_STATUS_REQUEST,
+      handleUpdateApplicationStatus,
+      new Set<string>(),
+    ),
   ])
 }

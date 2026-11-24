@@ -22,6 +22,7 @@ import { publicationLabels, publicationStatus, isPublished } from '../utils/publ
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
+import type { ApplicationStatus } from '../types/models'
 import {
   fetchApplicationsRequest,
   fetchCaseByIdRequest,
@@ -69,9 +70,11 @@ export const CaseDetailPage: React.FC = () => {
   const dispatch = useAppDispatch()
 
   const { activeCase, favorites, ndaAcceptedCases, error } = useAppSelector((state) => state.cases)
-  const { applicationsList, error: applicationError } = useAppSelector(
-    (state) => state.applications,
-  )
+  const {
+    applicationsList,
+    loading: applicationsLoading,
+    error: applicationError,
+  } = useAppSelector((state) => state.applications)
   const { currentUser } = useAppSelector((state) => state.auth)
 
   const [applicationModalOpen, setApplicationModalOpen] = useState(false)
@@ -248,7 +251,7 @@ export const CaseDetailPage: React.FC = () => {
   const canReviewApplications = isCompanyRepresentative && !instantRegistration
   const incomingApplications = caseApplications.filter((app) => !app.isRegistration)
 
-  const handleStatusChange = (appId: string, status: any) => {
+  const handleStatusChange = (appId: string, status: ApplicationStatus) => {
     dispatch(updateApplicationStatusRequest(appId, status))
   }
 
@@ -713,7 +716,11 @@ export const CaseDetailPage: React.FC = () => {
                               ? 'Собеседование'
                               : app.status === 'rejected'
                                 ? 'Отклонена'
-                                : 'На рассмотрении'}
+                                : app.status === 'need_info'
+                                  ? 'Нужны уточнения'
+                                  : app.status === 'withdrawn'
+                                    ? 'Отозвана'
+                                    : 'На рассмотрении'}
                         </span>
                       </div>
 
@@ -766,28 +773,36 @@ export const CaseDetailPage: React.FC = () => {
                       </div>
 
                       {/* Action buttons for company/curator */}
-                      {app.status === 'pending' && !app.consentPending && (
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => handleStatusChange(app.id, 'accepted')}
-                          >
-                            <CheckCircle2 size={14} /> Принять заявку
-                          </button>
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleStatusChange(app.id, 'interview')}
-                          >
-                            <Users size={14} /> Назначить собеседование
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleStatusChange(app.id, 'rejected')}
-                          >
-                            <XCircle size={14} /> Отклонить
-                          </button>
-                        </div>
-                      )}
+                      {['pending', 'interview', 'need_info'].includes(app.status) &&
+                        !app.consentPending && (
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                            {app.status !== 'need_info' && (
+                              <button
+                                className="btn btn-success btn-sm"
+                                disabled={applicationsLoading}
+                                onClick={() => handleStatusChange(app.id, 'accepted')}
+                              >
+                                <CheckCircle2 size={14} /> Принять заявку
+                              </button>
+                            )}
+                            {app.status !== 'interview' && (
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={applicationsLoading}
+                                onClick={() => handleStatusChange(app.id, 'interview')}
+                              >
+                                <Users size={14} /> Назначить собеседование
+                              </button>
+                            )}
+                            <button
+                              className="btn btn-danger btn-sm"
+                              disabled={applicationsLoading}
+                              onClick={() => handleStatusChange(app.id, 'rejected')}
+                            >
+                              <XCircle size={14} /> Отклонить
+                            </button>
+                          </div>
+                        )}
                     </div>
                   ))
                 )}
@@ -1153,10 +1168,10 @@ export const CaseDetailPage: React.FC = () => {
       )}
       <PublicationContext project={activeCase} />
       {apiRuntime.mode === 'live' && instantRegistration && isPublished(activeCase) && (
-        <EventPlanPanel key={activeCase.id} project={activeCase} />
+        <EventPlanPanel key={`event-plan-${activeCase.id}`} project={activeCase} />
       )}
       {!reviewing && (!live || (activeCase.isModerated && activeCase.visibility !== 'private')) && (
-        <CaseComments key={activeCase.id} project={activeCase} />
+        <CaseComments key={`comments-${activeCase.id}`} project={activeCase} />
       )}
       {!reviewing &&
         currentUser?.role !== 'student' &&

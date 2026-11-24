@@ -2,6 +2,8 @@ import type { AxiosInstance } from 'axios'
 import type { Company, CompanyStatus, User } from '../types/models'
 import { collectPages, fromCompany } from './backend'
 
+const companyLogoImageTypes = ['image/jpeg', 'image/png', 'image/webp']
+
 export type CompanyDraft = {
   full_name: string
   inn: string
@@ -62,6 +64,16 @@ export function createCompanyMembershipApi(http: AxiosInstance) {
     },
     async submit(id: string) {
       return fromCompany((await http.post(`/companies/${id}/submit-moderation`)).data)
+    },
+    async uploadLogo(id: string, file: File) {
+      if (!file.size) throw new Error('Выберите непустое изображение.')
+      if (file.type && !companyLogoImageTypes.includes(file.type)) {
+        throw new Error('Выберите изображение в формате PNG, JPEG или WebP.')
+      }
+      const body = new FormData()
+      body.append('file', file)
+      const { data } = await http.put<{ file_id: string }>(`/companies/${id}/logo`, body)
+      return data.file_id
     },
     async invite(companyId: string, userId: string, position: string) {
       await http.post(`/companies/${companyId}/member-invitations`, { user_id: userId, position })

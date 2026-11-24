@@ -4,10 +4,16 @@ import { FileDownload } from './FileDownload'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiClient } from '../api/client'
+import { ApplicationStatusConflict } from '../api/applicationStatus'
 import { CaseApplication } from '../types/models'
 import { useAppDispatch } from '../store'
 import { PaginatedGrid } from './PaginatedGrid'
-import { fetchApplicationsRequest, fetchCaseByIdRequest, fetchTeamsRequest } from '../store/actions'
+import {
+  fetchApplicationsRequest,
+  fetchCaseByIdRequest,
+  fetchTeamsRequest,
+  updateApplicationStatusSuccess,
+} from '../store/actions'
 
 const labels = {
   pending: 'На рассмотрении',
@@ -60,6 +66,11 @@ export const CaseApplications: React.FC<{ caseId: string; registrations?: boolea
       if (updated.ndaAccessPending)
         setError('Заявка принята. Повторите выдачу доступа к ТЗ в карточке кейса.')
     } catch (e) {
+      if (e instanceof ApplicationStatusConflict) {
+        const latest = e.application
+        setApplications((items) => items.map((item) => (item.id === latest.id ? latest : item)))
+        dispatch(updateApplicationStatusSuccess(latest))
+      }
       setError((e as Error).message)
     } finally {
       setBusy(false)

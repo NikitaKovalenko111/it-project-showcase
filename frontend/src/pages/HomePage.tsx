@@ -369,7 +369,11 @@ export const HomePage: React.FC = () => {
                         <div style={{ display: 'flex', gap: '6px' }}>
                           <button
                             className="btn btn-success btn-sm"
-                            disabled={applicationsLoading}
+                            disabled={
+                              applicationsLoading ||
+                              app.consentPending ||
+                              (apiRuntime.mode === 'live' && app.status === 'need_info')
+                            }
                             onClick={() =>
                               dispatch(updateApplicationStatusRequest(app.id, 'accepted'))
                             }
@@ -378,7 +382,7 @@ export const HomePage: React.FC = () => {
                           </button>
                           <button
                             className="btn btn-secondary btn-sm"
-                            disabled={applicationsLoading}
+                            disabled={applicationsLoading || app.consentPending}
                             onClick={() =>
                               dispatch(updateApplicationStatusRequest(app.id, 'rejected'))
                             }
