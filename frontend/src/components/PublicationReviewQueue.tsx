@@ -104,7 +104,7 @@ export const PublicationReviewQueue: React.FC<{ kind: 'case' | 'student' }> = ({
       <CatalogSearch
         value={search}
         onChange={setSearch}
-        label={kind === 'case' ? 'Поиск кейсов на модерации' : 'Поиск студенческих публикаций'}
+        label={kind === 'case' ? 'Поиск кейсов' : 'Поиск студенческих публикаций'}
       />
       {!pendingOnly && (
         <label className="review-status-filter">

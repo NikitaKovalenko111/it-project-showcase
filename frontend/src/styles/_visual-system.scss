@@ -736,6 +736,7 @@ textarea:disabled {
   color: #42725a;
   border-color: #c9dfd2;
 }
+.badge-reward-contest,
 .badge-reward-practice,
 .badge-reward-certificate {
   background: #eaf3fb;
@@ -1068,10 +1069,11 @@ textarea:disabled {
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(280px, min(40%, 490px)) minmax(0, 760px);
+  justify-content: center;
   align-items: start;
   padding: clamp(24px, 5vw, 72px);
-  gap: clamp(32px, 6vw, 96px);
+  gap: clamp(32px, 4vw, 64px);
   background: var(--ui-ground);
   color: var(--ui-ink);
 }
@@ -1146,9 +1148,18 @@ textarea:disabled {
 .auth-card .registration-form {
   padding: 28px 32px 32px;
 }
-.auth-card .auth-role-tabs {
-  margin: 0 0 24px;
-}
+.auth-card .auth-role-tabs { margin: 0; }
+.auth-role-tabs .btn { flex: 1 0 auto; white-space: nowrap; }
+.auth-role-tabs .btn svg { flex-shrink: 0; }
+.auth-card__body > .form-error { margin: 0 0 var(--auth-body-top, 28px); }
+.auth-card .registration-form { display: grid; gap: 16px; }
+.registration-form > :is(h3, .form-error) { margin: 0; }
+.auth-card .registration-form > .responsive-grid { gap: 16px !important; margin: 0; }
+.auth-card .registration-form .form-group { display: grid; align-content: start; gap: 8px; margin: 0; }
+.auth-card .registration-form .form-group label { margin: 0; }
+.registration-form__submit { display: grid; gap: 16px; }
+.registration-form__submit :is(.auth-consent, .form-hint) { margin: 0; }
+@media (max-width: 600px) { .auth-card__body { --auth-body-top: 22px; } }
 .auth-card .form-group {
   margin-bottom: 20px;
 }

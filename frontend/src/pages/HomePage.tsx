@@ -538,11 +538,12 @@ export const HomePage: React.FC = () => {
             <Award size={22} />
           </div>
           <div className="stat-card__content">
-            <div className="stat-number">
+            <div className="stat-number stat-number--prize">
               {casesList
                 .reduce((sum, c) => sum + (c.prizeFund || c.rewardAmount || 0), 0)
-                .toLocaleString('ru-RU')}{' '}
-              ₽
+                .toLocaleString('ru-RU')
+                .replace(/\u00a0/g, ' ')}
+              {'\u00a0₽'}
             </div>
             <div className="stat-label">Призовой фонд семестра</div>
             <div className="stat-meta">Гранты, премии, офферы</div>

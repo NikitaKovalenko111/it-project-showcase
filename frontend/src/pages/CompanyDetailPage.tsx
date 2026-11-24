@@ -9,10 +9,21 @@ import { CompanyLogo } from '../components/CompanyLogo'
 import { ReportButton } from '../components/ReportButton'
 import { CompanyProgram } from '../components/CompanyProgram'
 import { CompanyLegalDetails } from '../components/CompanyLegalDetails'
+import { InviteCompanyMember } from '../components/InviteCompanyMember'
+import { CompanyMentors } from '../components/CompanyMentors'
+import { storeCompanyMemberships } from '../api/client'
+import { belongsToCompany } from '../utils/access'
+import { companyStatuses } from '../api/companyMembership'
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store'
-import { fetchCompanyByIdRequest, fetchCompanyByIdSuccess } from '../store/actions'
+import {
+  fetchCompanyByIdRequest,
+  fetchCompanyByIdSuccess,
+  fetchCurrentUserSuccess,
+  fetchCompaniesRequest,
+} from '../store/actions'
+import type { Company } from '../types/models'
 import { CreateCaseModal } from '../components/modals/CreateCaseModal'
 import {
   ArrowLeft,
@@ -58,8 +69,10 @@ export const CompanyDetailPage: React.FC = () => {
   const [caseStatus, setCaseStatus] = useState('all')
   const [caseSort, setCaseSort] = useState('newest')
   const [createCaseModalOpen, setCreateCaseModalOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   useEffect(() => {
+    setInviteOpen(false)
     if (id) {
       dispatch(fetchCompanyByIdRequest(id))
     }
@@ -89,14 +102,24 @@ export const CompanyDetailPage: React.FC = () => {
     )
   }
 
-  const isCompanyRepresentative =
-    currentUser?.role === 'company' &&
-    (currentUser?.companyProfile?.companyId === activeCompany.id ||
-      currentUser?.companyProfile?.companyName === activeCompany.name)
+  const isCompanyRepresentative = belongsToCompany(currentUser, activeCompany.id)
+  const approvedCompany = activeCompany.isVerified && !activeCompany.isBlocked
+  const canEditCompany =
+    isCompanyRepresentative && !activeCompany.isBlocked && activeCompany.status !== 'pending'
 
   const isCuratorOrAdmin = currentUser?.role === 'admin'
 
   const live = apiRuntime.mode === 'live'
+  const onCompanySaved = (company: Company) => {
+    dispatch(fetchCompanyByIdSuccess(company))
+    if (live && currentUser?.memberCompanies) {
+      const rows = currentUser.memberCompanies.map((item) =>
+        item.id === company.id ? company : item,
+      )
+      dispatch(fetchCurrentUserSuccess(storeCompanyMemberships(currentUser, rows)))
+      dispatch(fetchCompaniesRequest())
+    }
+  }
   const companyCases = casesList.filter((c) => c.companyId === activeCompany.id)
   const publicCases = companyCases.filter(
     (c) => c.isModerated && ['open', 'in_progress', 'completed'].includes(c.status),
@@ -120,6 +143,14 @@ export const CompanyDetailPage: React.FC = () => {
   return (
     <div>
       {saveError && <p role="alert">{saveError}</p>}
+      {inviteOpen && live && currentUser && isCompanyRepresentative && approvedCompany && (
+        <InviteCompanyMember
+          key={activeCompany.id}
+          companyId={activeCompany.id}
+          actorId={currentUser.id}
+          onClose={() => setInviteOpen(false)}
+        />
+      )}
       {/* Top back button & breadcrumb */}
       <div
         style={{
@@ -131,8 +162,12 @@ export const CompanyDetailPage: React.FC = () => {
           gap: '10px',
         }}
       >
-        <Link to="/companies" className="btn btn-secondary btn-sm">
-          <ArrowLeft size={15} /> Все компании-партнёры
+        <Link
+          to={live && isCompanyRepresentative ? '/my-company' : '/companies'}
+          className="btn btn-secondary btn-sm"
+        >
+          <ArrowLeft size={15} />{' '}
+          {live && isCompanyRepresentative ? 'Моя компания' : 'Все компании-партнёры'}
         </Link>
 
         <div className="page-actions">
@@ -140,8 +175,12 @@ export const CompanyDetailPage: React.FC = () => {
             <ReportButton targetType="company" targetId={activeCompany.id} />
           )}
           <AdminCompanyActions key={activeCompany.id} company={activeCompany} />
-          {(isCompanyRepresentative ||
-            (isCuratorOrAdmin && activeCompany.isVerified && !activeCompany.isBlocked)) && (
+          {live && isCompanyRepresentative && approvedCompany && (
+            <button className="btn btn-secondary btn-sm" onClick={() => setInviteOpen(true)}>
+              Пригласить в компанию
+            </button>
+          )}
+          {(isCompanyRepresentative || isCuratorOrAdmin) && approvedCompany && (
             <button className="btn btn-primary btn-sm" onClick={() => setCreateCaseModalOpen(true)}>
               <Plus size={14} /> Разместить кейс от компании
             </button>
@@ -152,10 +191,7 @@ export const CompanyDetailPage: React.FC = () => {
       {/* Authorial Company Hero Banner */}
       <div className="company-hero">
         <div className="company-hero__top">
-          <CompanyLogo
-            company={activeCompany}
-            className="company-hero__logo"
-          />
+          <CompanyLogo company={activeCompany} className="company-hero__logo" />
 
           <div className="company-hero__info">
             <div
@@ -170,11 +206,22 @@ export const CompanyDetailPage: React.FC = () => {
               <span className="company-industry">
                 <Building2 size={12} /> {activeCompany.industry}
               </span>
-              {activeCompany.isVerified && (
-                <span className="company-verified">
-                  <ShieldCheck size={14} /> Аккредитовано
-                </span>
+              {activeCompany.isBlocked ? (
+                <span className="badge publication-hidden">Заблокирована</span>
+              ) : (
+                activeCompany.isVerified && (
+                  <span className="company-verified">
+                    <ShieldCheck size={14} /> Аккредитовано
+                  </span>
+                )
               )}
+              {live &&
+                activeCompany.status &&
+                !activeCompany.isBlocked &&
+                !approvedCompany &&
+                (isCompanyRepresentative || isCuratorOrAdmin) && (
+                  <span className="badge">{companyStatuses[activeCompany.status]}</span>
+                )}
             </div>
 
             <h1>{activeCompany.name}</h1>
@@ -195,7 +242,7 @@ export const CompanyDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {isCompanyRepresentative && (
+          {canEditCompany && (
             <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(!isEditing)}>
               <Edit3 size={14} /> {isEditing ? 'Отмена' : 'Редактировать описание'}
             </button>
@@ -217,15 +264,13 @@ export const CompanyDetailPage: React.FC = () => {
                 onClick={async () => {
                   setSaving(true)
                   try {
-                    dispatch(
-                      fetchCompanyByIdSuccess(
-                        await communityApi.updateCompanyContent(activeCompany.id, {
-                          description,
-                          ...(apiRuntime.mode === 'mock'
-                            ? { internshipProgram: activeCompany.internshipProgram || '' }
-                            : {}),
-                        }),
-                      ),
+                    onCompanySaved(
+                      await communityApi.updateCompanyContent(activeCompany.id, {
+                        description,
+                        ...(apiRuntime.mode === 'mock'
+                          ? { internshipProgram: activeCompany.internshipProgram || '' }
+                          : {}),
+                      }),
                     )
                     setIsEditing(false)
                     setSaveError('')
@@ -249,8 +294,8 @@ export const CompanyDetailPage: React.FC = () => {
       <CompanyLegalDetails
         key={activeCompany.id}
         company={activeCompany}
-        editable={isCompanyRepresentative}
-        onSaved={(company) => dispatch(fetchCompanyByIdSuccess(company))}
+        editable={canEditCompany}
+        onSaved={onCompanySaved}
       />
 
       {/* Key Metrics Row */}
@@ -535,7 +580,12 @@ export const CompanyDetailPage: React.FC = () => {
           )}
 
           {activeTab === 'mentors' && (
-            <p className="empty-state">Сведения о наставниках пока не опубликованы.</p>
+            <CompanyMentors
+              key={activeCompany.id}
+              companyId={activeCompany.id}
+              viewer={currentUser}
+              canParticipate={isCompanyRepresentative && approvedCompany}
+            />
           )}
         </div>
       </div>

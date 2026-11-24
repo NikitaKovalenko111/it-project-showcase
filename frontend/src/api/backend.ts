@@ -7,7 +7,16 @@ import {
   ProjectComment,
   StudentProject,
   ProjectMilestone,
+  RepresentativeDetails,
 } from '../types/models'
+import { localDate, localDayEnd } from '../utils/date'
+
+export function fromRepresentativeDetails(data: {
+  experience_and_interests?: string
+  help_topics?: string
+}): RepresentativeDetails {
+  return { bio: data.experience_and_interests ?? '', expertise: data.help_topics ?? '' }
+}
 // Backend DTOs are intentionally converted at the API boundary.
 export function fromUser(d: any): User {
   const s = d.student
@@ -29,7 +38,10 @@ export function fromUser(d: any): User {
       : s?.photo_file_id
         ? `/api/v1/users/${d.user_id}/avatar?v=${s.photo_file_id}`
         : undefined,
-    fullName: s ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ') : d.username,
+    fullName: s
+      ? [s.last_name, s.first_name, s.patronymic].filter(Boolean).join(' ')
+      : d.full_name?.trim() || d.username,
+    ...(d.roles.includes('company') ? { representativeDetails: fromRepresentativeDetails(d) } : {}),
     role:
       (['admin', 'company_representative', 'company', 'curator', 'university', 'student'].find(
         (r) => d.roles?.includes(r),
@@ -79,9 +91,11 @@ function companyLogoUrl(companyId: string, fileId?: string): string {
 export function fromCompany(d: any): Company {
   return {
     id: d.company_id,
+    status: d.status,
     name: d.full_name,
     shortName: d.short_name || d.full_name,
     description: d.description || '',
+    activities: d.activities || '',
     internshipProgram: d.internship_program || '',
     practiceProgram: d.practice_program || '',
     inn: d.inn,
@@ -130,6 +144,7 @@ export function fromCase(d: any): CaseProject {
         }
       : undefined,
     id: d.case_id,
+    visibility: d.visibility,
     companyId: d.company_id,
     companyName: d.company_name || '',
     createdBy: d.created_by,
@@ -150,7 +165,10 @@ export function fromCase(d: any): CaseProject {
     maxTeams: d.capacity,
     requiredCompetencies: (d.required_competencies || []).map((v: any) => v.name),
     recommendedTech: (d.technologies || []).map((v: any) => v.name),
-    deadlineDate: (d.due_at || d.application_deadline || '').slice(0, 10),
+    deadlineDate:
+      d.due_at || d.application_deadline
+        ? localDate(new Date(d.due_at || d.application_deadline))
+        : '',
     duration: d.duration || '',
     workFormat:
       ({ remote: 'дистанционный', onsite: 'очный', hybrid: 'смешанный' } as const)[
@@ -244,7 +262,11 @@ export function toCase(d: CaseProject) {
     course_min: source?.course_min,
     course_max: source?.course_max,
     application_deadline: d.applicationDeadline || source?.application_deadline,
-    due_at: d.deadlineDate ? `${d.deadlineDate}T23:59:59Z` : null,
+    due_at: d.deadlineDate
+      ? source?.due_at && localDate(new Date(source.due_at)) === d.deadlineDate
+        ? source.due_at
+        : localDayEnd(d.deadlineDate)
+      : null,
     duration: d.duration,
     result_requirements: d.resultRequirements,
     evaluation_rules: d.olympiadRules || d.evaluationOrder,
@@ -302,6 +324,7 @@ export const fromApplication = (d: any): CaseApplication => ({
   consentPending: d.status === 'consent_pending',
   canConsent: d.can_consent,
   isRegistration: d.entry_kind === 'registration',
+  executionId: d.execution_id || undefined,
   status:
     (
       {
@@ -338,6 +361,7 @@ export const fromComment = (d: any): ProjectComment => ({
     ? `/api/v1/users/${d.author_id}/avatar?v=${d.author_photo_file_id}`
     : undefined,
   content: d.status === 'deleted' ? 'Комментарий удалён' : d.body,
+  deleted: d.status === 'deleted',
   parentId: d.parent_comment_id || undefined,
   createdAt: d.created_at,
   likedBy: [],

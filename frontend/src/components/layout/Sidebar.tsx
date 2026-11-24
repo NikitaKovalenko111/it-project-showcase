@@ -1,5 +1,5 @@
 import { UserAvatar } from '../UserAvatar'
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { logoutRequest } from '../../store/actions'
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '../../types/models'
+import { apiRuntime } from '../../api/runtime'
+import { hasApprovedCompany } from '../../utils/access'
 
 interface SidebarProps {
   isOpen: boolean
@@ -49,7 +51,7 @@ const roleLabels: Record<UserRole, string> = {
   student: 'Студент',
   company: 'Компания-партнёр',
   curator: 'Куратор',
-  admin: 'Администратор ИСУ',
+  admin: 'Администратор витрины IT-проектов',
   university: 'Администратор ИСУ',
 }
 
@@ -60,9 +62,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   const { favorites } = useAppSelector((state) => state.cases)
   const { applicationsList } = useAppSelector((state) => state.applications)
   const role: UserRole = currentUser?.role || 'student'
+  const limitedCompany =
+    apiRuntime.mode === 'live' && role === 'company' && !hasApprovedCompany(currentUser)
 
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>('online')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const statusControl = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen || isCollapsedDesktop) setShowStatusMenu(false)
+  }, [isOpen, isCollapsedDesktop])
+
+  useEffect(() => {
+    if (!showStatusMenu) return
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !statusControl.current?.contains(event.target))
+        setShowStatusMenu(false)
+    }
+    document.addEventListener('pointerdown', dismiss, true)
+    return () => document.removeEventListener('pointerdown', dismiss, true)
+  }, [showStatusMenu])
+
+  const closeSidebar = () => {
+    setShowStatusMenu(false)
+    onClose()
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem(`uust_presence_${currentUser?.id}`)
@@ -89,7 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
   const navGroups: NavItem[][] = useMemo(() => {
     const opportunities = [{ to: '/internships', label: 'Стажировки и практики', icon: Briefcase }]
     const userId = currentUser?.id || 'me'
-    const companyId = currentUser?.companyProfile?.companyId || 'comp_1'
+    const companyId = currentUser?.companyProfile?.companyId
+    const companyPage =
+      apiRuntime.mode === 'live' || !companyId ? '/my-company' : `/company/${companyId}`
 
     switch (role) {
       /* ---------- Student ---------- */
@@ -117,6 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
       /* ---------- Company ---------- */
       case 'company':
+        if (limitedCompany) return [[{ to: companyPage, label: 'Моя компания', icon: Building2 }]]
         return [
           [
             { to: '/', label: 'Главная', icon: Home, end: true },
@@ -137,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
             { to: '/students-search', label: 'Поиск талантов', icon: Search },
           ],
           [
-            { to: `/company/${companyId}`, label: 'Карточка компании', icon: Building2 },
+            { to: companyPage, label: 'Моя компания', icon: Building2 },
             { to: '/analytics', label: 'Аналитика кейсов', icon: BarChart3 },
           ],
         ]
@@ -185,6 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
     }
   }, [
     role,
+    limitedCompany,
     currentUser?.id,
     currentUser?.companyProfile?.companyId,
     favorites.length,
@@ -204,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
         <div className="uust-brand-text">
           <span className="brand-title">Витрина IT-проектов</span>
         </div>
-        <button className="sidebar__close" onClick={onClose} aria-label="Закрыть меню">
+        <button className="sidebar__close" onClick={closeSidebar} aria-label="Закрыть меню">
           <X size={20} />
         </button>
       </div>
@@ -235,7 +263,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
 
         <div className="profile-presence">
           {/* Interactive Online Status Pill */}
-          <div className="profile-status-control">
+          <div
+            className="profile-status-control"
+            ref={statusControl}
+            onKeyDown={(event) => {
+              if (event.key !== 'Escape' || !showStatusMenu) return
+              event.stopPropagation()
+              setShowStatusMenu(false)
+              statusControl.current?.querySelector('button')?.focus()
+            }}
+          >
             <button
               className="profile-status-pill"
               aria-expanded={showStatusMenu}
@@ -310,7 +347,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsedDesktop, on
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) => `sidebar__link-isu ${isActive ? 'active' : ''}`}
-                  onClick={onClose}
+                  onClick={closeSidebar}
                 >
                   <span className="nav-icon">
                     <Icon size={15} />

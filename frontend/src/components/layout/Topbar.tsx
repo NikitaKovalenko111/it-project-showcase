@@ -1,7 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { markAllNotificationsReadRequest, markNotificationReadRequest } from '../../store/actions'
+import {
+  fetchNotificationsRequest,
+  markAllNotificationsReadRequest,
+  markNotificationReadRequest,
+} from '../../store/actions'
+import { apiRuntime } from '../../api/runtime'
+import { watchNotifications } from '../../api/notificationStream'
+import { hasApprovedCompany } from '../../utils/access'
 import {
   Building2,
   GraduationCap,
@@ -27,6 +34,11 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
   const { pathname } = useLocation()
   const caseId = useMatch('/cases/:id/*')?.params.id
   const { currentUser } = useAppSelector((state) => state.auth)
+  const userId = currentUser?.id
+  const limitedCompany =
+    apiRuntime.mode === 'live' &&
+    currentUser?.role === 'company' &&
+    !hasApprovedCompany(currentUser)
   const { notificationsList, unreadCount } = useAppSelector((state) => state.notifications)
   const { favorites, activeCase, casesList } = useAppSelector((state) => state.cases)
   const { teamsList } = useAppSelector((state) => state.students)
@@ -63,6 +75,10 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
     : ownTeams
 
   useEffect(() => setShowInfo(false), [pathname])
+  useEffect(() => {
+    if (apiRuntime.mode === 'live' && userId && currentUser?.role === 'company')
+      return watchNotifications(() => dispatch(fetchNotificationsRequest(userId)))
+  }, [userId, currentUser?.role, dispatch])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -125,14 +141,16 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
 
       <div className="topbar-isu__right">
         {/* Chat / Messages Icon */}
-        <button
-          className="topbar-isu__icon-btn"
-          title="Активные проекты"
-          aria-label="Активные проекты"
-          onClick={() => navigate('/workspace')}
-        >
-          <Layers size={17} />
-        </button>
+        {!limitedCompany && (
+          <button
+            className="topbar-isu__icon-btn"
+            title="Активные проекты"
+            aria-label="Активные проекты"
+            onClick={() => navigate('/workspace')}
+          >
+            <Layers size={17} />
+          </button>
+        )}
 
         {/* Role-specific Quick Action in Header */}
         {currentUser?.role === 'student' && (
@@ -145,7 +163,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
           </Link>
         )}
 
-        {currentUser?.role === 'company' && (
+        {currentUser?.role === 'company' && !limitedCompany && (
           <Link
             to="/company-applications"
             className="topbar-isu__icon-btn"
@@ -159,7 +177,10 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
         <div className="notifications-wrap" ref={popoverRef}>
           <button
             className="topbar-isu__icon-btn"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              if (!showNotifications && userId) dispatch(fetchNotificationsRequest(userId))
+              setShowNotifications(!showNotifications)
+            }}
             title="Системные уведомления"
           >
             <Bell size={17} />
@@ -207,11 +228,22 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar, sidebarExpanded
                     <div
                       key={notif.id}
                       className={`notifications-popover__item ${!notif.read ? 'unread' : ''}`}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleNotificationClick(notif.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          handleNotificationClick(notif.id)
+                        }
+                      }}
                     >
                       <div style={{ flex: 1 }}>
                         <div className="notif-title">{notif.title}</div>
                         <div className="notif-desc">{notif.message}</div>
+                        {notif.link?.startsWith('/teams?invitation=') && (
+                          <div className="notif-title">Перейти к приглашению</div>
+                        )}
                         <div className="notif-time">
                           {new Date(notif.createdAt).toLocaleDateString('ru-RU')}
                         </div>

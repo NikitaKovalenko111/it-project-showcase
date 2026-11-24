@@ -8,7 +8,8 @@ export function clearFieldError(event: FormEvent<HTMLFormElement>) {
     field instanceof HTMLSelectElement
   ) {
     field.setCustomValidity('')
-    if (field.validity.valid) field.removeAttribute('aria-invalid')
+    if (field.validity.valid && !field.hasAttribute('aria-errormessage'))
+      field.removeAttribute('aria-invalid')
   }
 }
 

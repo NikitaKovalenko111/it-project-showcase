@@ -4,6 +4,7 @@ import { apiRuntime } from '../api/runtime'
 import { formatDate } from '../utils/date'
 import { PaginatedGrid } from '../components/PaginatedGrid'
 import { ScrollToolbar } from '../components/ScrollToolbar'
+import { ApiImage } from '../components/ApiImage'
 import { CompanyLogo } from '../components/CompanyLogo'
 import {
   publicationLabels,
@@ -21,7 +22,7 @@ import {
   setCaseFilters,
   toggleFavoriteRequest,
 } from '../store/actions'
-import { visibleCasesFor } from '../utils/access'
+import { canManageCase, visibleCasesFor } from '../utils/access'
 import { canReceiveApplications } from '../utils/recruiting'
 import { canCreatePublication } from '../utils/publicationAccess'
 import type { CaseProject } from '../types/models'
@@ -49,6 +50,8 @@ import {
   Users,
 } from 'lucide-react'
 
+const coverPlaceholder = <span className="case-card__cover case-card__cover--placeholder" />
+
 export const CasesShowcasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const location = useLocation()
@@ -61,6 +64,7 @@ export const CasesShowcasePage: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [eventFormat, setEventFormat] = useState('all')
   const live = apiRuntime.mode === 'live'
+  const apiBase = (apiRuntime.baseUrl || '/api/v1').replace(/\/+$/, '')
   const requestFilters = live ? undefined : filters
   const [recruiting, setRecruiting] = useState('all')
   const [rewardPresence, setRewardPresence] = useState('all')
@@ -74,7 +78,10 @@ export const CasesShowcasePage: React.FC = () => {
   }, [dispatch])
 
   const [sort, setSort] = useState<ShowcaseSort>('newest')
-  const cases = visibleCasesFor(currentUser, casesList)
+  const cases = visibleCasesFor(currentUser, casesList).filter(
+    (item) =>
+      currentUser?.role !== 'company' || item.companyId === currentUser.companyProfile?.companyId,
+  )
   const directions = [...new Set(cases.map((item) => item.direction).filter(Boolean))].sort(
     (a, b) => a.localeCompare(b, 'ru'),
   )
@@ -406,6 +413,16 @@ export const CasesShowcasePage: React.FC = () => {
         <PaginatedGrid>
           {visibleCases.map((item) => {
             const isFav = favorites.includes(item.id)
+            const published = isPublished(item)
+            let cover = item.coverUrl
+            if (live && item.coverFileId) {
+              cover = published
+                ? `${apiBase}/cases/${item.id}/cover`
+                : canManageCase(currentUser, item) &&
+                    (currentUser?.role === 'company' || item.createdBy === currentUser?.id)
+                  ? `${apiBase}/files/${item.coverFileId}`
+                  : undefined
+            }
 
             return (
               <div key={item.id} className="case-card">
@@ -430,8 +447,17 @@ export const CasesShowcasePage: React.FC = () => {
                   </button>
                 )}
 
-                {item.coverUrl && isPublished(item) && (
-                  <img className="case-card__cover" src={item.coverUrl} alt="" loading="lazy" />
+                {cover ? (
+                  <ApiImage
+                    className="case-card__cover"
+                    src={cover}
+                    alt=""
+                    loading="lazy"
+                    fallback={coverPlaceholder}
+                    placeholder={coverPlaceholder}
+                  />
+                ) : (
+                  coverPlaceholder
                 )}
                 <div className="card__body">
                   <div className="case-card__company">
@@ -454,7 +480,7 @@ export const CasesShowcasePage: React.FC = () => {
                   </h3>
 
                   <ExpandableText compact text={item.shortDescription} />
-                  {!isPublished(item) && (
+                  {!published && (
                     <p className={`badge publication-${publicationStatus(item)}`}>
                       {publicationLabels[publicationStatus(item)]}
                     </p>

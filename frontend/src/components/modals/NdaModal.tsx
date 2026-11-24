@@ -166,8 +166,7 @@ export const NdaModal: React.FC<NdaModalProps> = ({ caseItem, isOpen, onClose, o
             onClick={handleConfirm}
             style={{ background: 'var(--ui-warning)' }}
           >
-            <ShieldCheck size={16} />{' '}
-            {live ? 'Подписать и запросить доступ' : 'Подписать NDA и открыть ТЗ'}
+            <ShieldCheck size={16} /> {live ? 'Подписать NDA' : 'Подписать NDA и открыть ТЗ'}
           </button>
         </div>
       </div>

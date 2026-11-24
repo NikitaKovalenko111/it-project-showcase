@@ -14,7 +14,9 @@ function* handleLogin(action: { type: string; payload: { username: string; passw
       role_approval_pending: 'Заявка на роль ещё на рассмотрении.',
       role_request_rejected: 'Администратор отклонил заявку на роль.',
     }
-    yield put(actions.loginFailure(messages[error.code] || error.message || 'Ошибка входа'))
+    yield put(
+      actions.loginFailure(messages[error.code] || error.message || 'Ошибка входа', error.code),
+    )
   }
 }
 

@@ -1,13 +1,23 @@
 import { clearFieldError, markFieldError, reportFieldError } from '../../utils/formValidation'
-import { MarkdownImageUpload } from '../MarkdownImageUpload'
-import { markdownSchema, MarkdownImage } from '../RichMarkdown'
-import { useState, useEffect, type ReactNode } from 'react'
+import { markdownImageLink, MarkdownImageUpload } from '../MarkdownImageUpload'
+import { ProgramMarkdownImage } from '../ProgramMarkdownImage'
+import { markdownSchema } from '../RichMarkdown'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { Modal } from '../Modal'
 import { X } from 'lucide-react'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
-import { opportunityApi, type Opportunity, type OpportunityKind } from '../../api/opportunities'
+import {
+  opportunityApi,
+  programImageUrl,
+  type Opportunity,
+  type OpportunityKind,
+} from '../../api/opportunities'
+import { apiRuntime } from '../../api/runtime'
 import type { Company } from '../../types/models'
+import { localDate, localDayEnd } from '../../utils/date'
+import { uploadFile } from '../../utils/files'
+import { shorteningError } from '../../utils/publicationLength'
 
 export type { Opportunity, OpportunityKind } from '../../api/opportunities'
 
@@ -15,20 +25,24 @@ export function OpportunityPublicationModal({
   initial,
   companies,
   allowCompanySelection = false,
+  companyUnavailable,
   onCompanyChange,
   formatControl,
   embedded = false,
   onBusyChange,
+  onDraftChange,
   onClose,
   onSaved,
 }: {
   initial: Partial<Opportunity> & { kind: OpportunityKind }
   companies: Pick<Company, 'id' | 'name'>[]
   allowCompanySelection?: boolean
+  companyUnavailable?: string
   onCompanyChange?: (companyId: string) => void
   formatControl?: ReactNode
   embedded?: boolean
   onBusyChange?: (busy: boolean) => void
+  onDraftChange?: (item: Opportunity) => void
   onClose: () => void
   onSaved: (item: Opportunity, submitted: boolean) => void
 }) {
@@ -42,11 +56,121 @@ export function OpportunityPublicationModal({
   const [editor, setEditor] = useState(initial)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const companyId =
+    editor.program_id || allowCompanySelection ? editor.company_id : initial.company_id
   const companyName =
-    companies.find((company) => company.id === editor.company_id)?.name || editor.company_name || ''
+    companies.find((company) => company.id === companyId)?.name || editor.company_name || ''
+  const initialDeadline = initial.application_deadline
+    ? localDate(new Date(initial.application_deadline))
+    : ''
+  const [selectedDeadline, setSelectedDeadline] = useState(initialDeadline)
+  const today = localDate()
+  const deadlineError =
+    selectedDeadline && selectedDeadline < today && selectedDeadline !== initialDeadline
+      ? 'Срок подачи заявок не может быть в прошлом.'
+      : ''
+  const titleError = shorteningError('название', editor.title || '', 200, 'utf8')
+  const summaryError = shorteningError('краткое описание', editor.summary || '', 1000, 'utf8')
+  const contentError = shorteningError('программу', editor.content_markdown || '', 50000, 'utf8')
+  const capacityError =
+    editor.capacity &&
+    (editor.capacity < 1 || editor.capacity > 10000 || !Number.isInteger(editor.capacity))
+      ? 'Укажите целое число от 1 до 10 000.'
+      : ''
+  const hasFieldErrors = !!(
+    titleError ||
+    summaryError ||
+    contentError ||
+    capacityError ||
+    deadlineError
+  )
   const title =
-    (editor.program_id ? 'Редактирование ' : 'Размещение ') +
+    (initial.program_id ? 'Редактирование ' : 'Размещение ') +
     (editor.kind === 'practice' ? 'практики' : 'стажировки')
+  const programId = editor.program_id
+  const previewImage = useMemo(
+    () => (props: { src?: string; alt?: string }) => (
+      <ProgramMarkdownImage {...props} programId={programId} authenticated />
+    ),
+    [programId],
+  )
+  const payload = {
+    kind: editor.kind,
+    company_id: companyId,
+    title: editor.title,
+    summary: editor.summary,
+    content_markdown: editor.content_markdown,
+    capacity: editor.capacity,
+    application_deadline:
+      selectedDeadline === initialDeadline
+        ? (initial.application_deadline ?? null)
+        : selectedDeadline
+          ? localDayEnd(selectedDeadline)
+          : null,
+    file_ids: editor.file_ids ?? [],
+  }
+
+  const uploadImage = async (file: File) => {
+    if (apiRuntime.mode !== 'live') {
+      const uploaded = await uploadFile(file)
+      setEditor((current) => ({
+        ...current,
+        content_markdown:
+          (current.content_markdown || '') + markdownImageLink(file.name, uploaded.url),
+      }))
+      return
+    }
+    if (busy || companyUnavailable || !companyId) throw new Error('Сначала укажите компанию.')
+    if (file.type === 'image/gif') throw new Error('Выберите PNG, JPG или WebP.')
+    if (!editor.title?.trim() || !editor.summary?.trim() || !editor.capacity || hasFieldErrors)
+      throw new Error(
+        'Перед загрузкой фото проверьте название, краткое описание, количество мест и срок подачи заявок.',
+      )
+    if (payload.file_ids.length >= 30) throw new Error('К программе можно прикрепить до 30 файлов.')
+
+    setError('')
+    setBusy(true)
+    onBusyChange?.(true)
+    try {
+      let id = programId
+      if (!id) {
+        const draft = await opportunityApi.save(undefined, {
+          ...payload,
+          content_markdown: payload.content_markdown?.trim() || editor.summary,
+        })
+        id = draft.program_id
+        setEditor((current) => ({
+          ...current,
+          program_id: id,
+          company_id: companyId,
+          status: 'draft',
+        }))
+        onDraftChange?.(draft)
+      }
+      const uploaded = await uploadFile(file)
+      if (!uploaded.file_id) throw new Error('Сервер не вернул ID фото.')
+      const markdown =
+        (payload.content_markdown || '') +
+        markdownImageLink(file.name, programImageUrl(id, uploaded.file_id))
+      const fileIds = [...new Set([...payload.file_ids, uploaded.file_id])]
+      try {
+        const saved = await opportunityApi.save(id, {
+          ...payload,
+          content_markdown: markdown,
+          file_ids: fileIds,
+        })
+        const updated = { ...saved, file_ids: saved.file_ids ?? fileIds }
+        setEditor(updated)
+        onDraftChange?.(updated)
+      } catch (cause) {
+        setEditor((current) => ({ ...current, content_markdown: markdown, file_ids: fileIds }))
+        throw cause
+      }
+    } finally {
+      setBusy(false)
+      onBusyChange?.(false)
+    }
+  }
 
   const content = (
     <>
@@ -70,10 +194,14 @@ export function OpportunityPublicationModal({
         onInvalid={markFieldError}
         onSubmit={async (event) => {
           event.preventDefault()
-          if (busy) return
+          if (busy || companyUnavailable) return
           const submit =
             (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') !== 'draft'
           const form = event.currentTarget
+          if (hasFieldErrors) {
+            form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+            return
+          }
           for (const [name, label] of [
             ['title', 'название'],
             ['summary', 'краткое описание'],
@@ -83,8 +211,6 @@ export function OpportunityPublicationModal({
               return
             }
           }
-          const deadlineField = form.elements.namedItem('application_deadline') as HTMLInputElement
-          const applicationDeadline = deadlineField.value
           const content = event.currentTarget.querySelector(
             'textarea[aria-labelledby="opportunity-program-label"]',
           ) as HTMLTextAreaElement | null
@@ -97,17 +223,6 @@ export function OpportunityPublicationModal({
           onBusyChange?.(true)
           setError('')
           try {
-            const payload = {
-              kind: editor.kind,
-              company_id: editor.company_id,
-              title: editor.title,
-              summary: editor.summary,
-              content_markdown: editor.content_markdown,
-              capacity: editor.capacity,
-              application_deadline: applicationDeadline
-                ? new Date(`${applicationDeadline}T23:59:59`).toISOString()
-                : null,
-            }
             const saved = await opportunityApi.save(editor.program_id, payload)
             setEditor(saved)
             if (submit) {
@@ -135,7 +250,7 @@ export function OpportunityPublicationModal({
                   name="company_id"
                   title={companyName || undefined}
                   required
-                  value={editor.company_id || ''}
+                  value={companyId || ''}
                   onChange={(event) => {
                     const company_id = event.target.value
                     setEditor((current) => ({ ...current, company_id }))
@@ -157,6 +272,11 @@ export function OpportunityPublicationModal({
                   value={companyName}
                 />
               )}
+              {companyUnavailable && (
+                <span className="form-hint" role="status">
+                  {companyUnavailable}
+                </span>
+              )}
             </label>
             <label>
               Название
@@ -164,10 +284,16 @@ export function OpportunityPublicationModal({
                 className="input"
                 required
                 name="title"
-                maxLength={300}
+                aria-errormessage={titleError ? 'opportunity-title-limit' : undefined}
+                aria-invalid={titleError ? true : undefined}
                 value={editor.title || ''}
                 onChange={(event) => setEditor({ ...editor, title: event.target.value })}
               />
+              {titleError && (
+                <span id="opportunity-title-limit" className="publication-field-error" role="alert">
+                  {titleError}
+                </span>
+              )}
             </label>
             <label>
               Краткое описание
@@ -176,10 +302,20 @@ export function OpportunityPublicationModal({
                 required
                 name="summary"
                 rows={2}
-                maxLength={500}
+                aria-errormessage={summaryError ? 'opportunity-summary-limit' : undefined}
+                aria-invalid={summaryError ? true : undefined}
                 value={editor.summary || ''}
                 onChange={(event) => setEditor({ ...editor, summary: event.target.value })}
               />
+              {summaryError && (
+                <span
+                  id="opportunity-summary-limit"
+                  className="publication-field-error"
+                  role="alert"
+                >
+                  {summaryError}
+                </span>
+              )}
             </label>
             <div className="responsive-grid">
               <label>
@@ -190,11 +326,18 @@ export function OpportunityPublicationModal({
                   required
                   min={1}
                   max={10000}
+                  placeholder="От 1 до 10 000"
+                  aria-invalid={capacityError ? true : undefined}
                   value={editor.capacity || ''}
                   onChange={(event) =>
                     setEditor({ ...editor, capacity: Number(event.target.value) })
                   }
                 />
+                {capacityError && (
+                  <span className="publication-field-error" role="alert">
+                    {capacityError}
+                  </span>
+                )}
               </label>
               <label>
                 Срок подачи заявок
@@ -203,43 +346,51 @@ export function OpportunityPublicationModal({
                   type="date"
                   name="application_deadline"
                   max="2100-12-31"
-                  defaultValue={
-                    editor.application_deadline
-                      ? new Date(editor.application_deadline).toLocaleDateString('sv-SE')
-                      : ''
+                  min={
+                    initialDeadline === selectedDeadline && selectedDeadline < today
+                      ? selectedDeadline
+                      : today
                   }
+                  value={selectedDeadline}
+                  aria-invalid={deadlineError ? true : undefined}
+                  onChange={(event) => setSelectedDeadline(event.target.value)}
                 />
+                {deadlineError && (
+                  <span className="publication-field-error" role="alert">
+                    {deadlineError}
+                  </span>
+                )}
               </label>
             </div>
             <div data-color-mode="light">
               <p id="opportunity-program-label">Программа и условия участия</p>
-              <MarkdownImageUpload
-                onInsert={(markdown) =>
-                  setEditor((value) => ({
-                    ...value,
-                    content_markdown: (value.content_markdown || '') + markdown,
-                  }))
-                }
-              />
+              {apiRuntime.mode === 'live' && (
+                <p className="form-hint">При добавлении фото программа сохраняется.</p>
+              )}
+              <MarkdownImageUpload onUpload={uploadImage} />
               <MDEditor
                 preview={compact ? 'edit' : 'live'}
                 overflow={false}
                 height={200}
                 value={editor.content_markdown || ''}
-                onChange={(value) =>
-                  setEditor({ ...editor, content_markdown: (value || '').slice(0, 15000) })
-                }
+                onChange={(value) => setEditor({ ...editor, content_markdown: value || '' })}
                 textareaProps={{
                   'aria-labelledby': 'opportunity-program-label',
                   name: 'content_markdown',
-                  maxLength: 15000,
+                  'aria-invalid': contentError ? true : undefined,
+                  'aria-errormessage': contentError ? 'opportunity-content-limit' : undefined,
                   onInput: (event) => event.currentTarget.setCustomValidity(''),
                 }}
                 previewOptions={{
                   rehypePlugins: [[rehypeSanitize, markdownSchema]],
-                  components: { img: MarkdownImage },
+                  components: { img: previewImage },
                 }}
               />
+              {contentError && (
+                <p id="opportunity-content-limit" className="publication-field-error" role="alert">
+                  {contentError}
+                </p>
+              )}
             </div>
             {error && (
               <p className="form-error" role="alert">
@@ -253,11 +404,15 @@ export function OpportunityPublicationModal({
             Отмена
           </button>
           {editor.status !== 'published' && (
-            <button className="btn btn-secondary" value="draft" disabled={busy}>
+            <button
+              className="btn btn-secondary"
+              value="draft"
+              disabled={busy || !!companyUnavailable}
+            >
               Сохранить черновик
             </button>
           )}
-          <button className="btn btn-primary" disabled={busy}>
+          <button className="btn btn-primary" disabled={busy || !!companyUnavailable}>
             {busy ? 'Сохраняем…' : 'Отправить на модерацию'}
           </button>
         </footer>

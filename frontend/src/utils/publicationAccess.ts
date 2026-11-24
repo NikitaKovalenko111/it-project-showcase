@@ -1,8 +1,8 @@
 import type { CaseProject, User } from '../types/models'
-import { canManageCase } from './access'
+import { canManageCase, hasApprovedCompany } from './access'
 type Actor = User | null | undefined
 export const canCreatePublication = (user: Actor) =>
-  !!user && ['company', 'admin'].includes(user.role)
+  user?.role === 'admin' || (user?.role === 'company' && hasApprovedCompany(user))
 export const canEditCaseDraft = (user: Actor, project: CaseProject) =>
   !!user &&
   ['draft', 'revision'].includes(project.status) &&

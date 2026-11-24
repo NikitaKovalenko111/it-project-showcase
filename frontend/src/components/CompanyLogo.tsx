@@ -3,6 +3,7 @@ import { useAppSelector } from '../store'
 import type { Company } from '../types/models'
 import { IdentityImage } from './IdentityImage'
 import { useProtectedImage } from './useProtectedImage'
+import { belongsToCompany } from '../utils/access'
 
 export function CompanyLogo({
   company,
@@ -19,7 +20,7 @@ export function CompanyLogo({
   const live = apiRuntime.mode === 'live'
   const privateLogo = live && company && !company.isVerified
   const mayReadPrivate =
-    viewer?.role === 'admin' || viewer?.companyProfile?.companyId === company?.id
+    viewer?.role === 'admin' || (!!company && belongsToCompany(viewer, company.id))
   const privatePath =
     privateLogo && mayReadPrivate && company.logoFileId ? `/files/${company.logoFileId}` : undefined
   const protectedSrc = useProtectedImage(privatePath, viewer?.id)

@@ -276,10 +276,32 @@ input, button, select, textarea {
 .profile-avatar-picker input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: inherit; }
 .profile-avatar-picker:focus-within { outline: 2px solid var(--ui-brand-line); outline-offset: 3px; }
 .sidebar .avatar-wrapper .sidebar-avatar { width: 76px; height: 76px; border-radius: 13px; object-fit: cover; font-size: 22px; }
-.account-profile { max-width: 640px; padding: 24px; }
-.account-profile h1 { margin: 0 0 20px; }
-.account-profile__identity { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-.account-profile__identity :is(h2,p) { margin: 0 0 5px; overflow-wrap: anywhere; }
+.account-profile { max-width: 640px; padding: clamp(16px, 3vw, 24px); }
+.account-profile h1 { margin: 0 0 16px; }
+.account-profile__identity { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.account-profile__identity > div { min-width: 0; }
+.account-profile__identity :is(h2, p) { margin: 0; overflow-wrap: anywhere; }
+.account-profile__identity h2 + p { margin-top: 4px; color: var(--ui-muted); }
+.representative-profile { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--ui-line); }
+.representative-profile, .company-mentors { display: grid; gap: 12px; overflow-wrap: anywhere; }
+.representative-profile__header, .company-mentors__header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.representative-profile__header h2, .company-mentors__header h2 { margin: 0; }
+.representative-profile__details, .representative-profile__form { display: grid; gap: 12px; }
+.representative-profile__position, .company-mentors__identity p { color: var(--ui-muted); }
+.representative-profile__form .form-group { display: grid; gap: 6px; margin: 0; }
+.representative-profile__form .action-row { margin: 4px 0 0; }
+.representative-profile > p, .representative-profile__details > p, .representative-profile__form > p,
+.company-mentors > p, .company-mentors__card > p { margin: 0; }
+.representative-profile > [role='status'], .company-mentors > [role='status'] { color: var(--ui-muted); font-size: 14px; }
+.mentorship-topics { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid var(--ui-line); }
+.mentorship-topics strong { font-size: 14px; }
+.company-mentors__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 12px; align-items: start; }
+.company-mentors__card { display: grid; gap: 10px; padding: 16px; min-width: 0; }
+.company-mentors__identity { display: flex; align-items: center; gap: 10px; }
+.company-mentors__identity :is(h3, p) { margin: 0; }
+.company-mentors__identity h3 { font-size: 17px; }
+.company-mentors__identity h3 + p { margin-top: 3px; }
+.company-mentors__avatar { width: 44px; height: 44px; flex: none; object-fit: cover; border-radius: 50%; }
 
 @media (max-width: 760px) {
   .opportunity-detail__layout, .deadline-panel__fields { grid-template-columns: 1fr; }
@@ -320,8 +342,6 @@ input, button, select, textarea {
 .portfolio-achievements .empty-state { margin: 0; }
 .profile-edit-form .card__body { display: grid; gap: 18px; }
 .profile-edit-form label { display: grid; align-content: start; gap: 6px; margin: 0; font-weight: 600; }
-.registration-form .form-group { margin-bottom: 14px; }
-.registration-form .form-group label { margin-bottom: 6px; }
 .feedback-form form { gap: 16px; }
 .feedback-form form > label { display: grid; gap: 8px; }
 .feedback-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
@@ -401,6 +421,7 @@ input, button, select, textarea {
 @import 'qa-refinement';
 
 .case-card__cover { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; background: var(--ui-brand-surface); }
+.case-card__cover--placeholder { background: var(--ui-brand-surface) url('/images/brand/project.svg') center / min(96px, 30%) no-repeat; }
 
 .badge.status-recruitment-closed {
   gap: 6px;
@@ -473,7 +494,6 @@ input, button, select, textarea {
   background: var(--ui-success-surface);
   color: var(--ui-success);
 }
-.execution-reply { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; overflow-wrap: anywhere; }
 .round-work-fields { min-width: 0; border: 0; padding: 0; margin: 0; }
 .round-work-fields[hidden] { display: none; }
 
@@ -488,3 +508,13 @@ form :is(input, select, textarea):is(:user-invalid, [aria-invalid='true']):focus
 @import 'visual-system';
 @import 'interaction-states';
 @import 'form-layout';
+
+.publication-field-error { color: var(--ui-danger); }
+.program-page__publish { display: grid; justify-items: start; gap: 6px; }
+.program-page__publish .form-hint { margin: 0; }
+
+.home-page .stat-number--prize { white-space: normal; }
+.feedback-queue .data-table td:has(.feedback-queue__actions) { width: 1%; }
+.feedback-queue__actions { width: max-content; max-width: 100%; }
+.feedback-queue__actions .btn { flex: none; white-space: nowrap; }
+@media (max-width: 768px) { .feedback-queue .data-table td:has(.feedback-queue__actions) { width: 100%; } }

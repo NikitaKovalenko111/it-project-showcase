@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Company } from '../types/models'
 import { apiClient } from '../api/client'
 import { useAppDispatch, useAppSelector } from '../store'
-import { fetchCompanyByIdSuccess, fetchCompaniesRequest } from '../store/actions'
+import { verifyCompanySuccess } from '../store/actions'
 export const AdminCompanyActions: React.FC<{ company: Company }> = ({ company }) => {
   const confirm = useConfirm()
   const actor = useAppSelector((s) => s.auth.currentUser),
@@ -11,26 +11,36 @@ export const AdminCompanyActions: React.FC<{ company: Company }> = ({ company })
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('')
   if (actor?.role !== 'admin') return null
+  const suspended = company.isBlocked
+  if (!suspended && !company.isVerified) return null
   return (
     <>
       <button
-        className="btn btn-danger btn-sm"
-        disabled={busy || company.isBlocked}
+        className={`btn btn-sm ${suspended ? 'btn-secondary' : 'btn-danger'}`}
+        disabled={busy}
         onClick={async () => {
-          if (!(await confirm(`Приостановить деятельность компании «${company.name}»?`))) return
+          const action = suspended ? 'Восстановить компанию' : 'Приостановить деятельность компании'
+          if (!(await confirm(`${action} «${company.name}»?`))) return
           setBusy(true)
           setError('')
           try {
-            dispatch(fetchCompanyByIdSuccess(await apiClient.suspendCompany(company.id)))
-            dispatch(fetchCompaniesRequest())
+            const updated = suspended
+              ? await apiClient.restoreCompany(company.id)
+              : await apiClient.suspendCompany(company.id)
+            dispatch(verifyCompanySuccess(updated))
           } catch (e) {
-            setError((e as Error).message)
+            const cause = e as Error & { code?: string }
+            setError(
+              suspended && cause.code === 'company_request_failed'
+                ? 'Сервер не смог восстановить компанию. Компания остаётся заблокированной.'
+                : cause.message,
+            )
           } finally {
             setBusy(false)
           }
         }}
       >
-        {company.isBlocked ? 'Компания заблокирована' : 'Заблокировать компанию'}
+        {suspended ? 'Восстановить компанию' : 'Заблокировать компанию'}
       </button>
       {error && <p role="alert">{error}</p>}
     </>

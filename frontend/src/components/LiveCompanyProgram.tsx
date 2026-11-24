@@ -3,21 +3,11 @@ import { ExpandableText } from './ExpandableText'
 import { ReportButton } from './ReportButton'
 import { OpportunityReviewActions, OpportunityBlockButton } from './OpportunityReviewActions'
 import { opportunityApi } from '../api/opportunities'
-import { apiRuntime } from '../api/runtime'
 import { apiClient } from '../api/client'
 import { OpportunityDescription } from './OpportunityDescription'
 import { useEffect, useState } from 'react'
-import {
-  ArrowLeft,
-  Briefcase,
-  CalendarDays,
-  GraduationCap,
-  Plus,
-  Users,
-} from 'lucide-react'
+import { ArrowLeft, Briefcase, CalendarDays, GraduationCap, Plus, Users } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { axiosInstance } from '../api/http'
-import { collectPages, fromCompany } from '../api/backend'
 import type { Company } from '../types/models'
 import { useAppSelector } from '../store'
 import { InternshipApply } from './InternshipApplications'
@@ -59,6 +49,8 @@ export function LiveCompanyProgram() {
   const ownCatalog =
     publisher && (company ? params.get('scope') !== 'all' : params.get('scope') === 'mine')
   const [companies, setCompanies] = useState<Company[]>([])
+  const [loadingCompanies, setLoadingCompanies] = useState(false)
+  const [companyListError, setCompanyListError] = useState(false)
   const findCompany = (id: string) =>
     companies.find((item) => item.id === id) || catalogCompanies.find((item) => item.id === id)
   const [programs, setPrograms] = useState<Opportunity[]>([])
@@ -72,33 +64,26 @@ export function LiveCompanyProgram() {
   useEffect(() => setApplicationNotice(''), [programId])
 
   useEffect(() => {
-    if (!publisher) return
+    if (!publisher || !user) return
     let active = true
-    const ownedCompanies =
-      apiRuntime.mode === 'live' && !admin
-        ? collectPages<any>((params) => axiosInstance.get('/companies/mine', { params })).then(
-            (rows) => rows.map(fromCompany),
-          )
-        : apiClient
-            .getCompanies()
-            .then((rows) =>
-              rows.filter((item) =>
-                admin
-                  ? item.isVerified && !item.isBlocked
-                  : item.id === user?.companyProfile?.companyId,
-              ),
-            )
-    ownedCompanies
+    setCompanies([])
+    setLoadingCompanies(true)
+    setCompanyListError(false)
+    void apiClient
+      .getPublicationCompanies(user)
       .then((rows) => {
         if (active) setCompanies(rows)
       })
-      .catch((cause: Error) => {
-        if (active) setError(cause.message)
+      .catch(() => {
+        if (active) setCompanyListError(true)
+      })
+      .finally(() => {
+        if (active) setLoadingCompanies(false)
       })
     return () => {
       active = false
     }
-  }, [publisher, admin, user?.id])
+  }, [publisher, user])
 
   useEffect(() => {
     let active = true
@@ -154,15 +139,18 @@ export function LiveCompanyProgram() {
     return '?' + next
   }
   const selected = programs.find((item) => item.program_id === programId)
+  const visibleCompany =
+    companyId || (company && ownCatalog ? user.companyProfile?.companyId : undefined)
   const visible = programs.filter(
     (item) =>
       item.kind === kind &&
-      (!companyId || item.company_id === companyId) &&
+      (!visibleCompany || item.company_id === visibleCompany) &&
       matchesSearch(search, item.title, item.summary, item.company_name),
   )
   const preferredCompany =
+    companies.find((item) => item.id === companyId) ||
     companies.find((item) => item.id === user?.companyProfile?.companyId) ||
-    (admin ? companies.find((item) => item.id === companyId) || companies[0] : undefined)
+    companies[0]
 
   const meta = (item: Opportunity) => (
     <div className="case-card__meta-grid opportunity-meta">
@@ -188,18 +176,31 @@ export function LiveCompanyProgram() {
         <div className="page-header">
           <div className="page-header__content">{!programId && <h1>Стажировки и практики</h1>}</div>
           {publisher && !programId && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!preferredCompany}
-              onClick={() => {
-                setNotice('')
-                setEditor({ kind, company_id: preferredCompany?.id })
-              }}
-            >
-              <Plus size={16} />{' '}
-              {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
-            </button>
+            <div className="program-page__publish">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!preferredCompany}
+                onClick={() => {
+                  setNotice('')
+                  setEditor({ kind, company_id: preferredCompany?.id })
+                }}
+              >
+                <Plus size={16} />{' '}
+                {kind === 'practice' ? 'Разместить практику' : 'Разместить стажировку'}
+              </button>
+              {!preferredCompany && (
+                <p className="form-hint" role="status">
+                  {loadingCompanies
+                    ? 'Загружаем компании…'
+                    : companyListError
+                      ? 'Не удалось загрузить список компаний.'
+                      : admin
+                        ? 'Нет одобренных компаний для публикации.'
+                        : 'К аккаунту не привязана доступная компания.'}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -284,10 +285,7 @@ export function LiveCompanyProgram() {
               <div className="opportunity-detail__layout">
                 <section className="card opportunity-content">
                   <h3>О программе</h3>
-                  <OpportunityDescription
-                    summary={selected.summary}
-                    markdown={selected.content_markdown}
-                  />
+                  <OpportunityDescription program={selected} />
                   {ownCatalog && selected.moderation_comment && (
                     <p className="inline-notice">
                       Комментарий модератора: {selected.moderation_comment}
@@ -511,6 +509,12 @@ export function LiveCompanyProgram() {
           initial={editor}
           companies={companies}
           allowCompanySelection={admin}
+          onDraftChange={(item) =>
+            setPrograms((items) => [
+              item,
+              ...items.filter((old) => old.program_id !== item.program_id),
+            ])
+          }
           onClose={() => setEditor(undefined)}
           onSaved={(item, submitted) => {
             setPrograms((items) => [

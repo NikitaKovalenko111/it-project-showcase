@@ -47,6 +47,7 @@ export const WorkspaceListPage: React.FC = () => {
   const projects = visibleCasesFor(currentUser, casesList).filter(
     (project) =>
       (companyView || isPublished(project) || canEditCaseDraft(currentUser, project)) &&
+      (!companyView || project.companyId === currentUser.companyProfile?.companyId) &&
       (kind === 'all' || (project.kind || 'case') === kind) &&
       (status === 'all' || project.status === status) &&
       (!curatorView || curated?.caseIds.has(project.id)) &&

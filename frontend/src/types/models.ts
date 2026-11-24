@@ -35,6 +35,7 @@ export interface CompanyProfile {
 }
 
 export interface User {
+  representativeDetails?: RepresentativeDetails
   requestedRole?: string
   roleRequestStatus?: 'pending' | 'approved' | 'rejected'
   id: string
@@ -46,11 +47,18 @@ export interface User {
   phone?: string
   studentProfile?: StudentProfile
   companyProfile?: CompanyProfile
+  memberCompanies?: Company[]
   isBlocked?: boolean
   createdAt: string
 }
 
+export type RepresentativeDetails = { bio: string; expertise: string }
+
+export type CompanyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended'
+
 export interface Company {
+  status?: CompanyStatus
+  activities?: string
   documents?: { name: string; url: string }[]
   isBlocked?: boolean
   internshipProgram?: string
@@ -145,6 +153,7 @@ export interface PrizePlace {
 
 export type CaseKind = 'case' | 'hackathon' | 'olympiad' | 'internship'
 export interface CaseProject {
+  visibility?: 'private' | 'public'
   createdBy?: string
   managedByViewer?: boolean
   applicationDeadline?: string
@@ -243,6 +252,8 @@ export interface CaseApplication {
   consentPending?: boolean
   canConsent?: boolean
   isRegistration?: boolean
+  executionId?: string
+  ndaAccessPending?: boolean
   companyNotes?: string
   createdAt: string
 }
@@ -437,6 +448,7 @@ export interface SystemNotification {
     | 'application_status'
     | 'team_invite'
     | 'company_invite'
+    | 'company_member_invitation'
     | 'new_comment'
     | 'milestone_deadline'
     | 'revision_needed'
@@ -451,6 +463,7 @@ export interface SystemNotification {
 }
 
 export interface ProjectComment {
+  deleted?: boolean
   parentId?: string
   likesCount?: number
   likedByMe?: boolean
@@ -470,6 +483,7 @@ export interface TeamRequest {
   id: string
   teamId: string
   studentId: string
+  studentName?: string
   senderId: string
   kind: 'invitation' | 'application'
   message: string

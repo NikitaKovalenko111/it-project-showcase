@@ -3,7 +3,7 @@ import { axiosInstance } from '../api/http'
 import { apiRuntime } from '../api/runtime'
 
 export function useImageUrl(src?: string) {
-  const base = (apiRuntime.baseUrl || '/api/v1').replace(/\/$/, '')
+  const base = (apiRuntime.baseUrl || '/api/v1').replace(/\/+$/, '')
   const protectedUrl = apiRuntime.mode === 'live' && !!src?.startsWith(base + '/')
   const [image, setImage] = useState<{ source?: string; url?: string; failed?: boolean }>({})
   useEffect(() => {
@@ -33,17 +33,20 @@ export function ApiImage({
   src,
   alt,
   fallback,
+  placeholder,
   ...props
-}: ImgHTMLAttributes<HTMLImageElement> & { fallback?: ReactNode }) {
+}: ImgHTMLAttributes<HTMLImageElement> & { fallback?: ReactNode; placeholder?: ReactNode }) {
   const image = useImageUrl(src)
   const [failed, setFailed] = useState<string>()
   if (image.failed || (src && failed === src))
     return fallback ?? <span className="image-unavailable">{alt || 'Изображение недоступно'}</span>
   if (!image.url)
     return (
-      <span className="image-loading" role="status">
-        Загрузка изображения…
-      </span>
+      placeholder ?? (
+        <span className="image-loading" role="status">
+          Загрузка изображения…
+        </span>
+      )
     )
   return <img {...props} src={image.url} alt={alt || ''} onError={() => setFailed(src)} />
 }

@@ -38,6 +38,8 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
   const hasEventPlan = project.kind === 'hackathon' || olympiad
   const curator = user?.role === 'curator'
   const canSubmit = live && canEditCaseDraft(user, project)
+  const publishDirectly = user?.role === 'admin' && project.createdBy === user.id && !hasEventPlan
+  const canFinishPublishing = live && publishDirectly && project.status === 'moderation'
   const [params] = useSearchParams()
   const [entries, setEntries] = useState<Execution[]>([]),
     [selected, setSelected] = useState(''),
@@ -103,12 +105,13 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
     setBusy(true)
     setError('')
     try {
-      await apiClient.submitCase(project.id)
-      dispatch(fetchCaseByIdRequest(project.id))
+      if (!canFinishPublishing) await apiClient.submitCase(project.id)
+      if (publishDirectly) await apiClient.moderatePublication('case', project.id, 'approved', '')
       dispatch(fetchCasesRequest())
     } catch (e) {
       setError((e as Error).message)
     } finally {
+      dispatch(fetchCaseByIdRequest(project.id))
       setBusy(false)
     }
   }
@@ -202,9 +205,9 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
               )}
           </div>
         </div>
-        {canSubmit && (
+        {(canSubmit || canFinishPublishing) && (
           <button className="btn btn-primary btn-sm" disabled={busy} onClick={submitForReview}>
-            Отправить на модерацию
+            {publishDirectly ? 'Опубликовать' : 'Отправить на модерацию'}
           </button>
         )}
         {student ? (
@@ -302,7 +305,7 @@ export const ExecutionBoard: React.FC<{ project: CaseProject; initialView?: stri
                   registrations={live && hasEventPlan}
                 />
               )}
-              {view === 'discussion' && <CaseComments caseId={project.id} />}
+              {view === 'discussion' && <CaseComments key={project.id} project={project} />}
               {view === 'deadlines' && live && manager && (
                 <DeadlineHistory
                   project={project}

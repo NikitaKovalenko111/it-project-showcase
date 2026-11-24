@@ -12,6 +12,10 @@ export function localDate(date = new Date()) {
   ].join('-')
 }
 
+export function localDayEnd(date: string) {
+  return new Date(`${date}T23:59:59`).toISOString()
+}
+
 // Date-only values include the whole calendar day in the showcase's timezone.
 export function isPastDeadline(value: string, now = new Date()) {
   if (!value) return false

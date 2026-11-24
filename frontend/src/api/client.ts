@@ -1,5 +1,6 @@
 import { createInvitationApi, invitationKind } from './invitations'
 import { createUserManagement } from './users'
+import { createCompanyMembershipApi, withCompanyMemberships } from './companyMembership'
 import {
   fromUser,
   fromCase,
@@ -36,6 +37,27 @@ import {
 export { axiosInstance } from './http'
 import { axiosInstance } from './http'
 
+const companyModerationRecords = (status: 'pending' | 'rejected' | 'suspended') =>
+  collectPages<any>((params) => axiosInstance.get('/companies/moderation', { params }), {
+    status,
+  })
+
+export const companyMembershipApi = createCompanyMembershipApi(axiosInstance)
+const userManagement = createUserManagement(axiosInstance)
+
+export function storeCompanyMemberships(user: User, companies: Company[], preferredId?: string) {
+  const key = `uust_active_company:${user.id}`
+  const updated = withCompanyMemberships(
+    user,
+    companies,
+    preferredId || localStorage.getItem(key) || undefined,
+  )
+  if (updated.companyProfile) localStorage.setItem(key, updated.companyProfile.companyId)
+  else localStorage.removeItem(key)
+  localStorage.setItem('uust_current_user', JSON.stringify(updated))
+  return updated
+}
+
 export async function getCompanyRecord(id: string) {
   try {
     return (await axiosInstance.get(`/companies/${id}`)).data
@@ -47,8 +69,13 @@ export async function getCompanyRecord(id: string) {
       throw error
     }
 
-    const companies = await collectPages<any>((params) =>
-      axiosInstance.get('/companies/mine', { params }),
+    const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
+    const companies = await (
+      actor?.role === 'admin'
+        ? Promise.all(
+            (['pending', 'rejected', 'suspended'] as const).map(companyModerationRecords),
+          ).then((lists) => lists.flat())
+        : collectPages<any>((params) => axiosInstance.get('/companies/mine', { params }))
     ).catch((cause: { status?: number }) => {
       if (cause.status === 401 || cause.status === 403) return []
       throw cause
@@ -130,15 +157,8 @@ export const apiClient = {
         throw new Error('Требуется вход в систему')
       const res = await axiosInstance.get('/auth/me')
       const user = fromUser(res.data)
-      if (user.role === 'company') {
-        const company = (await axiosInstance.get('/companies/mine')).data.items?.[0]
-        if (company)
-          user.companyProfile = {
-            companyId: company.company_id,
-            companyName: company.full_name,
-            position: '',
-          }
-      }
+      if (user.role === 'company')
+        return storeCompanyMemberships(user, await companyMembershipApi.listMine())
       localStorage.setItem('uust_current_user', JSON.stringify(user))
       return user
     }
@@ -185,24 +205,10 @@ export const apiClient = {
     return user
   },
 
-  async requestRole(data: {
-    username: string
-    email: string
-    password: string
-    role: 'company' | 'curator'
-  }): Promise<void> {
-    await axiosInstance.post('/auth/register', {
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      role: data.role === 'company' ? 'company_representative' : 'university_staff',
-      consent_version: '1',
-    })
-  },
-
-  async reviewRoleRequest(userId: string, status: 'approved' | 'rejected'): Promise<void> {
-    await axiosInstance.patch(`/users/${userId}/role-request`, { status })
-  },
+  requestRole: userManagement.requestRole,
+  getRepresentativeProfile: userManagement.getRepresentativeProfile,
+  updateRepresentativeProfile: userManagement.updateRepresentativeProfile,
+  reviewRoleRequest: userManagement.reviewRole,
 
   async register(data: any): Promise<User> {
     if (apiRuntime.mode === 'live') {
@@ -402,7 +408,7 @@ export const apiClient = {
 
   async changeUserRole(userId: string, role: User['role']): Promise<User> {
     if (apiRuntime.mode === 'live') {
-      return createUserManagement(axiosInstance).changeRole(userId, role)
+      return userManagement.changeRole(userId, role)
     }
     await delay(120)
     return mockServer.changeUserRole(userId, role)
@@ -428,6 +434,13 @@ export const apiClient = {
         rows.push(
           ...(await collectPages<any>((params) =>
             axiosInstance.get('/cases/moderation', { params }),
+          )),
+        )
+      if (actor?.role === 'admin')
+        rows.push(
+          ...(await collectPages<any>(
+            (params) => axiosInstance.get('/cases/moderation', { params }),
+            { status: 'hidden' },
           )),
         )
       return [...new Map(rows.map((d) => [d.case_id, d])).values()].map((row) => ({
@@ -500,8 +513,8 @@ export const apiClient = {
   },
 
   async submitCase(id: string): Promise<CaseProject> {
-    await axiosInstance.post(`/cases/${id}/submit-moderation`)
-    return apiClient.getCaseById(id)
+    const { data } = await axiosInstance.post(`/cases/${id}/submit-moderation`)
+    return { ...fromCase(data), managedByViewer: true }
   },
 
   async updateCase(data: CaseProject): Promise<CaseProject> {
@@ -550,10 +563,27 @@ export const apiClient = {
   },
 
   async getNdaStatus(caseId: string, userId: string) {
-    const { data } = await axiosInstance.get<{ items: { student_id: string; status: string }[] }>(
-      `/cases/${caseId}/nda-grants`,
-    )
-    return data.items?.find((grant) => grant.student_id === userId)?.status
+    return (await apiClient.getCaseNdaGrants(caseId)).find((grant) => grant.student_id === userId)
+      ?.status
+  },
+
+  async getCaseNdaGrants(caseId: string) {
+    const { data } = await axiosInstance.get<{
+      items: { nda_grant_id: string; student_id: string; status: string }[]
+    }>(`/cases/${caseId}/nda-grants`)
+    return data.items || []
+  },
+
+  async grantCaseNdaAccess(grantId: string) {
+    await axiosInstance.patch(`/nda-grants/${grantId}`, { status: 'granted' })
+  },
+
+  async getApplicationParticipantIds(application: CaseApplication): Promise<string[]> {
+    if (!application.teamId || !application.executionId) return [application.studentId]
+    const { data } = await axiosInstance.get<{
+      members: { student_id: string; left_at?: string | null }[]
+    }>(`/executions/${application.executionId}`)
+    return data.members.filter((member) => !member.left_at).map((member) => member.student_id)
   },
 
   async getCaseNDA(caseId: string) {
@@ -618,11 +648,49 @@ export const apiClient = {
     notes?: string,
   ): Promise<CaseApplication> {
     if (apiRuntime.mode === 'live') {
+      let confidential = false
+      if (status === 'accepted') {
+        const { data } = await axiosInstance.get(`/applications/${appId}`)
+        const application = fromApplication(data)
+        confidential = (await apiClient.getCaseById(application.caseId)).isConfidential
+        if (confidential) {
+          const grants = await apiClient.getCaseNdaGrants(application.caseId)
+          if (
+            !grants.some(
+              (grant) =>
+                grant.student_id === application.studentId &&
+                ['pending', 'granted'].includes(grant.status),
+            )
+          ) {
+            throw new Error('Заявитель должен подписать NDA перед принятием заявки.')
+          }
+        }
+      }
       const res = await axiosInstance.patch<CaseApplication>(`/applications/${appId}/status`, {
         status: status === 'need_info' ? 'info_requested' : status,
         notes,
       })
-      return fromApplication(res.data)
+      const accepted = fromApplication(res.data)
+      if (confidential && accepted.status === 'accepted') {
+        try {
+          const [studentIds, grants] = await Promise.all([
+            apiClient.getApplicationParticipantIds(accepted),
+            apiClient.getCaseNdaGrants(accepted.caseId),
+          ])
+          const results = await Promise.allSettled(
+            grants
+              .filter(
+                (grant) => grant.status === 'pending' && studentIds.includes(grant.student_id),
+              )
+              .map((grant) => apiClient.grantCaseNdaAccess(grant.nda_grant_id)),
+          )
+          accepted.ndaAccessPending = results.some((result) => result.status === 'rejected')
+        } catch {
+          // The application is already accepted. The case page can retry granting access.
+          accepted.ndaAccessPending = true
+        }
+      }
+      return accepted
     }
     await delay(200)
     return mockServer.updateApplicationStatus(appId, status, notes)
@@ -836,6 +904,21 @@ export const apiClient = {
   },
 
   // Companies
+  async getPublicationCompanies(user: User): Promise<Company[]> {
+    if (user.role !== 'company' && user.role !== 'admin') return []
+    if (apiRuntime.mode === 'live') {
+      const path = user.role === 'company' ? '/companies/mine' : '/companies'
+      const rows = await collectPages((params) => axiosInstance.get(path, { params }))
+      return rows.map(fromCompany).filter((item) => item.isVerified && !item.isBlocked)
+    }
+    const rows = await apiClient.getCompanies()
+    return rows.filter((item) =>
+      user.role === 'admin'
+        ? item.isVerified && !item.isBlocked
+        : item.id === user.companyProfile?.companyId,
+    )
+  },
+
   async getCompanies(): Promise<Company[]> {
     if (apiRuntime.mode === 'live') {
       const actor = JSON.parse(localStorage.getItem('uust_current_user') || 'null')
@@ -846,12 +929,12 @@ export const apiClient = {
             axiosInstance.get('/companies/mine', { params }),
           )),
         )
-      if (actor?.role === 'admin')
-        rows.push(
-          ...(await collectPages<any>((params) =>
-            axiosInstance.get('/companies/moderation', { params }),
-          )),
+      if (actor?.role === 'admin') {
+        const queues = await Promise.all(
+          (['pending', 'rejected', 'suspended'] as const).map(companyModerationRecords),
         )
+        rows.push(...queues.flat())
+      }
       return [...new Map(rows.map((d) => [d.company_id, d])).values()].map(fromCompany)
     }
     await delay(120)
@@ -880,13 +963,17 @@ export const apiClient = {
       )
     return mockServer.suspendCompany(id)
   },
-  async verifyCompany(id: string, status: boolean): Promise<Company> {
+  async restoreCompany(id: string): Promise<Company> {
+    if (apiRuntime.mode === 'live') return apiClient.verifyCompany(id, true)
+    return mockServer.suspendCompany(id, false)
+  },
+  async verifyCompany(id: string, status: boolean, comment = ''): Promise<Company> {
     if (apiRuntime.mode === 'live')
       return fromCompany(
         (
           await axiosInstance.patch(`/companies/${id}/moderation`, {
             status: status ? 'approved' : 'rejected',
-            comment: '',
+            comment,
           })
         ).data,
       )
@@ -1059,11 +1146,15 @@ export const apiClient = {
         read: !!d.read_at,
         createdAt: d.created_at,
         link:
-          d.resource_type === 'company_invitation' && d.resource_id
-            ? `/invitations/${d.resource_id}`
-            : d.resource_type === 'case' && d.resource_id
-              ? `/cases/${d.resource_id}`
-              : undefined,
+          d.resource_type === 'company_member_invitation' && d.resource_id
+            ? `/my-company?invitation=${encodeURIComponent(d.resource_id)}`
+            : d.resource_type === 'company_invitation' && d.resource_id
+              ? `/invitations/${d.resource_id}`
+              : d.resource_type === 'team_invitation' && d.resource_id
+                ? '/teams?invitation=' + encodeURIComponent('invitation:' + d.resource_id)
+                : d.resource_type === 'case' && d.resource_id
+                  ? `/cases/${d.resource_id}`
+                  : undefined,
       }))
     await delay(100)
     return mockServer.getNotifications(userId)

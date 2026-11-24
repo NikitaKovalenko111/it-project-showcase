@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import type { Execution } from '../types/execution'
+import type { CaseProject } from '../types/models'
 import { WorkspaceFiles } from './WorkspaceFiles'
 import { ExecutionComments } from './ExecutionComments'
-export function TeamDiscussion({ entries, caseId }: { entries: Execution[]; caseId: string }) {
+export function TeamDiscussion({
+  entries,
+  project,
+}: {
+  entries: Execution[]
+  project: CaseProject
+}) {
   const [selected, setSelected] = useState('')
   const entry = entries.find((item) => item.id === selected) || entries[0]
   return (
@@ -30,7 +37,7 @@ export function TeamDiscussion({ entries, caseId }: { entries: Execution[]; case
         <div key={entry.id}>
           <h3>{entry.name}</h3>
           <WorkspaceFiles entries={[entry]} />
-          <ExecutionComments executionId={entry.id} caseId={caseId} />
+          <ExecutionComments entry={entry} project={project} />
         </div>
       ) : (
         <p>Пока нет участников.</p>

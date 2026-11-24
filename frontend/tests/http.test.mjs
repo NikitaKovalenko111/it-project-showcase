@@ -81,3 +81,20 @@ test('event plan validation is displayed in Russian', async () => {
     /Перед отправкой на модерацию заполните план мероприятия/,
   )
 })
+
+test('feedback rate-limit errors preserve the server Retry-After value', async () => {
+  const { client, counts } = setup(429)
+  client.defaults.adapter = async (config) => {
+    throw new AxiosError('Rate limit', 'ERR_BAD_REQUEST', config, undefined, {
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: { 'Retry-After': '37' },
+      config,
+    })
+  }
+  await assert.rejects(client.post('/feedback', { body: 'Сообщение' }), {
+    status: 429,
+    retryAfter: '37',
+  })
+  assert.deepEqual(counts(), { refreshes: 0, clears: 0 })
+})

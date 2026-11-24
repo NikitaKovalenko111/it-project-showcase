@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios'
 type Options = {
   baseURL: string
   timeoutMs: number
@@ -9,8 +9,12 @@ type Options = {
   refreshTokens?: (token: string) => Promise<{ access_token: string; refresh_token: string }>
 }
 const messages: Record<string, string> = {
+  invalid_representative_profile:
+    'Укажите до 4 000 символов об опыте и до 2 000 символов о темах помощи.',
   event_plan_required:
     'Перед отправкой на модерацию заполните план мероприятия, расписание и сроки.',
+  nda_version_required:
+    'Откройте форму редактирования и сохраните текст NDA перед отправкой на модерацию.',
   event_round_not_open: 'Тур ещё не открыт.',
   event_round_already_submitted: 'Решение этого тура уже отправлено.',
   case_plan_changed: 'План изменился на сервере. Загрузите его заново.',
@@ -22,15 +26,21 @@ const messages: Record<string, string> = {
     'Нельзя изменить собственную роль, роль администратора или назначить студента без студенческого профиля.',
   auth_unavailable: 'Сервис авторизации временно недоступен. Повторите попытку позже.',
   invalid_credentials: 'Неверный логин или пароль.',
+  team_invitation_conflict: 'Приглашение уже отправлено и ожидает ответа.',
+  community_request_failed:
+    'Сервер не смог обработать запрос обсуждения. Попробуйте обновить страницу.',
   account_temporarily_locked: 'Слишком много попыток входа. Попробуйте позже.',
   account_blocked: 'Учётная запись заблокирована.',
   permission_denied: 'У вас нет доступа к этому действию.',
   report_conflict: 'По этому объекту уже есть открытая жалоба.',
   username_taken: 'Этот логин уже занят.',
+  pending_role_request_not_found: 'Заявка уже обработана или недоступна. Обновите очередь.',
+  company_name_taken: 'Компания с таким названием уже существует.',
   email_taken: 'Этот email уже зарегистрирован.',
 }
 
 const fields: Record<string, string> = {
+  full_name: 'ФИО',
   first_name: 'Имя',
   last_name: 'Фамилия',
   patronymic: 'Отчество',
@@ -139,7 +149,13 @@ export function createHttpClient(options: Options) {
                 ? `Ошибка API (${error.response.status})`
                 : 'Сервер недоступен. Проверьте подключение к API.'),
           ),
-          { status: error.response?.status, code: apiError?.code },
+          {
+            status: error.response?.status,
+            code: apiError?.code,
+            ...(error.response?.status === 429 && {
+              retryAfter: AxiosHeaders.from(error.response.headers).get('retry-after'),
+            }),
+          },
         ),
       )
     },

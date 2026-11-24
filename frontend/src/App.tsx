@@ -27,6 +27,8 @@ import { LoginPage } from './pages/LoginPage'
 import { WorkspaceListPage } from './pages/WorkspaceListPage'
 import { AccountPage } from './pages/AccountPage'
 import { RoleGuard } from './components/layout/RoleGuard'
+import { MyCompanyPage } from './pages/MyCompanyPage'
+import { apiRuntime } from './api/runtime'
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -63,6 +65,16 @@ export const App: React.FC = () => {
 
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="company/:id" element={<CompanyDetailPage />} />
+        {apiRuntime.mode === 'live' && (
+          <Route
+            path="my-company"
+            element={
+              <RoleGuard roles={['company']}>
+                <MyCompanyPage />
+              </RoleGuard>
+            }
+          />
+        )}
         <Route
           path="company-applications"
           element={
