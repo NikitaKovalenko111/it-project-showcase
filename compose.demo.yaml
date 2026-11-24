@@ -33,7 +33,8 @@ services:
   api:
     build: ./backend
     environment:
-      cors_allowed_origins: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:${SHOWCASE_DEMO_FRONTEND_PORT:-3006},http://127.0.0.1:${SHOWCASE_DEMO_FRONTEND_PORT:-3006}"
+      # The frontend proxies /api on its own origin for any published port.
+      cors_allowed_origins: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:3006,http://127.0.0.1:3006"
     networks:
       default:
         aliases: [server]
