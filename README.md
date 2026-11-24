@@ -206,8 +206,6 @@ VITE_API_TIMEOUT_MS=15000
 
 После изменения переменных перезапустите Vite. Можно взять за основу [frontend/.env.example](frontend/.env.example). Команда `npm run dev:integration` тоже использует реальный API и читает настройки режима Vite `integration`.
 
-**Состояние интеграционного Compose.** В `compose.integration.yaml` описаны PostgreSQL, MinIO и API. Файл ссылается на `backend/Dockerfile.integration`, которого в текущем репозитории нет. Используйте рабочий API демостенда или основного Compose как цель прокси Vite.
-
 ### Явный режим браузерных моков
 
 ```bash
